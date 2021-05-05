@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 from foundation.events import Event
-from src.catalog.src.domain.value_objects import CatalogReference, CatalogId, CollectionReference
+from product_catalog.catalog.src.domain.value_objects import CatalogReference, CatalogId, CollectionReference
 
 
 @dataclass(frozen=True)

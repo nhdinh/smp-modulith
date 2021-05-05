@@ -3,10 +3,12 @@
 import abc
 
 from sqlalchemy.engine import Connection
+from sqlalchemy.orm import sessionmaker, Session
 
 from foundation.events import EventBus
-from src.domain.entities.catalog import Catalog
-from src.domain.value_objects import CatalogReference
+from product_catalog.domain.entities.catalog import Catalog
+from product_catalog.domain.value_objects import CatalogReference
+from product_catalog.catalog_db import catalog_table
 
 
 class AbstractCatalogRepository(abc.ABC):
@@ -21,11 +23,18 @@ class AbstractCatalogRepository(abc.ABC):
 
 class SqlAlchemyCatalogRepository(AbstractCatalogRepository):
     def __init__(self, connection: Connection, event_bus: EventBus):
-        self._conn = connection
+        self._conn = connection  # type:Connection
         self._event_bus = event_bus
 
     def get(self, reference: CatalogReference) -> Catalog:
-        pass
+        sessionfactory = sessionmaker(bind=self._conn.engine)
+        session = sessionfactory()  # type:Session
+        rows = session.query(Catalog).filter(Catalog.reference == reference).all()
+
+        if not rows:
+            raise Exception("Not found")
+
+        return rows[0]
 
     def save(self, catalog: Catalog) -> None:
         pass

@@ -29,7 +29,7 @@ def source(api_key: str) -> str:
         f"{Request.url}/v1/tokens",
         auth=(api_key, ""),
         data={
-            "card[number]": "4242424242424242",  # test card number
+            "card[number]": "4242424242424242",  # tests card number
             "card[exp_month]": "12",
             "card[exp_year]": str(datetime.now().year + 2),
             "card[cvc]": "123",

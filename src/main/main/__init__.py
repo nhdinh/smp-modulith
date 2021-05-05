@@ -86,7 +86,7 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
 
 def _create_db_schema(engine: Engine) -> None:
     # Models has to be imported for metadata.create_all to discover them
-    from product_catalog.catalog_db import *
+    from product_catalog.catalog_db import collection_table, catalog_table, product_table  # noqa
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from web_app_models import Role, RolesUsers, User  # noqa

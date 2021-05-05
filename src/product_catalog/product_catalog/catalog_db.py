@@ -22,3 +22,9 @@ catalog_table = Table(
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime),
 )
+
+product_table = Table(
+    'product',
+    metadata,
+    Column('id', GUID, primary_key=True)
+)

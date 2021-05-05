@@ -48,7 +48,7 @@ def test_returns_list_of_auctions(client: FlaskClient) -> None:
 
 @pytest.fixture()
 def logged_in_client(client: FlaskClient) -> FlaskClient:
-    email, password = "test+bid+1@cleanarchitecture.io", "Dumm123!"
+    email, password = "tests+bid+1@cleanarchitecture.io", "Dumm123!"
     client.post(
         "/register",
         json={"email": email, "password": password},

@@ -6,9 +6,9 @@ from datetime import datetime
 from typing import List, Optional
 
 from foundation.events import EventMixin
-from src.catalog.src.domain.entities.collection import Collection
-from src.catalog.src.domain.events import CollectionCreated
-from src.catalog.src.domain.value_objects import CatalogId, CatalogReference, CollectionReference
+from product_catalog.catalog.src.domain.entities.collection import Collection
+from product_catalog.catalog.src.domain.events import CollectionCreated
+from product_catalog.catalog.src.domain.value_objects import CatalogId, CatalogReference, CollectionReference
 
 
 class Catalog(EventMixin):
