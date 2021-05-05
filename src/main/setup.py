@@ -17,6 +17,7 @@ setup(
         "foundation",
         "payments",
         "processes",
+        'product_catalog',
         "web_app_models",
     ],
 )

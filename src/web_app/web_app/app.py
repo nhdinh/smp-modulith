@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
+from web_app.blueprints.catalog import catalog_blueprint
 from web_app.blueprints.shipping import shipping_blueprint
 from web_app.json_encoder import JSONEncoder
 from web_app.security import setup as security_setup
@@ -21,6 +22,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     app.json_encoder = JSONEncoder
 
+    app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
     app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
     app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
 

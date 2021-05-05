@@ -4,7 +4,7 @@ services:
   app:
     build: .
     volumes:
-      - "./auctioning_platform/:/usr/src/app"
+      - "./src/:/usr/src/app"
     ports:
       - "5000:5000"
     environment:
@@ -16,7 +16,7 @@ services:
       EMAIL_PASSWORD: none
       EMAIL_FROM_NAME: Auctions
       EMAIL_FROM_ADDRESS: auctions@cleanarchitecture.io
-      DB_DSN: postgresql+psycopg2://postgres:cleanarchitecture@database/cleanarchitecture
+      DB_DSN: $ENV[DB_DSN]
       REDIS_HOST: redis
     depends_on:
       - database
