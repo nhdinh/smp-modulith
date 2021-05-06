@@ -10,3 +10,4 @@ db.sqlite3
 .eggs/
 .venv/
 .venv/*
+.env
