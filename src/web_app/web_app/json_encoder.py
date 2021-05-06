@@ -5,6 +5,7 @@ import json
 from foundation.value_objects import Money
 
 from auctions import AuctionDto
+from product_catalog.application.queries.product_catalog import CatalogDto
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -20,6 +21,15 @@ class JSONEncoder(json.JSONEncoder):
             "current_price": obj.current_price,
             "starting_price": obj.starting_price,
             "ends_at": obj.ends_at,
+        }
+
+    @default.register(CatalogDto)  # noqa: F811
+    def serialize_catalog_dto(self, obj: CatalogDto) -> object:
+        return {
+            'id': str(obj.id),
+            'reference': obj.reference,
+            'display_name': obj.display_name,
+            'disabled': obj.disabled,
         }
 
     @default.register(Money)  # noqa: F811

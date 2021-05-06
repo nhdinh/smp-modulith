@@ -1,5 +1,6 @@
 from typing import Optional
 
+from flasgger import Swagger
 from flask import Flask, Response, request
 from flask_injector import FlaskInjector
 from sqlalchemy.engine import Connection
@@ -67,5 +68,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     # has to be done after DB-hooks, because it relies on DB
     security_setup(app)
+
+    # enable swagger
+    # swagger = Swagger(app)
 
     return app

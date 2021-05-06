@@ -13,6 +13,7 @@ from db_infrastructure import metadata
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq
 from payments import Payments
 from processes import Processes
+from product_catalog_infrastructure import ProductCatalogInfrastructure
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 from web_app_models import User
@@ -67,6 +68,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             Shipping(),
             ShippingInfrastructure(),
             CustomerRelationship(),
+            ProductCatalogInfrastructure(),
             Payments(),
             Processes(),
         ],
@@ -84,12 +86,17 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
         dependency_injector.get(CustomerRelationshipFacade).update_customer(user.id, user.email)
 
 
+def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
+    # TODO: do something here to map the data table to model class
+    pass
+
+
 def _create_db_schema(engine: Engine) -> None:
     # Models has to be imported for metadata.create_all to discover them
-    from product_catalog.catalog_db import collection_table, catalog_table, product_table  # noqa
+    from product_catalog_infrastructure import collection_table, catalog_table, product_table  # noqa
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from web_app_models import Role, RolesUsers, User  # noqa
 
     # TODO: Use migrations for that
-    metadata.create_all(engine)
+    metadata.create_all(bind=engine)
