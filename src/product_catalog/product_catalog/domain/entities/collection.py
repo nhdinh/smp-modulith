@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from product_catalog.catalog.src.domain.value_objects import CollectionReference
+from product_catalog.domain.value_objects import CollectionReference
 
 
 @dataclass(unsafe_hash=True)

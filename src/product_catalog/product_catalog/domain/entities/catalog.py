@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
+import uuid
 from datetime import datetime
 
 from typing import List, Optional
 
 from foundation.events import EventMixin
-from product_catalog.catalog.src.domain.entities.collection import Collection
-from product_catalog.catalog.src.domain.events import CollectionCreated
-from product_catalog.catalog.src.domain.value_objects import CatalogId, CatalogReference, CollectionReference
+from product_catalog.domain.entities.collection import Collection
+from product_catalog.domain.events import CollectionCreatedEvent
+from product_catalog.domain.value_objects import CatalogId, CatalogReference, CollectionReference
 
 
 class Catalog(EventMixin):
@@ -49,7 +51,7 @@ class Catalog(EventMixin):
             )
         )
 
-        self._record_event(CollectionCreated(
+        self._record_event(CollectionCreatedEvent(
             reference=collection_reference,
             catalog_id=self.id,
             catalog_reference=self.reference
@@ -60,3 +62,13 @@ class Catalog(EventMixin):
 
     def __eq__(self, other: Catalog) -> bool:
         return isinstance(other, Catalog) and vars(self) == vars(other)
+
+    @staticmethod
+    def create(reference, display_name, **kwargs):
+        catalog = Catalog(
+            id=uuid.uuid4(),
+            reference=reference,
+            display_name=display_name
+        )
+
+        return catalog

@@ -6,11 +6,11 @@ from typing import Optional, List
 from uuid import UUID
 
 from product_catalog.domain.entities.catalog import Catalog
-from product_catalog_infrastructure.services.catalog_unit_of_work import CatalogUnitOfWork
+from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
 
 
 @dataclass
-class CreateCatalogInputDto:
+class CreatingCatalogRequest:
     reference: str
     display_name: str
     default_collection: Optional[str]
@@ -23,20 +23,20 @@ class CreatingCatalogResponse:
     reference: str
 
 
-class CreatingCatalogOutputBoundary(abc.ABC):
+class CreatingCatalogResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, output_dto: CreatingCatalogResponse) -> None:
+    def present(self, response_dto: CreatingCatalogResponse) -> None:
         raise NotImplementedError
 
 
 class CreateCatalog:
     def __init__(self,
-                 output_boundary: CreatingCatalogOutputBoundary,
+                 output_boundary: CreatingCatalogResponseBoundary,
                  uow: CatalogUnitOfWork) -> None:
         self._output_boundary = output_boundary
         self._uow = uow
 
-    def execute(self, input_dto: CreateCatalogInputDto) -> None:
+    def execute(self, input_dto: CreatingCatalogRequest) -> None:
         with self._uow as uow:
             try:
                 search_for_catalog = uow.session.query(Catalog).filter(Catalog.reference == input_dto.reference).count()

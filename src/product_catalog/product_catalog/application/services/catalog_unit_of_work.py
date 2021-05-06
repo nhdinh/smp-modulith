@@ -4,9 +4,8 @@ from foundation.uow import SqlAlchemyUnitOfWork
 
 
 class CatalogUnitOfWork(SqlAlchemyUnitOfWork):
-    def __init__(self):
-        super(CatalogUnitOfWork, self).__init__()
-
+    def __init__(self, sessionfactory):
+        super(CatalogUnitOfWork, self).__init__(sessionfactory=sessionfactory)
 
     def _collect_new_events(self):
         pass

@@ -1,6 +1,4 @@
 from typing import Optional
-
-from flasgger import Swagger
 from flask import Flask, Response, request
 from flask_injector import FlaskInjector
 from sqlalchemy.engine import Connection
@@ -9,7 +7,7 @@ from sqlalchemy.orm import Session
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
-from web_app.blueprints.catalog import catalog_blueprint
+from web_app.blueprints.catalog import catalog_blueprint, ProductCatalogAPI
 from web_app.blueprints.shipping import shipping_blueprint
 from web_app.json_encoder import JSONEncoder
 from web_app.security import setup as security_setup
@@ -38,7 +36,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         app.config[key] = value
 
     app_context = bootstrap_app()
-    FlaskInjector(app, modules=[AuctionsWeb()], injector=app_context.injector)
+    FlaskInjector(app, modules=[AuctionsWeb(), ProductCatalogAPI()], injector=app_context.injector)
     app.injector = app_context.injector
 
     @app.before_request

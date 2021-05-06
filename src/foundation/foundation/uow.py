@@ -57,6 +57,10 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     def _collect_new_events(self):
         raise NotImplementedError
 
+    @property
+    def session(self):
+        return self._session
+
 
 class InjectorUnitOfWork(SqlAlchemyUnitOfWork):
     def __init__(self, injector: Injector, sessionfactory) -> None:

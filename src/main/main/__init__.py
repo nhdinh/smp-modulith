@@ -13,7 +13,8 @@ from db_infrastructure import metadata
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq
 from payments import Payments
 from processes import Processes
-from product_catalog_infrastructure import ProductCatalogInfrastructure
+from product_catalog import ProductCatalogModule
+from product_catalog_infrastructure import ProductCatalogInfrastructureModule
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 from web_app_models import User
@@ -68,7 +69,8 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             Shipping(),
             ShippingInfrastructure(),
             CustomerRelationship(),
-            ProductCatalogInfrastructure(),
+            ProductCatalogModule(),
+            ProductCatalogInfrastructureModule(),
             Payments(),
             Processes(),
         ],
