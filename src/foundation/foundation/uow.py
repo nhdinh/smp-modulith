@@ -60,15 +60,3 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     @property
     def session(self):
         return self._session
-
-
-class InjectorUnitOfWork(SqlAlchemyUnitOfWork):
-    def __init__(self, injector: Injector, sessionfactory) -> None:
-        # TODO: check if do we need this class? This class is for what? Setup the injector?
-        super(InjectorUnitOfWork, self).__init__(sessionfactory=sessionfactory)
-
-        self._injector = injector
-
-    @abc.abstractmethod
-    def _collect_new_events(self):
-        raise NotImplementedError

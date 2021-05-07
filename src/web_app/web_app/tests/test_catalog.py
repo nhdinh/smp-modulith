@@ -5,20 +5,31 @@ import uuid
 import factory
 import injector
 import pytest
+from faker.utils.text import slugify
+from flask import jsonify
 from flask.testing import FlaskClient
 
 from main.modules import RequestScope
-from product_catalog import BeginningCatalogRequest, BeginningCatalog
+from product_catalog import TestSampleCatalog, MakeTestSampleCatalogUC
+from product_catalog.application.uc.create_catalog import CreatingCatalogRequest
 from product_catalog.domain.value_objects import CatalogReference
 
 
-class BeginningCatalogRequestFactory(factory.Factory):
+class TestSampleCatalogFactory(factory.Factory):
     class Meta:
-        model = BeginningCatalogRequest
+        model = TestSampleCatalog
 
     id = uuid.uuid4()
-    reference = str(uuid.uuid4())
+    reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
     display_name = factory.Faker('name')
+
+
+class CreatingCatalogRequestFactory(factory.Factory):
+    class Meta:
+        model = CreatingCatalogRequest
+
+    display_name = factory.Faker('name')
+    reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
 
 
 @pytest.fixture()
@@ -34,8 +45,8 @@ def logged_in_client(client: FlaskClient) -> FlaskClient:
 @pytest.fixture()
 def example_catalog(container: injector.Injector) -> CatalogReference:
     with container.get(RequestScope):
-        uc = container.get(BeginningCatalog)
-        dto = BeginningCatalogRequestFactory.build()
+        uc = container.get(MakeTestSampleCatalogUC)
+        dto = TestSampleCatalogFactory.build()
         uc.execute(dto)
 
     return str(dto.reference)
@@ -48,6 +59,33 @@ def test_return_single_catalog(client: FlaskClient, example_catalog: CatalogRefe
     assert response.json['reference'] == example_catalog
 
 
-def test_create_catalog(logged_in_client: FlaskClient, example_catalog: CatalogReference) -> None:
-    response = logged_in_client.post(f'/catalog', headers={})
-    assert 1==1
+def test_creating_catalog_failed_unauthorized(client: FlaskClient) -> None:
+    dto = CreatingCatalogRequestFactory.build()
+    json_data = dto.__dict__
+    response = client.post('/catalog', json=json_data)
+
+    assert response.status_code == 403
+
+
+def test_creating_catalog_success(logged_in_client: FlaskClient) -> None:
+    dto = CreatingCatalogRequestFactory.build()
+    json_data = dto.__dict__
+    response = logged_in_client.post('/catalog', json=json_data)
+
+    assert response.status_code == 201
+
+    assert 'id' in response.json
+    assert response.json['id'] is not None
+
+    assert 'reference' in response.json
+    assert response.json['reference'] == dto.reference
+
+
+def test_creating_catalog_failed_with_duplicate_reference(logged_in_client: FlaskClient,
+                                                          example_catalog: CatalogReference) -> None:
+    dto = CreatingCatalogRequestFactory.build()
+    dto.reference = example_catalog
+    response = logged_in_client.post('/catalog', json=dto.__dict__)
+
+    assert response.status_code == 400
+    assert response.json['messages'] == ['Catalog has been existed']

@@ -4,8 +4,8 @@ import injector
 
 from product_catalog.application.repositories.catalog_repository import SqlAlchemyCatalogRepository
 from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
-from product_catalog.application.uc.begin_catalog import BeginningCatalog, BeginningCatalogRequest
-from product_catalog.application.uc.create_catalog import CreateCatalog, CreatingCatalogResponseBoundary
+from product_catalog.application.uc.begin_catalog import MakeTestSampleCatalogUC, TestSampleCatalog
+from product_catalog.application.uc.create_catalog import CreateCatalogUC, CreatingCatalogResponseBoundary
 from product_catalog.domain.value_objects import CollectionReference, CatalogId, CatalogReference
 
 __all__ = [
@@ -18,18 +18,18 @@ __all__ = [
     # unit of work
     'CatalogUnitOfWork',
     # usecase(s)
-    'BeginningCatalog',
+    'MakeTestSampleCatalogUC',
     # input request dto
-    'BeginningCatalogRequest',
+    'TestSampleCatalog',
     # output request dto
 ]
 
 
 class ProductCatalogModule(injector.Module):
     @injector.provider
-    def create_catalog_uc(self, boundary: CreatingCatalogResponseBoundary, uow: CatalogUnitOfWork) -> CreateCatalog:
-        return CreateCatalog(boundary, uow)
+    def create_catalog_uc(self, boundary: CreatingCatalogResponseBoundary, uow: CatalogUnitOfWork) -> CreateCatalogUC:
+        return CreateCatalogUC(boundary, uow)
 
     @injector.provider
-    def beginning_catalog_uc(self, uow: CatalogUnitOfWork) -> BeginningCatalog:
-        return BeginningCatalog(catalog_uow=uow)
+    def beginning_catalog_uc(self, uow: CatalogUnitOfWork) -> MakeTestSampleCatalogUC:
+        return MakeTestSampleCatalogUC(catalog_uow=uow)

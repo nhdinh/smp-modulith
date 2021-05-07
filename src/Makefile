@@ -8,8 +8,7 @@ endef
 
 .PHONY: dev
 dev:
-	#pip install --use-feature=2020-resolver -r requirements.txt -r requirements-dev.txt
-	pip install --upgrade -r requirements.txt -r requirements-dev.txt
+	pip install --force --upgrade -r requirements.txt -r requirements-dev.txt
 	$(foreach lib,$(libs),$(call install_dev,$(lib)))
 
 .PHONY: freeze-deps

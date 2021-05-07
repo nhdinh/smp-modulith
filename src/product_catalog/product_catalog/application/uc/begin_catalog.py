@@ -9,18 +9,18 @@ from product_catalog.application.services.catalog_unit_of_work import CatalogUni
 
 
 @dataclass
-class BeginningCatalogRequest:
+class TestSampleCatalog:
     id: UUID
     reference: CatalogReference
     display_name: str
     disabled: bool = False
 
 
-class BeginningCatalog:
+class MakeTestSampleCatalogUC:
     def __init__(self, catalog_uow: CatalogUnitOfWork) -> None:
-        self.uow = catalog_uow
+        self.uow = catalog_uow  # type:CatalogUnitOfWork
 
-    def execute(self, request_dto: BeginningCatalogRequest) -> None:
+    def execute(self, request_dto: TestSampleCatalog) -> None:
         with self.uow as uow:
             catalog = Catalog.create(
                 id=request_dto.id,
