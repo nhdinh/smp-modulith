@@ -9,10 +9,9 @@ from sqlalchemy import event as sqlalchemy_event
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import Session
 
+from customer_relationship import CustomerRelationshipConfig
 from foundation.events import EventBus, InjectorEventBus, RunAsyncHandler
 from foundation.locks import Lock, LockFactory
-
-from customer_relationship import CustomerRelationshipConfig
 from main.async_handler_task import async_handler_generic_task
 from main.redis import RedisLock
 from payments import PaymentsConfig

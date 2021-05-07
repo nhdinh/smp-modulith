@@ -2,12 +2,11 @@ from typing import Any, Dict
 
 from sqlalchemy.engine import Connection
 
-from foundation.value_objects import Money
-
 from customer_relationship import emails
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.email_sender import EmailSender
 from customer_relationship.models import customers
+from foundation.value_objects import Money
 
 
 class CustomerRelationshipFacade:

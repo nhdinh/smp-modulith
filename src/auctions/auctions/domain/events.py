@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from auctions.domain.value_objects import AuctionId, BidderId
 from foundation.events import Event
 from foundation.value_objects import Money
-
-from auctions.domain.value_objects import AuctionId, BidderId
 
 
 @dataclass(frozen=True)

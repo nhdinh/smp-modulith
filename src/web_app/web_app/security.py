@@ -5,7 +5,7 @@ from flask_security import Security
 from flask_security.datastore import UserDatastore
 from sqlalchemy.orm import Session
 
-from web_app_models import User
+from web_app_models import User, Role
 
 __all__ = ["setup", "User"]
 
@@ -41,4 +41,4 @@ class SaUserDatastore(UserDatastore):
 
 
 def setup(app: Flask) -> None:
-    Security().init_app(app, SaUserDatastore(User, None))
+    Security().init_app(app, SaUserDatastore(User, Role))

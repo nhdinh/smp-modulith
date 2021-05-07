@@ -4,16 +4,18 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import List, Optional, Set
 
-from typing import List, Optional
-
+from foundation.entity import Entity
 from foundation.events import EventMixin
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.events import CollectionCreatedEvent
+from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
+from product_catalog.domain.rules.reference_must_not_be_empty_rule import ReferenceMustNotBeEmptyRule
 from product_catalog.domain.value_objects import CatalogId, CatalogReference, CollectionReference
 
 
-class Catalog(EventMixin):
+class Catalog(EventMixin, Entity):
     def __init__(
             self,
             id: CatalogId,
@@ -22,18 +24,29 @@ class Catalog(EventMixin):
     ):
         super(Catalog, self).__init__()
 
-        # TODO: check rule(s) on:
-        # collection_reference (not_null; well_formed);
-        # display_name (not_null)
+        self.check_rule(ReferenceMustNotBeEmptyRule(reference=reference))
+        self.check_rule(DisplayNameMustNotBeEmptyRule(dn=display_name))
 
         self.id = id
-        self.reference = reference
+        self._reference = reference
         self.display_name = display_name
 
-        self._collections: List[Collection] = []
+        self._collections: Set[Collection] = set()
         self._default_collection: Optional[Collection] = None
 
         self._created_at = datetime.now()
+
+    @property
+    def reference(self) -> CatalogReference:
+        return self.reference
+
+    @property
+    def collections(self) -> Set[Collection]:
+        return self._collections
+
+    @property
+    def default_collection(self) -> Optional[Collection]:
+        return self._default_collection
 
     def create_child_collection(
             self,
@@ -44,7 +57,7 @@ class Catalog(EventMixin):
         # collection_reference (not_null; well_formed);
         # display_name (not_null)
 
-        self._collections.append(
+        self._collections.add(
             Collection(
                 reference=collection_reference,
                 display_name=display_name

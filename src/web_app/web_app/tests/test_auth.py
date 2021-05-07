@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from flask import testing
 import pytest
+from flask import testing
 from sqlalchemy.engine import Connection
 
 from customer_relationship import customers

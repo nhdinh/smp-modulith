@@ -1,7 +1,7 @@
-from flask import Blueprint, Response, abort, jsonify, make_response, request
 import flask_injector
-from flask_login import current_user
 import injector
+from flask import Blueprint, Response, abort, jsonify, make_response, request
+from flask_login import current_user
 
 from auctions import (
     AuctionId,

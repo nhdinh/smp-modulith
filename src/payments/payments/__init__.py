@@ -2,7 +2,6 @@ import injector
 from sqlalchemy.engine import Connection
 
 from foundation.events import AsyncEventHandlerProvider, AsyncHandler, EventBus
-
 from payments.config import PaymentsConfig
 from payments.events import PaymentCaptured, PaymentCharged, PaymentFailed, PaymentStarted
 from payments.facade import PaymentsFacade

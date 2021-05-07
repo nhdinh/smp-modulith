@@ -9,3 +9,7 @@ class CatalogUnitOfWork(SqlAlchemyUnitOfWork):
 
     def _collect_new_events(self):
         pass
+
+    @property
+    def session(self):
+        return self._session

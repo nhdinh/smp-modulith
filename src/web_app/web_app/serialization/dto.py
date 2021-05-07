@@ -5,7 +5,6 @@ from marshmallow import Schema, exceptions
 from marshmallow_dataclass import class_schema
 
 from foundation.value_objects import Money
-
 from web_app.serialization.fields import Dollars
 
 TDto = TypeVar("TDto")

@@ -4,9 +4,8 @@ import injector
 from sqlalchemy.engine import Connection
 from typing_extensions import Protocol
 
-from foundation.events import AsyncEventHandlerProvider, AsyncHandler, Event
-
 from customer_relationship import CustomerRelationshipFacade
+from foundation.events import AsyncEventHandlerProvider, AsyncHandler, Event
 from payments import PaymentsFacade
 from processes.paying_for_won_item import PayingForWonItem, PayingForWonItemHandler
 from processes.repository import ProcessManagerDataRepo

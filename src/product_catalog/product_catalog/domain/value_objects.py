@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import NewType
 from uuid import UUID
 
-CatalogId = UUID
+CatalogId = NewType("CatalogId", tp=UUID)
 CatalogReference = str
 
 CollectionReference = str
 
-ProductId = UUID
+ProductId = NewType("ProductId", tp=UUID)
 ProductReference = str

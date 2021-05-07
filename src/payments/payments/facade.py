@@ -5,7 +5,6 @@ from sqlalchemy.engine import Connection
 
 from foundation.events import EventBus
 from foundation.value_objects import Money
-
 from payments import dao
 from payments.api import ApiConsumer, PaymentFailedError
 from payments.config import PaymentsConfig

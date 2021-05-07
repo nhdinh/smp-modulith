@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 import abc
 from typing import Optional
 
-from injector import Injector
 from sqlalchemy.orm import Session
 
 
@@ -39,9 +39,9 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self._sf = sessionfactory
         self._session = None  # type:Optional[Session]
 
-    def __enter__(self):
+    def __enter__(self) -> SqlAlchemyUnitOfWork:
         self._session = self._sf()
-        return super(SqlAlchemyUnitOfWork, self).__enter__()
+        return self
 
     def __exit__(self, *kwargs):
         super(SqlAlchemyUnitOfWork, self).__exit__(*kwargs)

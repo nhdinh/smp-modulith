@@ -1,7 +1,7 @@
 import dataclasses
+import json
 from datetime import datetime
 from enum import Enum
-import json
 from typing import Dict, Tuple, Type, TypeVar
 from uuid import UUID
 

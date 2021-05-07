@@ -1,4 +1,5 @@
 from typing import Optional
+
 from flask import Flask, Response, request
 from flask_injector import FlaskInjector
 from sqlalchemy.engine import Connection

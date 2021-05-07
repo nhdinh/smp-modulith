@@ -6,13 +6,12 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.engine import Connection, Engine, RowProxy
 
-from foundation.events import Event, EventBus
-from foundation.value_objects.factories import get_dollars
-
 from auctions.domain.entities import Auction, Bid
 from auctions_infrastructure import auctions, bids
 from auctions_infrastructure.repositories import SqlAlchemyAuctionsRepo
 from db_infrastructure import Base
+from foundation.events import Event, EventBus
+from foundation.value_objects.factories import get_dollars
 
 
 @pytest.fixture(scope="session")

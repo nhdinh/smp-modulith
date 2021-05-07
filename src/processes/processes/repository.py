@@ -5,9 +5,8 @@ from uuid import UUID
 from sqlalchemy import Column, Table, Text
 from sqlalchemy.engine import Connection
 
-from foundation import serializing
-
 from db_infrastructure import GUID, metadata
+from foundation import serializing
 
 T = TypeVar("T")
 

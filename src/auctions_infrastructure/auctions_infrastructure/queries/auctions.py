@@ -4,11 +4,10 @@ from sqlalchemy import func
 # from sqlalchemy.engine import RowProxy
 from sqlalchemy.engine.row import RowProxy
 
-from foundation.value_objects.factories import get_dollars
-
 from auctions.application.queries import AuctionDto, GetActiveAuctions, GetSingleAuction
 from auctions_infrastructure import auctions
 from auctions_infrastructure.queries.base import SqlQuery
+from foundation.value_objects.factories import get_dollars
 
 
 class SqlGetActiveAuctions(GetActiveAuctions, SqlQuery):

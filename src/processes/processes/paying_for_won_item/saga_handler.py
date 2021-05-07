@@ -2,11 +2,10 @@ import uuid
 
 import injector
 
+from auctions import AuctionEnded
 from foundation.events import Event
 from foundation.locks import LockFactory
 from foundation.method_dispatch import method_dispatch
-
-from auctions import AuctionEnded
 from payments import PaymentCaptured
 from processes.paying_for_won_item import PayingForWonItem, PayingForWonItemData
 from processes.repository import ProcessManagerDataRepo

@@ -1,5 +1,5 @@
-from typing import Any, Optional
 import uuid
+from typing import Any, Optional
 
 from sqlalchemy import MetaData
 from sqlalchemy.dialects.postgresql import UUID
@@ -20,6 +20,8 @@ class GUID(TypeDecorator):
     """
 
     impl = CHAR
+
+    cache_ok = True
 
     def load_dialect_impl(self, dialect: Any) -> Any:
         if dialect.name == "postgresql":

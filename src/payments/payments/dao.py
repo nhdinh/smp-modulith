@@ -6,7 +6,6 @@ from uuid import UUID
 from sqlalchemy.engine import Connection
 
 from foundation.value_objects import Money, factories
-
 from payments.models import payments
 
 

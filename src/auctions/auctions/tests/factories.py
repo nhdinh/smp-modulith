@@ -1,8 +1,7 @@
 import factory
 
-from foundation.value_objects.factories import get_dollars
-
 from auctions.domain.entities import Auction
+from foundation.value_objects.factories import get_dollars
 
 
 class AuctionFactory(factory.Factory):

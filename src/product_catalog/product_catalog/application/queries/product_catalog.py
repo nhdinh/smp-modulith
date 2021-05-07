@@ -23,7 +23,7 @@ class GetAllCatalogsQuery(abc.ABC):
 
 class GetCatalogQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, reference: str) -> Optional[CatalogDto]:
+    def query(self, param: str) -> Optional[CatalogDto]:
         pass
 
 

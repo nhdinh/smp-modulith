@@ -6,7 +6,6 @@ import factory
 import injector
 import pytest
 from faker.utils.text import slugify
-from flask import jsonify
 from flask.testing import FlaskClient
 
 from main.modules import RequestScope
@@ -32,14 +31,14 @@ class CreatingCatalogRequestFactory(factory.Factory):
     reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def logged_in_client(client: FlaskClient) -> FlaskClient:
     email, password = "tests+bid+1@cleanarchitecture.io", "Dumm123!"
     client.post(
         "/register",
         json={"email": email, "password": password},
     )
-    return client
+    yield client
 
 
 @pytest.fixture()
@@ -67,7 +66,9 @@ def test_creating_catalog_failed_unauthorized(client: FlaskClient) -> None:
     assert response.status_code == 403
 
 
-def test_creating_catalog_success(logged_in_client: FlaskClient) -> None:
+def test_creating_catalog_success(
+        logged_in_client: FlaskClient
+) -> None:
     dto = CreatingCatalogRequestFactory.build()
     json_data = dto.__dict__
     response = logged_in_client.post('/catalog', json=json_data)
@@ -81,11 +82,14 @@ def test_creating_catalog_success(logged_in_client: FlaskClient) -> None:
     assert response.json['reference'] == dto.reference
 
 
-def test_creating_catalog_failed_with_duplicate_reference(logged_in_client: FlaskClient,
-                                                          example_catalog: CatalogReference) -> None:
+def test_creating_catalog_failed_with_duplicate_reference(
+        logged_in_client: FlaskClient,
+        example_catalog: CatalogReference
+) -> None:
     dto = CreatingCatalogRequestFactory.build()
     dto.reference = example_catalog
     response = logged_in_client.post('/catalog', json=dto.__dict__)
 
     assert response.status_code == 400
-    assert response.json['messages'] == ['Catalog has been existed']
+    # assert 'Catalog has been existed' in response.json['messages']
+    assert '(sqlite3.IntegrityError) UNIQUE constraint failed: catalog.reference' in response.json['messages']

@@ -1,9 +1,9 @@
 import os
 
-from _pytest.tmpdir import TempPathFactory
-from flask import Flask, testing
 import injector
 import pytest
+from _pytest.tmpdir import TempPathFactory
+from flask import Flask, testing
 from sqlalchemy.engine import Connection, create_engine
 
 from web_app.app import create_app
@@ -49,7 +49,7 @@ def container(app: Flask) -> injector.Injector:
     return app.injector  # type: ignore
 
 
-@pytest.fixture()
+@pytest.fixture(scope='module')
 def client(app: Flask) -> testing.FlaskClient:
     return app.test_client()
 

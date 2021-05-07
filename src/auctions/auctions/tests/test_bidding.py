@@ -2,12 +2,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 from unittest.mock import Mock, call
 
-from freezegun import freeze_time
 import pytest
 import pytz
-
-from foundation.events import EventBus
-from foundation.value_objects.factories import get_dollars
+from freezegun import freeze_time
 
 from auctions import BeginningAuction, BidderHasBeenOverbid, PlacingBid, WinningBidPlaced
 from auctions.application.repositories import AuctionsRepository
@@ -18,6 +15,8 @@ from auctions.domain.exceptions import BidOnEndedAuction
 from auctions.domain.value_objects import AuctionId
 from auctions.tests.factories import AuctionFactory
 from auctions.tests.in_memory_repo import InMemoryAuctionsRepo
+from foundation.events import EventBus
+from foundation.value_objects.factories import get_dollars
 
 
 class PlacingBidOutputBoundaryFake(PlacingBidOutputBoundary):

@@ -1,10 +1,9 @@
+import json
 from datetime import datetime
 from functools import singledispatchmethod
-import json
-
-from foundation.value_objects import Money
 
 from auctions import AuctionDto
+from foundation.value_objects import Money
 from product_catalog.application.queries.product_catalog import CatalogDto
 
 

@@ -3,12 +3,9 @@
 import abc
 from dataclasses import dataclass
 from typing import Optional, List
-from uuid import UUID
 
-from flask import Response
-
-from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
+from product_catalog.domain.entities.catalog import Catalog
 
 
 @dataclass
@@ -52,7 +49,7 @@ class CreateCatalogUC:
                 uow.session.add(catalog)
 
                 # output dto
-                output_dto = CreatingCatalogResponse(id=str(catalog.id), reference=catalog.reference)
+                output_dto = CreatingCatalogResponse(id=str(catalog.id), reference=catalog._reference)
                 self._output_boundary.present(output_dto)
 
                 uow.commit()

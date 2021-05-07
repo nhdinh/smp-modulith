@@ -1,15 +1,14 @@
+import uuid
 from typing import Any, Dict
 from unittest.mock import Mock, patch
-import uuid
 
-from _pytest.fixtures import SubRequest
 import pytest
+from _pytest.fixtures import SubRequest
 from sqlalchemy.engine import Connection, Engine, RowProxy
 
+from db_infrastructure import Base
 from foundation.events import EventBus
 from foundation.value_objects.factories import get_dollars
-
-from db_infrastructure import Base
 from payments.api import ApiConsumer
 from payments.api.exceptions import PaymentFailedError
 from payments.config import PaymentsConfig
