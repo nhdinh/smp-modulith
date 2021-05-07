@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from foundation.events import EventBus
 from product_catalog import CatalogUnitOfWork, SqlAlchemyCatalogRepository
 from product_catalog.application.queries.product_catalog import GetAllCatalogsQuery, GetCatalogQuery
+from product_catalog_infrastructure.adapter import catalog_db
 from product_catalog_infrastructure.adapter.catalog_db import collection_table, product_table, catalog_table
 from product_catalog_infrastructure.queries.product_catalog import SqlGetAllCatalogsQuery, SqlGetCatalogQuery
 
@@ -20,6 +21,10 @@ __all__ = [
 
 
 class ProductCatalogInfrastructureModule(injector.Module):
+    @injector.provider
+    def catalog_db(self) -> catalog_db:
+        return catalog_db
+
     @injector.provider
     def get_all_catalogs(self, conn: Connection) -> GetAllCatalogsQuery:
         return SqlGetAllCatalogsQuery(conn)

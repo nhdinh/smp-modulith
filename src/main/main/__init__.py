@@ -15,6 +15,7 @@ from payments import Payments
 from processes import Processes
 from product_catalog import ProductCatalogModule
 from product_catalog_infrastructure import ProductCatalogInfrastructureModule
+from product_catalog_infrastructure.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 from web_app_models import User
@@ -50,6 +51,8 @@ def bootstrap_app() -> AppContext:
     engine = create_engine(os.environ["DB_DSN"])
     dependency_injector = _setup_dependency_injection(settings, engine)
     _setup_orm_events(dependency_injector)
+
+    _setup_orm_mappings(dependency_injector)
 
     _create_db_schema(engine)  # TEMPORARY
 
@@ -90,7 +93,7 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
 
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     # TODO: do something here to map the data table to model class
-    pass
+    catalog_db.start_mappers()
 
 
 def _create_db_schema(engine: Engine) -> None:

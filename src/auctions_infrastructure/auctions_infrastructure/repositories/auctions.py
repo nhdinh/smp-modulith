@@ -1,7 +1,8 @@
 from typing import List
 
 import pytz
-from sqlalchemy.engine import Connection, RowProxy
+from sqlalchemy.engine import Connection
+from sqlalchemy.engine.row import RowProxy
 
 from foundation.events import EventBus
 from foundation.value_objects.factories import get_dollars

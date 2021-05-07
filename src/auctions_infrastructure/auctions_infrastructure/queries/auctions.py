@@ -1,7 +1,8 @@
 from typing import List
 
 from sqlalchemy import func
-from sqlalchemy.engine import RowProxy
+# from sqlalchemy.engine import RowProxy
+from sqlalchemy.engine.row import RowProxy
 
 from foundation.value_objects.factories import get_dollars
 

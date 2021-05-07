@@ -3,10 +3,10 @@
 import uuid
 from typing import List, Optional
 
-from sqlalchemy.engine import RowProxy
+from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
-from product_catalog.application.queries.product_catalog import GetAllCatalogsQuery, CatalogDto, GetCatalogQuery
+from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, GetAllCatalogsQuery
 from product_catalog_infrastructure import catalog_table
 
 

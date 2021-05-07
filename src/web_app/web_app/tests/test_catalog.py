@@ -35,12 +35,7 @@ def logged_in_client(client: FlaskClient) -> FlaskClient:
 def example_catalog(container: injector.Injector) -> CatalogReference:
     with container.get(RequestScope):
         uc = container.get(BeginningCatalog)
-        # dto = BeginningCatalogRequestFactory.build()
-        dto = BeginningCatalogRequest(
-            id=uuid.uuid4(),
-            reference='example_catalog',
-            display_name='Example Catalog'
-        )
+        dto = BeginningCatalogRequestFactory.build()
         uc.execute(dto)
 
     return str(dto.reference)
@@ -51,3 +46,8 @@ def test_return_single_catalog(client: FlaskClient, example_catalog: CatalogRefe
     assert response.status_code == 200
     assert type(response.json) == dict
     assert response.json['reference'] == example_catalog
+
+
+def test_create_catalog(logged_in_client: FlaskClient, example_catalog: CatalogReference) -> None:
+    response = logged_in_client.post(f'/catalog', headers={})
+    assert 1==1
