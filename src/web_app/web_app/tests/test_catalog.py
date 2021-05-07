@@ -32,7 +32,7 @@ class CreatingCatalogRequestFactory(factory.Factory):
     reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def logged_in_client(client: FlaskClient) -> FlaskClient:
     email, password = "tests+bid+1@cleanarchitecture.io", "Dumm123!"
     client.post(
