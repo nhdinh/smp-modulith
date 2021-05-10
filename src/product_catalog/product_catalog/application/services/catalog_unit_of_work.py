@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 from sqlalchemy.orm import Session
 
 from foundation.uow import SqlAlchemyUnitOfWork

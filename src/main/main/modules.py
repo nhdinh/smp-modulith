@@ -24,7 +24,7 @@ class RequestScope(injector.Scope):
         self._locals = threading.local()
 
     def enter(self) -> None:
-        assert not hasattr(self._locals, self.REGISTRY_KEY)
+        # assert not hasattr(self._locals, self.REGISTRY_KEY)
         setattr(self._locals, self.REGISTRY_KEY, {})
 
     def exit(self) -> None:

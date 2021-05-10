@@ -57,3 +57,11 @@ def test_creating_product_success_with_no_parent_will_set_default_collection(log
 
     assert 'product_id' in response.json
     assert response.json['product_id'] is not None
+
+    assert response.json['reference'] == product_dto.reference
+
+    # query catalog data
+    response = logged_in_client.get(f'/catalog/{default_catalog.reference}')
+    assert response.status_code == 200
+    assert type(response.json) == dict
+    assert response.json['reference'] == default_catalog.reference

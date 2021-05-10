@@ -17,17 +17,17 @@ class CreatingCollectionRequestFactory(factory.Factory):
 
 
 def test_creating_collection_failed_unauthorized(client: FlaskClient, example_catalog: CatalogReference) -> None:
-    dto = CreatingCollectionRequestFactory.build()
+    dto = CreatingCollectionRequestFactory.build(catalog_reference=example_catalog)
     json_data = dto.__dict__
-    response = client.post(f'/catalog/{example_catalog}', json=json_data)
+    response = client.post(f'/catalog/{example_catalog}/collections', json=json_data)
 
     assert response.status_code == 403
 
 
 def test_creating_collection_success(example_catalog: CatalogReference, logged_in_client: FlaskClient) -> None:
-    dto = CreatingCollectionRequestFactory.build()
+    dto = CreatingCollectionRequestFactory.build(catalog_reference=example_catalog)
     json_data = dto.__dict__
-    response = logged_in_client.post(f'/catalog/{example_catalog}', json=json_data)
+    response = logged_in_client.post(f'/catalog/{example_catalog}/collections', json=json_data)
 
     assert response.status_code == 201
 

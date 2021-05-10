@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 
 import factory
 from faker.utils.text import slugify

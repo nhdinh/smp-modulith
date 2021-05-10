@@ -18,7 +18,7 @@ class SqlAlchemyAuctionsRepo(AuctionsRepository):
         self._event_bus = event_bus
 
     def get(self, auction_id: AuctionId) -> Auction:
-        row = self._conn.execute(auctions.select().where(auctions.c._catalog_id == auction_id)).first()
+        row = self._conn.execute(auctions.select().where(auctions.c.catalog_id == auction_id)).first()
         if not row:
             raise Exception("Not found")
 
@@ -44,17 +44,17 @@ class SqlAlchemyAuctionsRepo(AuctionsRepository):
             "ends_at": auction.ends_at,
             "ended": auction._ended,
         }
-        update_result = self._conn.execute(auctions.update(values=raw_auction, whereclause=auctions.c._catalog_id == auction.id))
+        update_result = self._conn.execute(auctions.update(values=raw_auction, whereclause=auctions.c.catalog_id == auction.id))
         if update_result.rowcount != 1:
             self._conn.execute(auctions.insert(values=dict(raw_auction, id=auction.id)))
 
         for bid in auction.bids:
-            if bid._catalog_id:
+            if bid.catalog_id:
                 continue
             result = self._conn.execute(
                 bids.insert(values={"auction_id": auction.id, "amount": bid.amount.amount, "bidder_id": bid.bidder_id})
             )
-            (bid._catalog_id,) = result.inserted_primary_key
+            (bid.catalog_id,) = result.inserted_primary_key
 
         if auction.withdrawn_bids_ids:
             self._conn.execute(bids.delete(whereclause=bids.c._catalog_id.in_(auction.withdrawn_bids_ids)))

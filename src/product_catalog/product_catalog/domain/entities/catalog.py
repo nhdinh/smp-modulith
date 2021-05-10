@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
 from typing import Optional, Set
 
@@ -15,7 +14,7 @@ from product_catalog.domain.entities.product import Product
 from product_catalog.domain.events import CollectionCreatedEvent
 from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
 from product_catalog.domain.rules.reference_must_not_be_empty_rule import ReferenceMustNotBeEmptyRule
-from product_catalog.domain.value_objects import CatalogId, CatalogReference, CollectionReference
+from product_catalog.domain.value_objects import CatalogReference, CollectionReference
 
 
 class Catalog(EventMixin, Entity):
@@ -98,9 +97,23 @@ class Catalog(EventMixin, Entity):
     def create(reference, display_name, **kwargs):
         catalog = Catalog(
             reference=reference,
-            display_name=display_name
+            display_name=display_name,
         )
 
+        # check if there if settings for new collection, create it
+        default_collection_reference, default_collection_display_name = '', ''
+        if 'default_collection' in kwargs:
+            default_collection_display_name = kwargs.get('default_collection')
+            default_collection_reference = slugify(default_collection_display_name)
+        elif 'default_collection_reference' in kwargs:
+            default_collection_reference = kwargs.get('default_collection_reference')
+            default_collection_display_name = default_collection_reference
+
+        if default_collection_reference:
+            catalog.create_child_collection(collection_reference=default_collection_reference,
+                                            display_name=default_collection_display_name, set_default=True)
+
+        # return the newly created catalog
         return catalog
 
     def create_default_collection(self):

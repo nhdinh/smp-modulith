@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 from typing import List, Optional
 
 from sqlalchemy.engine.row import RowProxy

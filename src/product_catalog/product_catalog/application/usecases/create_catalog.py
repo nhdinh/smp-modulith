@@ -35,8 +35,11 @@ class CreateCatalogUC:
         self._uow = uow
 
     def execute(self, input_dto: CreatingCatalogRequest) -> None:
-        with self._uow as uow:
+        with self._uow as uow:  # type: CatalogUnitOfWork
             try:
+                if not hasattr(uow, 'catalogs'):
+                    raise Exception('CatalogRepository not set up correctly')
+
                 search_for_catalog = uow.catalogs.get(reference=input_dto.reference)
                 if search_for_catalog:
                     raise Exception("Catalog has been existed")

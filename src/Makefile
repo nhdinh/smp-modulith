@@ -8,12 +8,14 @@ endef
 
 .PHONY: dev
 dev:
-	pip install --force --upgrade pip pip-tools
-	pip install --force --upgrade -r requirements.txt -r requirements-dev.txt
+	pip install --upgrade -r requirements.txt -r requirements-dev.txt
 	$(foreach lib,$(libs),$(call install_dev,$(lib)))
 
 .PHONY: freeze-deps
 freeze-deps:
-	#pip install pip-tools==5.3.1
-	pip install --force --upgrade pip pip-tools
+	# pip install pip-tools==5.3.1
 	pip-compile --upgrade --output-file=requirements.txt $(foreach lib,$(libs), ./$(lib)/requirements.txt ./$(lib)/requirements-dev.txt)
+
+.PHONY: test
+test:
+	pytest
