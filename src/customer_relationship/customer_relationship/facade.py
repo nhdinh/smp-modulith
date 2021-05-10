@@ -18,7 +18,7 @@ class CustomerRelationshipFacade:
         self._connection.execute(customers.insert({"id": customer_id, "email": email}))
 
     def update_customer(self, customer_id: int, email: str) -> None:
-        self._connection.execute(customers.update().where(customers.c.id == customer_id).values(email=email))
+        self._connection.execute(customers.update().where(customers.c._catalog_id == customer_id).values(email=email))
 
     def send_email_about_overbid(self, customer_id: int, new_price: Money, auction_title: str) -> None:
         email = emails.Overbid(auction_title=auction_title, new_price=new_price)
@@ -36,7 +36,7 @@ class CustomerRelationshipFacade:
         self._send(customer["email"], email)
 
     def _get_customer(self, customer_id: int) -> Dict[str, Any]:
-        return dict(self._connection.execute(customers.select(customers.c.id == customer_id)).first())
+        return dict(self._connection.execute(customers.select(customers.c._catalog_id == customer_id)).first())
 
     def _send(self, recipient: str, email: emails.Email) -> None:
         self._sender.send(recipient, email)

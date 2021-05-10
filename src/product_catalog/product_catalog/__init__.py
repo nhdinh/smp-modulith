@@ -4,8 +4,9 @@ import injector
 
 from product_catalog.application.repositories.catalog_repository import SqlAlchemyCatalogRepository
 from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
-from product_catalog.application.uc.begin_catalog import MakeTestSampleCatalogUC, TestSampleCatalog
-from product_catalog.application.uc.create_catalog import CreateCatalogUC, CreatingCatalogResponseBoundary
+from product_catalog.application.usecases.begin_catalog import MakeTestSampleCatalogUC, TestSampleCatalog
+from product_catalog.application.usecases.create_catalog import CreateCatalogUC, CreatingCatalogResponseBoundary
+from product_catalog.application.usecases.create_product import CreatingProductResponseBoundary, CreateProductUC
 from product_catalog.domain.value_objects import CollectionReference, CatalogId, CatalogReference
 
 __all__ = [
@@ -29,6 +30,10 @@ class ProductCatalogModule(injector.Module):
     @injector.provider
     def create_catalog_uc(self, boundary: CreatingCatalogResponseBoundary, uow: CatalogUnitOfWork) -> CreateCatalogUC:
         return CreateCatalogUC(boundary, uow)
+
+    @injector.provider
+    def create_product_uc(self, boundary: CreatingProductResponseBoundary, uow: CatalogUnitOfWork) -> CreateProductUC:
+        return CreateProductUC(boundary, uow)
 
     @injector.provider
     def beginning_catalog_uc(self, uow: CatalogUnitOfWork) -> MakeTestSampleCatalogUC:

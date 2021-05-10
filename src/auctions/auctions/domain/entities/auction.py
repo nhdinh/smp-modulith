@@ -55,7 +55,7 @@ class Auction(EventMixin):
         return self.bids[-1]
 
     def withdraw_bids(self, bids_ids: List[int]) -> None:
-        self.bids = [bid for bid in self.bids if bid.id not in bids_ids]
+        self.bids = [bid for bid in self.bids if bid._catalog_id not in bids_ids]
         self._withdrawn_bids_ids.extend(bids_ids)
 
     @property

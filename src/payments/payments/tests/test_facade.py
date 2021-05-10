@@ -4,7 +4,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 from _pytest.fixtures import SubRequest
-from sqlalchemy.engine import Connection, Engine, RowProxy
+from sqlalchemy.engine import Connection, Engine
+from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import Base
 from foundation.events import EventBus

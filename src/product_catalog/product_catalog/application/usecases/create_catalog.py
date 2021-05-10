@@ -18,7 +18,6 @@ class CreatingCatalogRequest:
 
 @dataclass
 class CreatingCatalogResponse:
-    id: str
     reference: str
 
 
@@ -38,20 +37,32 @@ class CreateCatalogUC:
     def execute(self, input_dto: CreatingCatalogRequest) -> None:
         with self._uow as uow:
             try:
-                search_for_catalog = uow.session.query(Catalog).filter(Catalog.reference == input_dto.reference).count()
+                search_for_catalog = uow.catalogs.get(reference=input_dto.reference)
                 if search_for_catalog:
                     raise Exception("Catalog has been existed")
 
                 catalog = Catalog.create(
                     reference=input_dto.reference,
                     display_name=input_dto.display_name
-                )
-                uow.session.add(catalog)
+                )  # type:Catalog
+                uow.catalogs.save(catalog)
 
                 # output dto
-                output_dto = CreatingCatalogResponse(id=str(catalog.id), reference=catalog._reference)
+                output_dto = CreatingCatalogResponse(reference=catalog.reference)
                 self._output_boundary.present(output_dto)
 
                 uow.commit()
             except Exception as exc:
                 raise exc
+
+
+class CreateDefaultCatalogUC:
+    def __init__(self,
+                 output_boundary: CreatingCatalogResponseBoundary,
+                 uow: CatalogUnitOfWork):
+        self._ob = output_boundary
+        self._uow = uow
+
+    def execute(self):
+        with self._uow as uow:
+            pass

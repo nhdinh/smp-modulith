@@ -39,7 +39,7 @@ def place_bid(auction_id: AuctionId, placing_bid_uc: PlacingBid, presenter: Plac
     if not current_user.is_authenticated:
         abort(403)
 
-    dto = get_dto(request, PlacingBidInputDto, context={"auction_id": auction_id, "bidder_id": current_user.id})
+    dto = get_dto(request, PlacingBidInputDto, context={"auction_id": auction_id, "bidder_id": current_user._catalog_id})
 
     placing_bid_uc.execute(dto)
     return presenter.response  # type: ignore

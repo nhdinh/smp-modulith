@@ -1,2 +1,2 @@
 injector
-SQLAlchemy
+SQLAlchemy==1.4.14

@@ -25,7 +25,6 @@ class JSONEncoder(json.JSONEncoder):
     @default.register(CatalogDto)  # noqa: F811
     def serialize_catalog_dto(self, obj: CatalogDto) -> object:
         return {
-            'id': str(obj.id),
             'reference': obj.reference,
             'display_name': obj.display_name,
             'disabled': obj.disabled,

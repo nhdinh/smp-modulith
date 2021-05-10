@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
-from web_app.blueprints.catalog import catalog_blueprint, ProductCatalogAPI
+from web_app.blueprints.catalog import catalog_blueprint, CatalogAPI
+from web_app.blueprints.product import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
 from web_app.json_encoder import JSONEncoder
 from web_app.security import setup as security_setup
@@ -23,6 +24,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.json_encoder = JSONEncoder
 
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
+    app.register_blueprint(product_blueprint, url_prefix='/product')
     app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
     app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
 
@@ -37,7 +39,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         app.config[key] = value
 
     app_context = bootstrap_app()
-    FlaskInjector(app, modules=[AuctionsWeb(), ProductCatalogAPI()], injector=app_context.injector)
+    FlaskInjector(app, modules=[AuctionsWeb(), CatalogAPI(), ProductAPI()], injector=app_context.injector)
     app.injector = app_context.injector
 
     @app.before_request

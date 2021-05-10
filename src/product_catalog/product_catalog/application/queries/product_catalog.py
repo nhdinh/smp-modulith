@@ -9,7 +9,6 @@ from uuid import UUID
 
 @dataclass
 class CatalogDto:
-    id: UUID
     reference: str
     display_name: str
     disabled: bool

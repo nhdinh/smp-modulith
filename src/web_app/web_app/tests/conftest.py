@@ -4,9 +4,11 @@ import injector
 import pytest
 from _pytest.tmpdir import TempPathFactory
 from flask import Flask, testing
+from flask.testing import FlaskClient
 from sqlalchemy.engine import Connection, create_engine
 
 from web_app.app import create_app
+from web_app.tests.models import CreatingUserRequestFactory
 
 
 @pytest.fixture(scope="session")
@@ -49,9 +51,11 @@ def container(app: Flask) -> injector.Injector:
     return app.injector  # type: ignore
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def client(app: Flask) -> testing.FlaskClient:
-    return app.test_client()
+    testclient = app.test_client()
+
+    yield testclient
 
 
 @pytest.fixture()
@@ -59,3 +63,14 @@ def connection() -> Connection:
     engine = create_engine(os.environ["DB_DSN"])
     yield engine.connect()
     engine.dispose()
+
+
+@pytest.fixture(scope='function')
+def logged_in_client(client: FlaskClient) -> FlaskClient:
+    user_dto = CreatingUserRequestFactory.build()
+    email, password = user_dto.email, user_dto.password
+    client.post(
+        "/register",
+        json={"email": email, "password": password},
+    )
+    yield client

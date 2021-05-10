@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
+from typing import Optional
 
-from sqlalchemy.engine import Connection
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 
 from foundation.events import EventBus
 from product_catalog.domain.entities.catalog import Catalog
@@ -21,19 +21,30 @@ class AbstractCatalogRepository(abc.ABC):
 
 
 class SqlAlchemyCatalogRepository(AbstractCatalogRepository):
-    def __init__(self, connection: Connection, event_bus: EventBus):
-        self._conn = connection  # type:Connection
+    def __init__(self, session: Session, event_bus: EventBus = None):
+        self._sess = session  # type:Session
         self._event_bus = event_bus
 
-    def get(self, reference: CatalogReference) -> Catalog:
-        sessionfactory = sessionmaker(bind=self._conn.engine)
-        session = sessionfactory()  # type:Session
-        rows = session.query(Catalog).filter(Catalog.reference == reference).all()
+    def get(self, reference: CatalogReference) -> Optional[Catalog]:
+        """
+        Get the catalog with specified reference string
 
-        if not rows:
-            raise Exception("Not found")
+        :param reference: reference string to find
+        :return: the catalog if found, else return None
+        :rtype: Optional[Catalog]
+        """
+        row = self._sess.query(Catalog).filter(Catalog.reference == reference).first()
+        return row
 
-        return rows[0]
+    def get_default_catalog(self):
+        row = self._sess.query(Catalog).filter(Catalog.reference == 'default_catalog').first()
+        if not row:
+            catalog = Catalog.create(reference='default_catalog', display_name='Default Catalog')
+            self._sess.add(catalog)
+
+            return catalog
+
+        return row
 
     def save(self, catalog: Catalog) -> None:
-        pass
+        self._sess.add(catalog)
