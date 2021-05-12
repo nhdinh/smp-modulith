@@ -19,7 +19,7 @@ class SqlGetActiveAuctions(GetActiveAuctions, SqlQuery):
 
 class SqlGetSingleAuction(GetSingleAuction, SqlQuery):
     def query(self, auction_id: int) -> AuctionDto:
-        row = self._conn.execute(auctions.select().where(auctions.c.catalog_id == auction_id)).first()
+        row = self._conn.execute(auctions.select().where(auctions.c.id == auction_id)).first()
         return _row_to_dto(row)
 
 
