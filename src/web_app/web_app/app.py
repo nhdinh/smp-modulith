@@ -1,6 +1,7 @@
 from typing import Optional
 
 from flask import Flask, Response, request
+from flask_cors import CORS
 from flask_injector import FlaskInjector
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
@@ -72,5 +73,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     # enable swagger
     # swagger = Swagger(app)
+
+    # enable CORS
+    CORS(app)
 
     return app

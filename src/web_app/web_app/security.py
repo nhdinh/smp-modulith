@@ -40,5 +40,14 @@ class SaUserDatastore(UserDatastore):
         return request.session  # type: ignore
 
 
+user_datastore = SaUserDatastore(User, Role)
+
+
 def setup(app: Flask) -> None:
-    Security().init_app(app, SaUserDatastore(User, Role))
+    if 'SECURITY_REGISTERABLE' not in app.config.keys():
+        app.config['SECURITY_REGISTERABLE'] = True
+
+    if 'SECURITY_TRACKABLE' not in app.config.keys():
+        app.config['SECURITY_TRACKABLE'] = True
+
+    Security().init_app(app, user_datastore)

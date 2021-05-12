@@ -30,3 +30,9 @@ class User(Base, UserMixin):
     active = Column(Boolean())
     confirmed_at = Column(DateTime())
     roles = relationship("Role", secondary="roles_users", backref=backref("users", lazy="dynamic"))
+
+    last_login_at = Column(String(255))
+    current_login_at = Column(String(255))
+    last_login_ip = Column(String(255))
+    current_login_ip = Column(String(255))
+    login_count = Column(Integer)
