@@ -5,8 +5,8 @@ from flask_login import current_user
 
 from auctions import (
     AuctionId,
-    GetActiveAuctions,
-    GetSingleAuction,
+    GetActiveAuctionsQuery,
+    GetSingleAuctionQuery,
     PlacingBid,
     PlacingBidInputDto,
     PlacingBidOutputBoundary,
@@ -25,12 +25,12 @@ class AuctionsWeb(injector.Module):
 
 
 @auctions_blueprint.route("/")
-def auctions_list(query: GetActiveAuctions) -> Response:
+def auctions_list(query: GetActiveAuctionsQuery) -> Response:
     return make_response(jsonify(query.query()))
 
 
 @auctions_blueprint.route("/<int:auction_id>")
-def single_auction(auction_id: int, query: GetSingleAuction) -> Response:
+def single_auction(auction_id: int, query: GetSingleAuctionQuery) -> Response:
     return make_response(jsonify(query.query(auction_id)))
 
 

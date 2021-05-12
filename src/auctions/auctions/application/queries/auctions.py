@@ -15,13 +15,13 @@ class AuctionDto:
     ends_at: datetime
 
 
-class GetSingleAuction(abc.ABC):
+class GetSingleAuctionQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, auction_id: int) -> AuctionDto:
         pass
 
 
-class GetActiveAuctions(abc.ABC):
+class GetActiveAuctionsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self) -> List[AuctionDto]:
         pass

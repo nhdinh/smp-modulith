@@ -28,11 +28,11 @@ def test_register_creates_customer(client: testing.FlaskClient, connection: Conn
     # if response.status_code != 200:
     #     pass
 
-    assert_customer_with_given_email_exists(connection, customer_dto.email)
+    assert_customer_with_given_email_exists(connection, customer_dto.username)
 
 
 def assert_customer_with_given_email_exists(connection: Connection, email: str) -> None:
-    assert connection.execute(customers.select().where(customers.c.email == email)).first()
+    assert connection.execute(customers.select().where(customers.c.username == email)).first()
 
 
 @dataclass
@@ -48,7 +48,7 @@ def registered_user(client: testing.FlaskClient) -> RegisteredUser:
     response = client.post("/register", json=user_dto.__dict__)
     client.cookie_jar.clear()
     return RegisteredUser(
-        email=user_dto.email, password=user_dto.password, id=response.json["response"]["user"]["id"]
+        email=user_dto.username, password=user_dto.password, id=response.json["response"]["user"]["id"]
     )
 
 

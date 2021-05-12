@@ -68,7 +68,7 @@ def connection() -> Connection:
 @pytest.fixture(scope='function')
 def logged_in_client(client: FlaskClient) -> FlaskClient:
     user_dto = CreatingUserRequestFactory.build()
-    email, password = user_dto.email, user_dto.password
+    email, password = user_dto.username, user_dto.password
     client.post(
         "/register",
         json={"email": email, "password": password},

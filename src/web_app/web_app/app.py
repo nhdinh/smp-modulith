@@ -3,12 +3,14 @@ from typing import Optional
 from flask import Flask, Response, request
 from flask_cors import CORS
 from flask_injector import FlaskInjector
+from flask_jwt_extended import JWTManager
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
+from web_app.blueprints.auth import auth_blueprint, AuthenticationAPI
 from web_app.blueprints.catalog import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
@@ -24,6 +26,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     app.json_encoder = JSONEncoder
 
+    app.register_blueprint(auth_blueprint, url_prefix='/user')
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
     app.register_blueprint(product_blueprint, url_prefix='/product')
     app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
@@ -40,7 +43,11 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         app.config[key] = value
 
     app_context = bootstrap_app()
-    FlaskInjector(app, modules=[AuctionsWeb(), CatalogAPI(), ProductAPI()], injector=app_context.injector)
+    FlaskInjector(app, modules=[
+        AuthenticationAPI(),
+        AuctionsWeb(),
+        CatalogAPI(),
+        ProductAPI()], injector=app_context.injector)
     app.injector = app_context.injector
 
     @app.before_request
@@ -69,7 +76,19 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         return response
 
     # has to be done after DB-hooks, because it relies on DB
-    security_setup(app)
+    # security_setup(app)
+
+    # enable jwt
+    app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']
+    app.config['PROPAGATE_EXCEPTIONS'] = True
+    app.config['JWT_BLACKLIST_ENABLED'] = True
+    app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
+    jwt = JWTManager(app)
+
+    # @jwt.token_in_blacklist_loader
+    # def check_if_token_in_blacklist(decrypted_token):
+    #     jti = decrypted_token['jti']
+    #     return models.RevokedTokenModel.is_jti_blacklisted(jti)
 
     # enable swagger
     # swagger = Swagger(app)

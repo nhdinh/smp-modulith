@@ -8,6 +8,10 @@ from sqlalchemy.engine import Connection, Engine, create_engine
 
 from auctions import Auctions
 from auctions_infrastructure import AuctionsInfrastructure
+from auth.adapters import identity_db
+from auth.auth_infrastructure_module import AuthenticationInfrastructureModule
+from auth.auth_module import AuthenticationModule
+from auth.domain.entities.user import User
 from customer_relationship import CustomerRelationship, CustomerRelationshipFacade
 from db_infrastructure import metadata
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq
@@ -18,7 +22,6 @@ from product_catalog_infrastructure import ProductCatalogInfrastructureModule
 from product_catalog_infrastructure.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
-from web_app_models import User
 
 __all__ = ["bootstrap_app"]
 
@@ -67,6 +70,8 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             Rq(),
             EventBusMod(),
             Configs(settings),
+            AuthenticationInfrastructureModule(),
+            AuthenticationModule(),
             Auctions(),
             AuctionsInfrastructure(),
             Shipping(),
@@ -93,6 +98,7 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
 
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     # TODO: do something here to map the data table to model class
+    identity_db.start_mappers()
     catalog_db.start_mappers()
 
 
@@ -101,7 +107,7 @@ def _create_db_schema(engine: Engine) -> None:
     from product_catalog_infrastructure import collection_table, catalog_table, product_table  # noqa
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
-    from web_app_models import Role, RolesUsers, User  # noqa
+    from auth.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
 
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)

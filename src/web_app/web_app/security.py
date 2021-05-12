@@ -5,9 +5,9 @@ from flask_security import Security
 from flask_security.datastore import UserDatastore
 from sqlalchemy.orm import Session
 
-from web_app_models import User, Role
-
 __all__ = ["setup", "User"]
+
+from auth.domain.entities import User, Role
 
 
 class SaUserDatastore(UserDatastore):

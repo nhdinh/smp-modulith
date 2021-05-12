@@ -1,6 +1,6 @@
 import injector
 
-from auctions.application.queries import AuctionDto, GetActiveAuctions, GetSingleAuction
+from auctions.application.queries import AuctionDto, GetActiveAuctionsQuery, GetSingleAuctionQuery
 from auctions.application.repositories import AuctionsRepository
 from auctions.application.use_cases import (
     BeginningAuction,
@@ -42,8 +42,8 @@ __all__ = [
     # output dtos
     "PlacingBidOutputDto",
     # queries
-    "GetActiveAuctions",
-    "GetSingleAuction",
+    "GetActiveAuctionsQuery",
+    "GetSingleAuctionQuery",
     # queries dtos
     "AuctionDto",
 ]

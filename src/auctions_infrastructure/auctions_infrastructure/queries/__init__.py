@@ -1,3 +1,3 @@
-__all__ = ["SqlGetActiveAuctions", "SqlGetSingleAuction"]
+__all__ = ["SqlGetActiveAuctionsQuery", "SqlGetSingleAuctionQuery"]
 
-from auctions_infrastructure.queries.auctions import SqlGetActiveAuctions, SqlGetSingleAuction
+from auctions_infrastructure.queries.auctions import SqlGetActiveAuctionsQuery, SqlGetSingleAuctionQuery

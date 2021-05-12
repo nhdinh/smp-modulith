@@ -5,7 +5,6 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from foundation.events import EventBus
 from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.domain.value_objects import CatalogReference
 
@@ -21,9 +20,8 @@ class AbstractCatalogRepository(abc.ABC):
 
 
 class SqlAlchemyCatalogRepository(AbstractCatalogRepository):
-    def __init__(self, session: Session, event_bus: EventBus = None):
+    def __init__(self, session: Session):
         self._sess = session  # type:Session
-        self._event_bus = event_bus
 
     def get(self, reference: CatalogReference) -> Optional[Catalog]:
         """

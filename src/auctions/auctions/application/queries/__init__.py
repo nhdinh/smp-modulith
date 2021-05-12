@@ -1,3 +1,3 @@
-__all__ = ["AuctionDto", "GetActiveAuctions", "GetSingleAuction"]
+__all__ = ["AuctionDto", "GetActiveAuctionsQuery", "GetSingleAuctionQuery"]
 
-from auctions.application.queries.auctions import AuctionDto, GetActiveAuctions, GetSingleAuction
+from auctions.application.queries.auctions import AuctionDto, GetActiveAuctionsQuery, GetSingleAuctionQuery
