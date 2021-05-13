@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from auth.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
 from auth.domain.entities import User
-from auth.domain.value_objects import UserEmail
+from auth.domain.value_objects import UserEmail, UserId
 
 
 @dataclass
@@ -16,6 +16,7 @@ class RegisteringUserRequest:
 
 @dataclass
 class RegisteringUserResponse:
+    id: UserId
     email: UserEmail
 
 
@@ -40,6 +41,7 @@ class RegisteringUserUC:
 
                 # output
                 output_dto = RegisteringUserResponse(
+                    id=user.id,
                     email=user.email,
                 )
                 self._ob.present(output_dto)

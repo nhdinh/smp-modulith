@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from uuid import UUID
 
-UserId = int
+UserId = UUID
 UserEmail = str

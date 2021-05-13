@@ -24,10 +24,10 @@ def test_creating_collection_failed_unauthorized(client: FlaskClient, example_ca
     assert response.status_code == 403
 
 
-def test_creating_collection_success(example_catalog: CatalogReference, logged_in_client: FlaskClient) -> None:
+def test_creating_collection_success(example_catalog: CatalogReference, authorized_headers) -> None:
     dto = CreatingCollectionRequestFactory.build(catalog_reference=example_catalog)
     json_data = dto.__dict__
-    response = logged_in_client.post(f'/catalog/{example_catalog}/collections', json=json_data)
+    response = authorized_headers.post(f'/catalog/{example_catalog}/collections', json=json_data)
 
     assert response.status_code == 201
 

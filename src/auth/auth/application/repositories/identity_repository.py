@@ -33,7 +33,7 @@ class SqlAlchemyIdentityRepository(AbstractIdentityRepository):
         return self._sess.query(User).filter(User.email == email).first()
 
     def save(self, user: User) -> None:
-        self._sess.add(user)
+        return self._sess.add(user)
 
     def __init__(self, session: Session):
         self._sess = session  # type:Session

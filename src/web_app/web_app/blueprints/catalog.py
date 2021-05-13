@@ -4,6 +4,7 @@
 import flask_injector
 import injector
 from flask import Blueprint, jsonify, make_response, Response, abort, request, current_app
+from flask_jwt_extended import jwt_required
 from flask_login import current_user
 
 from foundation.business_rule import BusinessRuleValidationError
@@ -36,10 +37,8 @@ def get_single_catalog(catalog_query: str, query: GetCatalogQuery) -> Response:
 
 
 @catalog_blueprint.route('/', methods=['POST'], strict_slashes=False)
+@jwt_required()
 def create_new_catalog(create_catalog_uc: CreateCatalogUC, presenter: CreatingCatalogResponseBoundary) -> Response:
-    if not current_user.is_authenticated:
-        abort(403)
-
     try:
         dto = get_dto(request, CreatingCatalogRequest, context={})
         create_catalog_uc.execute(dto)

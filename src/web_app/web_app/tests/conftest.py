@@ -6,6 +6,7 @@ from _pytest.tmpdir import TempPathFactory
 from flask import Flask, testing
 from flask.testing import FlaskClient
 from sqlalchemy.engine import Connection, create_engine
+from typing import Dict
 
 from web_app.app import create_app
 from web_app.tests.models import CreatingUserRequestFactory
@@ -66,11 +67,14 @@ def connection() -> Connection:
 
 
 @pytest.fixture(scope='function')
-def logged_in_client(client: FlaskClient) -> FlaskClient:
+def authorized_headers(client: FlaskClient) -> Dict:
     user_dto = CreatingUserRequestFactory.build()
-    email, password = user_dto.username, user_dto.password
-    client.post(
-        "/register",
-        json={"email": email, "password": password},
-    )
-    yield client
+    response = client.post("/user/register", json=user_dto.__dict__)
+
+    assert 'access_token' in response.json
+    access_token = response.json['access_token']
+    headers = {
+        'Authorization': 'Bearer {}'.format(access_token)
+    }
+
+    yield headers

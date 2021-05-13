@@ -59,6 +59,7 @@ def user_login(logging_user_in_uc: LoggingUserInUC, presenter: LoggingUserInResp
 
 
 @auth_blueprint.route('/logout', methods=['POST'])
+@jwt_required()
 def user_logout():
     pass
 
@@ -69,7 +70,7 @@ def refresh_token():
     current_user = get_jwt_identity()
     access_token = create_access_token(identity=current_user)
 
-    return {'access_token': access_token}, 200
+    return make_response(jsonify({'access_token': access_token})), 200
 
 
 @auth_blueprint.route('/', methods=['POST'])

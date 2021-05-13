@@ -4,6 +4,7 @@ import abc
 from dataclasses import dataclass
 
 from typing import List, Union
+from uuid import UUID
 
 from sqlalchemy import or_
 from sqlalchemy.engine.row import RowProxy
@@ -16,7 +17,7 @@ from auth.domain.value_objects import UserEmail, UserId
 
 @dataclass
 class UserDto:
-    id: int
+    id: UUID
     email: str
 
 

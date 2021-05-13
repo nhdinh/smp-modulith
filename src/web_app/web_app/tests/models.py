@@ -16,4 +16,4 @@ class CreatingUserRequestFactory(factory.Factory):
         model = CreatingUserRequest
 
     email = factory.Faker('email')
-    password = factory.Faker('password')
+    password = 'Abc123@'

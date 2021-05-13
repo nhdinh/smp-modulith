@@ -55,8 +55,8 @@ def logged_in_client(client: FlaskClient) -> FlaskClient:
     return client
 
 
-def test_places_bid(example_auction: int, logged_in_client: FlaskClient) -> None:
-    response = logged_in_client.post(f"/auctions/{example_auction}/bids", json={"amount": "15.99"})
+def test_places_bid(example_auction: int, authorized_headers) -> None:
+    response = authorized_headers.post(f"/auctions/{example_auction}/bids", json={"amount": "15.99"})
 
     assert response.status_code == 200
     assert response.json == {"message": "Hooray! You are a winner"}

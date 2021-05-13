@@ -5,12 +5,12 @@ from sqlalchemy.orm import mapper, relationship, backref
 
 from auth.domain.entities.role import Role
 from auth.domain.entities.user import User
-from db_infrastructure import metadata
+from db_infrastructure import metadata, GUID
 
 user_table = sa.Table(
     'user',
     metadata,
-    sa.Column('id', sa.Integer, primary_key=True),
+    sa.Column('id', GUID, primary_key=True),
     sa.Column('email', sa.String(255), unique=True),
     sa.Column('password', sa.String(255)),
     sa.Column('active', sa.Boolean),
@@ -25,7 +25,7 @@ user_table = sa.Table(
 role_table = sa.Table(
     'role',
     metadata,
-    sa.Column('id', sa.Integer, primary_key=True),
+    sa.Column('id', GUID, primary_key=True),
     sa.Column('name', sa.String(100), unique=True),
     sa.Column('description', sa.String(255))
 )

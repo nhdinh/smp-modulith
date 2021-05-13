@@ -24,19 +24,19 @@ def test_creating_product_failed_unauthorized(client: FlaskClient, example_catal
     assert response.status_code == 403  # unauthorized
 
 
-def test_creating_product_failed_with_empty_display_name(logged_in_client: FlaskClient):
+def test_creating_product_failed_with_empty_display_name(authorized_headers):
     product_dto = CreatingProductRequestFactory.build()
     json_data = product_dto.__dict__
     json_data['display_name'] = ''
-    response = logged_in_client.post('/product', json=json_data)
+    response = authorized_headers.post('/product', json=json_data)
 
     assert response.status_code == 400
     assert 'Display name must not be empty' in response.json['message']
 
 
-def test_creating_product_success_with_only_display_name(logged_in_client: FlaskClient):
+def test_creating_product_success_with_only_display_name(authorized_headers):
     product_dto = CreatingProductRequestFactory.build(reference='')
-    response = logged_in_client.post('/product', json=product_dto.__dict__)
+    response = authorized_headers.post('/product', json=product_dto.__dict__)
 
     assert response.status_code == 201
 
@@ -48,10 +48,10 @@ def test_creating_product_success_with_only_display_name(logged_in_client: Flask
     assert response.json['reference'] == slugify(product_dto.display_name)
 
 
-def test_creating_product_success_with_no_parent_will_set_default_collection(logged_in_client: FlaskClient,
+def test_creating_product_success_with_no_parent_will_set_default_collection(authorized_headers,
                                                                              default_catalog: Catalog):
     product_dto = CreatingProductRequestFactory.build()
-    response = logged_in_client.post('/product', json=product_dto.__dict__)
+    response = authorized_headers.post('/product', json=product_dto.__dict__)
 
     assert response.status_code == 201
 
@@ -61,7 +61,7 @@ def test_creating_product_success_with_no_parent_will_set_default_collection(log
     assert response.json['reference'] == product_dto.reference
 
     # query catalog data
-    response = logged_in_client.get(f'/catalog/{default_catalog.reference}')
+    response = authorized_headers.get(f'/catalog/{default_catalog.reference}')
     assert response.status_code == 200
     assert type(response.json) == dict
     assert response.json['reference'] == default_catalog.reference

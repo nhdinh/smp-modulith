@@ -87,13 +87,14 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
 
 
 def _setup_orm_events(dependency_injector: injector.Injector) -> None:
-    @sa_event.listens_for(User, "after_insert")
-    def insert_cb(_mapper, _connection: Connection, user: User) -> None:  # type: ignore
-        dependency_injector.get(CustomerRelationshipFacade).create_customer(user.id, user.email)
-
-    @sa_event.listens_for(User, "after_update")
-    def update_cb(_mapper, _connection: Connection, user: User) -> None:  # type: ignore
-        dependency_injector.get(CustomerRelationshipFacade).update_customer(user.id, user.email)
+    # @sa_event.listens_for(User, "after_insert")
+    # def insert_cb(_mapper, _connection: Connection, user: User) -> None:  # type: ignore
+    #     dependency_injector.get(CustomerRelationshipFacade).create_customer(user.id, user.email)
+    #
+    # @sa_event.listens_for(User, "after_update")
+    # def update_cb(_mapper, _connection: Connection, user: User) -> None:  # type: ignore
+    #     dependency_injector.get(CustomerRelationshipFacade).update_customer(user.id, user.email)
+    pass
 
 
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:

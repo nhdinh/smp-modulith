@@ -15,7 +15,7 @@ class EmailMustBeValidAddressRule(BusinessRuleBase):
 
     def is_broken(self) -> bool:
         try:
-            validate_email(self.eml)
+            validate_email(self.eml, check_deliverability=False)
             return False
         except EmailNotValidError:
             return True
