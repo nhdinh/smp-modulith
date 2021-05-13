@@ -4,6 +4,7 @@
 import flask_injector
 import injector
 from flask import Response, Blueprint, abort, jsonify, make_response, request, current_app
+from flask_jwt_extended import jwt_required
 from flask_login import current_user
 
 from foundation.business_rule import BusinessRuleValidationError
@@ -22,11 +23,9 @@ class ProductAPI(injector.Module):
 
 
 @product_blueprint.route('/<string:catalog_query>', methods=['POST'], strict_slashes=False)
+@jwt_required()
 def create_new_product_with_catalog(catalog_query: str, create_product_uc: CreateProductUC,
                                     presenter: CreatingProductResponseBoundary) -> Response:
-    if not current_user.is_authenticated:
-        abort(403)
-
     try:
         dto = get_dto(request, CreatingProductRequest, context={'catalog_query': catalog_query})
         create_product_uc.execute(dto)
@@ -38,10 +37,8 @@ def create_new_product_with_catalog(catalog_query: str, create_product_uc: Creat
 
 
 @product_blueprint.route('/', methods=['POST'], strict_slashes=False)
+@jwt_required()
 def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingProductResponseBoundary) -> Response:
-    if not current_user.is_authenticated:
-        abort(403)
-
     try:
         dto = get_dto(request, CreatingProductRequest, context={})
         create_product_uc.execute(dto)

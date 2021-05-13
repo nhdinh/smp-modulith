@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from auth.domain.value_objects import UserEmail
+from identity.domain.value_objects import UserEmail
 from foundation.business_rule import BusinessRuleBase
 
 

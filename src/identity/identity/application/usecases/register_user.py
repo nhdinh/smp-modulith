@@ -3,9 +3,11 @@
 import abc
 from dataclasses import dataclass
 
-from auth.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
-from auth.domain.entities import User
-from auth.domain.value_objects import UserEmail, UserId
+import sqlalchemy.exc
+
+from identity.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
+from identity.domain.entities import User
+from identity.domain.value_objects import UserEmail, UserId
 
 
 @dataclass

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 __all__ = ["setup", "User"]
 
-from auth.domain.entities import User, Role
+from identity.domain.entities import User, Role
 
 
 class SaUserDatastore(UserDatastore):

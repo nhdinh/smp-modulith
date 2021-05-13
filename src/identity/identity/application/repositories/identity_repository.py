@@ -5,8 +5,8 @@ import abc
 from sqlalchemy.orm import Session
 from typing import List, Union
 
-from auth.domain.entities import Role, User
-from auth.domain.value_objects import UserId, UserEmail
+from identity.domain.entities import Role, User
+from identity.domain.value_objects import UserId, UserEmail
 
 
 class AbstractIdentityRepository(abc.ABC):
@@ -20,11 +20,8 @@ class AbstractIdentityRepository(abc.ABC):
 
 
 class SqlAlchemyIdentityRepository(AbstractIdentityRepository):
-    def fetch_user(self, query: Union[UserId, UserEmail]) -> User:
-        if type(query) is UserId:
-            return self._fetch_user_by_id(user_id=query)
-        else:
-            return self._fetch_user_by_email(email=query)
+    def fetch_user(self, query: UserEmail) -> User:
+        return self._fetch_user_by_email(email=query)
 
     def _fetch_user_by_id(self, user_id: UserId) -> User:
         return self._sess.query(User).filter(User.id == user_id).first()
@@ -40,3 +37,6 @@ class SqlAlchemyIdentityRepository(AbstractIdentityRepository):
 
     def get_roles(self) -> List[Role]:
         return self._sess.query(Role).all()
+
+    def add_revoked_token(self, token):
+        return self._sess.add(token)

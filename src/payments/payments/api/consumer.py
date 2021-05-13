@@ -12,7 +12,7 @@ ResponseCls = TypeVar("ResponseCls")
 
 class ApiConsumer:
     def __init__(self, login: str, password: str) -> None:
-        self.auth = login, password  # basic auth
+        self.auth = login, password  # basic identity
 
     def charge(self, amount: Money, source: str) -> str:
         currency, converted_amount = self._get_iso_code_and_amount(amount)

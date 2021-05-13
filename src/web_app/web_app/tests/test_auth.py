@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
 import pytest
+import sqlalchemy.exc
 from flask import testing
 
-from auth.domain.value_objects import UserId
+from identity.domain.value_objects import UserId
 from web_app.tests.models import CreatingUserRequestFactory
 
 
@@ -41,6 +42,16 @@ def registered_user(client: testing.FlaskClient) -> RegisteredUser:
     )
 
 
+def test_registered_with_already_registered_user(client: testing.FlaskClient, registered_user: RegisteredUser):
+    with pytest.raises(sqlalchemy.exc.IntegrityError):
+        response = client.post('/user/register', json={
+            'email': registered_user.email,
+            'password': 'S0mep@ss'
+        })
+
+        assert response.status_code == 400
+
+
 def test_login(client: testing.FlaskClient, registered_user: RegisteredUser) -> None:
     response = client.post("/user/login",
                            json={"username": registered_user.email, "password": registered_user.password})
@@ -57,3 +68,11 @@ def test_login(client: testing.FlaskClient, registered_user: RegisteredUser) -> 
     assert json_response_body['refresh_token'] is not None
     assert json_response_body['username'] == registered_user.email
     assert json_response_body['id'] is not None
+
+
+def test_login_with_no_account(client: testing.FlaskClient) -> None:
+    dto = CreatingUserRequestFactory.build()
+
+    # with pytest.raises(Exception):
+    response = client.post('/user/login', json=dto.__dict__)
+    assert response.status_code == 400

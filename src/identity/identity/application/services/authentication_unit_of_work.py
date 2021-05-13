@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from auth.application.repositories.identity_repository import SqlAlchemyIdentityRepository
+from identity.application.repositories.identity_repository import SqlAlchemyIdentityRepository
 from foundation.uow import SqlAlchemyUnitOfWork
 
 

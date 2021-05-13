@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
+from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
 
-from auth.domain.entities.role import Role
-from auth.domain.entities.user import User
+from identity.domain.entities.revoked_token import RevokedToken
+from identity.domain.entities.role import Role
+from identity.domain.entities.user import User
 from db_infrastructure import metadata, GUID
 
 user_table = sa.Table(
@@ -37,8 +39,20 @@ roles_users_table = sa.Table(
     sa.Column('role_id', sa.ForeignKey('role.id')),
 )
 
+revoked_token_table = sa.Table(
+    'revoked_token',
+    metadata,
+    sa.Column('jti', sa.String(120), unique=True, primary_key=True),
+    sa.Column('revoked_on', sa.DateTime)
+)
+
 
 def start_mappers():
+    mapper(
+        RevokedToken,
+        revoked_token_table
+    )
+
     role_mapper = mapper(
         Role,
         role_table
@@ -57,3 +71,9 @@ def start_mappers():
             )
         }
     )
+
+
+@event.listens_for(RevokedToken, 'load')
+def load_revoked_tokes(token, _):
+    # token.revoked_tokens = revoked_token_table.select()
+    pass

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from email_validator import EmailNotValidError, validate_email
 
-from auth.domain.value_objects import UserEmail
+from identity.domain.value_objects import UserEmail
 from foundation.business_rule import BusinessRuleBase
 
 

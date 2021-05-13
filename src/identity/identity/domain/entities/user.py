@@ -5,10 +5,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from auth.domain.rules.email_must_be_valid_address_rule import EmailMustBeValidAddressRule
-from auth.domain.rules.email_must_not_be_empty_rule import EmailMustNotBeEmptyRule
-from auth.domain.rules.password_must_meet_requirement_rule import PasswordMustMeetRequirementRule
-from auth.domain.value_objects import UserId
+import bcrypt
+
+from identity.domain.rules.email_must_be_valid_address_rule import EmailMustBeValidAddressRule
+from identity.domain.rules.email_must_not_be_empty_rule import EmailMustNotBeEmptyRule
+from identity.domain.rules.password_must_meet_requirement_rule import PasswordMustMeetRequirementRule
+from identity.domain.value_objects import UserId
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from passlib.hash import pbkdf2_sha256 as sha256
@@ -29,7 +31,7 @@ class User(EventMixin, Entity):
 
         self._id = user_id
         self.email = email
-        self.password = bcrypt.generate_password_hash(password, 10).decode()
+        self.password = User.generate_hash(password=password)
         self.active = True
 
         # set roles

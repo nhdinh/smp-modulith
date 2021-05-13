@@ -1,12 +1,14 @@
+from datetime import timedelta, datetime, timezone
 from typing import Optional
 
 from flask import Flask, Response, request
 from flask_cors import CORS
 from flask_injector import FlaskInjector
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, get_jwt, create_access_token, get_jwt_identity, set_access_cookies
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
+from identity.domain.entities.revoked_token import RevokedToken
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
@@ -81,10 +83,28 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     # enable jwt
     app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']
     app.config['PROPAGATE_EXCEPTIONS'] = True
-    app.config['JWT_BLACKLIST_ENABLED'] = True
-    app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
     jwt = JWTManager()
     jwt.init_app(app)
+
+    @app.after_request
+    def refresh_expiring_jwts(response):
+        try:
+            exp_timestamp = get_jwt()["exp"]
+            now = datetime.now(timezone.utc)
+            target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+            if target_timestamp > exp_timestamp:
+                access_token = create_access_token(identity=get_jwt_identity())
+                set_access_cookies(response, access_token)
+            return response
+        except (RuntimeError, KeyError):
+            # Case where there is not a valid JWT. Just return the original respone
+            return response
+
+    # @jwt.token_in_blocklist_loader
+    # def check_if_token_in_blocklist(decrypted_token):
+    #     jti = decrypted_token['jti']
+    #     return RevokedToken.is_jti_blacklisted(jti)
 
     # enable CORS
     CORS(app)

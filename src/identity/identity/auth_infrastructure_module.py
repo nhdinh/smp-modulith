@@ -4,8 +4,8 @@ import injector
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
-from auth.adapters import identity_db
-from auth.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
+from identity.adapters import identity_db
+from identity.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
 
 __all__ = [
     # module

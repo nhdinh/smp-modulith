@@ -10,9 +10,8 @@ from sqlalchemy import or_
 from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
-from auth.adapters.identity_db import user_table
-from auth.domain.entities import User
-from auth.domain.value_objects import UserEmail, UserId
+from identity.adapters.identity_db import user_table, revoked_token_table
+from identity.domain.value_objects import UserEmail, UserId
 
 
 @dataclass
@@ -29,7 +28,13 @@ class GetAllUsersQuery(abc.ABC):
 
 class GetSingleUserQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, user_q: Union[UserId, UserEmail]) -> UserDto:
+    def query(self, user_q: UserEmail) -> UserDto:
+        raise NotImplementedError
+
+
+class CountRevokedTokenByJTIQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, jti: str) -> bool:
         raise NotImplementedError
 
 
@@ -50,8 +55,17 @@ class SqlGetAllUsersQuery(GetAllUsersQuery, SqlQuery):
 class SqlGetSingleUserQuery(GetSingleUserQuery, SqlQuery):
     def query(self, user_q: Union[UserId, UserEmail]) -> UserDto:
         row = self._conn.execute(
-            user_table.select().where(
-                or_(user_table.c.id == user_q, user_table.c.username == user_q)
-            )
+            user_table.select().where(user_table.c.email == user_q)
         ).first()
         return _row_to_dto(row)
+
+
+class SqlCountRevokedTokenByJTIQuery(CountRevokedTokenByJTIQuery, SqlQuery):
+    def query(self, jti: str) -> bool:
+        cnt = self._conn.execute(
+            revoked_token_table.select().where(
+                revoked_token_table.c.jti == jti
+            )
+        ).count()
+
+        return cnt
