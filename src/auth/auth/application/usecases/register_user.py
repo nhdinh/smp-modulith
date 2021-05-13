@@ -36,7 +36,7 @@ class RegisteringUserUC:
     def execute(self, input_dto: RegisteringUserRequest) -> None:
         with self._uow as uow:  # type:AuthenticationUnitOfWork
             try:
-                user = User.create(email=input_dto.email, password=input_dto.password)
+                user = User.create(email=input_dto.email, plain_password=input_dto.password)
                 uow.identities.save(user)
 
                 # output

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 
 from auth.domain.rules.email_must_be_valid_address_rule import EmailMustBeValidAddressRule
 from auth.domain.rules.email_must_not_be_empty_rule import EmailMustNotBeEmptyRule
@@ -18,7 +19,8 @@ class User(EventMixin, Entity):
             self,
             user_id: UserId,
             email: str,
-            password: str
+            password: str,
+            **kwargs
     ):
         # check rules
         self.check_rule(EmailMustNotBeEmptyRule(email=email))
@@ -27,7 +29,7 @@ class User(EventMixin, Entity):
 
         self._id = user_id
         self.email = email
-        self.password = User.generate_hash(password)
+        self.password = bcrypt.generate_password_hash(password, 10).decode()
         self.active = True
 
         # set roles
@@ -40,12 +42,14 @@ class User(EventMixin, Entity):
     @staticmethod
     def create(
             email: str,
-            password: str,
+            plain_password: str,
     ) -> User:
         return User(
             user_id=uuid.uuid4(),
             email=email,
-            password=password
+            password=plain_password,
+            registered_on=datetime.now(),
+            admin=False
         )
 
     @staticmethod

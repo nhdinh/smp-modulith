@@ -65,22 +65,25 @@ def user_logout():
 
 
 @auth_blueprint.route('/refresh-token', methods=['POST'])
-@jwt_required(refresh=True)
+@jwt_required()
 def refresh_token():
     current_user = get_jwt_identity()
-    access_token = create_access_token(identity=current_user)
+    _access_token = create_access_token(identity=current_user)
 
-    return make_response(jsonify({'access_token': access_token})), 200
+    return make_response(jsonify({'access_token': _access_token})), 200
 
 
-@auth_blueprint.route('/', methods=['POST'])
+@auth_blueprint.route('/all', methods=['GET'])
+@jwt_required()
 def list_all_users(query: GetAllUsersQuery) -> Response:
     return make_response(jsonify(query.query()))
 
 
-@auth_blueprint.route('/current', methods=['GET'])
+@auth_blueprint.route('/', methods=['GET'])
+@jwt_required()
 def get_current_user(query: GetSingleUserQuery) -> Response:
-    return make_response(jsonify(query.query()))
+    current_user = get_jwt_identity()
+    return make_response(jsonify(query.query(user_q=current_user)))
 
 
 @auth_blueprint.route('/', methods=['DELETE'])
@@ -110,15 +113,15 @@ class LoggingUserInPresenter(LoggingUserInResponseBoundary):
     response: Response
 
     def present(self, response_dto: LoggedUserResponse) -> None:
-        access_token = create_access_token(identity=response_dto.username)
-        refresh_token = create_refresh_token(identity=response_dto.username)
+        _access_token = create_access_token(identity=response_dto.username)
+        _refresh_token = create_refresh_token(identity=response_dto.username)
 
         # update response_dto with access_token and refresh_token
         response_dto = _merge_dict(
             response_dto.__dict__,
             {
-                'access_token': access_token,
-                'refresh_token': refresh_token
+                'access_token': _access_token,
+                'refresh_token': _refresh_token
             }
         )
         self.response = make_response(jsonify(response_dto))
