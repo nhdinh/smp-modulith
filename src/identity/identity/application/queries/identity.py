@@ -53,11 +53,15 @@ class SqlGetAllUsersQuery(GetAllUsersQuery, SqlQuery):
 
 
 class SqlGetSingleUserQuery(GetSingleUserQuery, SqlQuery):
-    def query(self, user_q: Union[UserId, UserEmail]) -> UserDto:
+    def query(self, user_q: UserEmail) -> UserDto:
         row = self._conn.execute(
             user_table.select().where(user_table.c.email == user_q)
         ).first()
-        return _row_to_dto(row)
+
+        if row:
+            return _row_to_dto(row)
+
+        return None
 
 
 class SqlCountRevokedTokenByJTIQuery(CountRevokedTokenByJTIQuery, SqlQuery):

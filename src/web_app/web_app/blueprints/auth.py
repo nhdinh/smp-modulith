@@ -69,15 +69,15 @@ def user_login(logging_user_in_uc: LoggingUserInUC, presenter: LoggingUserInResp
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
 
-@auth_blueprint.route('/logout/access', methods=['POST'])
-@jwt_required(refresh=True)
+@auth_blueprint.route('/logout', methods=['POST'])
+@jwt_required()
 def user_logout_access(revoking_token_uc: RevokingTokenUC):
     jti = get_jwt()['jti']
     try:
         revoked_token = RevokedToken(jti=jti)
         revoking_token_uc.execute(revoked_token)
 
-        return make_response(jsonify({'message': 'Acess token has been revoked'}))
+        return make_response(jsonify({'message': 'Access token has been revoked'}))
     except Exception as exc:
         if current_app.debug:
             raise exc
@@ -93,7 +93,7 @@ def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
         revoked_token = RevokedToken(jti=jti)
         revoking_token_uc.execute(revoked_token)
 
-        return make_response(jsonify({'message': 'Acess token has been revoked'}))
+        return make_response(jsonify({'message': 'Refresh token has been revoked'}))
     except Exception as exc:
         if current_app.debug:
             raise exc
@@ -103,16 +103,23 @@ def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
 
 @auth_blueprint.route('/refresh-token', methods=['POST'])
 @jwt_required(refresh=True)
-def refresh_token():
+def refresh_token(query: GetSingleUserQuery):
     # TokenRefresh
     current_user = get_jwt_identity()
-    _access_token = create_access_token(identity=current_user)
+    db_user = query.query(user_q=current_user)
 
-    return make_response(jsonify({
-        'access_token': _access_token,
-        'username': current_user,
-        # 'refresh_token': get_fresh_token(identity=current_user)
-    })), 200
+    if db_user:
+        _access_token = create_access_token(identity=current_user)
+
+        return make_response(jsonify({
+            'access_token': _access_token,
+            'username': current_user,
+            # 'refresh_token': get_fresh_token(identity=current_user)
+        })), 200
+    else:
+        return make_response(jsonify({
+            'message': 'User not found'
+        })), 404
 
 
 @auth_blueprint.route('/all', methods=['GET'])
