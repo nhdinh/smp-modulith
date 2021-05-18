@@ -16,15 +16,17 @@ services:
       EMAIL_PASSWORD: none
       EMAIL_FROM_NAME: Auctions
       EMAIL_FROM_ADDRESS: auctions@cleanarchitecture.io
-      DB_DSN: $ENV[DB_DSN]
+      DB_DSN: postgresql://postgres:clone@database:5432/smp_db
       REDIS_HOST: redis
     depends_on:
       - database
   database:
     image: postgres:12
     environment:
-      POSTGRES_PASSWORD: cleanarchitecture
-      POSTGRES_DB: cleanarchitecture
+      POSTGRES_PASSWORD: clone
+      POSTGRES_DB: smp_db
+    ports:
+      - "5432:5432"
   smtp_server:
     image: mailhog/mailhog
     ports:
