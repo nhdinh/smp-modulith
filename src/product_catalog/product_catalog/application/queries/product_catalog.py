@@ -26,7 +26,16 @@ class ProductDto:
     display_name: str
     catalog: str
     collection: str
+
     # TODO: Add more field to ProductDto base on what to display at frontend
+
+    def serialize(self):
+        return {
+            'reference': self.reference,
+            'display_name': self.display_name,
+            'catalog': self.catalog,
+            'collection': self.collection
+        }
 
 
 class GetAllCatalogsQuery(abc.ABC):

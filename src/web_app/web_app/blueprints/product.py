@@ -27,13 +27,15 @@ class ProductAPI(injector.Module):
 def list_all_products(query: GetAllProductsQuery) -> Response:
     try:
         page = request.args.get('page', 1, type=int)
-        products, pagination = query.query(page=page, page_size=50)
-        return make_response(jsonify(products))
+        page_size = request.args.get('page_size', 50, type=int)
+
+        products, pagination = query.query(page=page, page_size=page_size)
+        return make_response(jsonify(products)), 200  # type: ignore
     except Exception as exc:
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
-@product_blueprint.route('/<string:catalog_query>', methods=['POST'], strict_slashes=False)
+@product_blueprint.route('/<string:catalog_query>', methods=['POST'])
 @jwt_required()
 def create_new_product_with_catalog(catalog_query: str, create_product_uc: CreateProductUC,
                                     presenter: CreatingProductResponseBoundary) -> Response:
@@ -47,7 +49,7 @@ def create_new_product_with_catalog(catalog_query: str, create_product_uc: Creat
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@product_blueprint.route('/', methods=['POST'], strict_slashes=False)
+@product_blueprint.route('/', methods=['POST'])
 # @jwt_required()
 def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingProductResponseBoundary) -> Response:
     try:

@@ -100,7 +100,7 @@ def start_mappers():
             '_collections': relationship(
                 Collection,
                 backref=backref('_catalog', remote_side=[catalog_table.c.reference]),
-                collection_class=list,
+                collection_class=set,
             )
         }
     )
@@ -111,17 +111,17 @@ def receive_load(catalog, _):
     catalog._pending_domain_events = []
 
     # set default_collection for the catalog
-    if not hasattr(catalog, '_default_collection') or catalog._default_collection is None:
+    if not hasattr(catalog, '_default_collection') or not getattr(catalog, '_default_collection', None):
         if len(catalog.collections) == 0:
             default_collection = None
         elif len(catalog.collections) == 1:
-            default_collection = catalog.collections[0]
+            default_collection = next(iter(catalog.collections))
             default_collection.default = True
         else:
             try:
                 default_collection = next(c for c in catalog.collections if c.default)
             except StopIteration:
-                default_collection = catalog.collections[0]
+                default_collection = next(iter(catalog.collections))
                 default_collection.default = True
 
         setattr(catalog, '_default_collection', default_collection)

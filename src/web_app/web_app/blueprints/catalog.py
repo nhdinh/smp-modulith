@@ -28,7 +28,16 @@ class CatalogAPI(injector.Module):
 
 @catalog_blueprint.route('/')
 def list_all_catalog(query: GetAllCatalogsQuery) -> Response:
-    return make_response(jsonify(query.query()))
+    page = request.args.get('page', 1, type=int)
+    page_size = request.args.get('page_size', 50, type=int)
+
+    try:
+        catalogs, pagination = query.query(page=page, page_size=page_size)
+        return make_response(jsonify(catalogs)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            raise exc
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 @catalog_blueprint.route("/<string:catalog_query>", methods=['GET'])

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, Set
+from typing import Optional, List, Set
 
 from slugify import slugify
 
@@ -48,7 +48,19 @@ class Catalog(EventMixin, Entity):
 
     @property
     def default_collection(self) -> Optional[Collection]:
+        # if not hasattr(self, '_default_collection'):
+        #     setattr(self, '_default_collection', None)
+
         return self._default_collection
+
+    def add_child_collection(self, child_collection: Collection):
+        if type(self._collections) is list:
+            self._collections.append(child_collection)
+        elif type(self._collections) is set:
+            self._collections.add(child_collection)
+        else:
+            self._collections = set()
+            self._collections.add(child_collection)
 
     def create_child_collection(
             self,
@@ -72,10 +84,15 @@ class Catalog(EventMixin, Entity):
 
         collection = Collection(
             reference=collection_reference,
-            display_name=display_name
+            display_name=display_name,
+            default=set_default
         )
 
-        self._collections.add(collection)
+        # unset default of all children catalogs
+        if self.default_collection is not None:
+            self.default_collection.default = False
+
+        self.add_child_collection(collection)
 
         if set_default:
             self._default_collection = collection
