@@ -4,10 +4,10 @@ import sqlalchemy as sa
 from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
 
+from db_infrastructure import metadata, GUID
 from identity.domain.entities.revoked_token import RevokedToken
 from identity.domain.entities.role import Role
 from identity.domain.entities.user import User
-from db_infrastructure import metadata, GUID
 
 user_table = sa.Table(
     'user',

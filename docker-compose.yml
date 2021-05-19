@@ -8,6 +8,9 @@ services:
     ports:
       - "5000:5000"
     environment:
+      FLASK_ENV: 'development'
+      DEBUG: 'true'
+      FLASK_DEBUG: 'true'
       PAYMENTS_LOGIN: empty
       PAYMENTS_PASSWORD: empty
       EMAIL_HOST: localhost

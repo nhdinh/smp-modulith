@@ -3,7 +3,14 @@
 import abc
 from dataclasses import dataclass
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+
+@dataclass
+class PaginationDto:
+    current_page: int
+    page_size: int
+    total_pages: int
 
 
 @dataclass
@@ -13,9 +20,18 @@ class CatalogDto:
     disabled: bool
 
 
+@dataclass
+class ProductDto:
+    reference: str
+    display_name: str
+    catalog: str
+    collection: str
+    # TODO: Add more field to ProductDto base on what to display at frontend
+
+
 class GetAllCatalogsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self) -> List[CatalogDto]:
+    def query(self, page: int, page_size: int) -> Tuple[List[CatalogDto], PaginationDto]:
         pass
 
 
@@ -28,4 +44,10 @@ class GetCatalogQuery(abc.ABC):
 class GetCatalogByReferenceQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, reference: str) -> CatalogDto:
+        pass
+
+
+class GetAllProductsQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, page: int, page_size: int) -> Tuple[List[ProductDto], PaginationDto]:
         pass

@@ -16,6 +16,6 @@ COPY src/ ./
 RUN make dev
 
 ENV FLASK_APP='web_app/web_app/app.py:create_app()'
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["flask", "run", "--host=0.0.0.0", "--reload"]
 ENTRYPOINT ["dockerize", "-wait", "tcp://database:5432"]
 

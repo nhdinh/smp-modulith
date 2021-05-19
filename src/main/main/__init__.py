@@ -3,17 +3,15 @@ from dataclasses import dataclass
 
 import dotenv
 import injector
-from sqlalchemy import event as sa_event
-from sqlalchemy.engine import Connection, Engine, create_engine
+from sqlalchemy.engine import Engine, create_engine
 
 from auctions import Auctions
 from auctions_infrastructure import AuctionsInfrastructure
+from customer_relationship import CustomerRelationship
+from db_infrastructure import metadata
 from identity.adapters import identity_db
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
-from identity.domain.entities.user import User
-from customer_relationship import CustomerRelationship, CustomerRelationshipFacade
-from db_infrastructure import metadata
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq
 from payments import Payments
 from processes import Processes
@@ -105,7 +103,7 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
 
 def _create_db_schema(engine: Engine) -> None:
     # Models has to be imported for metadata.create_all to discover them
-    from product_catalog_infrastructure import collection_table, catalog_table, product_table  # noqa
+    from product_catalog_infrastructure import catalog_table, product_table  # noqa
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa

@@ -1,4 +1,5 @@
 import os
+from typing import Dict
 
 import injector
 import pytest
@@ -6,7 +7,6 @@ from _pytest.tmpdir import TempPathFactory
 from flask import Flask, testing
 from flask.testing import FlaskClient
 from sqlalchemy.engine import Connection, create_engine
-from typing import Dict
 
 from web_app.app import create_app
 from web_app.tests.models import CreatingUserRequestFactory

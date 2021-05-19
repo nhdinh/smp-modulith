@@ -1,10 +1,3 @@
-from flask_security import RoleMixin, UserMixin
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import backref, relationship
-
-from db_infrastructure import Base
-
-
 # class RolesUsers(Base):
 #     __tablename__ = "roles_users"
 #

@@ -4,8 +4,8 @@ from functools import singledispatchmethod
 from uuid import UUID
 
 from auctions import AuctionDto
-from identity.application.queries.identity import UserDto
 from foundation.value_objects import Money
+from identity.application.queries.identity import UserDto
 from product_catalog.application.queries.product_catalog import CatalogDto
 
 

@@ -3,6 +3,5 @@
 
 __all__ = ['User', 'Role']
 
-from identity.domain.entities.user import User
-
 from identity.domain.entities.role import Role
+from identity.domain.entities.user import User

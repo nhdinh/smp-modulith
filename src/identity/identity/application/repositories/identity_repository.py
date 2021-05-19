@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
+from typing import List, Union
 
 from sqlalchemy.orm import Session
-from typing import List, Union
 
 from identity.domain.entities import Role, User
 from identity.domain.value_objects import UserId, UserEmail

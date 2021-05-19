@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from email_validator import EmailNotValidError, validate_email
 
-from identity.domain.value_objects import UserEmail
 from foundation.business_rule import BusinessRuleBase
+from identity.domain.value_objects import UserEmail
 
 
 class EmailMustBeValidAddressRule(BusinessRuleBase):

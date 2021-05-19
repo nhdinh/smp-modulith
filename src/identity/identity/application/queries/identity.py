@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-
-from typing import List, Union
+from typing import List
 from uuid import UUID
 
-from sqlalchemy import or_
 from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
 from identity.adapters.identity_db import user_table, revoked_token_table
-from identity.domain.value_objects import UserEmail, UserId
+from identity.domain.value_objects import UserEmail
 
 
 @dataclass

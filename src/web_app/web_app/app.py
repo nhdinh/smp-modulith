@@ -8,7 +8,6 @@ from flask_jwt_extended import JWTManager, get_jwt, create_access_token, get_jwt
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
-from identity.domain.entities.revoked_token import RevokedToken
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
@@ -17,7 +16,6 @@ from web_app.blueprints.catalog import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
 from web_app.json_encoder import JSONEncoder
-from web_app.security import setup as security_setup
 
 
 def create_app(settings_override: Optional[dict] = None) -> Flask:
@@ -100,11 +98,6 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         except (RuntimeError, KeyError):
             # Case where there is not a valid JWT. Just return the original respone
             return response
-
-    # @jwt.token_in_blocklist_loader
-    # def check_if_token_in_blocklist(decrypted_token):
-    #     jti = decrypted_token['jti']
-    #     return RevokedToken.is_jti_blacklisted(jti)
 
     # enable CORS
     CORS(app)

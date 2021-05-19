@@ -5,15 +5,14 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-import bcrypt
+from passlib.hash import pbkdf2_sha256 as sha256
 
+from foundation.entity import Entity
+from foundation.events import EventMixin
 from identity.domain.rules.email_must_be_valid_address_rule import EmailMustBeValidAddressRule
 from identity.domain.rules.email_must_not_be_empty_rule import EmailMustNotBeEmptyRule
 from identity.domain.rules.password_must_meet_requirement_rule import PasswordMustMeetRequirementRule
 from identity.domain.value_objects import UserId
-from foundation.entity import Entity
-from foundation.events import EventMixin
-from passlib.hash import pbkdf2_sha256 as sha256
 
 
 class User(EventMixin, Entity):

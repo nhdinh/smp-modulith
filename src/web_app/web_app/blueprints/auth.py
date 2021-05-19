@@ -5,13 +5,13 @@ import injector
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 
+from foundation.business_rule import BusinessRuleValidationError
 from identity.application.queries.identity import GetAllUsersQuery, GetSingleUserQuery
 from identity.application.usecases.log_user_in import LoggingUserInUC, LoggingUserInResponseBoundary, \
     LoggedUserResponse, \
     LoggingUserInRequest
 from identity.application.usecases.register_user import RegisteringUserUC, RegisteringUserResponseBoundary, \
     RegisteringUserRequest, RegisteringUserResponse
-from foundation.business_rule import BusinessRuleValidationError
 from identity.application.usecases.revoke_token import RevokingTokenUC
 from identity.domain.entities.revoked_token import RevokedToken
 from web_app.serialization.dto import get_dto
