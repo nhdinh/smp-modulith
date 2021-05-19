@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event
-from sqlalchemy.orm import mapper, relationship
+from sqlalchemy.orm import mapper, relationship, backref
 
 from db_infrastructure import metadata, GUID
 from product_catalog.domain.entities.catalog import Catalog
@@ -15,7 +15,8 @@ collection_table = Table(
     Column('reference', String(100), primary_key=True),
     Column('display_name', String(255), nullable=False),
     Column('catalog_reference', ForeignKey('catalog.reference')),
-    Column('disabled', Boolean, default=0, server_default='0')
+    Column('disabled', Boolean, default=0, server_default='0'),
+    Column('default', Boolean, default=0, server_default='0')
 )
 
 catalog_table = Table(
@@ -23,7 +24,6 @@ catalog_table = Table(
     metadata,
     Column('reference', String(100), primary_key=True),
     Column('display_name', String(255), nullable=False),
-    Column('default_collection', ForeignKey(collection_table.c.reference)),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime),
 )
@@ -72,7 +72,7 @@ def start_mappers():
             #     primaryjoin=[catalog_table.c.reference],
             # ),
             '_tags': relationship(
-                tag_mapper,
+                Tag,
                 secondary=product_tags_table,
                 collection_class=set
             ),
@@ -84,11 +84,11 @@ def start_mappers():
         collection_table,
         properties={
             '_products': relationship(
-                product_mapper,
+                Product,
                 foreign_keys=product_table.c.collection_reference,
                 collection_class=set,
                 backref='_collection',
-            )
+            ),
         }
     )
 
@@ -98,15 +98,9 @@ def start_mappers():
         properties={
             '_reference': catalog_table.c.reference,
             '_collections': relationship(
-                collection_mapper,
-                foreign_keys=collection_mapper.c.catalog_reference,
-                collection_class=set,
-            ),
-            '_default_collection': relationship(
-                collection_mapper,
-                foreign_keys=catalog_table.c.default_collection,
-                viewonly=True,
-                backref='_catalog'
+                Collection,
+                backref=backref('_catalog', remote_side=[catalog_table.c.reference]),
+                collection_class=list,
             )
         }
     )
@@ -115,3 +109,19 @@ def start_mappers():
 @event.listens_for(Catalog, "load")
 def receive_load(catalog, _):
     catalog._pending_domain_events = []
+
+    # set default_collection for the catalog
+    if not hasattr(catalog, '_default_collection') or catalog._default_collection is None:
+        if len(catalog.collections) == 0:
+            default_collection = None
+        elif len(catalog.collections) == 1:
+            default_collection = catalog.collections[0]
+            default_collection.default = True
+        else:
+            try:
+                default_collection = next(c for c in catalog.collections if c.default)
+            except StopIteration:
+                default_collection = catalog.collections[0]
+                default_collection.default = True
+
+        setattr(catalog, '_default_collection', default_collection)

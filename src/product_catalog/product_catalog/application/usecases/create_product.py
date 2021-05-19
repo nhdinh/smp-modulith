@@ -49,7 +49,7 @@ class CreateProductUC:
                 if not catalog_reference:
                     catalog = uow.catalogs.get_default_catalog()  # type:Catalog
                 else:
-                    catalog = uow.catalogs.get(refernce=catalog_reference)
+                    catalog = uow.catalogs.get(reference=catalog_reference)
 
                 if not catalog.default_collection:
                     catalog.create_default_collection()

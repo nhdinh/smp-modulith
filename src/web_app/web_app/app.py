@@ -25,6 +25,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app = Flask(__name__)
 
     app.json_encoder = JSONEncoder
+    app.url_map.strict_slashes = False
 
     app.register_blueprint(auth_blueprint, url_prefix='/user')
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')

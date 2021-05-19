@@ -11,6 +11,7 @@ from product_catalog.domain.value_objects import CollectionReference
 class Collection:
     reference: Optional[CollectionReference]
     display_name: str
+    default: bool
 
     @property
     def products(self) -> Set[Product]:

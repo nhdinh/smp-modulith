@@ -35,7 +35,7 @@ class SqlAlchemyCatalogRepository(AbstractCatalogRepository):
         return row
 
     def get_default_catalog(self):
-        row = self._sess.query(Catalog).filter(Catalog.reference == 'default_catalog').first()
+        row = self._sess.query(Catalog).filter(Catalog._reference == 'default_catalog').first()
         if not row:
             catalog = Catalog.create(reference='default_catalog', display_name='Default Catalog')
             self._sess.add(catalog)

@@ -23,7 +23,7 @@ class ProductAPI(injector.Module):
 
 
 @product_blueprint.route('/', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def list_all_products(query: GetAllProductsQuery) -> Response:
     try:
         page = request.args.get('page', 1, type=int)
@@ -48,7 +48,7 @@ def create_new_product_with_catalog(catalog_query: str, create_product_uc: Creat
 
 
 @product_blueprint.route('/', methods=['POST'], strict_slashes=False)
-@jwt_required()
+# @jwt_required()
 def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingProductResponseBoundary) -> Response:
     try:
         dto = get_dto(request, CreatingProductRequest, context={})

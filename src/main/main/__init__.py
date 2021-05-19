@@ -97,8 +97,15 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
 
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     # TODO: do something here to map the data table to model class
-    identity_db.start_mappers()
-    catalog_db.start_mappers()
+    try:
+        identity_db.start_mappers()
+    except Exception as exc:
+        pass
+
+    try:
+        catalog_db.start_mappers()
+    except Exception as exc:
+        pass
 
 
 def _create_db_schema(engine: Engine) -> None:
