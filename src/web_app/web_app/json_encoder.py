@@ -1,3 +1,4 @@
+import inspect
 import json
 from datetime import datetime
 from functools import singledispatchmethod
@@ -6,13 +7,29 @@ from uuid import UUID
 from auctions import AuctionDto
 from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
-from product_catalog.application.queries.product_catalog import CatalogDto
+from product_catalog.application.queries.product_catalog import CatalogDto, PaginationDto
 
 
 class JSONEncoder(json.JSONEncoder):
     @singledispatchmethod
     def default(self, obj: object) -> object:
-        raise TypeError(f"Cannot serialize {type(obj)}")
+        try:
+            if hasattr(obj, 'serialize'):
+                return obj.serialize()
+            else:
+                raise TypeError(f"Cannot serialize {type(obj)}")
+        except:
+            raise TypeError(f"Cannot serialize {type(obj)}")
+
+    @default.register(PaginationDto)
+    def serialize_pagingation_dto(self, obj: PaginationDto) -> object:
+        return {
+            'current_page': obj.current_page,
+            'page_size': obj.page_size,
+            'total_pages': obj.total_pages,
+            'total_rows': obj.total_rows,
+            'data': obj.data
+        }
 
     @default.register(AuctionDto)  # noqa: F811
     def serialize_auction_dto(self, obj: AuctionDto) -> object:

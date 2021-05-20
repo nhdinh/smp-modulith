@@ -55,12 +55,11 @@ class Catalog(EventMixin, Entity):
 
     def add_child_collection(self, child_collection: Collection):
         if type(self._collections) is list:
-            self._collections.append(child_collection)
-        elif type(self._collections) is set:
-            self._collections.add(child_collection)
+            self._collections = set(self._collections)
         else:
-            self._collections = set()
-            self._collections.add(child_collection)
+            raise TypeError('Catalog.collections must be a set')
+
+        self._collections.add(child_collection)
 
     def create_child_collection(
             self,

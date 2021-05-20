@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import math
 from typing import List, Optional, Tuple
 
+from sqlalchemy import func, select
 from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
@@ -13,19 +14,23 @@ from product_catalog_infrastructure.adapter.catalog_db import catalog_table, pro
 
 
 class SqlGetAllCatalogsQuery(GetAllCatalogsQuery, SqlQuery):
-    def query(self, page: int, page_size: int) -> Tuple[List[CatalogDto], PaginationDto]:
+    def query(self, page: int, page_size: int) -> PaginationDto:
+        total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
+
+        # make joined table
         joined_table = catalog_table \
             .join(collection_table, onclause=(catalog_table.c.reference == collection_table.c.catalog_reference))
 
-        return [
-                   _row_to_catalog_dto(row) for row in
-                   self._conn.execute(joined_table.select())
-               ], \
-               PaginationDto(
-                   current_page=page,
-                   page_size=page_size,
-                   total_pages=0
-               )
+        # make query
+        query = paginate(select(joined_table), page, page_size)
+
+        return PaginationDto(
+            data=[_row_to_catalog_dto(row) for row in self._conn.execute(joined_table.select())],
+            current_page=page,
+            page_size=page_size,
+            total_rows=total_rows,
+            total_pages=math.ceil(total_rows / page_size)
+        )
 
 
 class SqlGetCatalogQuery(GetCatalogQuery, SqlQuery):
@@ -42,17 +47,33 @@ class SqlGetCatalogQuery(GetCatalogQuery, SqlQuery):
 
 
 class SqlGetAllProductsQuery(GetAllProductsQuery, SqlQuery):
-    def query(self, page: int, page_size: int) -> Tuple[List[ProductDto], PaginationDto]:
-        join = product_table \
-            .join(catalog_table, onclause=(catalog_table.c.reference == product_table.c.catalog_reference)) \
-            .join(collection_table, onclause=(collection_table.c.reference == product_table.c.collection_reference))
+    def query(self, page: int, page_size: int) -> PaginationDto:
+        total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
 
-        return [_row_to_product_dto(row) for row in self._conn.execute(join.select())], \
-               PaginationDto(
-                   current_page=page,
-                   page_size=page_size,
-                   total_pages=self._conn.execute(f'select count(reference) from {product_table.name}').scalar()
-               )
+        joined_table = product_table \
+            .join(catalog_table, catalog_table.c.reference == product_table.c.catalog_reference) \
+            .join(collection_table, collection_table.c.reference == product_table.c.collection_reference)
+
+        query = select([
+            product_table.c.product_id,
+            product_table.c.reference,
+            product_table.c.display_name,
+            catalog_table.c.display_name.label('catalog_display_name'),
+            collection_table.c.display_name.label('collection_display_name'),
+        ]) \
+            .select_from(joined_table) \
+            .select_from(catalog_table) \
+            .select_from(collection_table)
+
+        query = paginate(query, page, page_size)
+
+        return PaginationDto(
+            data=[_row_to_product_dto(row) for row in self._conn.execute(query)],
+            current_page=page,
+            page_size=page_size,
+            total_rows=total_rows,
+            total_pages=math.ceil(total_rows / page_size),
+        )
 
 
 def _row_to_catalog_dto(catalog_proxy: RowProxy) -> CatalogDto:
@@ -67,6 +88,10 @@ def _row_to_product_dto(product_proxy: RowProxy) -> ProductDto:
     return ProductDto(
         reference=product_proxy.reference,
         display_name=product_proxy.display_name,
-        catalog=product_proxy.display_name_1,
-        collection=product_proxy.display_name_2,
+        catalog=product_proxy.catalog_display_name,
+        collection=product_proxy.collection_display_name,
     )
+
+
+def paginate(query, page: int, page_size: int):
+    return query.limit(page_size).offset(page_size * (page - 1))

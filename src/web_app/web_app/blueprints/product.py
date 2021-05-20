@@ -10,6 +10,8 @@ from foundation.business_rule import BusinessRuleValidationError
 from product_catalog.application.queries.product_catalog import GetAllProductsQuery
 from product_catalog.application.usecases.create_product import CreatingProductResponse, CreatingProductRequest, \
     CreateProductUC, CreatingProductResponseBoundary
+from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC, \
+    ModifyingProductResponse
 from web_app.serialization.dto import get_dto
 
 product_blueprint = Blueprint('product_blueprint', __name__)
@@ -21,6 +23,11 @@ class ProductAPI(injector.Module):
     def create_product_response_boundary(self) -> CreatingProductResponseBoundary:
         return CreatingProductPresenter()
 
+    @injector.provider
+    @flask_injector.request
+    def modify_product_response_boundary(self) -> ModifyingProductResponseBoundary:
+        return ModifyingProductPresenter()
+
 
 @product_blueprint.route('/', methods=['GET'])
 # @jwt_required()
@@ -29,8 +36,8 @@ def list_all_products(query: GetAllProductsQuery) -> Response:
         page = request.args.get('page', 1, type=int)
         page_size = request.args.get('page_size', 50, type=int)
 
-        products, pagination = query.query(page=page, page_size=page_size)
-        return make_response(jsonify(products)), 200  # type: ignore
+        pagination = query.query(page=page, page_size=page_size)
+        return make_response(jsonify(pagination)), 200  # type: ignore
     except Exception as exc:
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
@@ -64,8 +71,27 @@ def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingPr
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
+@product_blueprint.route('/<string:product_query>', methods=['PATCH'])
+def modify_product(product_query: str, modify_product_uc: ModifyProductUC,
+                   presenter: ModifyingProductResponseBoundary) -> Response:
+    try:
+
+        return presenter.response, 200  # type:ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
 class CreatingProductPresenter(CreatingProductResponseBoundary):
     response: Response
 
     def present(self, response_dto: CreatingProductResponse) -> None:
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class ModifyingProductPresenter(ModifyingProductResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: ModifyingProductResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))

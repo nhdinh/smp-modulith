@@ -8,8 +8,10 @@ from typing import List, Optional, Tuple
 
 @dataclass
 class PaginationDto:
+    data: List
     current_page: int
     page_size: int
+    total_rows: int
     total_pages: int
 
 
@@ -28,7 +30,6 @@ class ProductDto:
     collection: str
 
     # TODO: Add more field to ProductDto base on what to display at frontend
-
     def serialize(self):
         return {
             'reference': self.reference,
@@ -40,7 +41,7 @@ class ProductDto:
 
 class GetAllCatalogsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, page: int, page_size: int) -> Tuple[List[CatalogDto], PaginationDto]:
+    def query(self, page: int, page_size: int) -> PaginationDto:
         pass
 
 
@@ -58,5 +59,5 @@ class GetCatalogByReferenceQuery(abc.ABC):
 
 class GetAllProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, page: int, page_size: int) -> Tuple[List[ProductDto], PaginationDto]:
+    def query(self, page: int, page_size: int) -> PaginationDto:
         pass

@@ -32,8 +32,8 @@ def list_all_catalog(query: GetAllCatalogsQuery) -> Response:
     page_size = request.args.get('page_size', 50, type=int)
 
     try:
-        catalogs, pagination = query.query(page=page, page_size=page_size)
-        return make_response(jsonify(catalogs)), 200  # type:ignore
+        catalogs_pagination = query.query(page=page, page_size=page_size)
+        return make_response(jsonify(catalogs_pagination)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
             raise exc
