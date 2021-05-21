@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional, List, Set
 
 from slugify import slugify
+from sqlalchemy.orm.collections import InstrumentedSet
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
@@ -56,7 +57,7 @@ class Catalog(EventMixin, Entity):
     def add_child_collection(self, child_collection: Collection):
         if type(self._collections) is list:
             self._collections = set(self._collections)
-        else:
+        elif type(self._collections) is not set and type(self._collections) is not InstrumentedSet:
             raise TypeError('Catalog.collections must be a set')
 
         self._collections.add(child_collection)
@@ -166,14 +167,15 @@ class Catalog(EventMixin, Entity):
             **kwargs
         )
 
-        # check if any collection is existed
-        if 'collection_display_name' in kwargs.keys():
-            c_display_name = kwargs.get('collection_display_name')
-            c_reference = slugify(c_display_name)
-            collection = self.get_child_collection_or_create_new(
-                reference=c_reference,
-                display_name=c_display_name
-            )
+        # if there is a collection passed into this method
+        if 'collection' in kwargs.keys():
+            collection = kwargs.get('collection', None)
+            if not collection or type(collection) is not Collection:
+                # input is not a collection, then use the default collection
+                collection = self.default_collection
+            elif collection not in self._collections:
+                # make new
+                self._collections.add(collection)
         else:
             collection = self.default_collection
 

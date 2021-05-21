@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event
+from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, PrimaryKeyConstraint, Integer, Date, \
+    func
 from sqlalchemy.orm import mapper, relationship, backref
 
 from db_infrastructure import metadata, GUID
@@ -12,11 +13,11 @@ from product_catalog.domain.entities.tag import Tag
 collection_table = Table(
     'collection',
     metadata,
-    Column('reference', String(100), primary_key=True),
+    Column('reference', String(100), unique=True, nullable=False, primary_key=True),
     Column('display_name', String(255), nullable=False),
-    Column('catalog_reference', ForeignKey('catalog.reference')),
+    Column('catalog_reference', ForeignKey('catalog.reference'), nullable=False, primary_key=True),
     Column('disabled', Boolean, default=0, server_default='0'),
-    Column('default', Boolean, default=0, server_default='0')
+    Column('default', Boolean, default=0, server_default='0'),
 )
 
 catalog_table = Table(
@@ -35,7 +36,8 @@ product_table = Table(
     Column('reference', String(100), unique=True, nullable=False),
     Column('display_name', String(255), nullable=False),
     Column('catalog_reference', ForeignKey(catalog_table.c.reference)),
-    Column('collection_reference', ForeignKey(collection_table.c.reference))
+    Column('collection_reference', ForeignKey(collection_table.c.reference)),
+    Column('created_at', DateTime, server_default=func.now())
 )
 
 tag_view_table = Table(

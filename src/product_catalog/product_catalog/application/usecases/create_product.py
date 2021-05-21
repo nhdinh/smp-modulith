@@ -8,8 +8,9 @@ from slugify import slugify
 
 from product_catalog import CatalogUnitOfWork
 from product_catalog.domain.entities.catalog import Catalog
+from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
-from product_catalog.domain.value_objects import ProductReference, CatalogReference
+from product_catalog.domain.value_objects import ProductReference, CatalogReference, CollectionReference
 
 
 @dataclass
@@ -17,6 +18,9 @@ class CreatingProductRequest:
     display_name: str
     reference: Optional[ProductReference] = None
     catalog_reference: Optional[CatalogReference] = None
+    catalog_display_name: Optional[str] = None
+    collection_reference: Optional[CollectionReference] = None
+    collection_display_name: Optional[str] = None
 
 
 @dataclass
@@ -41,26 +45,74 @@ class CreateProductUC:
     def execute(self, product_dto: CreatingProductRequest):
         with self._uow as uow:
             try:
+                # find catalog
+                catalog: Optional[Catalog] = None
+                new_catalog_created = False
                 catalog_reference = product_dto.catalog_reference
+                if catalog_reference:
+                    catalog = uow.catalogs.get(reference=catalog_reference)
+
+                if not catalog:
+                    catalog_display_name = product_dto.catalog_display_name
+                    if catalog_display_name:
+                        _slugified_catalog_reference = slugify(
+                            catalog_display_name) if not catalog_reference else catalog_reference
+                        catalog = uow.catalogs.get(reference=_slugified_catalog_reference)
+                        if not catalog:
+                            catalog = Catalog.create(reference=_slugified_catalog_reference,
+                                                     display_name=catalog_display_name)
+                            uow.catalogs.save(catalog)
+                            new_catalog_created = True
+                    else:  # no reference and no display_name
+                        catalog = uow.catalogs.get_default_catalog()
+
+                # find collection
+                collection: Optional[Collection] = None
+                collection_reference = product_dto.collection_reference
+                collection_display_name = product_dto.collection_display_name
+                if new_catalog_created:
+                    # create new collection
+                    collection_reference = collection_reference \
+                        if collection_reference else slugify(collection_display_name)
+                    collection = catalog.create_child_collection(collection_reference=collection_reference,
+                                                                 display_name=collection_display_name,
+                                                                 set_default=True)
+                else:
+                    # old catalog, find the collection
+                    if collection_reference:
+                        try:
+                            collection = next([c for c in catalog.collections if c.reference == collection_reference])
+                        except StopIteration:
+                            pass
+
+                    # still no collection with specified reference, check again with display name
+                    if not collection:
+                        if collection_display_name:
+                            _slugified_collection_reference = slugify(
+                                collection_display_name) if not collection_reference else collection_reference
+                            collection = catalog.create_child_collection(
+                                collection_reference=_slugified_collection_reference,
+                                display_name=collection_display_name)
+                        else:
+                            # no collection reference as well as no collection display name is provide, so get teh
+                            # default collection
+                            if len(catalog.collections) == 0:
+                                collection = catalog.create_child_collection(collection_reference='default_collection',
+                                                                             display_name='Default Collection',
+                                                                             set_default=True)
+                            else:
+                                collection = catalog.default_collection
+
                 product_reference = product_dto.reference
                 display_name = product_dto.display_name
 
-                # get default catalog_reference
-                if not catalog_reference:
-                    catalog = uow.catalogs.get_default_catalog()  # type:Catalog
-                else:
-                    catalog = uow.catalogs.get(reference=catalog_reference)
-
-                if not catalog.default_collection:
-                    catalog.create_default_collection()
-
                 # make product_reference
-                if not product_reference:
-                    product_reference = slugify(display_name)
+                product_reference = product_reference if product_reference else slugify(display_name)
 
                 product = catalog.create_product(
                     reference=product_reference,
-                    display_name=display_name
+                    display_name=display_name,
+                    collection=collection,
                 )  # type:Product
 
                 # output dto

@@ -68,10 +68,10 @@ class SqlGetAllProductsQuery(GetAllProductsQuery, SqlQuery):
         query = paginate(query, page, page_size)
 
         return PaginationDto(
-            data=[_row_to_product_dto(row) for row in self._conn.execute(query)],
+            items=[_row_to_product_dto(row) for row in self._conn.execute(query)],
             current_page=page,
             page_size=page_size,
-            total_rows=total_rows,
+            total_items=total_rows,
             total_pages=math.ceil(total_rows / page_size),
         )
 
@@ -86,6 +86,7 @@ def _row_to_catalog_dto(catalog_proxy: RowProxy) -> CatalogDto:
 
 def _row_to_product_dto(product_proxy: RowProxy) -> ProductDto:
     return ProductDto(
+        product_id=product_proxy.product_id,
         reference=product_proxy.reference,
         display_name=product_proxy.display_name,
         catalog=product_proxy.catalog_display_name,

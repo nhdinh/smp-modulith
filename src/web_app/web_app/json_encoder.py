@@ -27,8 +27,8 @@ class JSONEncoder(json.JSONEncoder):
             'current_page': obj.current_page,
             'page_size': obj.page_size,
             'total_pages': obj.total_pages,
-            'total_rows': obj.total_rows,
-            'data': obj.data
+            'total_items': obj.total_items,
+            'items': obj.items
         }
 
     @default.register(AuctionDto)  # noqa: F811

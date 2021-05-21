@@ -4,14 +4,15 @@ import abc
 from dataclasses import dataclass
 
 from typing import List, Optional, Tuple
+from uuid import UUID
 
 
 @dataclass
 class PaginationDto:
-    data: List
+    items: List
     current_page: int
     page_size: int
-    total_rows: int
+    total_items: int
     total_pages: int
 
 
@@ -24,6 +25,7 @@ class CatalogDto:
 
 @dataclass
 class ProductDto:
+    product_id: UUID
     reference: str
     display_name: str
     catalog: str
@@ -32,6 +34,7 @@ class ProductDto:
     # TODO: Add more field to ProductDto base on what to display at frontend
     def serialize(self):
         return {
+            'product_id': self.product_id,
             'reference': self.reference,
             'display_name': self.display_name,
             'catalog': self.catalog,
