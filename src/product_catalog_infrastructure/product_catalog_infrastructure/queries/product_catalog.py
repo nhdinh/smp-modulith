@@ -10,7 +10,8 @@ from auctions_infrastructure.queries.base import SqlQuery
 from product_catalog.application.queries.product_catalog import GetAllProductsQuery, ProductDto
 from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, GetAllCatalogsQuery, \
     PaginationDto
-from product_catalog_infrastructure.adapter.catalog_db import catalog_table, product_table, collection_table
+from product_catalog_infrastructure.adapter.catalog_db import catalog_table, product_table, collection_table, \
+    brand_table
 
 
 class SqlGetAllCatalogsQuery(GetAllCatalogsQuery, SqlQuery):
@@ -52,18 +53,22 @@ class SqlGetAllProductsQuery(GetAllProductsQuery, SqlQuery):
 
         joined_table = product_table \
             .join(catalog_table, catalog_table.c.reference == product_table.c.catalog_reference) \
-            .join(collection_table, collection_table.c.reference == product_table.c.collection_reference)
+            .join(collection_table, collection_table.c.reference == product_table.c.collection_reference) \
+            .join(brand_table, brand_table.c.reference == product_table.c.brand_reference)
 
         query = select([
             product_table.c.product_id,
             product_table.c.reference,
             product_table.c.display_name,
+            product_table.c.created_at,
             catalog_table.c.display_name.label('catalog_display_name'),
             collection_table.c.display_name.label('collection_display_name'),
+            brand_table.c.display_name.label('brand_display_name'),
         ]) \
             .select_from(joined_table) \
             .select_from(catalog_table) \
-            .select_from(collection_table)
+            .select_from(collection_table) \
+            .select_from(brand_table)
 
         query = paginate(query, page, page_size)
 
@@ -90,7 +95,9 @@ def _row_to_product_dto(product_proxy: RowProxy) -> ProductDto:
         reference=product_proxy.reference,
         display_name=product_proxy.display_name,
         catalog=product_proxy.catalog_display_name,
+        brand=product_proxy.brand_display_name,
         collection=product_proxy.collection_display_name,
+        created_at=product_proxy.created_at,
     )
 
 

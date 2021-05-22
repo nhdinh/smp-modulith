@@ -31,7 +31,7 @@ class SqlAlchemyCatalogRepository(AbstractCatalogRepository):
         :return: the catalog if found, else return None
         :rtype: Optional[Catalog]
         """
-        row = self._sess.query(Catalog).filter(Catalog.reference == reference).first()
+        row = self._sess.query(Catalog).filter(Catalog._reference == reference).first()
         return row
 
     def get_default_catalog(self):

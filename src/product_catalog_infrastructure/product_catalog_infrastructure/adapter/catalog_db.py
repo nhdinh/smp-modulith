@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, PrimaryKeyConstraint, Integer, Date, \
-    func
+from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, func
 from sqlalchemy.orm import mapper, relationship, backref
 
 from db_infrastructure import metadata, GUID
+from product_catalog.domain.entities.brand import Brand
 from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
@@ -29,6 +29,25 @@ catalog_table = Table(
     Column('created_at', DateTime),
 )
 
+brand_table = Table(
+    'brand',
+    metadata,
+    Column('reference', String(100), primary_key=True),
+    Column('display_name', String(255), nullable=False),
+    Column('disabled', Boolean, default=0, server_default='0'),
+    Column('created_at', DateTime),
+)
+
+seller_table = Table(
+    'seller',
+    metadata,
+    Column('phone_number', String(255), primary_key=True),
+    Column('full_name', String(255)),
+    Column('disabled', Boolean, default=0, server_default='0'),
+    Column('created_at', DateTime),
+
+)
+
 product_table = Table(
     'product',
     metadata,
@@ -37,7 +56,8 @@ product_table = Table(
     Column('display_name', String(255), nullable=False),
     Column('catalog_reference', ForeignKey(catalog_table.c.reference)),
     Column('collection_reference', ForeignKey(collection_table.c.reference)),
-    Column('created_at', DateTime, server_default=func.now())
+    Column('brand_reference', ForeignKey(brand_table.c.reference)),
+    Column('created_at', DateTime, server_default=func.now()),
 )
 
 tag_view_table = Table(
@@ -45,6 +65,9 @@ tag_view_table = Table(
     metadata,
     Column('tag', String(255), primary_key=True)
 )
+
+assert hasattr(product_table, 'c') is True
+assert hasattr(tag_view_table, 'c') is True
 
 product_tags_table = Table(
     'product_tag',
@@ -60,6 +83,19 @@ def start_mappers():
         tag_view_table,
         properties={
             'value': tag_view_table.c.tag
+        }
+    )
+
+    brand_mapper = mapper(
+        Brand,
+        brand_table,
+        properties={
+            '_reference': brand_table.c.reference,
+            '_products': relationship(
+                Product,
+                collection_class=set,
+                backref=backref('_brand'),
+            )
         }
     )
 

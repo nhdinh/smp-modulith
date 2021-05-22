@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from datetime import datetime
 
 from typing import List, Optional, Tuple
 from uuid import UUID
@@ -30,6 +31,8 @@ class ProductDto:
     display_name: str
     catalog: str
     collection: str
+    brand: str
+    created_at: datetime
 
     # TODO: Add more field to ProductDto base on what to display at frontend
     def serialize(self):
@@ -38,7 +41,9 @@ class ProductDto:
             'reference': self.reference,
             'display_name': self.display_name,
             'catalog': self.catalog,
-            'collection': self.collection
+            'collection': self.collection,
+            'brand': self.brand,
+            'created_at': self.created_at,
         }
 
 

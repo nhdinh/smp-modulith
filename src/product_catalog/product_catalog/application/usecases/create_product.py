@@ -48,7 +48,8 @@ class CreateProductUC:
                 # find catalog
                 catalog: Optional[Catalog] = None
                 new_catalog_created = False
-                catalog_reference = product_dto.catalog_reference
+                catalog_reference = product_dto.catalog_reference \
+                    if product_dto.catalog_reference else slugify(product_dto.catalog_display_name)
                 if catalog_reference:
                     catalog = uow.catalogs.get(reference=catalog_reference)
 
@@ -68,8 +69,9 @@ class CreateProductUC:
 
                 # find collection
                 collection: Optional[Collection] = None
-                collection_reference = product_dto.collection_reference
                 collection_display_name = product_dto.collection_display_name
+                collection_reference = product_dto.collection_reference \
+                    if product_dto.collection_reference else slugify(collection_display_name)
                 if new_catalog_created:
                     # create new collection
                     collection_reference = collection_reference \
@@ -81,7 +83,8 @@ class CreateProductUC:
                     # old catalog, find the collection
                     if collection_reference:
                         try:
-                            collection = next([c for c in catalog.collections if c.reference == collection_reference])
+                            collection = next(c for c in catalog.collections.__iter__()
+                                              if c.reference == collection_reference)
                         except StopIteration:
                             pass
 
