@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, func
+from datetime import datetime
+
+from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, func, Float, Numeric, \
+    PrimaryKeyConstraint, ForeignKeyConstraint
 from sqlalchemy.orm import mapper, relationship, backref
 
 from db_infrastructure import metadata, GUID
@@ -9,6 +12,7 @@ from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
 from product_catalog.domain.entities.tag import Tag
+from product_catalog.domain.entities.unit import Unit, UnitConversion
 
 collection_table = Table(
     'collection',
@@ -18,6 +22,8 @@ collection_table = Table(
     Column('catalog_reference', ForeignKey('catalog.reference'), nullable=False, primary_key=True),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('default', Boolean, default=0, server_default='0'),
+    Column('created_at', DateTime, server_default=func.now()),
+    Column('last_updated', DateTime, onupdate=datetime.now),
 )
 
 catalog_table = Table(
@@ -26,7 +32,8 @@ catalog_table = Table(
     Column('reference', String(100), primary_key=True),
     Column('display_name', String(255), nullable=False),
     Column('disabled', Boolean, default=0, server_default='0'),
-    Column('created_at', DateTime),
+    Column('created_at', DateTime, server_default=func.now()),
+    Column('last_updated', DateTime, default=datetime.now),
 )
 
 brand_table = Table(
@@ -35,7 +42,8 @@ brand_table = Table(
     Column('reference', String(100), primary_key=True),
     Column('display_name', String(255), nullable=False),
     Column('disabled', Boolean, default=0, server_default='0'),
-    Column('created_at', DateTime),
+    Column('created_at', DateTime, server_default=func.now()),
+    Column('last_updated', DateTime, onupdate=datetime.now),
 )
 
 seller_table = Table(
@@ -44,7 +52,8 @@ seller_table = Table(
     Column('phone_number', String(255), primary_key=True),
     Column('full_name', String(255)),
     Column('disabled', Boolean, default=0, server_default='0'),
-    Column('created_at', DateTime),
+    Column('created_at', DateTime, server_default=func.now()),
+    Column('last_updated', DateTime, onupdate=datetime.now),
 
 )
 
@@ -54,10 +63,11 @@ product_table = Table(
     Column('product_id', GUID, primary_key=True),
     Column('reference', String(100), unique=True, nullable=False),
     Column('display_name', String(255), nullable=False),
-    Column('catalog_reference', ForeignKey(catalog_table.c.reference)),
-    Column('collection_reference', ForeignKey(collection_table.c.reference)),
-    Column('brand_reference', ForeignKey(brand_table.c.reference)),
+    Column('catalog_reference', ForeignKey(catalog_table.c.reference, ondelete='SET NULL')),
+    Column('collection_reference', ForeignKey(collection_table.c.reference, ondelete='SET NULL')),
+    Column('brand_reference', ForeignKey(brand_table.c.reference, ondelete='SET NULL')),
     Column('created_at', DateTime, server_default=func.now()),
+    Column('last_updated', DateTime, onupdate=datetime.now),
 )
 
 tag_view_table = Table(
@@ -66,9 +76,37 @@ tag_view_table = Table(
     Column('tag', String(255), primary_key=True)
 )
 
-assert hasattr(product_table, 'c') is True
-assert hasattr(tag_view_table, 'c') is True
+unit_table = Table(
+    'unit',
+    metadata,
+    Column('title', String(50), unique=True, primary_key=True)
+)
 
+product_unit_table = Table(
+    'product_unit',
+    metadata,
+
+    Column('product_id', GUID, ForeignKey(product_table.c.product_id)),
+    Column('unit', String(50)),
+
+    Column('default', Boolean, server_default='0'),
+    Column('multiplier_to_base', Numeric, nullable=True, server_default=f'{ProductUnit.DEFAULT_MULTIPLIER_FACTOR}'),
+
+    Column('base_product_id', GUID, nullable=True),
+    Column('base_unit', String(50), nullable=True),
+
+    Column('created_at', DateTime, nullable=False, server_default=func.now()),
+    Column('updated_at', DateTime, nullable=False, server_default=func.now()),
+
+    Column('activated', Boolean, default=True, server_default='1'),
+
+    PrimaryKeyConstraint('product_id', 'unit', name='product_unit_pk'),
+    ForeignKeyConstraint(
+        ['base_product_id', 'base_unit'],
+        ['product_unit.product_id', 'product_unit.unit'],
+        name='product_unit_fk'
+    )
+)
 product_tags_table = Table(
     'product_tag',
     metadata,
@@ -86,16 +124,54 @@ def start_mappers():
         }
     )
 
+    unit_mapper = mapper(
+        Unit,
+        unit_table,
+        properties={}
+    )
+
     brand_mapper = mapper(
         Brand,
         brand_table,
         properties={
-            '_reference': brand_table.c.reference,
             '_products': relationship(
                 Product,
                 collection_class=set,
                 backref=backref('_brand'),
             )
+        }
+    )
+
+    mapper(
+        Unit,
+        unit_table,
+    )
+
+    mapper(
+        UnitConversion,
+        unit_conversion_table
+    )
+
+    product_unit_mapper = mapper(
+        ProductUnit,
+        product_unit_table,
+        properties={
+            '_product_id': product_unit_table.c.product_id,
+            '_unit': product_unit_table.c.unit,
+            '_base_product_id': product_unit_table.c.base_product_id,
+            '_base_unit': product_unit_table.c.base_unit,
+
+            '_product': relationship(
+                Product,
+                foreign_keys=[product_unit_table.c.product_id],
+                viewonly=True,
+            ),
+
+            '_base': relationship(
+                ProductUnit,
+                foreign_keys=[product_unit_table.c.base_product_id, product_unit_table.c.base_unit],
+                remote_side=[product_unit_table.c.product_id, product_unit_table.c.unit],
+            ),
         }
     )
 
@@ -126,6 +202,10 @@ def start_mappers():
                 foreign_keys=product_table.c.collection_reference,
                 collection_class=set,
                 backref='_collection',
+            ),
+            '_units': relationship(
+                ProductUnit,
+                collection_class=set
             ),
         }
     )

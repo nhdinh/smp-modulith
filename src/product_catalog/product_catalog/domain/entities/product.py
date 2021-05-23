@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
+from product_catalog.domain.rules.product_unit_must_be_in_wellformed_rule import ProductUnitMustBeInWellformedRule
 from product_catalog.domain.rules.reference_must_not_be_empty_rule import ReferenceMustNotBeEmptyRule
 from product_catalog.domain.value_objects import ProductId
 
@@ -32,6 +33,9 @@ class Product(EventMixin, Entity):
         self._reference = reference
         self.display_name = display_name
 
+        # setup other fields
+        self._units = []
+
         # set collection and catalog data
         if collection:
             self._collection = collection  # type: Collection
@@ -57,6 +61,10 @@ class Product(EventMixin, Entity):
     def catalog(self):
         return self._catalog
 
+    @property
+    def units(self):
+        return self._units;
+
     @staticmethod
     def create(
             reference: str,
@@ -70,3 +78,39 @@ class Product(EventMixin, Entity):
         )
 
         return product
+
+    def add_unit(
+            self,
+            product_unit: ProductUnit
+    ):
+        product_unit.default = True if not self.has_any_unit() else False
+
+        # check rules
+        self.check_rule(ProductUnitMustBeInWellformedRule(product_unit=product_unit))
+        self.check_rule(ProductUnitMustBeDefaultIfProductHasNoRule(product_unit=product_unit, units=self.units))
+        self.check_rule(ProductMustNotContainAddingUnitRule(adding_unit=product_unit.unit, units=self.units))
+
+        if not product_unit.default:
+            base_unit = product_unit.base.unit
+
+            self.check_rule(UnitWithSameConfigurationHasBeenExistedRule(
+                product_id=self.product_id,
+                multiplier=product_unit.multiplier_to_base,
+                base_unit=product_unit.base.unit,
+            ))
+            self.check_rule(ProductMustHaveBaseUnitRule(unit=base_unit, units=self.units))
+            self.check_rule(UnitMustBeCalculatedToDefaultUnit(unit=base_unit, units=self.units))
+
+        # set the updated_at for tracking the version of `ProductConversion` that will be created later in the event
+        # handling job
+        self._units.add(product_unit)
+
+        # set the updated_time via `DomainEventBase._occured_on`
+        self.add_domain_event(ProductUnitCreatedEvent(
+            product_id=self.product_id,
+            unit=product_unit.unit,
+            occured_on=updated_time
+        ))
+
+    def has_any_unit(self):
+        raise NotImplementedError

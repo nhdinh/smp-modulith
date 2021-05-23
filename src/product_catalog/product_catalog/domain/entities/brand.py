@@ -8,5 +8,5 @@ from datetime import datetime
 class Brand:
     reference: str
     display_name: str
-    created_at: datetime
+    created_at: datetime = datetime.now()
     disabled: bool = False
