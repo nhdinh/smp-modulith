@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Set
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
+from product_catalog.domain.entities.unit import ProductUnit
 from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
 from product_catalog.domain.rules.product_unit_must_be_in_wellformed_rule import ProductUnitMustBeInWellformedRule
 from product_catalog.domain.rules.reference_must_not_be_empty_rule import ReferenceMustNotBeEmptyRule
@@ -34,7 +35,7 @@ class Product(EventMixin, Entity):
         self.display_name = display_name
 
         # setup other fields
-        self._units = []
+        self._units = set()
 
         # set collection and catalog data
         if collection:
@@ -62,7 +63,7 @@ class Product(EventMixin, Entity):
         return self._catalog
 
     @property
-    def units(self):
+    def units(self) -> Set[ProductUnit]:
         return self._units;
 
     @staticmethod
@@ -87,7 +88,6 @@ class Product(EventMixin, Entity):
 
         # check rules
         self.check_rule(ProductUnitMustBeInWellformedRule(product_unit=product_unit))
-        self.check_rule(ProductUnitMustBeDefaultIfProductHasNoRule(product_unit=product_unit, units=self.units))
         self.check_rule(ProductMustNotContainAddingUnitRule(adding_unit=product_unit.unit, units=self.units))
 
         if not product_unit.default:
@@ -112,5 +112,14 @@ class Product(EventMixin, Entity):
             occured_on=updated_time
         ))
 
+    def set_default_unit(
+            self,
+            product_unit: ProductUnit
+    ):
+        if product_unit in self._units:
+            for u in self._units:
+                if u == product_unit:
+                    u.default = True
+
     def has_any_unit(self):
-        raise NotImplementedError
+        return len(self._units) > 0
