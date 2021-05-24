@@ -7,6 +7,7 @@ from foundation.entity import Entity
 from foundation.events import EventMixin
 from product_catalog.domain.entities.unit import ProductUnit
 from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
+from product_catalog.domain.rules.product_must_have_base_unit_rule import ProductMustHaveBaseUnitRule
 from product_catalog.domain.rules.product_unit_must_be_in_wellformed_rule import ProductUnitMustBeInWellformedRule
 from product_catalog.domain.rules.reference_must_not_be_empty_rule import ReferenceMustNotBeEmptyRule
 from product_catalog.domain.value_objects import ProductId
@@ -88,7 +89,6 @@ class Product(EventMixin, Entity):
 
         # check rules
         self.check_rule(ProductUnitMustBeInWellformedRule(product_unit=product_unit))
-        self.check_rule(ProductMustNotContainAddingUnitRule(adding_unit=product_unit.unit, units=self.units))
 
         if not product_unit.default:
             base_unit = product_unit.base.unit
@@ -98,7 +98,7 @@ class Product(EventMixin, Entity):
                 multiplier=product_unit.multiplier_to_base,
                 base_unit=product_unit.base.unit,
             ))
-            self.check_rule(ProductMustHaveBaseUnitRule(unit=base_unit, units=self.units))
+            self.check_rule(ProductMustHaveBaseUnitRule(product=self, base_unit=product_unit.base_unit))
             self.check_rule(UnitMustBeCalculatedToDefaultUnit(unit=base_unit, units=self.units))
 
         # set the updated_at for tracking the version of `ProductConversion` that will be created later in the event

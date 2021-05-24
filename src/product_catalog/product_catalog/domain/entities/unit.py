@@ -11,8 +11,3 @@ from product_catalog.domain.value_objects import ProductId
 @dataclass
 class Unit:
     title: str
-
-
-@dataclass
-class ProductUnit:
-    raise NotImplementedError
