@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Set
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
-from product_catalog.domain.entities.unit import ProductUnit
+from product_catalog.domain.entities.product_unit import ProductUnit
 from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
 from product_catalog.domain.rules.product_must_have_base_unit_rule import ProductMustHaveBaseUnitRule
 from product_catalog.domain.rules.product_unit_must_be_in_wellformed_rule import ProductUnitMustBeInWellformedRule
@@ -65,7 +65,7 @@ class Product(EventMixin, Entity):
 
     @property
     def units(self) -> Set[ProductUnit]:
-        return self._units;
+        return self._units
 
     @staticmethod
     def create(

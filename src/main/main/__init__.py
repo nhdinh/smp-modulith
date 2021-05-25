@@ -15,9 +15,8 @@ from identity.auth_module import AuthenticationModule
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq
 from payments import Payments
 from processes import Processes
-from product_catalog import ProductCatalogModule
-from product_catalog_infrastructure import ProductCatalogInfrastructureModule
-from product_catalog_infrastructure.adapter import catalog_db
+from product_catalog import ProductCatalogModule,ProductCatalogInfrastructureModule
+from product_catalog.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 
@@ -110,7 +109,7 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
 
 def _create_db_schema(engine: Engine) -> None:
     # Models has to be imported for metadata.create_all to discover them
-    from product_catalog_infrastructure import catalog_table, product_table  # noqa
+    from product_catalog import catalog_table, product_table  # noqa
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from foundation.business_rule import BusinessRuleBase
-from product_catalog.domain.entities.unit import ProductUnit
+from product_catalog.domain.entities.product_unit import ProductUnit
 
 
 class ProductUnitMustBeInWellformedRule(BusinessRuleBase):

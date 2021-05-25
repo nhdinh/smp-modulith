@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Set
+from typing import Set, TYPE_CHECKING
 
 from foundation.business_rule import BusinessRuleBase
-from product_catalog.domain.entities.product import Product
-from product_catalog.domain.entities.product_unit import ProductUnit
+
+if TYPE_CHECKING:
+    from product_catalog.domain.entities.product import Product
+    from product_catalog.domain.entities.product_unit import ProductUnit
 
 
 class ProductMustHaveBaseUnitRule(BusinessRuleBase):
-    def __init__(self, product: Product, base_unit: str):
+    def __init__(self, product, base_unit):
         message = 'ProductMustHaveBaseUnit'
         super(ProductMustHaveBaseUnitRule, self).__init__(message=message)
 

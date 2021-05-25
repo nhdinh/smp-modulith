@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import injector
+from sqlalchemy.engine import Connection
+from sqlalchemy.orm import sessionmaker
 
+from product_catalog.adapter import catalog_db
+from product_catalog.adapter.catalog_db import catalog_table, product_table
+from product_catalog.adapter.queries.product_catalog import SqlGetCatalogQuery, SqlGetAllCatalogsQuery, \
+    SqlGetAllProductsQuery
+from product_catalog.application.queries.product_catalog import GetAllProductsQuery, GetAllCatalogsQuery, \
+    GetCatalogQuery
 from product_catalog.application.repositories.catalog_repository import SqlAlchemyCatalogRepository
 from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
 from product_catalog.application.usecases.begin_catalog import MakeTestSampleCatalogUC, TestSampleCatalog, \
@@ -25,6 +33,10 @@ __all__ = [
     # input request dto
     'TestSampleCatalog',
     # output request dto
+    # module
+    'ProductCatalogInfrastructureModule',
+    # db_table for creating
+    'catalog_table', 'product_table'
 ]
 
 
@@ -49,3 +61,31 @@ class ProductCatalogModule(injector.Module):
     @injector.provider
     def make_default_catalog_uc(self, uow: CatalogUnitOfWork) -> MakeDefaultCatalogUC:
         return MakeDefaultCatalogUC(catalog_uow=uow)
+
+
+class ProductCatalogInfrastructureModule(injector.Module):
+    @injector.provider
+    def catalog_db(self) -> catalog_db:
+        return catalog_db
+
+    @injector.provider
+    # def get_catalog_repo(self, conn: Connection, eventbus: EventBus) -> SqlAlchemyCatalogRepository:
+    def get_catalog_repo(self, conn: Connection) -> SqlAlchemyCatalogRepository:
+        return SqlAlchemyCatalogRepository(conn)
+
+    @injector.provider
+    def get_uow(self, conn: Connection) -> CatalogUnitOfWork:
+        sessfactory = sessionmaker(bind=conn)
+        return CatalogUnitOfWork(sessionfactory=sessfactory)
+
+    @injector.provider
+    def get_all_products(self, conn: Connection) -> GetAllProductsQuery:
+        return SqlGetAllProductsQuery(conn)
+
+    @injector.provider
+    def get_all_catalogs(self, conn: Connection) -> GetAllCatalogsQuery:
+        return SqlGetAllCatalogsQuery(conn)
+
+    @injector.provider
+    def get_catalog(self, conn: Connection) -> GetCatalogQuery:
+        return SqlGetCatalogQuery(conn)

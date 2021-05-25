@@ -11,8 +11,9 @@ from product_catalog.domain.entities.brand import Brand
 from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
+from product_catalog.domain.entities.product_unit import ProductUnit
 from product_catalog.domain.entities.tag import Tag
-from product_catalog.domain.entities.unit import Unit, UnitConversion
+from product_catalog.domain.entities.unit import Unit
 
 collection_table = Table(
     'collection',
@@ -90,19 +91,19 @@ product_unit_table = Table(
     Column('unit', String(50)),
 
     Column('default', Boolean, server_default='0'),
-    Column('multiplier_to_base', Numeric, nullable=True, server_default=f'{ProductUnit.DEFAULT_MULTIPLIER_FACTOR}'),
 
-    Column('base_product_id', GUID, nullable=True),
-    Column('base_unit', String(50), nullable=True),
+    Column('multiplier', Numeric, nullable=True, server_default='1'),
 
+    Column('base_product_id', nullable=True),
+    Column('base_unit', nullable=True),
+
+    Column('disabled', Boolean, default=False, server_default='0'),
     Column('created_at', DateTime, nullable=False, server_default=func.now()),
-    Column('updated_at', DateTime, nullable=False, server_default=func.now()),
-
-    Column('activated', Boolean, default=True, server_default='1'),
+    Column('last_updated', DateTime, nullable=False, onupdate=datetime.now),
 
     PrimaryKeyConstraint('product_id', 'unit', name='product_unit_pk'),
     ForeignKeyConstraint(
-        ['base_product_id', 'base_unit'],
+        ('base_product_id', 'base_unit'),
         ['product_unit.product_id', 'product_unit.unit'],
         name='product_unit_fk'
     )
@@ -147,11 +148,6 @@ def start_mappers():
         unit_table,
     )
 
-    mapper(
-        UnitConversion,
-        unit_conversion_table
-    )
-
     product_unit_mapper = mapper(
         ProductUnit,
         product_unit_table,
@@ -190,6 +186,11 @@ def start_mappers():
                 secondary=product_tags_table,
                 collection_class=set
             ),
+            '_units': relationship(
+                ProductUnit,
+                backref=backref('_product'),
+                collection_class=set,
+            )
         }
     )
 

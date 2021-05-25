@@ -30,7 +30,7 @@ class ProductAPI(injector.Module):
 
 
 @product_blueprint.route('/', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def list_all_products(query: GetAllProductsQuery) -> Response:
     try:
         page = request.args.get('page', 1, type=int)

@@ -6,7 +6,6 @@ setup(
     name='product_catalog',
     version="0.0.0",
     packages=find_packages(),
-    install_requires=['injector', 'sqlalchemy', 'foundation', 'db_infrastructure', 'identity',
-                      'product_catalog_infrastructure'],
+    install_requires=['injector', 'sqlalchemy', 'foundation', 'db_infrastructure', 'identity'],
     extras_require={'dev': ['pytest']}
 )
