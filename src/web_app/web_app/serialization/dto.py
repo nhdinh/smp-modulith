@@ -18,6 +18,9 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
     schema_cls = class_schema(dto_cls, base_schema=BaseSchema)
     schema = schema_cls()
     try:
-        return cast(TDto, schema.load(dict(context, **request.json)))
+        request_json = getattr(request, 'json', {})
+        request_json = request_json if request_json else {}
+
+        return cast(TDto, schema.load(dict(context, **request_json)))
     except exceptions.ValidationError as exc:
         abort(make_response(jsonify(exc.messages), 400))

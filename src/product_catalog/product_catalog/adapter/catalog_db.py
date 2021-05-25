@@ -94,8 +94,8 @@ product_unit_table = Table(
 
     Column('multiplier', Numeric, nullable=True, server_default='1'),
 
-    Column('base_product_id', nullable=True),
-    Column('base_unit', nullable=True),
+    Column('base_product_id', nullable=True, default=None),
+    Column('base_unit', nullable=True, default=None),
 
     Column('disabled', Boolean, default=False, server_default='0'),
     Column('created_at', DateTime, nullable=False, server_default=func.now()),
@@ -105,7 +105,9 @@ product_unit_table = Table(
     ForeignKeyConstraint(
         ('base_product_id', 'base_unit'),
         ['product_unit.product_id', 'product_unit.unit'],
-        name='product_unit_fk'
+        name='product_unit_fk',
+        onupdate='SET NULL',
+        ondelete='SET NULL'
     )
 )
 product_tags_table = Table(
@@ -123,12 +125,6 @@ def start_mappers():
         properties={
             'value': tag_view_table.c.tag
         }
-    )
-
-    unit_mapper = mapper(
-        Unit,
-        unit_table,
-        properties={}
     )
 
     brand_mapper = mapper(
@@ -157,11 +153,12 @@ def start_mappers():
             '_base_product_id': product_unit_table.c.base_product_id,
             '_base_unit': product_unit_table.c.base_unit,
 
-            '_product': relationship(
-                Product,
-                foreign_keys=[product_unit_table.c.product_id],
-                viewonly=True,
-            ),
+            # '_product': relationship(
+            #     Product,
+            #     foreign_keys=[product_unit_table.c.product_id],
+            #     backref=backref('_units'),
+            #     viewonly=True,
+            # ),
 
             '_base': relationship(
                 ProductUnit,
@@ -188,7 +185,7 @@ def start_mappers():
             ),
             '_units': relationship(
                 ProductUnit,
-                backref=backref('_product'),
+                backref=backref('_product', remote_side=[product_unit_table.c.product_id]),
                 collection_class=set,
             )
         }
@@ -203,10 +200,6 @@ def start_mappers():
                 foreign_keys=product_table.c.collection_reference,
                 collection_class=set,
                 backref='_collection',
-            ),
-            '_units': relationship(
-                ProductUnit,
-                collection_class=set
             ),
         }
     )

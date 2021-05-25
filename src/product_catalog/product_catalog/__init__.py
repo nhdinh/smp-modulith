@@ -17,6 +17,7 @@ from product_catalog.application.usecases.begin_catalog import MakeTestSampleCat
 from product_catalog.application.usecases.create_catalog import CreateCatalogUC, CreatingCatalogResponseBoundary, \
     CreateDefaultCatalogUC
 from product_catalog.application.usecases.create_product import CreatingProductResponseBoundary, CreateProductUC
+from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC
 from product_catalog.domain.value_objects import CollectionReference, CatalogId, CatalogReference
 
 __all__ = [
@@ -51,16 +52,20 @@ class ProductCatalogModule(injector.Module):
         return CreateDefaultCatalogUC(boundary, uow)
 
     @injector.provider
-    def create_product_uc(self, boundary: CreatingProductResponseBoundary, uow: CatalogUnitOfWork) -> CreateProductUC:
-        return CreateProductUC(boundary, uow)
-
-    @injector.provider
     def beginning_catalog_uc(self, uow: CatalogUnitOfWork) -> MakeTestSampleCatalogUC:
         return MakeTestSampleCatalogUC(catalog_uow=uow)
 
     @injector.provider
     def make_default_catalog_uc(self, uow: CatalogUnitOfWork) -> MakeDefaultCatalogUC:
         return MakeDefaultCatalogUC(catalog_uow=uow)
+
+    @injector.provider
+    def create_product_uc(self, boundary: CreatingProductResponseBoundary, uow: CatalogUnitOfWork) -> CreateProductUC:
+        return CreateProductUC(boundary, uow)
+
+    @injector.provider
+    def modify_product_uc(self, boundary: ModifyingProductResponseBoundary, uow: CatalogUnitOfWork) -> ModifyProductUC:
+        return ModifyProductUC(boundary, uow)
 
 
 class ProductCatalogInfrastructureModule(injector.Module):

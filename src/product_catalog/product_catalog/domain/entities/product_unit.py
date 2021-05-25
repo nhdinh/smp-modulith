@@ -4,7 +4,7 @@ import decimal
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class ProductUnit:
     unit: str
     base_unit: str

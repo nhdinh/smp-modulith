@@ -11,7 +11,7 @@ from product_catalog.application.queries.product_catalog import GetAllProductsQu
 from product_catalog.application.usecases.create_product import CreatingProductResponse, CreatingProductRequest, \
     CreateProductUC, CreatingProductResponseBoundary
 from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC, \
-    ModifyingProductResponse
+    ModifyingProductResponse, ModifyingProductRequest
 from web_app.serialization.dto import get_dto
 
 product_blueprint = Blueprint('product_blueprint', __name__)
@@ -72,9 +72,12 @@ def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingPr
 
 
 @product_blueprint.route('/<string:product_query>', methods=['PATCH'])
-def modify_product(product_query: str, modify_product_uc: ModifyProductUC,
+def modify_product(product_query: str,
+                   modify_product_uc: ModifyProductUC,
                    presenter: ModifyingProductResponseBoundary) -> Response:
     try:
+        dto = get_dto(request, ModifyingProductRequest, context={'reference': product_query})
+        modify_product_uc.execute(dto)
 
         return presenter.response, 200  # type:ignore
     except BusinessRuleValidationError as exc:

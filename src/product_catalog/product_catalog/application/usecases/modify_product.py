@@ -4,15 +4,22 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
+from product_catalog import CatalogUnitOfWork
+from product_catalog.domain.entities.product import Product
+from product_catalog.domain.entities.product_unit import ProductUnit
 from product_catalog.domain.value_objects import ProductReference, CollectionReference, CatalogReference
 
 
 @dataclass
 class ModifyingProductRequest:
-    display_name: str
-    reference: Optional[ProductReference] = None
+    reference: ProductReference
+    display_name: Optional[str]
     catalog_reference: Optional[CatalogReference] = None
+    catalog_display_name: Optional[str] = None
     collection_reference: Optional[CollectionReference] = None
+    collection_display_name: Optional[str] = None
+    brand_reference: Optional[str] = None
+    brand_display_name: Optional[str] = None
 
 
 @dataclass
@@ -28,8 +35,12 @@ class ModifyingProductResponseBoundary(metaclass=abc.ABCMeta):
 
 
 class ModifyProductUC:
-    def __init__(self):
-        pass
+    def __init__(self,
+                 output_boundary: ModifyingProductResponseBoundary,
+                 uow: CatalogUnitOfWork) -> None:
+        self._ob = output_boundary
+        self._uow = uow
 
     def execute(self, product_dto: ModifyingProductRequest):
-        raise NotImplementedError
+        with self._uow as uow:
+            pass
