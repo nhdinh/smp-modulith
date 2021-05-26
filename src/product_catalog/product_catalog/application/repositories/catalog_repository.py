@@ -6,6 +6,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from product_catalog.domain.entities.catalog import Catalog
+from product_catalog.domain.entities.product import Product
 from product_catalog.domain.value_objects import CatalogReference
 
 
@@ -42,6 +43,10 @@ class SqlAlchemyCatalogRepository(AbstractCatalogRepository):
 
             return catalog
 
+        return row
+
+    def find_product(self, reference: str):
+        row = self._sess.query(Product).filter(Product._reference == reference).first()
         return row
 
     def save(self, catalog: Catalog) -> None:

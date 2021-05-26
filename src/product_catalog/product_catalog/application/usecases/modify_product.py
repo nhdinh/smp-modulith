@@ -43,4 +43,36 @@ class ModifyProductUC:
 
     def execute(self, product_dto: ModifyingProductRequest):
         with self._uow as uow:
-            pass
+            try:
+                product_reference = product_dto.reference
+                if product_reference:
+                    product = uow.catalogs.find_product(reference=product_reference)
+
+                if not product_reference or not product:
+                    raise Exception("Product not found")
+
+                pu = ProductUnit(
+                    unit='Cai',
+                    default=True
+                )
+
+                pu2 = ProductUnit(
+                    unit="Thung",
+                    base_unit=pu.unit,
+                    multiplier=10
+                )
+
+                if product_dto.display_name:
+                    product.display_name = product_dto.display_name
+
+                product.units.add(pu)
+                uow.commit()
+                
+                product.units.add(pu2)
+
+                output_dto = ModifyingProductResponse(product_id=str(product.product_id), reference=product_reference)
+                self._ob.present(output_dto)
+
+                uow.commit()
+            except Exception as exc:
+                raise exc

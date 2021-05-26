@@ -99,7 +99,7 @@ product_unit_table = Table(
 
     Column('disabled', Boolean, default=False, server_default='0'),
     Column('created_at', DateTime, nullable=False, server_default=func.now()),
-    Column('last_updated', DateTime, nullable=False, onupdate=datetime.now),
+    Column('last_updated', DateTime, onupdate=datetime.now),
 
     PrimaryKeyConstraint('product_id', 'unit', name='product_unit_pk'),
     ForeignKeyConstraint(
@@ -149,7 +149,6 @@ def start_mappers():
         product_unit_table,
         properties={
             '_product_id': product_unit_table.c.product_id,
-            '_unit': product_unit_table.c.unit,
             '_base_product_id': product_unit_table.c.base_product_id,
             '_base_unit': product_unit_table.c.base_unit,
 
@@ -160,7 +159,7 @@ def start_mappers():
             #     viewonly=True,
             # ),
 
-            '_base': relationship(
+            'base_unit': relationship(
                 ProductUnit,
                 foreign_keys=[product_unit_table.c.base_product_id, product_unit_table.c.base_unit],
                 remote_side=[product_unit_table.c.product_id, product_unit_table.c.unit],
@@ -185,7 +184,7 @@ def start_mappers():
             ),
             '_units': relationship(
                 ProductUnit,
-                backref=backref('_product', remote_side=[product_unit_table.c.product_id]),
+                backref=backref('_product'),
                 collection_class=set,
             )
         }
