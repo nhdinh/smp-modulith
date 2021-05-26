@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from slugify import slugify
 from sqlalchemy.orm import Session
@@ -20,11 +20,21 @@ class CreatingProductRequest:
     display_name: str
     reference: Optional[ProductReference] = None
     catalog_reference: Optional[CatalogReference] = None
-    catalog_display_name: Optional[str] = None
+    catalog_display_name: Optional[str] = ''
     collection_reference: Optional[CollectionReference] = None
-    collection_display_name: Optional[str] = None
+    collection_display_name: Optional[str] = ''
     brand_reference: Optional[str] = None
     brand_display_name: Optional[str] = None
+
+    sku: Optional[str] = None
+    barcode: Optional[str] = None
+    default_unit: Optional[str] = None
+    first_inventory_stock: Optional[int] = 0
+    seller: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+    units: Optional[List[str]] = None
+    multipliers: Optional[List[int]] = None
 
 
 @dataclass

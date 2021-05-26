@@ -57,7 +57,7 @@ def create_new_product_with_catalog(catalog_query: str, create_product_uc: Creat
 
 
 @product_blueprint.route('/', methods=['POST'])
-# @jwt_required()
+@jwt_required()
 def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingProductResponseBoundary) -> Response:
     dto = get_dto(request, CreatingProductRequest, context={})
     try:
