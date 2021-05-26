@@ -67,7 +67,7 @@ class ModifyProductUC:
 
                 product.units.add(pu)
                 uow.commit()
-                
+
                 product.units.add(pu2)
 
                 output_dto = ModifyingProductResponse(product_id=str(product.product_id), reference=product_reference)
@@ -76,3 +76,16 @@ class ModifyProductUC:
                 uow.commit()
             except Exception as exc:
                 raise exc
+
+    def modify_product_info(
+            self,
+            product: Product,
+            display_name: str):
+        pass
+
+    def modify_product_catalog_or_collection(
+            self,
+            product: Product,
+            **kwargs
+    ):
+        pass

@@ -1,4 +1,3 @@
-import inspect
 import json
 from datetime import datetime
 from functools import singledispatchmethod

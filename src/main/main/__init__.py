@@ -15,7 +15,7 @@ from identity.auth_module import AuthenticationModule
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq
 from payments import Payments
 from processes import Processes
-from product_catalog import ProductCatalogModule,ProductCatalogInfrastructureModule
+from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureModule
 from product_catalog.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure

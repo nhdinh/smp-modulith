@@ -7,11 +7,11 @@ from sqlalchemy import func, select
 from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
+from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
+    brand_table
 from product_catalog.application.queries.product_catalog import GetAllProductsQuery, ProductDto
 from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, GetAllCatalogsQuery, \
     PaginationDto
-from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
-    brand_table
 
 
 class SqlGetAllCatalogsQuery(GetAllCatalogsQuery, SqlQuery):

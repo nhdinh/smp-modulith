@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional
 
 from slugify import slugify
 from sqlalchemy.orm import Session

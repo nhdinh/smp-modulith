@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, List, Set
+from typing import Optional, Set
 
 from slugify import slugify
 from sqlalchemy.orm.collections import InstrumentedSet
@@ -12,7 +12,7 @@ from foundation.entity import Entity
 from foundation.events import EventMixin
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
-from product_catalog.domain.events import CollectionCreatedEvent
+from product_catalog.domain.events.collection_created_event import CollectionCreatedEvent
 from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
 from product_catalog.domain.rules.reference_must_not_be_empty_rule import ReferenceMustNotBeEmptyRule
 from product_catalog.domain.value_objects import CatalogReference, CollectionReference

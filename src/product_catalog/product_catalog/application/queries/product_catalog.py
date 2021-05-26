@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from datetime import datetime
 
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from uuid import UUID
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, func, Float, Numeric, \
+from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, func, Numeric, \
     PrimaryKeyConstraint, ForeignKeyConstraint
 from sqlalchemy.orm import mapper, relationship, backref
 
@@ -152,13 +152,6 @@ def start_mappers():
             '_base_product_id': product_unit_table.c.base_product_id,
             '_base_unit': product_unit_table.c.base_unit,
 
-            # '_product': relationship(
-            #     Product,
-            #     foreign_keys=[product_unit_table.c.product_id],
-            #     backref=backref('_units'),
-            #     viewonly=True,
-            # ),
-
             'base_unit': relationship(
                 ProductUnit,
                 foreign_keys=[product_unit_table.c.base_product_id, product_unit_table.c.base_unit],
@@ -184,7 +177,7 @@ def start_mappers():
             ),
             '_units': relationship(
                 ProductUnit,
-                backref=backref('_product'),
+                backref=backref('product'),
                 collection_class=set,
             )
         }
