@@ -46,8 +46,8 @@ def list_all_products(query: GetAllProductsQuery) -> Response:
 @jwt_required()
 def create_new_product_with_catalog(catalog_query: str, create_product_uc: CreateProductUC,
                                     presenter: CreatingProductResponseBoundary) -> Response:
+    dto = get_dto(request, CreatingProductRequest, context={'catalog_query': catalog_query})
     try:
-        dto = get_dto(request, CreatingProductRequest, context={'catalog_query': catalog_query})
         create_product_uc.execute(dto)
         return presenter.response, 201  # type:ignore
     except BusinessRuleValidationError as exc:
@@ -59,8 +59,8 @@ def create_new_product_with_catalog(catalog_query: str, create_product_uc: Creat
 @product_blueprint.route('/', methods=['POST'])
 # @jwt_required()
 def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingProductResponseBoundary) -> Response:
+    dto = get_dto(request, CreatingProductRequest, context={})
     try:
-        dto = get_dto(request, CreatingProductRequest, context={})
         create_product_uc.execute(dto)
         return presenter.response, 201  # type:ignore
     except BusinessRuleValidationError as exc:
@@ -75,8 +75,8 @@ def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingPr
 def modify_product(product_query: str,
                    modify_product_uc: ModifyProductUC,
                    presenter: ModifyingProductResponseBoundary) -> Response:
+    dto = get_dto(request, ModifyingProductRequest, context={'reference': product_query})
     try:
-        dto = get_dto(request, ModifyingProductRequest, context={'reference': product_query})
         modify_product_uc.execute(dto)
 
         return presenter.response, 200  # type:ignore

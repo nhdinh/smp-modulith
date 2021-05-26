@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from product_catalog import CatalogUnitOfWork
 from product_catalog.domain.entities.product import Product
@@ -14,6 +14,10 @@ from product_catalog.domain.value_objects import ProductReference, CollectionRef
 class ModifyingProductRequest:
     reference: ProductReference
     display_name: Optional[str]
+    sku: Optional[str]
+    barcode: Optional[str]
+    tags: Optional[List[str]]
+
     catalog_reference: Optional[CatalogReference] = None
     catalog_display_name: Optional[str] = None
     collection_reference: Optional[CollectionReference] = None
@@ -51,6 +55,13 @@ class ModifyProductUC:
                 if not product_reference or not product:
                     raise Exception("Product not found")
 
+                # change product's info
+                product_info_fields = ['display_name', 'sku', 'barcode', 'tags']
+                collection_info_fields = ['collection_display_name', 'catalog_display_name', 'collection_reference',
+                                          'catalog_reference', 'brand_display_name', 'brand_reference']
+
+                # TODO: Make modifying product here
+
                 pu = ProductUnit(
                     unit='Cai',
                     default=True
@@ -65,10 +76,12 @@ class ModifyProductUC:
                 if product_dto.display_name:
                     product.display_name = product_dto.display_name
 
-                product.units.add(pu)
-                uow.commit()
+                if not product.get_unit_by_name(pu.unit):
+                    product.units.add(pu)
+                    uow.commit()
 
-                product.units.add(pu2)
+                if not product.get_unit_by_name(pu2.unit):
+                    product.units.add(pu2)
 
                 output_dto = ModifyingProductResponse(product_id=str(product.product_id), reference=product_reference)
                 self._ob.present(output_dto)
