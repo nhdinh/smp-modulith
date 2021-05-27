@@ -173,6 +173,8 @@ class CreateProductUC:
                         brand_reference=product_dto.brand_reference
                     )
                     product._brand = brand
+                else:
+                    product._brand = self.get_or_create_default_brand()
 
                 # output dto
                 output_dto = CreatingProductResponse(product_id=str(product.product_id), reference=product.reference)
@@ -181,3 +183,6 @@ class CreateProductUC:
                 uow.commit()
             except Exception as exc:
                 raise exc
+
+    def get_or_create_default_brand(self):
+        return self.get_or_create_brand(brand_display_name='Unassigned Brand', brand_reference='unassigned')
