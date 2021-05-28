@@ -1,7 +1,9 @@
+import decimal
 from typing import Type, TypeVar, cast
 
-from flask import Request, abort, jsonify, make_response
+from flask import Request
 from marshmallow import Schema, exceptions
+from marshmallow.fields import Decimal
 from marshmallow_dataclass import class_schema
 
 from foundation.value_objects import Money
@@ -11,7 +13,10 @@ TDto = TypeVar("TDto")
 
 
 class BaseSchema(Schema):
-    TYPE_MAPPING = {Money: Dollars}
+    TYPE_MAPPING = {
+        Money: Dollars,
+        decimal: Decimal,
+    }
 
 
 def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
@@ -23,4 +28,4 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
 
         return cast(TDto, schema.load(dict(context, **request_json)))
     except exceptions.ValidationError as exc:
-        abort(make_response(jsonify(exc.messages), 400))
+        raise exc
