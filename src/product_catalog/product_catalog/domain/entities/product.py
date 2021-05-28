@@ -105,6 +105,9 @@ class Product(EventMixin, Entity):
 
         # set the updated_at for tracking the version of `ProductConversion` that will be created later in the event
         # handling job
+        if not product_unit.default:
+            product_unit.product = self
+            product_unit._base_product_id = self.product_id
         self._units.add(product_unit)
 
         # set the updated_time via `DomainEventBase._occured_on`

@@ -13,6 +13,7 @@ from product_catalog.domain.entities.brand import Brand
 from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
+from product_catalog.domain.entities.product_unit import ProductUnit, DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR
 from product_catalog.domain.value_objects import ProductReference, CatalogReference, CollectionReference
 
 
@@ -74,43 +75,21 @@ class CreateProductUC:
             try:
                 # find catalog
                 catalog: Optional[Catalog] = None
-                new_catalog_created = False
                 catalog_reference = product_dto.catalog_reference
                 catalog_display_name = product_dto.catalog_display_name
                 if catalog_reference:
                     catalog = uow.catalogs.get(reference=catalog_reference)
 
                 if not catalog:
-                    catalog, new_catalog_created = self.get_catalog_or_return_default(
+                    catalog = self.get_catalog_or_return_default(
                         catalog_display_name=catalog_display_name, catalog_reference=catalog_reference)
 
-                # find collection
-                collection: Optional[Collection] = None
+                # find or create collection
                 collection_display_name = product_dto.collection_display_name
                 collection_reference = product_dto.collection_reference
-                if new_catalog_created:
-                    # create new collection
-                    collection = self.get_collection_or_return_default(
-                        collection_display_name=collection_display_name, collection_reference=collection_reference)
-
-                    # add collection to catalog
-                    catalog.collections.add(collection)
-                else:
-                    # old catalog, find the collection
-                    if collection_reference:
-                        try:
-                            collection = next(c for c in catalog.collections.__iter__()
-                                              if c.reference == collection_reference)
-                        except StopIteration:
-                            pass
-
-                    # still no collection with specified reference, check again with display name
-                    if not collection:
-                        collection = self.get_collection_or_return_default(
-                            collection_display_name=collection_display_name, collection_reference=collection_reference)
-
-                        # add collection to catalog
-                        catalog.collections.add(collection)
+                collection = self.get_collection_or_return_default(catalog=catalog,
+                                                                   collection_display_name=collection_display_name,
+                                                                   collection_reference=collection_reference)
 
                 # create product
                 product_reference = product_dto.reference
@@ -123,7 +102,25 @@ class CreateProductUC:
                     reference=product_reference,
                     display_name=display_name,
                     collection=collection,
+                    barcode=product_dto.barcode,
                 )  # type:Product
+
+                # add unit
+                default_unit = None
+                if product_dto.default_unit:
+                    default_unit = ProductUnit(unit=product_dto.default_unit, base_unit=None,
+                                               multiplier=DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR,
+                                               default=True)
+                    product.add_unit(default_unit)
+
+                if len(product_dto.unit_conversions):
+                    if not default_unit:
+                        raise Exception('Default Unit must be setted before creating more unit')
+
+                    for unit_conversion in product_dto.unit_conversions:
+                        product_unit = ProductUnit(unit=unit_conversion.unit, base_unit=default_unit.unit,
+                                                   multiplier=unit_conversion.multiplier, default=False)
+                        product.add_unit(product_unit)
 
                 # with brand?
                 brand_display_name, brand_reference = product_dto.brand_display_name, product_dto.brand_reference
@@ -140,7 +137,7 @@ class CreateProductUC:
                 raise exc
 
     def get_catalog_or_return_default(self, catalog_display_name='Default Catalog',
-                                      catalog_reference='default_catalog') -> Tuple[Catalog, bool]:
+                                      catalog_reference='default_catalog') -> Catalog:
         catalog_reference = catalog_reference if catalog_reference else slugify(catalog_display_name)
         new_created = False
 
@@ -155,29 +152,35 @@ class CreateProductUC:
         catalog = current_session.query(Catalog).filter(Catalog._reference == catalog_reference).first()
         if not catalog:
             # need to create one
-            catalog = Brand(reference=catalog_reference, display_name=catalog_display_name)
+            catalog = Catalog.create(reference=catalog_reference, display_name=catalog_display_name)
             new_created = True
 
-        return catalog, new_created
+        return catalog
 
     def get_collection_or_return_default(
             self,
-            catalog: Catalog, collection_display_name='Default Collection',
+            catalog: Catalog,
+            collection_display_name='Default Collection',
             collection_reference='default_collection'
     ) -> Collection:
+        """
+        Get collection from persisted data or create new one based on inputs. Else get/ create a default one
+
+        :param catalog:
+        :param collection_display_name:
+        :param collection_reference:
+        :return:
+        """
         collection_reference = collection_reference if collection_reference else slugify(collection_display_name)
 
         # no reference, return default
         if not collection_reference:
-            collection_reference = 'default_collection'
-            collection_display_name = 'Default Collection'
+            return catalog.default_collection
 
         # get from persisted
         sess = self._uow.session  # type:Session
-        collection = sess.query(Collection).filter(Collection._reference == collection_reference).first()
-        if not collection:
-            # create one
-            collection = Collection(reference=collection_reference, display_name=collection_display_name)
+        collection = catalog.get_child_collection_or_create_new(reference=collection_reference,
+                                                                display_name=collection_display_name)
 
         return collection
 

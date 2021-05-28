@@ -7,7 +7,7 @@ from flask import Response, Blueprint, jsonify, make_response, request, current_
 from flask_jwt_extended import jwt_required
 
 from foundation.business_rule import BusinessRuleValidationError
-from product_catalog.application.queries.product_catalog import GetAllProductsQuery
+from product_catalog.application.queries.product_catalog import GetAllProductsQuery, GetProductQuery
 from product_catalog.application.usecases.create_product import CreatingProductResponse, CreatingProductRequest, \
     CreateProductUC, CreatingProductResponseBoundary
 from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC, \
@@ -42,6 +42,16 @@ def list_all_products(query: GetAllProductsQuery) -> Response:
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
+@product_blueprint.route('/<string:product_query>', methods=['GET'])
+@jwt_required()
+def fetch_product(product_query: str, query: GetProductQuery) -> Response:
+    try:
+        product = query.query(product_query=product_query)
+        return make_response(jsonify(product)), 200  # type:ignore
+    except Exception as exc:
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+
+
 @product_blueprint.route('/<string:catalog_query>', methods=['POST'])
 @jwt_required()
 def create_new_product_with_catalog(catalog_query: str, create_product_uc: CreateProductUC,
@@ -66,8 +76,8 @@ def create_new_product(create_product_uc: CreateProductUC, presenter: CreatingPr
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
-        # if current_app.debug:
-        #     raise exc
+        if current_app.debug:
+            raise exc
         return make_response(jsonify({'message': exc.args})), 400  # type: ignore
 
 

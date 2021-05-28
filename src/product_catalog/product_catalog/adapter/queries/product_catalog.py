@@ -3,13 +3,13 @@
 import math
 from typing import Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, Table
 from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
 from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
     brand_table
-from product_catalog.application.queries.product_catalog import GetAllProductsQuery, ProductDto
+from product_catalog.application.queries.product_catalog import GetAllProductsQuery, ProductDto, GetProductQuery
 from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, GetAllCatalogsQuery, \
     PaginationDto
 
@@ -47,6 +47,38 @@ class SqlGetCatalogQuery(GetCatalogQuery, SqlQuery):
             raise exc
 
 
+class SqlGetProductQuery(GetProductQuery, SqlQuery):
+    def query(self, product_query: str) -> Optional[ProductDto]:
+        try:
+            joined_table = product_table \
+                .join(catalog_table, catalog_table.c.reference == product_table.c.catalog_reference) \
+                .join(collection_table, collection_table.c.reference == product_table.c.collection_reference) \
+                .join(brand_table, brand_table.c.reference == product_table.c.brand_reference)
+
+            query = select([
+                product_table.c.product_id,
+                product_table.c.reference,
+                product_table.c.display_name,
+                product_table.c.created_at,
+                catalog_table.c.display_name.label('catalog_display_name'),
+                collection_table.c.display_name.label('collection_display_name'),
+                brand_table.c.display_name.label('brand_display_name'),
+            ]) \
+                .select_from(joined_table) \
+                .select_from(catalog_table) \
+                .select_from(collection_table) \
+                .select_from(brand_table)
+
+            result = self._conn.execute(query.where(product_table.c.reference == product_query)).first()
+
+            if result:
+                return _row_to_product_dto(result)
+            else:
+                return {}
+        except Exception as exc:
+            raise exc
+
+
 class SqlGetAllProductsQuery(GetAllProductsQuery, SqlQuery):
     def query(self, page: int, page_size: int) -> PaginationDto:
         total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
@@ -79,6 +111,10 @@ class SqlGetAllProductsQuery(GetAllProductsQuery, SqlQuery):
             total_items=total_rows,
             total_pages=math.ceil(total_rows / page_size),
         )
+
+
+def joined_product_table() -> Table:
+
 
 
 def _row_to_catalog_dto(catalog_proxy: RowProxy) -> CatalogDto:

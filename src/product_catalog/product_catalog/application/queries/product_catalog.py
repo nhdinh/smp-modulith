@@ -69,3 +69,9 @@ class GetAllProductsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, page: int, page_size: int) -> PaginationDto:
         pass
+
+
+class GetProductQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, product_query: str) -> ProductDto:
+        pass

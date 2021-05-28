@@ -150,9 +150,8 @@ def start_mappers():
         properties={
             '_product_id': product_unit_table.c.product_id,
             '_base_product_id': product_unit_table.c.base_product_id,
-            '_base_unit': product_unit_table.c.base_unit,
 
-            'base_unit': relationship(
+            'from_unit': relationship(
                 ProductUnit,
                 foreign_keys=[product_unit_table.c.base_product_id, product_unit_table.c.base_unit],
                 remote_side=[product_unit_table.c.product_id, product_unit_table.c.unit],
@@ -211,7 +210,7 @@ def start_mappers():
 
 
 @event.listens_for(Catalog, "load")
-def receive_load(catalog, _):
+def catalog_receive_load(catalog, _):
     catalog._pending_domain_events = []
 
     # set default_collection for the catalog
@@ -229,3 +228,8 @@ def receive_load(catalog, _):
                 default_collection.default = True
 
         setattr(catalog, '_default_collection', default_collection)
+
+
+@event.listens_for(ProductUnit, 'load')
+def product_unit_receive_load(unit, _):
+    pass
