@@ -6,7 +6,7 @@ from uuid import UUID
 from auctions import AuctionDto
 from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
-from product_catalog.application.queries.product_catalog import CatalogDto, PaginationDto
+from product_catalog.application.queries.product_catalog import CatalogDto, PaginationDto, CollectionDto, BrandDto
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -40,12 +40,29 @@ class JSONEncoder(json.JSONEncoder):
             "ends_at": obj.ends_at,
         }
 
+    @default.register(CollectionDto)  # noga: F811
+    def serialize_collection_dto(self, obj: CollectionDto) -> object:
+        return {
+            'reference': obj.collection_reference,
+            'display_name': obj.collection_display_name
+        }
+
+    @default.register(BrandDto)  # noga: F881
+    def serialize_brand_dto(self, obj: BrandDto) -> object:
+        return {
+            'reference': obj.brand_reference,
+            'display_name': obj.brand_display_name,
+            'logo': obj.brand_logo,
+        }
+
     @default.register(CatalogDto)  # noqa: F811
     def serialize_catalog_dto(self, obj: CatalogDto) -> object:
         return {
             'reference': obj.reference,
             'display_name': obj.display_name,
             'disabled': obj.disabled,
+            'collections': obj.collections,
+            'system': obj.system,
         }
 
     @default.register(UserDto)  # noqa: F811

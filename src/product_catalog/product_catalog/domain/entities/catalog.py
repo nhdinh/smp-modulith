@@ -125,6 +125,9 @@ class Catalog(EventMixin, Entity):
         elif 'default_collection_reference' in kwargs:
             default_collection_reference = kwargs.get('default_collection_reference')
             default_collection_display_name = default_collection_reference
+        else:
+            default_collection_display_name = 'Default Collection'
+            default_collection_reference = 'default_collection'
 
         if default_collection_reference:
             catalog.create_child_collection(collection_reference=default_collection_reference,
@@ -170,6 +173,7 @@ class Catalog(EventMixin, Entity):
         # if there is a collection passed into this method
         if 'collection' in kwargs.keys():
             collection = kwargs.get('collection', None)
+
             if not collection or type(collection) is not Collection:
                 # input is not a collection, then use the default collection
                 collection = self.default_collection

@@ -8,7 +8,7 @@ from flask_jwt_extended import jwt_required
 from flask_login import current_user
 
 from foundation.business_rule import BusinessRuleValidationError
-from product_catalog.application.queries.product_catalog import GetAllCatalogsQuery, GetCatalogQuery
+from product_catalog.application.queries.product_catalog import FetchAllCatalogsQuery, FetchCatalogQuery
 from product_catalog.application.usecases.create_catalog import CreatingCatalogResponseBoundary, \
     CreatingCatalogResponse, \
     CreatingCatalogRequest, CreateCatalogUC
@@ -27,13 +27,23 @@ class CatalogAPI(injector.Module):
 
 
 @catalog_blueprint.route('/')
-def list_all_catalog(query: GetAllCatalogsQuery) -> Response:
-    page = request.args.get('page', 1, type=int)
-    page_size = request.args.get('page_size', 50, type=int)
-
+@jwt_required()
+def fetch_all_active_catalogs(query: FetchAllCatalogsQuery) -> Response:
     try:
-        catalogs_pagination = query.query(page=page, page_size=page_size)
-        return make_response(jsonify(catalogs_pagination)), 200  # type:ignore
+        catalogs = query.query()
+        return make_response(jsonify(catalogs)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            raise exc
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@catalog_blueprint.route('/all')
+@jwt_required()
+def fetch_all_catalogs(query: FetchAllCatalogsQuery) -> Response:
+    try:
+        catalogs = query.query(select_active_only=False)
+        return make_response(jsonify(catalogs)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
             raise exc
@@ -41,7 +51,8 @@ def list_all_catalog(query: GetAllCatalogsQuery) -> Response:
 
 
 @catalog_blueprint.route("/<string:catalog_query>", methods=['GET'])
-def get_single_catalog(catalog_query: str, query: GetCatalogQuery) -> Response:
+@jwt_required()
+def get_single_catalog(catalog_query: str, query: FetchCatalogQuery) -> Response:
     return make_response(jsonify(query.query(param=catalog_query)))
 
 

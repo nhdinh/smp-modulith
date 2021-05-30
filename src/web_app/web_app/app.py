@@ -12,6 +12,7 @@ from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
 from web_app.blueprints.auth import auth_blueprint, AuthenticationAPI
+from web_app.blueprints.brand import brand_blueprint
 from web_app.blueprints.catalog import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
@@ -32,6 +33,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.register_blueprint(product_blueprint, url_prefix='/product')
     app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
     app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
+    app.register_blueprint(brand_blueprint, url_prefix='/brand')
 
     # TODO: move this config
     app.config["SECRET_KEY"] = "super-secret"

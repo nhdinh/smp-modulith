@@ -18,13 +18,15 @@ from product_catalog.domain.entities.unit import Unit
 collection_table = Table(
     'collection',
     metadata,
-    Column('reference', String(100), unique=True, nullable=False, primary_key=True),
+    Column('reference', String(100), nullable=False),
     Column('display_name', String(255), nullable=False),
-    Column('catalog_reference', ForeignKey('catalog.reference'), nullable=False, primary_key=True),
+    Column('catalog_reference', ForeignKey('catalog.reference'), nullable=False),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('default', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime, server_default=func.now()),
     Column('last_updated', DateTime, onupdate=datetime.now),
+
+    PrimaryKeyConstraint('reference', 'catalog_reference', name='collection_pk'),
 )
 
 catalog_table = Table(
@@ -32,6 +34,7 @@ catalog_table = Table(
     metadata,
     Column('reference', String(100), primary_key=True),
     Column('display_name', String(255), nullable=False),
+    Column('system', Boolean, default=False),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime, server_default=func.now()),
     Column('last_updated', DateTime, default=datetime.now),

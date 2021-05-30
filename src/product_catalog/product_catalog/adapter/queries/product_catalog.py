@@ -1,40 +1,58 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import math
-from typing import Optional
+from typing import Optional, List
 
-from sqlalchemy import func, select, Table
+from sqlalchemy import func, select, Table, and_
 from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
 from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
     brand_table
-from product_catalog.application.queries.product_catalog import GetAllProductsQuery, ProductDto, GetProductQuery
-from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, GetAllCatalogsQuery, \
+from product_catalog.application.queries.product_catalog import FetchAllProductsQuery, ProductDto, FetchProductQuery, \
+    CollectionDto, BrandDto, FetchAllBrandsQuery
+from product_catalog.application.queries.product_catalog import FetchCatalogQuery, CatalogDto, FetchAllCatalogsQuery, \
     PaginationDto
 
 
-class SqlGetAllCatalogsQuery(GetAllCatalogsQuery, SqlQuery):
-    def query(self, page: int, page_size: int) -> PaginationDto:
-        total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
-
-        # make joined table
-        joined_table = catalog_table \
-            .join(collection_table, onclause=(catalog_table.c.reference == collection_table.c.catalog_reference))
-
+class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
+    def query(self, select_active_only: bool = True) -> List[CatalogDto]:
         # make query
-        query = paginate(select(joined_table), page, page_size)
+        query_table = catalog_table.join(collection_table,
+                                         onclause=(collection_table.c.catalog_reference == catalog_table.c.reference))
 
-        return PaginationDto(
-            data=[_row_to_catalog_dto(row) for row in self._conn.execute(joined_table.select())],
-            current_page=page,
-            page_size=page_size,
-            total_rows=total_rows,
-            total_pages=math.ceil(total_rows / page_size)
-        )
+        query = select([
+            catalog_table.c.reference,
+            catalog_table.c.display_name,
+            catalog_table.c.disabled,
+            catalog_table.c.system,
+            collection_table.c.reference.label('collection_reference'),
+            collection_table.c.display_name.label('collection_display_name')
+        ]) \
+            .select_from(query_table) \
+            .select_from(catalog_table) \
+            .select_from(collection_table)
+
+        if select_active_only:
+            query = query.where(catalog_table.c.disabled == False)
+        result = self._conn.execute(query)
+
+        ret = dict()
+        for row in result:
+            catalog_dto = _row_to_catalog_dto(row)
+
+            if catalog_dto.reference not in ret.keys():
+                ret[catalog_dto.reference] = catalog_dto
+
+            if not hasattr(ret[catalog_dto.reference], 'collections'):
+                setattr(ret[catalog_dto.reference], 'collections', [])
+
+            ret[catalog_dto.reference].collections.append(_row_to_collection_dto(row))
+
+        return list(ret.values())
 
 
-class SqlGetCatalogQuery(GetCatalogQuery, SqlQuery):
+class SqlFetchCatalogQuery(FetchCatalogQuery, SqlQuery):
     def query(self, param: str) -> Optional[CatalogDto]:
         try:
             return next(
@@ -47,7 +65,7 @@ class SqlGetCatalogQuery(GetCatalogQuery, SqlQuery):
             raise exc
 
 
-class SqlGetProductQuery(GetProductQuery, SqlQuery):
+class SqlFetchProductQuery(FetchProductQuery, SqlQuery):
     def query(self, product_query: str) -> Optional[ProductDto]:
         try:
             query = joined_product_table_query()
@@ -61,7 +79,7 @@ class SqlGetProductQuery(GetProductQuery, SqlQuery):
             raise exc
 
 
-class SqlGetAllProductsQuery(GetAllProductsQuery, SqlQuery):
+class SqlFetchAllProductsQuery(FetchAllProductsQuery, SqlQuery):
     def query(self, page: int, page_size: int) -> PaginationDto:
         total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
 
@@ -78,10 +96,16 @@ class SqlGetAllProductsQuery(GetAllProductsQuery, SqlQuery):
         )
 
 
+class SqlFetchAllBrandsQuery(FetchAllBrandsQuery, SqlQuery):
+    def query(self) -> List[BrandDto]:
+        return [_row_to_brand_dto(r) for r in self._conn.execute(brand_table.select())]
+
+
 def joined_product_table_query():
     joined_table = product_table \
         .join(catalog_table, catalog_table.c.reference == product_table.c.catalog_reference) \
-        .join(collection_table, collection_table.c.reference == product_table.c.collection_reference) \
+        .join(collection_table, and_(collection_table.c.reference == product_table.c.collection_reference,
+                                     collection_table.c.catalog_reference == product_table.c.catalog_reference)) \
         .join(brand_table, brand_table.c.reference == product_table.c.brand_reference)
 
     query = select([
@@ -106,6 +130,23 @@ def _row_to_catalog_dto(catalog_proxy: RowProxy) -> CatalogDto:
         reference=catalog_proxy.reference,
         display_name=catalog_proxy.display_name,
         disabled=catalog_proxy.disabled,
+        collections=[],
+        system=catalog_proxy.system,
+    )
+
+
+def _row_to_collection_dto(collection_proxy: RowProxy) -> CollectionDto:
+    return CollectionDto(
+        collection_reference=collection_proxy.collection_reference,
+        collection_display_name=collection_proxy.collection_display_name,
+    )
+
+
+def _row_to_brand_dto(brand_proxy: RowProxy) -> BrandDto:
+    return BrandDto(
+        brand_reference=brand_proxy.reference,
+        brand_display_name=brand_proxy.display_name,
+        brand_logo=brand_proxy.logo if hasattr(brand_proxy, 'logo') else ''
     )
 
 

@@ -6,10 +6,10 @@ from sqlalchemy.orm import sessionmaker
 
 from product_catalog.adapter import catalog_db
 from product_catalog.adapter.catalog_db import catalog_table, product_table
-from product_catalog.adapter.queries.product_catalog import SqlGetCatalogQuery, SqlGetAllCatalogsQuery, \
-    SqlGetAllProductsQuery, SqlGetProductQuery
-from product_catalog.application.queries.product_catalog import GetAllProductsQuery, GetAllCatalogsQuery, \
-    GetCatalogQuery, GetProductQuery
+from product_catalog.adapter.queries.product_catalog import SqlFetchCatalogQuery, SqlFetchAllCatalogsQuery, \
+    SqlFetchAllProductsQuery, SqlFetchProductQuery, SqlFetchAllBrandsQuery
+from product_catalog.application.queries.product_catalog import FetchAllProductsQuery, FetchAllCatalogsQuery, \
+    FetchCatalogQuery, FetchProductQuery, FetchAllBrandsQuery
 from product_catalog.application.repositories.catalog_repository import SqlAlchemyCatalogRepository
 from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
 from product_catalog.application.usecases.begin_catalog import MakeTestSampleCatalogUC, TestSampleCatalog, \
@@ -84,17 +84,21 @@ class ProductCatalogInfrastructureModule(injector.Module):
         return CatalogUnitOfWork(sessionfactory=sessfactory)
 
     @injector.provider
-    def get_all_products_query(self, conn: Connection) -> GetAllProductsQuery:
-        return SqlGetAllProductsQuery(conn)
+    def get_all_products_query(self, conn: Connection) -> FetchAllProductsQuery:
+        return SqlFetchAllProductsQuery(conn)
 
     @injector.provider
-    def get_all_catalogs_query(self, conn: Connection) -> GetAllCatalogsQuery:
-        return SqlGetAllCatalogsQuery(conn)
+    def get_all_catalogs_query(self, conn: Connection) -> FetchAllCatalogsQuery:
+        return SqlFetchAllCatalogsQuery(conn)
 
     @injector.provider
-    def get_catalog_query(self, conn: Connection) -> GetCatalogQuery:
-        return SqlGetCatalogQuery(conn)
+    def get_catalog_query(self, conn: Connection) -> FetchCatalogQuery:
+        return SqlFetchCatalogQuery(conn)
 
     @injector.provider
-    def get_product_query(self, conn: Connection) -> GetProductQuery:
-        return SqlGetProductQuery(conn)
+    def get_product_query(self, conn: Connection) -> FetchProductQuery:
+        return SqlFetchProductQuery(conn)
+
+    @injector.provider
+    def fetch_all_brands(self, conn: Connection) -> FetchAllBrandsQuery:
+        return SqlFetchAllBrandsQuery(conn)

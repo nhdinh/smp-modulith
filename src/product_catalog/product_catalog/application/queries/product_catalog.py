@@ -18,10 +18,25 @@ class PaginationDto:
 
 
 @dataclass
+class CollectionDto:
+    collection_reference: str
+    collection_display_name: str
+
+
+@dataclass
+class BrandDto:
+    brand_reference: str
+    brand_display_name: str
+    brand_logo: str
+
+
+@dataclass
 class CatalogDto:
     reference: str
     display_name: str
     disabled: bool
+    collections: List[CollectionDto]
+    system: bool
 
 
 @dataclass
@@ -47,31 +62,31 @@ class ProductDto:
         }
 
 
-class GetAllCatalogsQuery(abc.ABC):
+class FetchAllCatalogsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, page: int, page_size: int) -> PaginationDto:
+    def query(self, select_active_only: bool = True) -> List[CatalogDto]:
         pass
 
 
-class GetCatalogQuery(abc.ABC):
+class FetchCatalogQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, param: str) -> Optional[CatalogDto]:
         pass
 
 
-class GetCatalogByReferenceQuery(abc.ABC):
-    @abc.abstractmethod
-    def query(self, reference: str) -> CatalogDto:
-        pass
-
-
-class GetAllProductsQuery(abc.ABC):
+class FetchAllProductsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, page: int, page_size: int) -> PaginationDto:
         pass
 
 
-class GetProductQuery(abc.ABC):
+class FetchProductQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, product_query: str) -> ProductDto:
+    def query(self, product_query: str) -> Optional[ProductDto]:
+        pass
+
+
+class FetchAllBrandsQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self) -> List[BrandDto]:
         pass
