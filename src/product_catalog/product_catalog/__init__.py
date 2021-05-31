@@ -18,6 +18,7 @@ from product_catalog.application.usecases.create_catalog import CreateCatalogUC,
     CreateDefaultCatalogUC
 from product_catalog.application.usecases.create_product import CreatingProductResponseBoundary, CreateProductUC
 from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC
+from product_catalog.application.usecases.toggle_catalog import TogglingCatalogResponseBoundary, ToggleCatalogUC
 from product_catalog.domain.value_objects import CollectionReference, CatalogId, CatalogReference
 
 __all__ = [
@@ -66,6 +67,10 @@ class ProductCatalogModule(injector.Module):
     @injector.provider
     def modify_product_uc(self, boundary: ModifyingProductResponseBoundary, uow: CatalogUnitOfWork) -> ModifyProductUC:
         return ModifyProductUC(boundary, uow)
+
+    @injector.provider
+    def toggle_catalog_uc(self, boundary: TogglingCatalogResponseBoundary, uow: CatalogUnitOfWork) -> ToggleCatalogUC:
+        return ToggleCatalogUC(boundary, uow)
 
 
 class ProductCatalogInfrastructureModule(injector.Module):
