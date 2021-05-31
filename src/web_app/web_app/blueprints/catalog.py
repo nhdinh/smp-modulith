@@ -14,6 +14,8 @@ from product_catalog.application.usecases.create_catalog import CreatingCatalogR
     CreatingCatalogRequest, CreateCatalogUC
 from product_catalog.application.usecases.create_collection import CreatingCollectionRequest, CreateCollectionUC, \
     CreatingCollectionResponseBoundary, CreatingCollectionResponse
+from product_catalog.application.usecases.delete_catalog import DeleteCatalogUC, DeletingCatalogResponseBoundary, \
+    DeletingCatalogResponse
 from product_catalog.application.usecases.toggle_catalog import TogglingCatalogResponseBoundary, ToggleCatalogUC
 from web_app.serialization.dto import get_dto
 
@@ -30,6 +32,11 @@ class CatalogAPI(injector.Module):
     @flask_injector.request
     def toggle_catalog_response_boundary(self) -> TogglingCatalogResponseBoundary:
         return TogglingCatalogPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def delete_catalog_response_boundary(self) -> DeletingCatalogResponseBoundary:
+        return DeletingCatalogPresenter()
 
 
 @catalog_blueprint.route('/')
@@ -111,10 +118,26 @@ def toggle_catalog(catalog_query: str, toggle_catalog_uc: ToggleCatalogUC,
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
+@catalog_blueprint.route('/<string:catalog_query>', methods=['DELETE'])
+@jwt_required()
+def delete_catalog(catalog_query: str, delete_catalog_uc: DeleteCatalogUC,
+                   presenter: DeletingCatalogResponseBoundary) -> Response:
+    try:
+        delete_all = request.args.get('all', 0, type=int)
+        delete_catalog_uc.execute(catalog_query, True if delete_all == 1 else False)
+        return presenter.response, 200  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            raise exc
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
 class CreatingCatalogPresenter(CreatingCatalogResponseBoundary):
     response: Response
 
-    def present(self, response_dto: CreatingCatalogResponse):
+    def present(self, response_dto: CreatingCatalogResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
@@ -128,5 +151,12 @@ class CreatingCollectionPresenter(CreatingCollectionResponseBoundary):
 class TogglingCatalogPresenter(TogglingCatalogResponseBoundary):
     response: Response
 
-    def present(self, response_dto: CreatingCatalogResponse):
+    def present(self, response_dto: CreatingCatalogResponse) -> None:
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class DeletingCatalogPresenter(DeletingCatalogResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: DeletingCatalogResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))

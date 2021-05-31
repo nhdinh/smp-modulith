@@ -51,3 +51,6 @@ class SqlAlchemyCatalogRepository(AbstractCatalogRepository):
 
     def save(self, catalog: Catalog) -> None:
         self._sess.add(catalog)
+
+    def delete(self, catalog: Catalog) -> None:
+        self._sess.delete(catalog)

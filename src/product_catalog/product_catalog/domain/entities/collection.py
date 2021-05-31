@@ -19,3 +19,13 @@ class Collection:
             return self._products
         else:
             return set()
+
+    @property
+    def catalog(self):
+        if hasattr(self, '_catalog'):
+            return self._catalog
+
+        return None
+
+    def __repr__(self):
+        return f'<Collection reference="{self.reference}" display_name="{self.display_name}" product_cnt={len(self.products)}>'

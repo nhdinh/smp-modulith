@@ -49,9 +49,6 @@ class Catalog(EventMixin, Entity):
 
     @property
     def default_collection(self) -> Optional[Collection]:
-        # if not hasattr(self, '_default_collection'):
-        #     setattr(self, '_default_collection', None)
-
         return self._default_collection
 
     def add_child_collection(self, child_collection: Collection):
@@ -82,6 +79,11 @@ class Catalog(EventMixin, Entity):
         self.check_rule(ReferenceMustNotBeEmptyRule(reference=collection_reference,
                                                     message='Reference string of the collection must not be empty'))
 
+        # check collection reference
+        if not collection_reference.startswith(f'{self.reference}#'):
+            collection_reference = self.create_collection_reference(collection_reference=collection_reference)
+
+        # create new collection entity
         collection = Collection(
             reference=collection_reference,
             display_name=display_name,
@@ -130,8 +132,11 @@ class Catalog(EventMixin, Entity):
             default_collection_reference = 'default_collection'
 
         if default_collection_reference:
-            catalog.create_child_collection(collection_reference=default_collection_reference,
-                                            display_name=default_collection_display_name, set_default=True)
+            catalog.create_child_collection(
+                collection_reference=default_collection_reference,
+                display_name=default_collection_display_name,
+                set_default=True
+            )
 
         # return the newly created catalog
         return catalog
@@ -141,6 +146,15 @@ class Catalog(EventMixin, Entity):
             collection_reference='default_collection',
             display_name='Default Collection',
             set_default=True)
+
+    def create_collection_reference(self, collection_reference: str = None, collection_dname: str = None):
+        if not collection_reference and collection_dname:
+            collection_reference = slugify(collection_dname)
+
+        if not collection_reference and not collection_dname:
+            raise RuntimeError("Cannot make reference from empty string")
+
+        return f'{self.reference}#{collection_reference}'
 
     def get_child_collection_or_create_new(
             self,
@@ -193,3 +207,6 @@ class Catalog(EventMixin, Entity):
         collection.products.add(product)
 
         return product
+
+    def __repr__(self):
+        return f'<Catalog #{self.reference} display_name="{self.display_name}">'

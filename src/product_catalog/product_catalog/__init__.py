@@ -17,6 +17,7 @@ from product_catalog.application.usecases.begin_catalog import MakeTestSampleCat
 from product_catalog.application.usecases.create_catalog import CreateCatalogUC, CreatingCatalogResponseBoundary, \
     CreateDefaultCatalogUC
 from product_catalog.application.usecases.create_product import CreatingProductResponseBoundary, CreateProductUC
+from product_catalog.application.usecases.delete_catalog import DeletingCatalogResponseBoundary, DeleteCatalogUC
 from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC
 from product_catalog.application.usecases.toggle_catalog import TogglingCatalogResponseBoundary, ToggleCatalogUC
 from product_catalog.domain.value_objects import CollectionReference, CatalogId, CatalogReference
@@ -71,6 +72,10 @@ class ProductCatalogModule(injector.Module):
     @injector.provider
     def toggle_catalog_uc(self, boundary: TogglingCatalogResponseBoundary, uow: CatalogUnitOfWork) -> ToggleCatalogUC:
         return ToggleCatalogUC(boundary, uow)
+
+    @injector.provider
+    def delete_catalog_uc(self, boundary: DeletingCatalogResponseBoundary, uow: CatalogUnitOfWork) -> DeleteCatalogUC:
+        return DeleteCatalogUC(boundary, uow)
 
 
 class ProductCatalogInfrastructureModule(injector.Module):

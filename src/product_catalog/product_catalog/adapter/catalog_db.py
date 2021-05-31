@@ -18,15 +18,13 @@ from product_catalog.domain.entities.unit import Unit
 collection_table = Table(
     'collection',
     metadata,
-    Column('reference', String(100), nullable=False),
+    Column('reference', String(200), unique=True, primary_key=True),
     Column('display_name', String(255), nullable=False),
     Column('catalog_reference', ForeignKey('catalog.reference'), nullable=False),
     Column('default', Boolean, default=0, server_default='0'),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime, server_default=func.now()),
     Column('last_updated', DateTime, onupdate=datetime.now),
-
-    PrimaryKeyConstraint('reference', 'catalog_reference', name='collection_pk'),
 )
 
 catalog_table = Table(
@@ -67,8 +65,7 @@ product_table = Table(
     Column('product_id', GUID, primary_key=True),
     Column('reference', String(100), unique=True, nullable=False),
     Column('display_name', String(255), nullable=False),
-    Column('catalog_reference', ForeignKey(catalog_table.c.reference, ondelete='SET NULL')),
-    Column('collection_reference', ForeignKey(collection_table.c.reference, ondelete='SET NULL')),
+    Column('collection_reference', ForeignKey('collection.reference', ondelete='SET NULL')),
     Column('brand_reference', ForeignKey(brand_table.c.reference, ondelete='SET NULL')),
     Column('created_at', DateTime, server_default=func.now()),
     Column('last_updated', DateTime, onupdate=datetime.now),
@@ -92,14 +89,10 @@ product_unit_table = Table(
 
     Column('product_id', GUID, ForeignKey(product_table.c.product_id)),
     Column('unit', String(50)),
-
     Column('default', Boolean, server_default='0'),
-
     Column('multiplier', Numeric, nullable=True, server_default='1'),
-
     Column('base_product_id', nullable=True, default=None),
     Column('base_unit', nullable=True, default=None),
-
     Column('disabled', Boolean, default=False, server_default='0'),
     Column('created_at', DateTime, nullable=False, server_default=func.now()),
     Column('last_updated', DateTime, onupdate=datetime.now),
@@ -109,7 +102,6 @@ product_unit_table = Table(
         ('base_product_id', 'base_unit'),
         ['product_unit.product_id', 'product_unit.unit'],
         name='product_unit_fk',
-        onupdate='SET NULL',
         ondelete='SET NULL'
     )
 )
@@ -153,7 +145,6 @@ def start_mappers():
         properties={
             '_product_id': product_unit_table.c.product_id,
             '_base_product_id': product_unit_table.c.base_product_id,
-
             'from_unit': relationship(
                 ProductUnit,
                 foreign_keys=[product_unit_table.c.base_product_id, product_unit_table.c.base_unit],
@@ -168,10 +159,6 @@ def start_mappers():
         properties={
             '_product_id': product_table.c.product_id,
             '_reference': product_table.c.reference,
-            # '_catalog': relationship(
-            #     Catalog,
-            #     primaryjoin=[catalog_table.c.reference],
-            # ),
             '_tags': relationship(
                 Tag,
                 secondary=product_tags_table,
@@ -191,9 +178,8 @@ def start_mappers():
         properties={
             '_products': relationship(
                 Product,
-                foreign_keys=product_table.c.collection_reference,
+                backref=backref('_collection'),
                 collection_class=set,
-                backref='_collection',
             ),
         }
     )
@@ -205,7 +191,8 @@ def start_mappers():
             '_reference': catalog_table.c.reference,
             '_collections': relationship(
                 Collection,
-                backref=backref('_catalog', remote_side=[catalog_table.c.reference]),
+                backref=backref('_catalog'),
+                cascade='all, delete',
                 collection_class=set,
             )
         }
@@ -231,6 +218,12 @@ def catalog_receive_load(catalog, _):
                 default_collection.default = True
 
         setattr(catalog, '_default_collection', default_collection)
+
+
+@event.listens_for(Product, 'load')
+def product_receive_load(product, _):
+    product._pending_domain_events = []
+    product._catalog = product.collection.catalog
 
 
 @event.listens_for(ProductUnit, 'load')

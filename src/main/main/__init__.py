@@ -48,7 +48,9 @@ def bootstrap_app() -> AppContext:
         "redis.host": os.environ["REDIS_HOST"],
     }
 
-    engine = create_engine(os.environ["DB_DSN"])
+    db_echo = os.environ.get('DB_ECHO')
+
+    engine = create_engine(os.environ["DB_DSN"], echo=True)
     dependency_injector = _setup_dependency_injection(settings, engine)
     _setup_orm_events(dependency_injector)
 

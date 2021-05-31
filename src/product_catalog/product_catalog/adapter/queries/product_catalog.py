@@ -18,8 +18,8 @@ from product_catalog.application.queries.product_catalog import FetchCatalogQuer
 class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
     def query(self, select_active_only: bool = True) -> List[CatalogDto]:
         # make query
-        query_table = catalog_table.join(collection_table,
-                                         onclause=(collection_table.c.catalog_reference == catalog_table.c.reference))
+        query_table = catalog_table.join(collection_table, onclause=(
+                catalog_table.c.reference == collection_table.c.catalog_reference), isouter=True)
 
         query = select([
             catalog_table.c.reference,
@@ -47,7 +47,10 @@ class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
             if not hasattr(ret[catalog_dto.reference], 'collections'):
                 setattr(ret[catalog_dto.reference], 'collections', [])
 
-            ret[catalog_dto.reference].collections.append(_row_to_collection_dto(row))
+            # fetch collection from RowProxy and make sure its content is not Null in both reference and display_name
+            _collection = _row_to_collection_dto(row)
+            if _collection.collection_reference and _collection.collection_display_name:
+                ret[catalog_dto.reference].collections.append(_collection)
 
         return list(ret.values())
 
@@ -103,9 +106,8 @@ class SqlFetchAllBrandsQuery(FetchAllBrandsQuery, SqlQuery):
 
 def joined_product_table_query():
     joined_table = product_table \
-        .join(catalog_table, catalog_table.c.reference == product_table.c.catalog_reference) \
-        .join(collection_table, and_(collection_table.c.reference == product_table.c.collection_reference,
-                                     collection_table.c.catalog_reference == product_table.c.catalog_reference)) \
+        .join(collection_table, collection_table.c.reference == product_table.c.collection_reference) \
+        .join(catalog_table, catalog_table.c.reference == collection_table.c.catalog_reference) \
         .join(brand_table, brand_table.c.reference == product_table.c.brand_reference)
 
     query = select([
