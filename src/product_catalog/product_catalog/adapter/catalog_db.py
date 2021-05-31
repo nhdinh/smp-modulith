@@ -21,8 +21,8 @@ collection_table = Table(
     Column('reference', String(100), nullable=False),
     Column('display_name', String(255), nullable=False),
     Column('catalog_reference', ForeignKey('catalog.reference'), nullable=False),
-    Column('disabled', Boolean, default=0, server_default='0'),
     Column('default', Boolean, default=0, server_default='0'),
+    Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime, server_default=func.now()),
     Column('last_updated', DateTime, onupdate=datetime.now),
 
