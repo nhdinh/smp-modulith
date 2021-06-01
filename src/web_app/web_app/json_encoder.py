@@ -44,7 +44,8 @@ class JSONEncoder(json.JSONEncoder):
     def serialize_collection_dto(self, obj: CollectionDto) -> object:
         return {
             'reference': obj.collection_reference,
-            'display_name': obj.collection_display_name
+            'display_name': obj.collection_display_name,
+            'default': obj.collection_default,
         }
 
     @default.register(BrandDto)  # noga: F881

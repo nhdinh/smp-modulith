@@ -21,6 +21,7 @@ class PaginationDto:
 class CollectionDto:
     collection_reference: str
     collection_display_name: str
+    collection_default: bool
 
 
 @dataclass

@@ -3,7 +3,7 @@
 import math
 from typing import Optional, List
 
-from sqlalchemy import func, select, Table, and_
+from sqlalchemy import func, select
 from sqlalchemy.engine.row import RowProxy
 
 from auctions_infrastructure.queries.base import SqlQuery
@@ -27,7 +27,8 @@ class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
             catalog_table.c.disabled,
             catalog_table.c.system,
             collection_table.c.reference.label('collection_reference'),
-            collection_table.c.display_name.label('collection_display_name')
+            collection_table.c.display_name.label('collection_display_name'),
+            collection_table.c.default.label('collection_default'),
         ]) \
             .select_from(query_table) \
             .select_from(catalog_table) \
@@ -141,6 +142,7 @@ def _row_to_collection_dto(collection_proxy: RowProxy) -> CollectionDto:
     return CollectionDto(
         collection_reference=collection_proxy.collection_reference,
         collection_display_name=collection_proxy.collection_display_name,
+        collection_default=collection_proxy.collection_default,
     )
 
 
