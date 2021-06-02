@@ -84,11 +84,6 @@ class ProductCatalogInfrastructureModule(injector.Module):
         return catalog_db
 
     @injector.provider
-    # def get_catalog_repo(self, conn: Connection, eventbus: EventBus) -> SqlAlchemyCatalogRepository:
-    def get_catalog_repo(self, conn: Connection) -> SqlAlchemyCatalogRepository:
-        return SqlAlchemyCatalogRepository(conn)
-
-    @injector.provider
     def get_uow(self, conn: Connection) -> CatalogUnitOfWork:
         sessfactory = sessionmaker(bind=conn)
         return CatalogUnitOfWork(sessionfactory=sessfactory)

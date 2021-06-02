@@ -3,7 +3,7 @@
 import flask_injector
 import injector
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.store_queries import FetchStoreSettingsQuery
@@ -41,7 +41,8 @@ def register_new_store(register_store_uc: RegisterStoreUC, presenter: Registerin
 @jwt_required()
 def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
     try:
-        settings = query.query()
+        store_owner = get_jwt_identity()
+        settings = query.query(store_of=store_owner)
         return make_response(jsonify(settings)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
@@ -49,7 +50,7 @@ def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/settings', method=['PATCH'])
+@store_blueprint.route('/settings', methods=['PATCH'])
 @jwt_required()
 def update_store_settings(update_store_settings_uc: UpdateStoreSettingsUC,
                           presenter: UpdatingStoreSettingsResponseBoundary):

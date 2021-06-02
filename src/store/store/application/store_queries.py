@@ -7,15 +7,17 @@ from uuid import UUID
 
 @dataclass
 class StoreSettingsDto:
-    store_id: UUID
+    name: str
+    value: str
 
     def serialize(self):
         return {
-            'store_id': self.store_id,
+            'name': self.name,
+            'value': self.value,
         }
 
 
 class FetchStoreSettingsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, store_id: UUID) -> StoreSettingsDto:
+    def query(self, store_of: str) -> StoreSettingsDto:
         pass
