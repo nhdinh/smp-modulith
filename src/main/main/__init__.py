@@ -22,6 +22,8 @@ from shipping_infrastructure import ShippingInfrastructure
 
 __all__ = ["bootstrap_app"]
 
+from store import StoreInfrastructureModule, StoreModule
+
 
 @dataclass
 class AppContext:
@@ -78,6 +80,8 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             CustomerRelationship(),
             ProductCatalogModule(),
             ProductCatalogInfrastructureModule(),
+            StoreModule(),
+            StoreInfrastructureModule(),
             Payments(),
             Processes(),
         ],
@@ -115,6 +119,7 @@ def _create_db_schema(engine: Engine) -> None:
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
+    from store.adapter.store_db import store_table
 
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)

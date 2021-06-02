@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from sqlalchemy.orm import Session
+
+from foundation.uow import SqlAlchemyUnitOfWork
+from store.application.store_repository import SqlAlchemyStoreRepository
+
+
+class StoreUnitOfWork(SqlAlchemyUnitOfWork):
+    def __init__(self, sessionfactory):
+        super(StoreUnitOfWork, self).__init__(sessionfactory=sessionfactory)
+
+    def __enter__(self):
+        self._session = self._sf()  # type:Session
+        self._store_repo = SqlAlchemyStoreRepository(session=self._session)
+        return super(StoreUnitOfWork, self).__enter__()
+
+    def _commit(self):
+        self._session.commit()
+
+    def rollback(self):
+        self._session.rollback()
+
+    def _collect_new_events(self):
+        raise NotImplementedError
+
+    @property
+    def stores(self) -> SqlAlchemyStoreRepository:
+        return self._store_repo
