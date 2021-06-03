@@ -8,6 +8,9 @@ from passlib.hash import pbkdf2_sha256 as sha256
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.domain.entities.value_objects import RegistrationId
+from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
+from store.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
+from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
 
 NEW_REGISTRATION = 'new_registration'
 REGISTRATION_ACTIVATED = 'registration_activated'
@@ -27,8 +30,8 @@ class StoreRegistration(EventMixin, Entity):
         super(StoreRegistration, self).__init__()
 
         self.check_rule(StoreNameMustNotBeEmptyRule(store_name))
-        self.check_rule(UserEmailMustNotBeEmptyRule(owner_email))
-        self.check_rule(UserMobileMustNotBeEmptyRule(owner_mobile))
+        self.check_rule(UserEmailMustBeValidRule(owner_email))
+        self.check_rule(UserMobileMustBeValidRule(owner_mobile))
 
         self.registration_id = registration_id
         self.store_name = store_name
