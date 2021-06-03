@@ -7,6 +7,7 @@ from sqlalchemy.orm import mapper, relationship
 
 from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
+from identity.domain.entities import User
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 
@@ -19,7 +20,6 @@ store_registration_table = Table(
     Column('confirmation_token', String(200), nullable=False),
     Column('status', String(100), nullable=False, default='new_registration'),
     Column('created_at', DateTime, server_default=func.now()),
-    Column('last_updated', DateTime, onupdate=datetime.now),
 )
 
 store_table = Table(
@@ -76,10 +76,13 @@ def start_mappers():
                 collection_class=set
             ),
             '_owner': relationship(
-                user_table
+                User,
+                user_table,
+                foreigns_key=['owner'],
             ),
             '_managers': relationship(
-                store_managers_table,
+                User,
+                secondary=store_managers_table,
                 collection_class=set,
             )
         }

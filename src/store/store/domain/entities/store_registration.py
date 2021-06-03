@@ -36,8 +36,8 @@ class StoreRegistration(EventMixin, Entity):
         self.confirmation_token = confirmation_token
         self.status = status
 
+    @staticmethod
     def create_registration(
-            self,
             store_name: str,
             owner: User
     ):
@@ -65,6 +65,7 @@ class StoreRegistration(EventMixin, Entity):
             registration.create_store_owner()
             registration.create_store()
         else:
+            pass
 
     @staticmethod
     def _create_confirmation_token():

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
+
 import sqlalchemy as sa
 from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
@@ -8,6 +10,18 @@ from db_infrastructure import metadata, GUID
 from identity.domain.entities.revoked_token import RevokedToken
 from identity.domain.entities.role import Role
 from identity.domain.entities.user import User
+
+user_registration_table = sa.Table(
+    'user_registration',
+    metadata,
+    sa.Column('registration_id', GUID, primary_key=True),
+    sa.Column('email', sa.String(255), unique=True, nullable=False),
+    sa.Column('password', sa.String(255)),
+    sa.Column('mobile_phone', sa.String(255), unique=True),
+    sa.Column('confirmation_token', sa.String(200), nullable=False),
+    sa.Column('status', sa.String(100), nullable=False, default='new_registration'),
+    sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+)
 
 user_table = sa.Table(
     'user',
