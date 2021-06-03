@@ -10,6 +10,18 @@ from identity.adapters.identity_db import user_table
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 
+store_registration_table = Table(
+    'store_registration',
+    metadata,
+    Column('store_registration_id', GUID, primary_key=True),
+    Column('name', String(100)),
+    Column('owner', ForeignKey(user_table.c.id)),
+    Column('confirmation_token', String(200), nullable=False),
+    Column('status', String(100), nullable=False, default='new_registration'),
+    Column('created_at', DateTime, server_default=func.now()),
+    Column('last_updated', DateTime, onupdate=datetime.now),
+)
+
 store_table = Table(
     'store',
     metadata,

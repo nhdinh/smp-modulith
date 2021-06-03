@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from product_catalog.application.usecases.confirm_store_registration import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
 from store.adapter import store_db
-from store.adapter.sql_queries import SqlFetchStoreSettingsQuery
+from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.store_queries import FetchStoreSettingsQuery
 from store.application.store_repository import SqlAlchemyStoreRepository
