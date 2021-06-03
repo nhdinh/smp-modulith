@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+
 from product_catalog import CatalogUnitOfWork
 
 

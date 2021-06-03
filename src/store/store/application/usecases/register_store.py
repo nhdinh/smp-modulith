@@ -33,4 +33,8 @@ class RegisterStoreUC:
 
     def execute(self, dto: RegisteringStoreRequest):
         with self._uow as uow:
+            # parse request data
+            # create store_registration
+            # create user_registration
+            # save data
             pass

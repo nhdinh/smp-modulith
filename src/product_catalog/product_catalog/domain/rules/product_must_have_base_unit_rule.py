@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Set, TYPE_CHECKING
+from typing import Set
 
 from foundation.business_rule import BusinessRuleBase
-
 from product_catalog.domain.entities.product_unit import ProductUnit
 
 

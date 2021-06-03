@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
 import decimal
 from dataclasses import dataclass
-
 # set the default multiplier factor for the default product_unit
-from typing import Type, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from product_catalog.domain.entities.product import Product
+    pass
 
 DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR = -1
 

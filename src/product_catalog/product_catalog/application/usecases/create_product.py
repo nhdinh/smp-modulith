@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
-import decimal
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple
+from typing import Optional, List
 
 from slugify import slugify
 from sqlalchemy.orm import Session

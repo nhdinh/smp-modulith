@@ -9,11 +9,13 @@ from uuid import UUID
 class StoreSettingsDto:
     name: str
     value: str
+    type: str
 
     def serialize(self):
         return {
             'name': self.name,
             'value': self.value,
+            'type': self.type,
         }
 
 
