@@ -4,10 +4,10 @@ from __future__ import annotations
 import uuid
 from uuid import UUID
 import secrets
-
+from passlib.hash import pbkdf2_sha256 as sha256
 from foundation.entity import Entity
 from foundation.events import EventMixin
-from identity.domain.entities import User
+from store.domain.entities.value_objects import RegistrationId
 
 NEW_REGISTRATION = 'new_registration'
 REGISTRATION_ACTIVATED = 'registration_activated'
@@ -16,9 +16,8 @@ REGISTRATION_ACTIVATED = 'registration_activated'
 class StoreRegistration(EventMixin, Entity):
     def __init__(
             self,
-            store_registration_id: UUID,
+            registration_id: RegistrationId,
             store_name: str,
-            owner: UUID,
             owner_email: str,
             owner_mobile: str,
             owner_password: str,
@@ -27,9 +26,12 @@ class StoreRegistration(EventMixin, Entity):
     ):
         super(StoreRegistration, self).__init__()
 
-        self.store_registration_id = store_registration_id
+        self.check_rule(StoreNameMustNotBeEmptyRule(store_name))
+        self.check_rule(UserEmailMustNotBeEmptyRule(owner_email))
+        self.check_rule(UserMobileMustNotBeEmptyRule(owner_mobile))
+
+        self.registration_id = registration_id
         self.store_name = store_name
-        self.owner = owner
         self.owner_email = owner_email
         self.owner_mobile = owner_mobile
         self.owner_password = owner_password
@@ -39,17 +41,18 @@ class StoreRegistration(EventMixin, Entity):
     @staticmethod
     def create_registration(
             store_name: str,
-            owner: User
+            owner_email: str,
+            owner_password: str,
+            owner_mobile: str,
     ):
-        if type(owner) == User:
-            _owner_id = owner.id
-        else:
-            _owner_id = owner
+        new_guid = uuid.uuid4()
 
         registration = StoreRegistration(
-            store_registration_id=uuid.uuid4(),
+            registration_id=new_guid,
             store_name=store_name,
-            owner=_owner_id,
+            owner_email=owner_email,
+            owner_password=sha256.hash(owner_password),
+            owner_mobile=owner_mobile,
             confirmation_token=StoreRegistration._create_confirmation_token(),
             status=NEW_REGISTRATION
         )

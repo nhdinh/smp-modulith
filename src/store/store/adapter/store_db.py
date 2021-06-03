@@ -17,6 +17,9 @@ store_registration_table = Table(
     Column('store_registration_id', GUID, primary_key=True),
     Column('name', String(100)),
     Column('owner', ForeignKey(user_table.c.id)),
+    Column('owner_email', String(255), unique=True, nullable=False),
+    Column('owner_password', String(255), nullable=False),
+    Column('owner_mobile', String(255)),
     Column('confirmation_token', String(200), nullable=False),
     Column('status', String(100), nullable=False, default='new_registration'),
     Column('created_at', DateTime, server_default=func.now()),
@@ -56,7 +59,7 @@ store_address_table = Table(
     'store_addresses',
     metadata,
     Column('address_id', GUID, primary_key=True),
-    Column('store_id', ForeignKey(store_table.c.store_id))
+    Column('store_id', ForeignKey(store_table.c.store_id)),
 )
 
 
