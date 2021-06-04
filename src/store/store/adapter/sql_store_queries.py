@@ -6,10 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.engine.row import RowProxy
 from typing import List
 
+from db_infrastructure import SqlQuery
 from identity.adapters.identity_db import user_table
 from store.adapter.store_db import store_settings_table, store_table
 
-from auctions_infrastructure.queries.base import SqlQuery
 from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingsDto, CountStoreOwnerByEmailQuery
 
 

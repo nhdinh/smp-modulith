@@ -9,6 +9,7 @@ from auctions import Auctions
 from auctions_infrastructure import AuctionsInfrastructure
 from customer_relationship import CustomerRelationship
 from db_infrastructure import metadata
+from foundation import FoundationModule
 from identity.adapters import identity_db
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
@@ -72,6 +73,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             Rq(),
             EventBusMod(),
             Configs(settings),
+            FoundationModule(),
             AuthenticationInfrastructureModule(),
             AuthenticationModule(),
             Auctions(),

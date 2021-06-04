@@ -6,7 +6,7 @@ from typing import Optional, List
 from sqlalchemy import func, select
 from sqlalchemy.engine.row import RowProxy
 
-from auctions_infrastructure.queries.base import SqlQuery
+from db_infrastructure import SqlQuery
 from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
     brand_table
 from product_catalog.application.queries.product_catalog import FetchAllProductsQuery, ProductDto, FetchProductQuery, \

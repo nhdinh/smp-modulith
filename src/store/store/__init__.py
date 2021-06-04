@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from foundation.events import EventBus
 from product_catalog.application.usecases.confirm_store_registration import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
+from product_catalog.domain.events.store_registered_event import StoreRegisteredEvent
 from store.adapter import store_db
 from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
@@ -14,6 +15,10 @@ from store.application.services.user_counter_services import UserCounters
 from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
+
+__all__ = [
+    'StoreRegisteredEvent'
+]
 
 
 class StoreModule(injector.Module):

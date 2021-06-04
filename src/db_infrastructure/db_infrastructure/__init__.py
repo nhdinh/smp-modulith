@@ -6,6 +6,12 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import CHAR, TypeDecorator
 
+__all__ = [
+    'metadata', 'SqlQuery'
+]
+
+from db_infrastructure.base import SqlQuery
+
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)
 
