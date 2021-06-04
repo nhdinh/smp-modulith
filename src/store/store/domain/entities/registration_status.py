@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-
-@dataclass(unsafe_hash=True)
-class RegistrationStatus:
-    value: str
-
+from store.domain.entities.value_objects import RegistrationStatus
 
 RegistrationConfirmed = RegistrationStatus('Confirmed')
 RegistrationExpired = RegistrationStatus('Expired')

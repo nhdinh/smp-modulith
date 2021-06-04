@@ -3,20 +3,22 @@
 from datetime import datetime
 
 from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime
-from sqlalchemy.orm import mapper, relationship
+from sqlalchemy.orm import mapper, relationship, backref
 
 from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
 from identity.domain.entities import User
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
+from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = Table(
     'store_registration',
     metadata,
     Column('store_registration_id', GUID, primary_key=True),
     Column('name', String(100)),
-    Column('owner', ForeignKey(user_table.c.id)),
+    Column('owner', GUID),
     Column('owner_email', String(255), unique=True, nullable=False),
     Column('owner_password', String(255), nullable=False),
     Column('owner_mobile', String(255)),
@@ -47,6 +49,13 @@ store_settings_table = Table(
     Column('last_updated', DateTime, onupdate=datetime.now),
 )
 
+store_owner_table = Table(
+    'user',
+    metadata,
+    Column('email', String(255), unique=True),
+    extend_existing=True
+)  # extend of user table
+
 store_managers_table = Table(
     'store_managers',
     metadata,
@@ -69,6 +78,15 @@ def start_mappers():
         store_settings_table,
     )
 
+    mapper(
+        StoreRegistration,
+        store_registration_table,
+        properties={
+            'registration_id': store_registration_table.c.store_registration_id,
+            'name': store_registration_table.c.name,
+        }
+    )
+
     store_mapper = mapper(
         Store,
         store_table,
@@ -87,6 +105,17 @@ def start_mappers():
                 User,
                 secondary=store_managers_table,
                 collection_class=set,
+            )
+        }
+    )
+
+    owner = mapper(
+        StoreOwner,
+        store_owner_table,
+        properties={
+            '_store': relationship(
+                Store,
+                backref=backref('_owner')
             )
         }
     )

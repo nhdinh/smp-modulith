@@ -23,6 +23,7 @@ from shipping_infrastructure import ShippingInfrastructure
 __all__ = ["bootstrap_app"]
 
 from store import StoreInfrastructureModule, StoreModule
+from store.adapter import store_db
 
 
 @dataclass
@@ -50,9 +51,9 @@ def bootstrap_app() -> AppContext:
         "redis.host": os.environ["REDIS_HOST"],
     }
 
-    db_echo = os.environ.get('DB_ECHO')
+    db_echo = os.environ.get('DB_ECHO') in ('True', 'true', '1')
 
-    engine = create_engine(os.environ["DB_DSN"], echo=True)
+    engine = create_engine(os.environ["DB_DSN"], echo=db_echo)
     dependency_injector = _setup_dependency_injection(settings, engine)
     _setup_orm_events(dependency_injector)
 
@@ -109,6 +110,11 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
 
     try:
         catalog_db.start_mappers()
+    except Exception as exc:
+        pass
+
+    try:
+        store_db.start_mappers()
     except Exception as exc:
         pass
 

@@ -7,6 +7,8 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from foundation.events import EventBus
+
 
 class AbstractUnitOfWork(abc.ABC):
     def __enter__(self) -> AbstractUnitOfWork:
@@ -35,9 +37,10 @@ class AbstractUnitOfWork(abc.ABC):
 
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
-    def __init__(self, sessionfactory):
+    def __init__(self, sessionfactory, event_bus):
         self._sf = sessionfactory
         self._session = None  # type:Optional[Session]
+        self._event_bus = event_bus  # type:Optional[EventBus]
 
     def __exit__(self, *kwargs):
         super(SqlAlchemyUnitOfWork, self).__exit__(*kwargs)

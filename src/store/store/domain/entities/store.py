@@ -11,6 +11,7 @@ class Store(EventMixin, Entity):
     def __init__(self):
         super(Store, self).__init__()
 
+        self.store_id = ''
         self.name = ''
         self._settings: Set[Setting] = set()
 

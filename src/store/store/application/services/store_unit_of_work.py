@@ -7,12 +7,12 @@ from store.application.store_repository import SqlAlchemyStoreRepository
 
 
 class StoreUnitOfWork(SqlAlchemyUnitOfWork):
-    def __init__(self, sessionfactory):
-        super(StoreUnitOfWork, self).__init__(sessionfactory=sessionfactory)
+    def __init__(self, sessionfactory, event_bus):
+        super(StoreUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
 
     def __enter__(self):
         self._session = self._sf()  # type:Session
-        self._store_repo = SqlAlchemyStoreRepository(session=self._session)
+        self._store_repo = SqlAlchemyStoreRepository(session=self._session, event_bus=self._event_bus)
         return super(StoreUnitOfWork, self).__enter__()
 
     def _commit(self):

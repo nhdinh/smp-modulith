@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 
+from foundation.events import EventBus, EventMixin
 from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreId
 
@@ -19,11 +20,25 @@ class AbstractStoreRepository(abc.ABC):
 
 
 class SqlAlchemyStoreRepository(AbstractStoreRepository):
+    def __init__(self, session: Session, event_bus: EventBus):
+        self._sess = session  # type:Session
+        self._event_bus = event_bus
+
     def get(self, store: StoreId) -> Store:
-        raise NotImplementedError
+        self._sess.query(Store).filter(Store.store_id == store).all()
 
     def save(self, store: Store) -> None:
-        raise NotImplementedError
+        self._collect_events(store)
+        self._sess.add(store)
 
-    def __init__(self, session: Session):
-        self._sess = session  # type:Session
+    def save_registration(self, store_registration) -> None:
+        self._collect_events(store_registration)
+        self._sess.add(store_registration)
+
+        # post event to event bus
+
+    def _collect_events(self, entity: EventMixin):
+        for event in entity.domain_events:
+            self._event_bus.post(event)
+
+        entity.clear_events()

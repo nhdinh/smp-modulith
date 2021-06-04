@@ -9,9 +9,9 @@ from foundation.business_rule import BusinessRuleValidationError
 from product_catalog.application.usecases.confirm_store_registration import ConfirmStoreRegistrationUC, \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest, ConfirmingStoreRegistrationResponse
 from store.application.store_queries import FetchStoreSettingsQuery
-from store.application.usecases.register_store import RegisterStoreUC, RegisteringStoreResponseBoundary, \
+from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
     RegisteringStoreRequest, RegisteringStoreResponse
-from store.application.usecases.update_store_settings import UpdatingStoreSettingsResponseBoundary, \
+from store.application.usecases.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
     UpdatingStoreSettingsRequest, UpdateStoreSettingsUC
 from web_app.serialization.dto import get_dto
 

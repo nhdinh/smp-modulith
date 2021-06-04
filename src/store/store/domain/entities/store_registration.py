@@ -3,10 +3,10 @@
 from __future__ import annotations
 import uuid
 import secrets
-from passlib.hash import pbkdf2_sha256 as sha256
 from foundation.entity import Entity
 from foundation.events import EventMixin
-from store import CountStoreOwnerByEmailQuery
+from product_catalog.domain.events.store_registered_event import StoreRegisteredEvent
+from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation
 from store.domain.entities.value_objects import RegistrationId
 from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
@@ -24,16 +24,20 @@ class StoreRegistration(EventMixin, Entity):
             owner_mobile: str,
             owner_password: str,
             confirmation_token: str,
-            status: RegistrationStatus = RegistrationWaitingForConfirmation,
+            status: RegistrationStatus,
+            user_counter_services: UserCounters
+
     ):
         super(StoreRegistration, self).__init__()
 
         self.check_rule(StoreNameMustNotBeEmptyRule(store_name))
         self.check_rule(UserEmailMustBeValidRule(owner_email))
         self.check_rule(UserMobileMustBeValidRule(owner_mobile))
-        self.check_rule(UserEmailMustBeUniqueRule(owner_email))
+        self.check_rule(UserEmailMustBeUniqueRule(owner_email, user_counter_services))
 
         self.registration_id = registration_id
+        self._store_registration_id = registration_id
+        self._owner_id = registration_id
         self.store_name = store_name
         self.owner_email = owner_email
         self.owner_mobile = owner_mobile
@@ -41,12 +45,21 @@ class StoreRegistration(EventMixin, Entity):
         self.confirmation_token = confirmation_token
         self.status = status
 
+        # add domain event
+        self._record_event(StoreRegisteredEvent(
+            self.registration_id,
+            self.store_name,
+            self.owner_email,
+            self.confirmation_token
+        ))
+
     @staticmethod
     def create_registration(
             store_name: str,
             owner_email: str,
             owner_password: str,
             owner_mobile: str,
+            user_counter_services: UserCounters
     ):
         new_guid = uuid.uuid4()
 
@@ -54,11 +67,14 @@ class StoreRegistration(EventMixin, Entity):
             registration_id=new_guid,
             store_name=store_name,
             owner_email=owner_email,
-            owner_password=sha256.hash(owner_password),
+            owner_password=owner_password,
             owner_mobile=owner_mobile,
             confirmation_token=StoreRegistration._create_confirmation_token(),
-            status=RegistrationWaitingForConfirmation
+            status=RegistrationWaitingForConfirmation,
+            user_counter_services=user_counter_services,
         )
+
+        return registration
 
     def confirm_registration(self, registration: StoreRegistration):
         """
