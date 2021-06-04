@@ -10,7 +10,7 @@ from identity.adapters.identity_db import user_table
 from store.adapter.store_db import store_settings_table, store_table
 
 from auctions_infrastructure.queries.base import SqlQuery
-from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingsDto
+from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingsDto, CountStoreOwnerByEmailQuery
 
 
 def _row_to_store_settings_dto(row: RowProxy) -> StoreSettingsDto:
@@ -41,3 +41,8 @@ class SqlFetchStoreSettingsQuery(FetchStoreSettingsQuery, SqlQuery):
         return [
             _row_to_store_settings_dto(row) for row in rows
         ]
+
+
+class SqlCountStoreOwnerByEmailQuery(CountStoreOwnerByEmailQuery, SqlQuery):
+    def query(self, email: str) -> int:
+        raise NotImplementedError

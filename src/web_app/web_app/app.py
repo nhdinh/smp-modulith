@@ -16,7 +16,7 @@ from web_app.blueprints.brand import brand_blueprint
 from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
-from web_app.blueprints.store_bp import store_blueprint
+from web_app.blueprints.store_bp import store_blueprint, StoreAPI
 from web_app.json_encoder import JSONEncoder
 
 
@@ -52,7 +52,9 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         AuthenticationAPI(),
         AuctionsWeb(),
         CatalogAPI(),
-        ProductAPI()], injector=app_context.injector)
+        ProductAPI(),
+        StoreAPI()
+    ], injector=app_context.injector)
     app.injector = app_context.injector
 
     @app.before_request

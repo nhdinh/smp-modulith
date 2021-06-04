@@ -7,9 +7,9 @@ from sqlalchemy.orm import sessionmaker
 from product_catalog.application.usecases.confirm_store_registration import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
 from store.adapter import store_db
-from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery
+from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.store_queries import FetchStoreSettingsQuery
+from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.register_store import RegisterStoreUC, RegisteringStoreResponseBoundary
 
@@ -38,3 +38,7 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def fetch_store_settings_query(self, conn: Connection) -> FetchStoreSettingsQuery:
         return SqlFetchStoreSettingsQuery(conn)
+
+    @injector.provider
+    def count_store_owner_by_email_query(self, conn: Connection) -> CountStoreOwnerByEmailQuery:
+        return SqlCountStoreOwnerByEmailQuery

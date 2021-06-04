@@ -23,3 +23,9 @@ class FetchStoreSettingsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, store_of: str) -> StoreSettingsDto:
         pass
+
+
+class CountStoreOwnerByEmailQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, email: str) -> int:
+        pass
