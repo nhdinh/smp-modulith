@@ -92,7 +92,7 @@ class InjectorEventBus(EventBus):
     def post(self, event: Event) -> None:
         try:
             handlers = self._injector.get(Handler[type(event)])  # type: ignore
-        except UnsatisfiedRequirement:
+        except UnsatisfiedRequirement as exc:
             pass
         else:
             assert isinstance(handlers, list)
@@ -101,7 +101,7 @@ class InjectorEventBus(EventBus):
 
         try:
             async_handlers = self._injector.get(AsyncHandler[type(event)])  # type: ignore
-        except UnsatisfiedRequirement:
+        except UnsatisfiedRequirement as exc:
             pass
         else:
             assert isinstance(async_handlers, list)

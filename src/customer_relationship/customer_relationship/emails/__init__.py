@@ -73,3 +73,22 @@ class PaymentSuccessful(Email):
     @property
     def html(self) -> str:
         return self.text
+
+
+@dataclass
+class StoreRegistrationConfirmationEmail(Email):
+    store_name: str
+    confirmation_token: str
+
+    @property
+    def title(self) -> str:
+        return f'Confirm Store registration'
+
+    @property
+    def text(self) -> str:
+        return f'Somene take your email to register for the store {self.store_name}. If this is your registration, ' \
+               f'please click the link below to confirm. {self.confirmation_token} '
+
+    @property
+    def html(self) -> str:
+        return self.text

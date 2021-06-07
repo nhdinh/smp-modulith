@@ -4,10 +4,11 @@ import injector
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
-from foundation.events import EventBus
-from product_catalog.application.usecases.confirm_store_registration import ConfirmingStoreRegistrationResponseBoundary, \
+from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
+from store.application.store_handler_facade import StoreHandlerFacade, StoreRegistrationConfirmedEventHandler
+from store.application.usecases.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
-from product_catalog.domain.events.store_registered_event import StoreRegisteredEvent
+from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 from store.adapter import store_db
 from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
@@ -17,7 +18,7 @@ from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
 
 __all__ = [
-    'StoreRegisteredEvent'
+    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent'
 ]
 
 
@@ -31,6 +32,14 @@ class StoreModule(injector.Module):
     def confirm_store_registration_uc(self, boundary: ConfirmingStoreRegistrationResponseBoundary,
                                       uow: StoreUnitOfWork) -> ConfirmStoreRegistrationUC:
         return ConfirmStoreRegistrationUC(boundary, uow)
+
+    @injector.provider
+    def facade(self, connection: Connection) -> StoreHandlerFacade:
+        return StoreHandlerFacade(connection=connection)
+
+    def configure(self, binder: injector.Binder) -> None:
+        binder.multibind(AsyncHandler[StoreRegistrationConfirmedEvent],
+                         to=AsyncEventHandlerProvider(StoreRegistrationConfirmedEventHandler))
 
 
 class StoreInfrastructureModule(injector.Module):

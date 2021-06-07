@@ -6,7 +6,7 @@ from flask import Blueprint, Response, request, current_app, jsonify, make_respo
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
-from product_catalog.application.usecases.confirm_store_registration import ConfirmStoreRegistrationUC, \
+from store.application.usecases.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest, ConfirmingStoreRegistrationResponse
 from store.application.store_queries import FetchStoreSettingsQuery
 from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
@@ -44,18 +44,35 @@ def register_new_store(register_store_uc: RegisterStoreUC, presenter: Registerin
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/confirm', methods=['POST'])
-def confirm_store_registration(confirm_store_registration_uc: ConfirmStoreRegistrationUC,
+def confirm_store_registration(confirmation_token, confirm_store_registration_uc: ConfirmStoreRegistrationUC,
                                presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
     try:
-        dto = get_dto(request, ConfirmingStoreRegistrationRequest, context={})
-        confirm_store_registration_uc.execute(dto)
+        confirm_store_registration_uc.execute(confirmation_token)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
             raise exc
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_blueprint.route('/confirm', methods=['POST'])
+def confirm_store_registration_post(confirm_store_registration_uc: ConfirmStoreRegistrationUC,
+                                    presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
+    try:
+        dto = get_dto(request, ConfirmingStoreRegistrationRequest, context={})
+        return confirm_store_registration(dto.confirmation_token, confirm_store_registration_uc, presenter)
+    except Exception as exc:
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_blueprint.route('/confirm/<string:confirmation_token>', methods=['GET'])
+def confirm_store_registration_get(confirmation_token: str, confirm_store_registration_uc: ConfirmStoreRegistrationUC,
+                                   presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
+    try:
+        return confirm_store_registration(confirmation_token, confirm_store_registration_uc, presenter)
+    except Exception as exc:
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 

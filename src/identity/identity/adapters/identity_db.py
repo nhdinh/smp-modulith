@@ -28,6 +28,7 @@ user_table = sa.Table(
     metadata,
     sa.Column('id', GUID, primary_key=True),
     sa.Column('email', sa.String(255), unique=True),
+    sa.Column('mobile', sa.String(255), unique=True),
     sa.Column('password', sa.String(255)),
     sa.Column('active', sa.Boolean),
     sa.Column('confirmed_at', sa.DateTime),
@@ -35,7 +36,7 @@ user_table = sa.Table(
     sa.Column('current_login_at', sa.DateTime),
     sa.Column('last_login_ip', sa.String(100)),
     sa.Column('current_login_ip', sa.String(100)),
-    sa.Column('login_count', sa.Integer)
+    sa.Column('login_count', sa.Integer, default=0)
 )
 
 role_table = sa.Table(

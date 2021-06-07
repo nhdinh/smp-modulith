@@ -3,6 +3,7 @@ version: '3.1'
 services:
   app:
     build: .
+    image: app
     volumes:
       - "./src/:/usr/src/app"
     ports:
@@ -13,16 +14,20 @@ services:
       FLASK_DEBUG: 'true'
       PAYMENTS_LOGIN: empty
       PAYMENTS_PASSWORD: empty
-      EMAIL_HOST: localhost
+      EMAIL_HOST: smtp_server
       EMAIL_PORT: 2525
       EMAIL_USERNAME: none
       EMAIL_PASSWORD: none
-      EMAIL_FROM_NAME: Auctions
-      EMAIL_FROM_ADDRESS: auctions@cleanarchitecture.io
+      EMAIL_FROM_NAME: SMP
+      EMAIL_FROM_ADDRESS: admin@smp.io
       DB_DSN: postgresql://postgres:clone@database:5432/smp_db
       REDIS_HOST: redis
     depends_on:
       - database
+      - smtp_server
+      - redis
+      - worker
+
   database:
     image: postgres:12
     environment:
@@ -30,15 +35,40 @@ services:
       POSTGRES_DB: smp_db
     ports:
       - "5432:5432"
+
   smtp_server:
     image: mailhog/mailhog
     ports:
       - "8025:8025"
-      - "12525:2525"
+      - "1025:1025"
     environment:
       - MH_SMTP_BIND_ADDR=0.0.0.0:2525
+
   redis:
     image: redis:5
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
 
+  worker:
+    image: app
+    command: rq worker -u "redis://redis:6379"
+    volumes:
+    - ./src:/usr/src/app
+    environment:
+      FLASK_ENV: 'development'
+      DEBUG: 'true'
+      FLASK_DEBUG: 'true'
+      PAYMENTS_LOGIN: empty
+      PAYMENTS_PASSWORD: empty
+      EMAIL_HOST: smtp_server
+      EMAIL_PORT: 2525
+      EMAIL_USERNAME: none
+      EMAIL_PASSWORD: none
+      EMAIL_FROM_NAME: SMP
+      EMAIL_FROM_ADDRESS: admin@smp.io
+      DB_DSN: postgresql://postgres:clone@database:5432/smp_db
+      REDIS_HOST: redis
+    depends_on:
+      - redis

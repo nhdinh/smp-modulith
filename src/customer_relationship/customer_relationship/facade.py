@@ -33,7 +33,8 @@ class CustomerRelationshipFacade:
         customer = self._get_customer(customer_id)
         self._send(customer["email"], email)
 
-    def send_email_after_successful_payment(self, customer_id: CustomerId, paid_price: Money, auction_title: str) -> None:
+    def send_email_after_successful_payment(self, customer_id: CustomerId, paid_price: Money,
+                                            auction_title: str) -> None:
         email = emails.PaymentSuccessful(auction_title=auction_title, paid_price=paid_price)
         customer = self._get_customer(customer_id)
         self._send(customer["email"], email)
@@ -43,3 +44,7 @@ class CustomerRelationshipFacade:
 
     def _send(self, recipient: str, email: emails.Email) -> None:
         self._sender.send(recipient, email)
+
+    def send_confirmation_email(self, store_name, confirmation_token, owner_email):
+        email = emails.StoreRegistrationConfirmationEmail(store_name=store_name, confirmation_token=confirmation_token)
+        self._send(owner_email, email)

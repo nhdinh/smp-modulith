@@ -51,8 +51,6 @@ class RegisterStoreUC:
                 )
 
                 uow.stores.save_registration(store_registration)  # type: ignore
-                # create store_registration
-                # create user_registration
 
                 # output dto
                 output_dto = RegisteringStoreResponse(registration_id=store_registration.registration_id)

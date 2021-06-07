@@ -5,11 +5,16 @@ import uuid
 import secrets
 from foundation.entity import Entity
 from foundation.events import EventMixin
-from product_catalog.domain.events.store_registered_event import StoreRegisteredEvent
+from identity import UserRegistrationConfirmedEvent
+from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 from store.application.services.user_counter_services import UserCounters
-from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation
+from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation, \
+    RegistrationConfirmed
 from store.domain.entities.value_objects import RegistrationId
 from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
+from store.domain.rules.store_registration_must_have_valid_expiration_rule import \
+    StoreRegistrationMustHaveValidExpirationRule
+from store.domain.rules.store_registration_must_have_valid_token_rule import StoreRegistrationMustHaveValidTokenRule
 from store.domain.rules.user_email_must_be_unique_rule import UserEmailMustBeUniqueRule
 from store.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
 from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
@@ -38,7 +43,9 @@ class StoreRegistration(EventMixin, Entity):
         self.registration_id = registration_id
         self._store_registration_id = registration_id
         self._owner_id = registration_id
+
         self.store_name = store_name
+
         self.owner_email = owner_email
         self.owner_mobile = owner_mobile
         self.owner_password = owner_password
@@ -52,6 +59,14 @@ class StoreRegistration(EventMixin, Entity):
             self.owner_email,
             self.confirmation_token
         ))
+
+    @property
+    def store_name(self):
+        return self._name
+
+    @store_name.setter
+    def store_name(self, value):
+        self._name = value
 
     @staticmethod
     def create_registration(
@@ -76,18 +91,30 @@ class StoreRegistration(EventMixin, Entity):
 
         return registration
 
-    def confirm_registration(self, registration: StoreRegistration):
+    def confirm_registration(self):
         """
         Confirm a registration and create new store and user together
 
-        :param registration:
         :return:
         """
-        if registration.status == RegistrationWaitingForConfirmation:
-            registration.create_store_owner()
-            registration.create_store()
-        else:
-            pass
+        self.check_rule(StoreRegistrationMustHaveValidTokenRule(registration=self))
+        self.check_rule(StoreRegistrationMustHaveValidExpirationRule(registration=self))
+
+        self.status = RegistrationConfirmed
+
+        self._record_event(UserRegistrationConfirmedEvent(
+            user_id=self.registration_id,
+            email=self.owner_email,
+            mobile=self.owner_mobile,
+            hashed_password=self.owner_password,
+        ))
+
+        self._record_event(StoreRegistrationConfirmedEvent(
+            store_id=self.registration_id,
+            store_name=self.store_name
+        ))
+
+        return self.registration_id
 
     @staticmethod
     def _create_confirmation_token():

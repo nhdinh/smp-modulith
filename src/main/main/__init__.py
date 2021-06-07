@@ -3,13 +3,13 @@ from dataclasses import dataclass
 
 import dotenv
 import injector
+from identity import IdentityModule
 from sqlalchemy.engine import Engine, create_engine
 
 from auctions import Auctions
 from auctions_infrastructure import AuctionsInfrastructure
 from customer_relationship import CustomerRelationship
 from db_infrastructure import metadata
-from foundation import FoundationModule
 from identity.adapters import identity_db
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
@@ -20,11 +20,10 @@ from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureMo
 from product_catalog.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
-
-__all__ = ["bootstrap_app"]
-
 from store import StoreInfrastructureModule, StoreModule
 from store.adapter import store_db
+
+__all__ = ["bootstrap_app"]
 
 
 @dataclass
@@ -73,7 +72,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             Rq(),
             EventBusMod(),
             Configs(settings),
-            FoundationModule(),
+            IdentityModule(),
             AuthenticationInfrastructureModule(),
             AuthenticationModule(),
             Auctions(),

@@ -20,6 +20,9 @@ class AbstractUnitOfWork(abc.ABC):
     def commit(self):
         self._commit()
 
+    def collect_new_events(self):
+        self._collect_new_events()
+
     @abc.abstractmethod
     def _commit(self):
         raise NotImplementedError
@@ -28,16 +31,13 @@ class AbstractUnitOfWork(abc.ABC):
     def rollback(self):
         raise NotImplementedError
 
-    def collect_new_events(self):
-        self._collect_new_events()
-
     @abc.abstractmethod
     def _collect_new_events(self):
         raise NotImplementedError
 
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
-    def __init__(self, sessionfactory, event_bus):
+    def __init__(self, sessionfactory, event_bus: EventBus):
         self._sf = sessionfactory
         self._session = None  # type:Optional[Session]
         self._event_bus = event_bus  # type:Optional[EventBus]
