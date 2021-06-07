@@ -4,6 +4,7 @@ import injector
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
+from foundation.events import EventBus
 from product_catalog.adapter import catalog_db
 from product_catalog.adapter.catalog_db import catalog_table, product_table
 from product_catalog.adapter.queries.product_catalog import SqlFetchCatalogQuery, SqlFetchAllCatalogsQuery, \
@@ -84,9 +85,9 @@ class ProductCatalogInfrastructureModule(injector.Module):
         return catalog_db
 
     @injector.provider
-    def get_uow(self, conn: Connection) -> CatalogUnitOfWork:
+    def get_uow(self, conn: Connection, event_bus: EventBus) -> CatalogUnitOfWork:
         sessfactory = sessionmaker(bind=conn)
-        return CatalogUnitOfWork(sessionfactory=sessfactory)
+        return CatalogUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
 
     @injector.provider
     def get_all_products_query(self, conn: Connection) -> FetchAllProductsQuery:

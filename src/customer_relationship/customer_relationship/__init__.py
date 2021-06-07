@@ -1,7 +1,7 @@
 import injector
 from sqlalchemy.engine import Connection
 
-from store import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
+from store import StoreRegisteredEvent, StoreCreatedSuccessfullyEvent
 from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.facade import CustomerRelationshipFacade
@@ -28,6 +28,8 @@ class CustomerRelationship(injector.Module):
         binder.multibind(AsyncHandler[BidderHasBeenOverbid], to=AsyncEventHandlerProvider(BidderHasBeenOverbidHandler))
         binder.multibind(AsyncHandler[WinningBidPlaced], to=AsyncEventHandlerProvider(WinningBidPlacedHandler))
         binder.multibind(AsyncHandler[StoreRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
+        binder.multibind(AsyncHandler[StoreCreatedSuccessfullyEvent],
+                         to=AsyncEventHandlerProvider(StoreCreatedSuccessfullyEventHandler))
 
 
 class BidderHasBeenOverbidHandler:
@@ -54,4 +56,14 @@ class StoreRegisteredEventHandler:
         self._facade = facade
 
     def __call__(self, event: StoreRegisteredEvent) -> None:
-        self._facade.send_confirmation_email(event.store_name, event.confirmation_token, event.owner_email)
+        self._facade.send_store_registration_confirmation_token_email(event.store_name, event.confirmation_token,
+                                                                      event.owner_email)
+
+
+class StoreCreatedSuccessfullyEventHandler:
+    @injector.inject
+    def __init__(self, facade: CustomerRelationshipFacade) -> None:
+        self._facade = facade
+
+    def __call__(self, event: StoreCreatedSuccessfullyEvent) -> None:
+        self._facade.send_store_created_email(event.store_name, event.owner_name, event.owner_email)

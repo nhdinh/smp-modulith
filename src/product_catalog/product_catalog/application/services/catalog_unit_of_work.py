@@ -2,20 +2,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from sqlalchemy.orm import Session
-
 from foundation.uow import SqlAlchemyUnitOfWork
 from product_catalog import SqlAlchemyCatalogRepository
 
 
 class CatalogUnitOfWork(SqlAlchemyUnitOfWork):
-    def __init__(self, sessionfactory):
-        super(CatalogUnitOfWork, self).__init__(sessionfactory=sessionfactory)
+    def __init__(self, sessionfactory, event_bus):
+        super(CatalogUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
 
     def __enter__(self):
-        self._session = self._sf()  # type: Session
+        super(CatalogUnitOfWork, self).__enter__()
         self._catalog_repo = SqlAlchemyCatalogRepository(session=self._session)
-        return super(CatalogUnitOfWork, self).__enter__()
+
+        return self
 
     def _commit(self):
         self._session.commit()

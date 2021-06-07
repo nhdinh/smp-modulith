@@ -92,3 +92,21 @@ class StoreRegistrationConfirmationEmail(Email):
     @property
     def html(self) -> str:
         return self.text
+
+
+@dataclass
+class StoreCreatedSuccessfulEmail(Email):
+    store_name: str
+    owner_name: str
+
+    @property
+    def title(self) -> str:
+        return f'Store created successfully'
+
+    @property
+    def text(self) -> str:
+        return f'Your store {self.store_name} has been created successfully. Now you can login to manage it'
+
+    @property
+    def html(self) -> str:
+        return self.text

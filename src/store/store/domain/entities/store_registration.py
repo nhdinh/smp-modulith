@@ -9,7 +9,7 @@ from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.domain.entities.store import Store
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
+from store.domain.events.store_registered_event import StoreRegisteredEvent
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation, \
     RegistrationConfirmed
@@ -54,8 +54,10 @@ class StoreRegistration(EventMixin, Entity):
         self.owner_email = owner_email
         self.owner_mobile = owner_mobile
         self.owner_password = owner_password
+
         self.confirmation_token = confirmation_token
         self.status = status
+        self.confirmed_at = None
 
         # add domain event
         self._record_event(StoreRegisteredEvent(
@@ -130,7 +132,7 @@ class StoreRegistration(EventMixin, Entity):
 
     def create_store(self, owner: StoreOwner) -> Store:
         # check rule
-        return Store(
+        return Store.create_store_from_registration(
             store_id=self.registration_id,
             store_name=self.store_name,
             store_owner=owner

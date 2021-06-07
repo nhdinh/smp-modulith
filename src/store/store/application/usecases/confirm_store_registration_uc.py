@@ -48,10 +48,12 @@ class ConfirmStoreRegistrationUC:
                 if store_registration.status != RegistrationWaitingForConfirmation:
                     raise Exception('Invalid registration')
 
+                # create the entity
                 owner = store_registration.create_store_owner()
                 store = store_registration.create_store(owner=owner)
                 store_id = store_registration.confirm()
 
+                # persist into database
                 uow.stores.save(store)
 
                 dto = ConfirmingStoreRegistrationResponse(store_id=store_id, status=True)

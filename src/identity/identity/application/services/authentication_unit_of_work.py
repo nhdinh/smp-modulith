@@ -5,16 +5,14 @@ from identity.application.repositories.identity_repository import SqlAlchemyIden
 
 
 class AuthenticationUnitOfWork(SqlAlchemyUnitOfWork):
-    def __init__(self, sessionfactory):
-        super(AuthenticationUnitOfWork, self).__init__(sessionfactory=sessionfactory)
+    def __init__(self, sessionfactory, event_bus):
+        super(AuthenticationUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
 
     def __enter__(self):
-        self._session = self._sf()  # type:Session
+        super(AuthenticationUnitOfWork, self).__enter__()
         self._identity_repo = SqlAlchemyIdentityRepository(session=self._session)
-        return super(AuthenticationUnitOfWork, self).__enter__()
 
-    def _collect_new_events(self):
-        pass
+        return self
 
     def _commit(self):
         self._session.commit()

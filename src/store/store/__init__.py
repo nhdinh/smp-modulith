@@ -8,6 +8,7 @@ from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.application.store_handler_facade import StoreHandlerFacade, StoreRegistrationConfirmedEventHandler
 from store.application.usecases.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
+from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 from store.adapter import store_db
 from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
@@ -18,7 +19,7 @@ from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
 
 __all__ = [
-    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent'
+    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedSuccessfullyEvent'
 ]
 
 

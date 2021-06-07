@@ -45,6 +45,10 @@ class CustomerRelationshipFacade:
     def _send(self, recipient: str, email: emails.Email) -> None:
         self._sender.send(recipient, email)
 
-    def send_confirmation_email(self, store_name, confirmation_token, owner_email):
+    def send_store_registration_confirmation_token_email(self, store_name, confirmation_token, owner_email):
         email = emails.StoreRegistrationConfirmationEmail(store_name=store_name, confirmation_token=confirmation_token)
+        self._send(owner_email, email)
+
+    def send_store_created_email(self, store_name, owner_name, owner_email):
+        email = emails.StoreCreatedSuccessfulEmail(store_name=store_name, owner_name=owner_name)
         self._send(owner_email, email)
