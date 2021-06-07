@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event, Boolean
-from sqlalchemy.orm import mapper, relationship, backref
+from sqlalchemy.orm import mapper, relationship, backref, foreign
 
 from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
@@ -27,12 +27,24 @@ store_registration_table = Table(
     Column('created_at', DateTime, server_default=func.now()),
 )
 
+store_owner_table = Table(
+    'user',
+    metadata,
+    Column('id', GUID, primary_key=True),
+    Column('email', String(255), unique=True),
+    Column('mobile', String(255), unique=True),
+    Column('password', String(255)),
+    Column('active', Boolean),
+
+    extend_existing=True
+)  # extend of user table
+
 store_table = Table(
     'store',
     metadata,
     Column('store_id', GUID, primary_key=True),
     Column('name', String(100)),
-    Column('owner', ForeignKey(user_table.c.id)),
+    Column('owner', ForeignKey(store_owner_table.c.id)),
     Column('created_at', DateTime, server_default=func.now()),
     Column('last_updated', DateTime, onupdate=datetime.now),
 )
@@ -48,18 +60,6 @@ store_settings_table = Table(
     Column('created_at', DateTime, server_default=func.now()),
     Column('last_updated', DateTime, onupdate=datetime.now),
 )
-
-store_owner_table = Table(
-    'user',
-    metadata,
-    Column('id', GUID, primary_key=True),
-    Column('email', String(255), unique=True),
-    Column('mobile', String(255), unique=True),
-    Column('password', String(255)),
-    Column('active', Boolean),
-
-    extend_existing=True
-)  # extend of user table
 
 store_managers_table = Table(
     'store_managers',
@@ -92,35 +92,35 @@ def start_mappers():
         }
     )
 
+    owner = mapper(
+        StoreOwner,
+        store_owner_table,
+        properties={
+            'hashed_password': store_owner_table.c.password
+        }
+    )
+
     store_mapper = mapper(
         Store,
         store_table,
 
         properties={
+            '_owner_id': store_table.c.owner,
             '_settings': relationship(
                 Setting,
                 collection_class=set
             ),
             '_owner': relationship(
-                User,
-                user_table,
-                foreigns_key=['owner'],
+                StoreOwner,
+                # foreign_keys=[store_table.c.owner],
+                # remote_side=[store_owner_table.c.id],
+                # viewonly=True,
+                backref=backref('_store'),
             ),
             '_managers': relationship(
                 User,
                 secondary=store_managers_table,
                 collection_class=set,
-            )
-        }
-    )
-
-    owner = mapper(
-        StoreOwner,
-        store_owner_table,
-        properties={
-            '_store': relationship(
-                Store,
-                backref=backref('_owner')
             )
         }
     )

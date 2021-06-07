@@ -139,9 +139,3 @@ class StoreRegistration(EventMixin, Entity):
     @staticmethod
     def _create_confirmation_token():
         return secrets.token_urlsafe(64)
-
-    def create_store_owner(self):
-        pass
-
-    def create_store(self):
-        pass

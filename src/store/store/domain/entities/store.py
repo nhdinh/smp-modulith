@@ -23,7 +23,10 @@ class Store(EventMixin, Entity):
 
         self.store_id = store_id
         self.name = store_name
-        self.store_owner = store_owner
+
+        # make a list of StoreOwner and Manager
+        self._owner = store_owner
+        self._managers = set()
 
         # initial settings
         if settings and type(settings) is List:
@@ -35,6 +38,14 @@ class Store(EventMixin, Entity):
     def settings(self) -> Set[Setting]:
         return self._settings
 
+    @property
+    def owner(self) -> StoreOwner:
+        return self._owner
+
+    @property
+    def managers(self) -> Set:
+        return self._managers
+
     @classmethod
     def default_settings(cls) -> Set[Setting]:
-        pass
+        return set()

@@ -11,3 +11,4 @@ class StoreOwner:
     email: str
     mobile: str
     hashed_password: str
+    active: bool = True
