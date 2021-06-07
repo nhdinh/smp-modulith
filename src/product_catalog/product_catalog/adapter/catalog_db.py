@@ -201,7 +201,7 @@ def start_mappers():
 
 @event.listens_for(Catalog, "load")
 def catalog_receive_load(catalog, _):
-    catalog._pending_domain_events = []
+    catalog.domain_events = []
 
     # set default_collection for the catalog
     if not hasattr(catalog, '_default_collection') or not getattr(catalog, '_default_collection', None):
@@ -222,7 +222,7 @@ def catalog_receive_load(catalog, _):
 
 @event.listens_for(Product, 'load')
 def product_receive_load(product, _):
-    product._pending_domain_events = []
+    product.domain_events = []
     product._catalog = product.collection.catalog
 
 

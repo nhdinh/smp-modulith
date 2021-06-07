@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event
+from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event, Boolean
 from sqlalchemy.orm import mapper, relationship, backref
 
 from db_infrastructure import metadata, GUID
@@ -22,6 +22,7 @@ store_registration_table = Table(
     Column('owner_password', String(255), nullable=False),
     Column('owner_mobile', String(255)),
     Column('confirmation_token', String(200), nullable=False),
+    Column('confirmed_at', DateTime),
     Column('status', String(100), nullable=False, default='new_registration'),
     Column('created_at', DateTime, server_default=func.now()),
 )
@@ -51,7 +52,12 @@ store_settings_table = Table(
 store_owner_table = Table(
     'user',
     metadata,
+    Column('id', GUID, primary_key=True),
     Column('email', String(255), unique=True),
+    Column('mobile', String(255), unique=True),
+    Column('password', String(255)),
+    Column('active', Boolean),
+
     extend_existing=True
 )  # extend of user table
 
@@ -122,4 +128,4 @@ def start_mappers():
 
 @event.listens_for(StoreRegistration, 'load')
 def store_registration_load(store_registration, _):
-    store_registration._pending_domain_events = []
+    store_registration.domain_events = []

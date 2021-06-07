@@ -23,9 +23,6 @@ class CatalogUnitOfWork(SqlAlchemyUnitOfWork):
     def rollback(self):
         self._session.rollback()
 
-    def _collect_new_events(self):
-        raise NotImplementedError
-
     @property
     def catalogs(self) -> SqlAlchemyCatalogRepository:
         return self._catalog_repo

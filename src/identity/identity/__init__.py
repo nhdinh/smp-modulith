@@ -6,7 +6,7 @@ import injector
 from sqlalchemy.engine import Connection
 
 from identity_handler_facade import IdentityHandlerFacade
-from foundation.events import AsyncHandler, AsyncEventHandlerProvider
+from foundation.events import AsyncHandler, AsyncEventHandlerProvider, EventHandlerProvider, Handler
 from identity.config import IdentityModuleConfig
 from identity.domain.events.user_registration_confirmed_event import UserRegistrationConfirmedEvent
 

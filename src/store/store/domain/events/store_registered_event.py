@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from foundation.events import Event
-from store.domain.entities.value_objects import StoreId
+from store.domain.entities.value_objects import StoreId, StoreOwnerId
 
 
 @dataclass(frozen=True)
@@ -19,3 +19,7 @@ class StoreRegisteredEvent(Event):
 class StoreRegistrationConfirmedEvent(Event):
     store_id: StoreId
     store_name: str
+    owner_id: StoreOwnerId
+    email: str
+    mobile: str
+    hashed_password: str

@@ -12,17 +12,19 @@ class Event:
 
 class EventMixin:
     def __init__(self) -> None:
-        self._pending_domain_events: List[Event] = []
+        self.domain_events: List[Event] = []
 
     def _record_event(self, event: Event) -> None:
-        self._pending_domain_events.append(event)
+        """
+        Add new event to `self` model.
 
-    @property
-    def domain_events(self) -> List[Event]:
-        return self._pending_domain_events[:]
+        :param event: kind of `Event`
+        """
+        self.domain_events.append(event)
 
     def clear_events(self) -> None:
-        self._pending_domain_events.clear()
+        # self._pending_domain_events.clear()
+        self.domain_events.clear()
 
 
 class Handler(Generic[T]):

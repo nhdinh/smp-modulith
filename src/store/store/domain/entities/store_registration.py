@@ -3,9 +3,12 @@
 from __future__ import annotations
 import uuid
 import secrets
+from datetime import datetime
+
 from foundation.entity import Entity
 from foundation.events import EventMixin
-from identity import UserRegistrationConfirmedEvent
+from store.domain.entities.store import Store
+from store.domain.entities.store_owner import StoreOwner
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation, \
@@ -21,6 +24,8 @@ from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeVa
 
 
 class StoreRegistration(EventMixin, Entity):
+    confirmation_token: str
+
     def __init__(
             self,
             registration_id: RegistrationId,
@@ -91,7 +96,7 @@ class StoreRegistration(EventMixin, Entity):
 
         return registration
 
-    def confirm_registration(self):
+    def confirm(self):
         """
         Confirm a registration and create new store and user together
 
@@ -101,20 +106,35 @@ class StoreRegistration(EventMixin, Entity):
         self.check_rule(StoreRegistrationMustHaveValidExpirationRule(registration=self))
 
         self.status = RegistrationConfirmed
+        self.confirmed_at = datetime.today()
 
-        self._record_event(UserRegistrationConfirmedEvent(
-            user_id=self.registration_id,
-            email=self.owner_email,
-            mobile=self.owner_mobile,
-            hashed_password=self.owner_password,
-        ))
-
-        self._record_event(StoreRegistrationConfirmedEvent(
-            store_id=self.registration_id,
-            store_name=self.store_name
-        ))
+        # self._record_event(StoreRegistrationConfirmedEvent(
+        #     store_id=self.registration_id,
+        #     store_name=self.store_name,
+        #     owner_id=self.registration_id,
+        #     email=self.owner_email,
+        #     mobile=self.owner_mobile,
+        #     hashed_password=self.owner_password,
+        # ))
 
         return self.registration_id
+
+    def create_store_owner(self) -> StoreOwner:
+        # check rule
+        return StoreOwner(
+            id=self.registration_id,
+            email=self.owner_email,
+            mobile=self.owner_mobile,
+            hashed_password=self.owner_password
+        )
+
+    def create_store(self, owner: StoreOwner) -> Store:
+        # check rule
+        return Store(
+            store_id=self.registration_id,
+            store_name=self.store_name,
+            store_owner=owner
+        )
 
     @staticmethod
     def _create_confirmation_token():

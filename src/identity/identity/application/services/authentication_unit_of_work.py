@@ -20,7 +20,7 @@ class AuthenticationUnitOfWork(SqlAlchemyUnitOfWork):
         self._session.commit()
 
     def rollback(self):
-        pass
+        self._session.rollback()
 
     @property
     def identities(self) -> SqlAlchemyIdentityRepository:

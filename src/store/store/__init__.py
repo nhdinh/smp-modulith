@@ -52,9 +52,9 @@ class StoreInfrastructureModule(injector.Module):
         sessfactory = sessionmaker(bind=conn)
         return StoreUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
 
-    @injector.provider
-    def get_repository(self, uow: StoreUnitOfWork, event_bus: EventBus) -> SqlAlchemyStoreRepository:
-        return SqlAlchemyStoreRepository(session=uow.session, event_bus=event_bus)
+    # @injector.provider
+    # def get_repository(self, uow: StoreUnitOfWork) -> SqlAlchemyStoreRepository:
+    #     return SqlAlchemyStoreRepository(session=uow.session)
 
     @injector.provider
     def get_user_counter_services(self, conn: Connection) -> UserCounters:

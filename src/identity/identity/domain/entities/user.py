@@ -16,6 +16,8 @@ from identity.domain.value_objects import UserId
 
 
 class User(EventMixin, Entity):
+    email: str
+
     def __init__(
             self,
             user_id: UserId,

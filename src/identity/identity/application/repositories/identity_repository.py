@@ -3,19 +3,14 @@
 import abc
 from typing import List, Union
 
-from sqlalchemy.orm import Session
-
 from identity.domain.entities import Role, User
 from identity.domain.value_objects import UserId, UserEmail
+from repository import AbstractRepository
 
 
-class AbstractIdentityRepository(abc.ABC):
+class AbstractIdentityRepository(AbstractRepository):
     @abc.abstractmethod
     def fetch_user(self, query: Union[UserId, UserEmail]) -> User:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def save(self, user: User) -> None:
         raise NotImplementedError
 
 
@@ -29,11 +24,8 @@ class SqlAlchemyIdentityRepository(AbstractIdentityRepository):
     def _fetch_user_by_email(self, email: UserEmail) -> User:
         return self._sess.query(User).filter(User.email == email).first()
 
-    def save(self, user: User) -> None:
-        return self._sess.add(user)
-
-    def __init__(self, session: Session):
-        self._sess = session  # type:Session
+    def _save(self, user: User) -> None:
+        self._sess.add(user)
 
     def get_roles(self) -> List[Role]:
         return self._sess.query(Role).all()

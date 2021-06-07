@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 import dotenv
 import injector
+
+from foundation import FoundationModule
 from identity import IdentityModule
 from sqlalchemy.engine import Engine, create_engine
 
@@ -72,6 +74,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             Rq(),
             EventBusMod(),
             Configs(settings),
+            FoundationModule(),
             IdentityModule(),
             AuthenticationInfrastructureModule(),
             AuthenticationModule(),
@@ -126,7 +129,7 @@ def _create_db_schema(engine: Engine) -> None:
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
-    from store.adapter.store_db import store_table
+    from store.adapter.store_db import store_table  # noqa
 
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)

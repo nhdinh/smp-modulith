@@ -39,7 +39,7 @@ class ConfirmStoreRegistrationUC:
     def execute(self, confirmation_token: str):
         with self._uow as uow:  # type: StoreUnitOfWork
             try:
-                store_registration = uow.stores.get_registration_by_token(
+                store_registration = uow.stores.fetch_registration_by_token(
                     token=confirmation_token
                 )  # type: StoreRegistration
                 if not store_registration:
@@ -48,7 +48,11 @@ class ConfirmStoreRegistrationUC:
                 if store_registration.status != RegistrationWaitingForConfirmation:
                     raise Exception('Invalid registration')
 
-                store_id = store_registration.confirm_registration()
+                owner = store_registration.create_store_owner()
+                store = store_registration.create_store(owner=owner)
+                store_id = store_registration.confirm()
+
+                uow.stores.save(store)
 
                 dto = ConfirmingStoreRegistrationResponse(store_id=store_id, status=True)
                 self._ob.present(dto)

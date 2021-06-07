@@ -11,18 +11,16 @@ class StoreUnitOfWork(SqlAlchemyUnitOfWork):
         super(StoreUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
 
     def __enter__(self):
-        self._session = self._sf()  # type:Session
-        self._store_repo = SqlAlchemyStoreRepository(session=self._session, event_bus=self._event_bus)
-        return super(StoreUnitOfWork, self).__enter__()
+        super(StoreUnitOfWork, self).__enter__()
+        self._store_repo = SqlAlchemyStoreRepository(session=self._session)
+
+        return self
 
     def _commit(self):
         self._session.commit()
 
     def rollback(self):
         self._session.rollback()
-
-    def _collect_new_events(self):
-        raise NotImplementedError
 
     @property
     def stores(self) -> SqlAlchemyStoreRepository:

@@ -27,5 +27,4 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
 
         return cast(TDto, schema.load(dict(context, **request_json), unknown=EXCLUDE))
     except exceptions.ValidationError as exc:
-        # raise exc
-        pass
+        raise exc
