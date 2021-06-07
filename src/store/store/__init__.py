@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.application.store_handler_facade import StoreHandlerFacade, StoreRegistrationConfirmedEventHandler
+from store.application.usecases.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
@@ -33,6 +34,11 @@ class StoreModule(injector.Module):
     def confirm_store_registration_uc(self, boundary: ConfirmingStoreRegistrationResponseBoundary,
                                       uow: StoreUnitOfWork) -> ConfirmStoreRegistrationUC:
         return ConfirmStoreRegistrationUC(boundary, uow)
+
+    @injector.provider
+    def add_store_manager_uc(self, boundary: AddingStoreManagerResponseBoundary,
+                             uow: StoreUnitOfWork) -> AddStoreManagerUC:
+        return AddStoreManagerUC(boundary, uow)
 
     @injector.provider
     def facade(self, connection: Connection) -> StoreHandlerFacade:

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
-from web_app.blueprints.auth import auth_blueprint, AuthenticationAPI
+from web_app.blueprints.auth_bp import auth_blueprint, AuthenticationAPI
 from web_app.blueprints.brand import brand_blueprint
 from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product import product_blueprint, ProductAPI

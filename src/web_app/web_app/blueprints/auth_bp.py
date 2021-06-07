@@ -7,11 +7,15 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 
 from foundation.business_rule import BusinessRuleValidationError
 from identity.application.queries.identity import GetAllUsersQuery, GetSingleUserQuery
+from identity.application.usecases.change_password_uc import ChangingPasswordResponseBoundary, ChangePasswordUC, \
+    ResettingPasswordRequest, ChangingPasswordResponse, ChangingPasswordRequest
 from identity.application.usecases.log_user_in import LoggingUserInUC, LoggingUserInResponseBoundary, \
     LoggedUserResponse, \
     LoggingUserInRequest
 from identity.application.usecases.register_user import RegisteringUserUC, RegisteringUserResponseBoundary, \
     RegisteringUserRequest, RegisteringUserResponse
+from identity.application.usecases.request_to_change_password_uc import RequestingToChangePasswordResponseBoundary, \
+    RequestingToChangePasswordResponse, RequestToChangePasswordUC, RequestingToChangePasswordRequest
 from identity.application.usecases.revoke_token import RevokingTokenUC
 from identity.domain.entities.revoked_token import RevokedToken
 from web_app.serialization.dto import get_dto
@@ -29,6 +33,16 @@ class AuthenticationAPI(injector.Module):
     @flask_injector.request
     def log_user_in_response_boundary(self) -> LoggingUserInResponseBoundary:
         return LoggingUserInPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def request_to_change_password_response_boundary(self) -> RequestingToChangePasswordResponseBoundary:
+        return RequestingToChangePasswordPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def change_password_response_boundary(self) -> ChangingPasswordResponseBoundary:
+        return ChangingPasswordPresenter()
 
 
 @auth_blueprint.route('/register', methods=['POST'], strict_slashes=False)
@@ -140,6 +154,53 @@ def delete_user():
     pass
 
 
+@auth_blueprint.route('/change-passwd', methods=['POST'])
+def request_change_password(request_to_change_password_uc: RequestToChangePasswordUC,
+                            presenter: RequestingToChangePasswordResponseBoundary) -> Response:
+    try:
+        dto = get_dto(request, RequestingToChangePasswordRequest, context={})
+        request_to_change_password_uc.execute(dto)
+
+        return presenter.response, 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            raise exc
+
+        return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
+
+
+@auth_blueprint.route('/change-passwd/<string:reset_token>', methods=['POST'])
+def change_password(reset_token: str, change_password_uc: ChangePasswordUC,
+                    presenter: ChangingPasswordResponseBoundary) -> Response:
+    try:
+        dto = get_dto(request, ResettingPasswordRequest, context={'reset_token': reset_token})
+        change_password_uc.execute_reset(dto)
+
+        return presenter.response, 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            raise exc
+
+        return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
+
+
+@auth_blueprint.route('/change-passwd/authorized', methods=['POST'])
+@jwt_required()
+def change_password_authorizedly(change_password_uc: ChangePasswordUC,
+                                 presenter: ChangingPasswordResponseBoundary) -> Response:
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, ChangingPasswordRequest, context={'current_user': current_user})
+        change_password_uc.execute_change(dto)
+
+        return presenter.response, 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            raise exc
+
+        return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
+
+
 class RegisteringUserPresenter(RegisteringUserResponseBoundary):
     response: Response
 
@@ -173,6 +234,34 @@ class LoggingUserInPresenter(LoggingUserInResponseBoundary):
                 'refresh_token': _refresh_token
             }
         )
+        self.response = make_response(jsonify(response_dto))
+
+
+class RequestingToChangePasswordPresenter(RequestingToChangePasswordResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: RequestingToChangePasswordResponse) -> None:
+        self.response = make_response(jsonify(response_dto))
+
+
+class ChangingPasswordPresenter(ChangingPasswordResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: ChangingPasswordResponse) -> None:
+        # TODO: Read more here to find way for invalidating the JWT token before sending to client a new one. At this
+        #  point I wrote this line, the new JWT token has been sent but User still can use the old JWT token to login
+        _access_token = create_access_token(identity=response_dto.email)
+        _refresh_token = create_refresh_token(identity=response_dto.email)
+
+        # update response_dto with access_token and refresh_token
+        response_dto = _merge_dict(
+            response_dto.__dict__,
+            {
+                'access_token': _access_token,
+                'refresh_token': _refresh_token
+            }
+        )
+
         self.response = make_response(jsonify(response_dto))
 
 

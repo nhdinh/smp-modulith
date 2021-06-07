@@ -110,3 +110,39 @@ class StoreCreatedSuccessfulEmail(Email):
     @property
     def html(self) -> str:
         return self.text
+
+
+@dataclass
+class PasswordResetTokenEmail(Email):
+    username: str
+    token: str
+
+    @property
+    def title(self) -> str:
+        return 'Request to reset password'
+
+    @property
+    def text(self) -> str:
+        return f'Hi {self.username}, someone has request to reset your password. If this is yours, please follow the ' \
+               f'link to reset your password. {self.token} '
+
+    @property
+    def html(self) -> str:
+        return self.text
+
+
+@dataclass
+class PasswordResettedNotificationEmail(Email):
+    username: str
+
+    @property
+    def title(self) -> str:
+        return 'Your password has been resetted'
+
+    @property
+    def text(self) -> str:
+        return f'Hi {self.username}, your password has been resetted.'
+
+    @property
+    def html(self) -> str:
+        return self.text

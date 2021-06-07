@@ -127,7 +127,8 @@ class StoreRegistration(EventMixin, Entity):
             id=self.registration_id,
             email=self.owner_email,
             mobile=self.owner_mobile,
-            hashed_password=self.owner_password
+            hashed_password=self.owner_password,
+            confirmed_at=datetime.now(),
         )
 
     def create_store(self, owner: StoreOwner) -> Store:

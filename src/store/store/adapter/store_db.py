@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event, Boolean
+from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event, Boolean, PrimaryKeyConstraint
 from sqlalchemy.orm import mapper, relationship, backref, foreign
 
 from db_infrastructure import metadata, GUID
@@ -20,7 +20,7 @@ store_registration_table = Table(
     Column('name', String(100)),
     Column('owner_email', String(255), unique=True, nullable=False),
     Column('owner_password', String(255), nullable=False),
-    Column('owner_mobile', String(255)),
+    Column('owner_mobile', String(255), unique=True),
     Column('confirmation_token', String(200), nullable=False),
     Column('confirmed_at', DateTime),
     Column('status', String(100), nullable=False, default='new_registration'),
@@ -35,6 +35,7 @@ store_owner_table = Table(
     Column('mobile', String(255), unique=True),
     Column('password', String(255)),
     Column('active', Boolean),
+    Column('confirmed_at', DateTime),
 
     extend_existing=True
 )  # extend of user table
@@ -52,9 +53,8 @@ store_table = Table(
 store_settings_table = Table(
     'store_settings',
     metadata,
-    Column('setting_id', GUID, primary_key=True),
-    Column('store_id', ForeignKey(store_table.c.store_id)),
-    Column('setting_name', String(100), nullable=False),
+    Column('store_id', ForeignKey(store_table.c.store_id), primary_key=True),
+    Column('setting_name', String(100), nullable=False, primary_key=True),
     Column('setting_value', String(100), nullable=False),
     Column('setting_type', String(100), nullable=False),
     Column('created_at', DateTime, server_default=func.now()),
@@ -81,6 +81,11 @@ def start_mappers():
     mapper(
         Setting,
         store_settings_table,
+        properties={
+            'name': store_settings_table.c.setting_name,
+            'value': store_settings_table.c.setting_value,
+            'type': store_settings_table.c.setting_type,
+        }
     )
 
     mapper(

@@ -30,5 +30,8 @@ class SqlAlchemyIdentityRepository(AbstractIdentityRepository):
     def get_roles(self) -> List[Role]:
         return self._sess.query(Role).all()
 
-    def add_revoked_token(self, token):
+    def add_revoked_token(self, token: str):
         return self._sess.add(token)
+
+    def fetch_user_by_token(self, reset_password_token: str):
+        return self._sess.query(User).filter(User.reset_password_token == reset_password_token).first()

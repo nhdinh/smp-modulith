@@ -52,3 +52,11 @@ class CustomerRelationshipFacade:
     def send_store_created_email(self, store_name, owner_name, owner_email):
         email = emails.StoreCreatedSuccessfulEmail(store_name=store_name, owner_name=owner_name)
         self._send(owner_email, email)
+
+    def send_password_reset_token_email(self, username, user_email, token):
+        email = emails.PasswordResetTokenEmail(username=username, token=token)
+        self._send(user_email, email)
+
+    def send_password_reset_notification(self, username, user_email):
+        email = emails.PasswordResettedNotificationEmail(username=username)
+        self._send(recipient=user_email, email=email)

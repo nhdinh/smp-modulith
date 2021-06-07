@@ -48,19 +48,37 @@ class Store(EventMixin, Entity):
 
     @property
     def settings(self) -> Set[Setting]:
+        """
+        Contains a set of `Setting` that applied to this store
+
+        :return: set of `Setting` data
+        """
         return self._settings
 
     @property
     def owner(self) -> StoreOwner:
+        """
+        Return an `User` that is owner of this store
+
+        :return: instance of `User`
+        """
         return self._owner
 
     @property
     def managers(self) -> Set:
+        """
+        Return a list of `User` that are managers of this Store
+
+        :return: set of `User` instances
+        """
         return self._managers
 
     @classmethod
     def default_settings(cls) -> Set[Setting]:
-        return set()
+        settings = set()  # type: Set[Setting]
+        settings.add(Setting('default_page_size', 10, 'int'))
+
+        return settings
 
     @classmethod
     def create_store_from_registration(cls, store_id, store_name, store_owner):

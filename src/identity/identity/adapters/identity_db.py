@@ -36,7 +36,9 @@ user_table = sa.Table(
     sa.Column('current_login_at', sa.DateTime),
     sa.Column('last_login_ip', sa.String(100)),
     sa.Column('current_login_ip', sa.String(100)),
-    sa.Column('login_count', sa.Integer, default=0)
+    sa.Column('login_count', sa.Integer, default=0),
+    sa.Column('reset_password_token', sa.String(100)),
+    sa.Column('request_reset_password_at', sa.DateTime)
 )
 
 role_table = sa.Table(
@@ -92,3 +94,8 @@ def start_mappers():
 def load_revoked_tokes(token, _):
     # token.revoked_tokens = revoked_token_table.select()
     pass
+
+
+@event.listens_for(User, 'load')
+def user_loaded(user, _):
+    user.domain_events = []
