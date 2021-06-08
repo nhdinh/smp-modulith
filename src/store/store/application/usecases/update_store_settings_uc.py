@@ -3,12 +3,13 @@
 import abc
 from dataclasses import dataclass
 
-from product_catalog import CatalogUnitOfWork
+from store.application.services.store_unit_of_work import StoreUnitOfWork
 
 
 @dataclass
 class UpdatingStoreSettingsRequest:
-    addresses: []
+    # addresses: []
+    some_key: str
 
 
 @dataclass
@@ -26,12 +27,12 @@ class UpdatingStoreSettingsResponseBoundary(metaclass=abc.ABCMeta):
 class UpdateStoreSettingsUC:
     def __init__(self,
                  output_boundary: UpdatingStoreSettingsResponseBoundary,
-                 uow: CatalogUnitOfWork) -> None:
+                 uow: StoreUnitOfWork) -> None:
         self._output_boundary = output_boundary
         self._uow = uow
 
     def execute(self, input_dto: UpdatingStoreSettingsRequest) -> None:
-        with self._uow as uow:  # type:CatalogUnitOfWork
+        with self._uow as uow:  # type:StoreUnitOfWork
             try:
                 pass
             except Exception as exc:

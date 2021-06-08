@@ -9,6 +9,8 @@ from store.application.store_handler_facade import StoreHandlerFacade, StoreRegi
 from store.application.usecases.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
+from store.application.usecases.update_store_settings_uc import UpdateStoreSettingsUC, \
+    UpdatingStoreSettingsResponseBoundary
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 from store.adapter import store_db
@@ -39,6 +41,11 @@ class StoreModule(injector.Module):
     def add_store_manager_uc(self, boundary: AddingStoreManagerResponseBoundary,
                              uow: StoreUnitOfWork) -> AddStoreManagerUC:
         return AddStoreManagerUC(boundary, uow)
+
+    @injector.provider
+    def update_store_settings_uc(self, boundary: UpdatingStoreSettingsResponseBoundary,
+                                 uow: StoreUnitOfWork) -> UpdateStoreSettingsUC:
+        return UpdateStoreSettingsUC(boundary, uow)
 
     @injector.provider
     def facade(self, connection: Connection) -> StoreHandlerFacade:

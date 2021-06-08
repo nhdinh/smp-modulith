@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import dotenv
 import injector
 
+import store.adapter.db_mappers
 from foundation import FoundationModule
 from identity import IdentityModule
 from sqlalchemy.engine import Engine, create_engine
@@ -118,7 +119,7 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
         pass
 
     try:
-        store_db.start_mappers()
+        store.adapter.db_mappers.start_mappers()
     except Exception as exc:
         pass
 

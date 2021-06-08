@@ -2,15 +2,10 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event, Boolean, PrimaryKeyConstraint
-from sqlalchemy.orm import mapper, relationship, backref, foreign
+from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event, Boolean
 
 from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
-from identity.domain.entities import User
-from store.domain.entities.setting import Setting
-from store.domain.entities.store import Store
-from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = Table(
@@ -75,60 +70,6 @@ store_address_table = Table(
     Column('address_id', GUID, primary_key=True),
     Column('store_id', ForeignKey(store_table.c.store_id)),
 )
-
-
-def start_mappers():
-    mapper(
-        Setting,
-        store_settings_table,
-        properties={
-            'name': store_settings_table.c.setting_name,
-            'value': store_settings_table.c.setting_value,
-            'type': store_settings_table.c.setting_type,
-        }
-    )
-
-    mapper(
-        StoreRegistration,
-        store_registration_table,
-        properties={
-            'registration_id': store_registration_table.c.store_registration_id,
-            'store_name': store_registration_table.c.name,
-        }
-    )
-
-    owner = mapper(
-        StoreOwner,
-        store_owner_table,
-        properties={
-            'hashed_password': store_owner_table.c.password
-        }
-    )
-
-    store_mapper = mapper(
-        Store,
-        store_table,
-
-        properties={
-            '_owner_id': store_table.c.owner,
-            '_settings': relationship(
-                Setting,
-                collection_class=set
-            ),
-            '_owner': relationship(
-                StoreOwner,
-                # foreign_keys=[store_table.c.owner],
-                # remote_side=[store_owner_table.c.id],
-                # viewonly=True,
-                backref=backref('_store'),
-            ),
-            '_managers': relationship(
-                User,
-                secondary=store_managers_table,
-                collection_class=set,
-            )
-        }
-    )
 
 
 @event.listens_for(StoreRegistration, 'load')

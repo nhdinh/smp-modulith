@@ -16,7 +16,7 @@ from store.application.store_queries import FetchStoreSettingsQuery
 from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
     RegisteringStoreRequest, RegisteringStoreResponse
 from store.application.usecases.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
-    UpdatingStoreSettingsRequest, UpdateStoreSettingsUC
+    UpdatingStoreSettingsRequest, UpdateStoreSettingsUC, UpdatingStoreSettingsResponse
 from web_app.serialization.dto import get_dto
 
 store_blueprint = Blueprint('store_blueprint', __name__)
@@ -42,6 +42,11 @@ class StoreAPI(injector.Module):
     @flask_injector.request
     def add_store_manager_boundary(self) -> AddingStoreManagerResponseBoundary:
         return AddingStoreManagerPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def update_store_settings_boundary(self) -> UpdatingStoreSettingsResponseBoundary:
+        return UpdatingStoreSettingsPresenter()
 
 
 @store_blueprint.route('/register', methods=['POST'])
@@ -180,4 +185,11 @@ class AddingStoreManagerPresenter(AddingStoreManagerResponseBoundary):
     response: Response
 
     def present(self, response_dto: AddingStoreManagerResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class UpdatingStoreSettingsPresenter(UpdatingStoreSettingsResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: UpdatingStoreSettingsResponse):
         self.response = make_response(jsonify(response_dto.__dict__))
