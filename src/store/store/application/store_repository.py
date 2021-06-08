@@ -18,8 +18,8 @@ class AbstractStoreRepository(AbstractRepository):
 
 
 class SqlAlchemyStoreRepository(AbstractStoreRepository):
-    def get(self, store: StoreId) -> Store:
-        self._sess.query(Store).filter(Store.store_id == store).all()
+    def get(self, store_id_to_find: StoreId) -> Store:
+        self._sess.query(Store).filter(Store.store_id == store_id_to_find).all()
 
     def _save(self, store: Store) -> None:
         self._sess.add(store)

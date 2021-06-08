@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Set, List, Any
+from typing import Set, List, Any, Optional
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.domain.entities.setting import Setting
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.entities.value_objects import StoreId
+from store.domain.entities.store_catalog import StoreCatalog
+from store.domain.entities.value_objects import StoreId, StoreCatalogReference
+from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
 from store.domain.rules.default_passed_rule import DefaultPassedRule
 
@@ -45,6 +47,16 @@ class Store(EventMixin, Entity):
             owner_name=self._owner.email,
             owner_email=self._owner.email,
         ))
+
+        # its catalog
+        self._catalogs = set()
+
+        # build cached name of all children type
+        self.__cached = {
+            'catalogs': [],
+            'collections': [],
+            'products': []
+        }
 
     @property
     def settings(self) -> Set[Setting]:
@@ -96,4 +108,44 @@ class Store(EventMixin, Entity):
             s = next(s for s in self._settings if s.name == setting_name)
             return s
         except StopIteration:
+            return False
+
+    def get_catalog(self, catalog_reference: StoreCatalogReference) -> Optional[StoreCatalog]:
+        """
+        Get child catalog by catalog_reference
+
+        :param catalog_reference: reference of a catalog to fetch
+        :return: instance of `Catalog` or None
+        """
+        if not hasattr(self, '_catalogs'):
+            return None
+
+        try:
+            catalog = next(c for c in self._catalogs if c.catalog_reference == catalog_reference)  # type:StoreCatalog
+            return catalog
+        except StopIteration:
+            return None
+
+    def update_catalog_data(self, catalog_reference: StoreCatalogReference, update_data: dict) -> None:
+        """
+        Update the child catalog with input data
+
+        :param catalog_reference: reference of the catalog
+        :param update_data:
+        """
+        catalog = self.get_catalog(catalog_reference=catalog_reference)
+        for key, value in update_data.items():
+            setattr(catalog, key, value)
+
+        self._record_event(StoreCatalogUpdatedEvent(catalog_reference=catalog_reference))
+
+    def has_catalog(self, catalog_reference: StoreCatalogReference):
+        """
+        Check if the store contains any catalog with the reference
+
+        :param catalog_reference:
+        """
+        try:
+            return catalog_reference in self.__cached['catalogs']
+        except:
             return False

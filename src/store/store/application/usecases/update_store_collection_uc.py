@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from store.domain.entities.value_objects import CatalogReference, CollectionReference
+from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.domain.entities.value_objects import StoreId
 
@@ -11,14 +11,14 @@ from store.domain.entities.value_objects import StoreId
 @dataclass
 class UpdatingStoreCollectionRequest:
     store_id: StoreId
-    catalog_reference: CatalogReference
-    collection_reference: CollectionReference
+    catalog_reference: StoreCatalogReference
+    collection_reference: StoreCollectionReference
 
 
 @dataclass
 class UpdatingStoreCollectionResponse:
     store_id: StoreId
-    collection_reference: CollectionReference
+    collection_reference: StoreCollectionReference
 
 
 class UpdatingStoreCollectionResponseBoundary(abc.ABC):

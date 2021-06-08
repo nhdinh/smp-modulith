@@ -10,5 +10,5 @@ StoreOwnerId = NewType("StoreOwnerId", tp=UUID)
 
 RegistrationStatus = NewType('RegistrationStatus', tp=str)
 
-CatalogReference = NewType('CatalogReference', tp=str)
-CollectionReference = NewType('CollectionReference', tp=str)
+StoreCatalogReference = NewType('StoreCatalogReference', tp=str)
+StoreCollectionReference = NewType('StoreCollectionReference', tp=str)
