@@ -17,6 +17,7 @@ from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
 from web_app.blueprints.store_bp import store_blueprint, StoreAPI
+from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI
 from web_app.json_encoder import JSONEncoder
 
 
@@ -28,14 +29,15 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     app.json_encoder = JSONEncoder
     app.url_map.strict_slashes = False
-
+    
     app.register_blueprint(auth_blueprint, url_prefix='/user')
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
     app.register_blueprint(product_blueprint, url_prefix='/product')
     app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
     app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
     app.register_blueprint(brand_blueprint, url_prefix='/brand')
-    app.register_blueprint(store_blueprint, url_prefix='/store')
+    app.register_blueprint(store_blueprint, url_prefix='/manage-store')
+    app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
 
     # TODO: move this config
     app.config["SECRET_KEY"] = "super-secret"
@@ -53,7 +55,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         AuctionsWeb(),
         CatalogAPI(),
         ProductAPI(),
-        StoreAPI()
+        StoreAPI(),
+        StoreCatalogAPI(),
     ], injector=app_context.injector)
     app.injector = app_context.injector
 

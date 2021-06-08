@@ -146,7 +146,13 @@ def fetch_store_managers() -> Response:
 @jwt_required()
 def add_store_manager(add_store_manager_uc: AddStoreManagerUC,
                       presenter: AddingStoreManagerResponseBoundary) -> Response:
-    return None
+    raise NotImplementedError
+
+
+@store_blueprint.route('/managers/<string:login>', methods=['PATCH'])
+@jwt_required()
+def patch_store_manager(login: str) -> Response:
+    raise NotImplementedError
 
 
 class RegisteringStorePresenter(RegisteringStoreResponseBoundary):
