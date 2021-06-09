@@ -8,7 +8,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.usecases.update_store_catalog import UpdatingStoreCatalogResponseBoundary, \
-    UpdatingStoreCatalogRequest, UpdateStoreCatalogUC, ToggleStoreCatalogUC, TogglingStoreCatalogRequest
+    UpdatingStoreCatalogRequest, UpdateStoreCatalogUC, TogglingStoreCatalogRequest
+from store.application.usecases.toggle_store_catalog_uc import ToggleStoreCatalogUC
 from store.application.usecases.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
 from web_app.presenters.store_catalog_presenters import UpdatingStoreCollectionPresenter, UpdatingStoreCatalogPresenter

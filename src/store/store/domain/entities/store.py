@@ -8,7 +8,7 @@ from store.domain.entities.setting import Setting
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference
-from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent
+from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
 from store.domain.rules.default_passed_rule import DefaultPassedRule
 
@@ -51,12 +51,8 @@ class Store(EventMixin, Entity):
         # its catalog
         self._catalogs = set()
 
-        # build cached name of all children type
-        self.__cached = {
-            'catalogs': [],
-            'collections': [],
-            'products': []
-        }
+        # build cache
+        self._build_cache()
 
     @property
     def settings(self) -> Set[Setting]:
@@ -126,6 +122,17 @@ class Store(EventMixin, Entity):
         except StopIteration:
             return None
 
+    def has_catalog(self, catalog_reference: StoreCatalogReference):
+        """
+        Check if the store contains any catalog with the reference
+
+        :param catalog_reference:
+        """
+        try:
+            return catalog_reference in self.__cached['catalogs']
+        except:
+            return False
+
     def update_catalog_data(self, catalog_reference: StoreCatalogReference, update_data: dict) -> None:
         """
         Update the child catalog with input data
@@ -139,13 +146,18 @@ class Store(EventMixin, Entity):
 
         self._record_event(StoreCatalogUpdatedEvent(catalog_reference=catalog_reference))
 
-    def has_catalog(self, catalog_reference: StoreCatalogReference):
+    def toggle_catalog(self, catalog_reference) -> None:
         """
-        Check if the store contains any catalog with the reference
+        Toggle the catalog on/ off
 
-        :param catalog_reference:
+        :param catalog_reference: reference of the catalogs
         """
-        try:
-            return catalog_reference in self.__cached['catalogs']
-        except:
-            return False
+        catalog = self.get_catalog(catalog_reference=catalog_reference)  # type:StoreCatalog
+        catalog.toggle()
+
+        self._record_event(StoreCatalogToggledEvent(catalog_reference=catalog_reference))
+
+    def _build_cache(self):
+        # Need to build cache when loading from database. Therefore will need a table that contains all cached data,
+        # updated on saved.
+        pass

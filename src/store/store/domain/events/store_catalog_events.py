@@ -8,3 +8,8 @@ from foundation import Event
 @dataclass(frozen=True)
 class StoreCatalogUpdatedEvent(Event):
     catalog_reference: str
+
+
+@dataclass(frozen=True)
+class StoreCatalogToggledEvent(Event):
+    catalog_reference: str
