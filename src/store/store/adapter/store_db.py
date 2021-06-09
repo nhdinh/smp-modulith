@@ -6,6 +6,7 @@ from sqlalchemy import Table, Column, String, ForeignKey, func, DateTime, event,
 
 from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
+from store.domain.entities.store import Store
 from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = Table(
