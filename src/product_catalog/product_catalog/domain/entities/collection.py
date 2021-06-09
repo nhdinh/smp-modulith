@@ -27,5 +27,12 @@ class Collection:
 
         return None
 
+    @classmethod
+    def make_collection(cls, reference, display_name):
+        return Collection(
+            reference=reference,
+            display_name=display_name
+        )
+
     def __repr__(self):
         return f'<Collection reference="{self.reference}" display_name="{self.display_name}" product_cnt={len(self.products)}>'

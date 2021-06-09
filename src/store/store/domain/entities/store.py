@@ -7,6 +7,7 @@ from foundation.events import EventMixin
 from store.domain.entities.setting import Setting
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_catalog import StoreCatalog
+from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
@@ -49,7 +50,7 @@ class Store(EventMixin, Entity):
         ))
 
         # its catalog
-        self._catalogs = set()
+        self._catalogs = {self._make_default_catalog()}
 
         # build cache
         self._build_cache()
@@ -105,6 +106,25 @@ class Store(EventMixin, Entity):
             return s
         except StopIteration:
             return False
+
+    def get_setting(self, setting_key: str, default_value: Any):
+        return default_value
+
+    def _make_default_catalog(self) -> StoreCatalog:
+        default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
+        default_collection_name = self.get_setting('default_collection_name', 'Default Collection')
+
+        return StoreCatalog.make_catalog(
+            reference='default_catalog',
+            display_name=default_catalog_name,
+            display_image='',
+            disabled=False,
+            system=True,
+            include_default_collection=StoreCollection.make_collection(
+                reference='default_collection',
+                display_name=default_collection_name
+            )
+        )
 
     def get_catalog(self, catalog_reference: StoreCatalogReference) -> Optional[StoreCatalog]:
         """
