@@ -1,10 +1,10 @@
 import decimal
-from typing import Type, TypeVar, cast
+from typing import Type, TypeVar, cast, List
 
 from flask import Request
 from marshmallow import Schema, exceptions, EXCLUDE, INCLUDE
 from marshmallow.fields import Decimal
-from marshmallow_dataclass import class_schema
+from marshmallow_dataclass import class_schema, dataclass
 
 from foundation.value_objects import Money
 from web_app.serialization.fields import Dollars
@@ -16,6 +16,21 @@ class BaseSchema(Schema):
     TYPE_MAPPING = {
         Money: Dollars,
     }
+
+
+@dataclass
+class PaginationInputDto:
+    page: int
+    page_size: int
+
+
+@dataclass
+class PaginationOutputDto:
+    items: List
+    current_page: int
+    page_size: int
+    total_items: int
+    total_pages: int
 
 
 def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:

@@ -12,5 +12,25 @@ store_catalog_cache_table = sa.Table(
     metadata,
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id)),
-    sa.Column('catalog_reference')
+    sa.Column('catalog_reference', sa.String(255))
+)
+
+store_collection_cạche_table = sa.Table(
+    'store_collection_cache',
+    metadata,
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id)),
+    sa.Column('collection_id', sa.ForeignKey(store_collection_table.c.collection_id)),
+    sa.Column('collection_reference', sa.String(255))
+)
+
+store_product_cache_table = sa.Table(
+    'store_product_cache',
+    metadata,
+    metadata,
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id)),
+    sa.Column('collection_id', sa.ForeignKey(store_collection_table.c.collection_id)),
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
+    sa.Column('product_reference', sa.String(255))
 )
