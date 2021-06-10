@@ -4,7 +4,8 @@ from sqlalchemy import select, func
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
-from store.adapter import store_catalog_table, store_table, store_owner_table, store_catalog_cache_table
+from store.adapter import store_catalog_table, store_table, store_owner_table
+from store.adapter.store_db import store_catalog_cache_table
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, StoreCatalogResponseDto
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 

@@ -55,7 +55,7 @@ services:
     image: app
     command: rq worker -u "redis://redis:6379"
     volumes:
-    - ./src:/usr/src/app
+      - ./src:/usr/src/app
     environment:
       FLASK_ENV: 'development'
       DEBUG: 'true'
@@ -70,5 +70,6 @@ services:
       EMAIL_FROM_ADDRESS: admin@smp.io
       DB_DSN: postgresql://postgres:clone@database:5432/smp_db
       REDIS_HOST: redis
+      DB_ECHO: 'true'
     depends_on:
       - redis

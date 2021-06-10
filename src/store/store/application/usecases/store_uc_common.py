@@ -1,11 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import abc
+from dataclasses import dataclass
 from typing import Optional
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 
 from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreId
+
+
+@dataclass
+class GenericStoreActionRequest:
+    current_user: str
+
+
+@dataclass
+class GenericStoreActionResponse:
+    status: bool
+
+
+class GenericStoreResponseBoundary(abc.ABC):
+    @abc.abstractmethod
+    def present(self, generic_dto: GenericStoreActionResponse):
+        raise NotImplementedError
 
 
 def fetch_store_by_id(store_id: StoreId, uow: StoreUnitOfWork) -> Optional[Store]:

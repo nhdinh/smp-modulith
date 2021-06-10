@@ -8,7 +8,7 @@ from typing import Type, Any
 
 @dataclass(unsafe_hash=True)
 class Setting:
-    name: str
+    key: str
     value: str
     type: str
 

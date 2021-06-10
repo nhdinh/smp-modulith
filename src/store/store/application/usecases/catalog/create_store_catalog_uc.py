@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from typing import Optional
+
+from slugify import slugify
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
 
@@ -13,7 +17,7 @@ from store.domain.entities.value_objects import StoreId, StoreCatalogReference, 
 @dataclass
 class CreatingStoreCatalogRequest:
     current_user: str
-    catalog_reference: StoreCatalogReference
+    catalog_reference: Optional[StoreCatalogReference]
     display_name: str
     enable_default_collection: bool = True
 
@@ -39,14 +43,17 @@ class CreateStoreCatalogUC:
             try:
                 store = uow.stores.fetch_store_of_owner(owner=dto.current_user)  # type:Store
                 if not store:
-                    raise Exception('Store not found or current user do not have any store created')
+                    raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
                 if store.has_catalog(dto.catalog_reference):
-                    raise Exception('Store already contains the catalog with same reference')
+                    raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
+
+                # validate inputs
+                reference = dto.catalog_reference if dto.catalog_reference else slugify(dto.display_name)
 
                 # make catalog
-                catalog = StoreCatalog.make_catalog(
-                    reference=dto.catalog_reference,
+                catalog = store.make_catalog(
+                    reference=reference,
                     display_name=dto.display_name,
                 )
 

@@ -7,13 +7,15 @@ from sqlalchemy.orm import sessionmaker
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.adapter.queries import SqlFetchAllStoreCatalogsQuery
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
-from store.application.store_handler_facade import StoreHandlerFacade
-from store.application.usecases.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
-from store.application.usecases.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
+from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler
+from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
+from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
-from store.application.usecases.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
+from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC
-from store.application.usecases.update_store_settings_uc import UpdateStoreSettingsUC, \
+from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
+from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
+from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
 from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
@@ -24,7 +26,7 @@ from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.store_repository import SqlAlchemyStoreRepository
-from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
+from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
 
 __all__ = [
     'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedSuccessfullyEvent'
@@ -58,11 +60,17 @@ class StoreModule(injector.Module):
         return CreateStoreCatalogUC(boundary, uow)
 
     @injector.provider
+    def invalidate_store_catalog_cache_uc(self, boundary: GenericStoreResponseBoundary,
+                                          uow: StoreUnitOfWork) -> InvalidateStoreCatalogCacheUC:
+        return InvalidateStoreCatalogCacheUC(boundary, uow)
+
+    @injector.provider
     def facade(self, connection: Connection) -> StoreHandlerFacade:
         return StoreHandlerFacade(connection=connection)
 
     def configure(self, binder: injector.Binder) -> None:
-        binder.multibind(AsyncHandler[StoreCatalogCreatedEvent], to=AsyncEventHandlerProvider())
+        binder.multibind(AsyncHandler[StoreCatalogCreatedEvent],
+                         to=AsyncEventHandlerProvider(StoreCatalogCreatedEventHandler))
 
 
 class StoreInfrastructureModule(injector.Module):

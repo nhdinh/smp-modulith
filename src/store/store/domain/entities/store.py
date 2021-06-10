@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Set, List, Any, Optional
+from typing import Set, List, Any, Optional, Union
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
@@ -51,19 +51,19 @@ class Store(EventMixin, Entity):
         ))
 
         # its catalog
-        self._catalogs = {self._make_default_catalog()}
+        self._catalogs = {self._make_default_catalog()}  # type:Set[StoreCatalog]
 
         # build cache
         self._build_cache()
 
     @property
-    def settings(self) -> Set[Setting]:
+    def settings(self) -> dict:
         """
         Contains a set of `Setting` that applied to this store
 
         :return: set of `Setting` data
         """
-        return self._settings
+        return {setting.key: setting.get_value() for setting in self._settings}
 
     @property
     def owner(self) -> StoreOwner:
@@ -83,10 +83,23 @@ class Store(EventMixin, Entity):
         """
         return self._managers
 
+    @property
+    def catalogs(self) -> Set[StoreCatalog]:
+        """
+        Return a list of children `StoreCatalog`
+
+        :return:
+        """
+        return self._catalogs
+
     @classmethod
     def default_settings(cls) -> Set[Setting]:
         settings = set()  # type: Set[Setting]
-        settings.add(Setting('default_page_size', 10, 'int'))
+        settings.add(Setting('default_page_size', '10', 'int'))
+        settings.add(Setting('default_catalog_reference', 'unassigned-catalog', 'str'))
+        settings.add(Setting('default_catalog_display_name', 'Chưa phân loại', 'str'))
+        settings.add(Setting('default_collection_reference', 'unassigned-collection', 'str'))
+        settings.add(Setting('default_collection_display_name', 'Chưa phân loại', 'str'))
 
         return settings
 
@@ -98,18 +111,23 @@ class Store(EventMixin, Entity):
             store_owner=store_owner
         )
 
-    def update_settings(self, setting_name: str, setting_value: Any):
-        pass
+    def update_settings(self, setting_key: str, setting_value: Union[str, int, float]):
+        setting = Setting(key=setting_key, value=str(setting_value), type=type(setting_value))
+        self._settings.add(setting)
 
-    def has_setting(self, setting_name: str):
-        try:
-            s = next(s for s in self._settings if s.name == setting_name)
-            return s
-        except StopIteration:
-            return False
+    def has_setting(self, setting_key: str):
+        """
+        Return the existency of the setting_key in store settlngs selve
+        :param setting_key:
+        :return:
+        """
+        return setting_key in self.settings.keys()
 
     def get_setting(self, setting_key: str, default_value: Any):
-        return default_value
+        if self.has_setting(setting_key):
+            return self.settings['setting_key']
+        else:
+            return default_value
 
     def _make_default_catalog(self) -> StoreCatalog:
         default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
@@ -145,14 +163,19 @@ class Store(EventMixin, Entity):
 
     def has_catalog(self, catalog_reference: StoreCatalogReference):
         """
-        Check if the store contains any catalog with the reference
+        Return the existence of specified `catalog_reference` in this store
 
-        :param catalog_reference:
+        :param catalog_reference: Reference of the catalog to search for
         """
-        try:
-            return catalog_reference in self.__cached['catalogs']
-        except:
+
+        __cached = getattr(self, '__cached', None)
+
+        if __cached is None or type(__cached) is not dict:
             return False
+        elif 'catalogs' not in __cached.keys():
+            return False
+        else:
+            return catalog_reference in __cached['catalogs']
 
     def update_catalog_data(self, catalog_reference: StoreCatalogReference, update_data: dict) -> None:
         """
@@ -165,7 +188,11 @@ class Store(EventMixin, Entity):
         for key, value in update_data.items():
             setattr(catalog, key, value)
 
-        self._record_event(StoreCatalogUpdatedEvent(catalog_reference=catalog_reference))
+        self._record_event(StoreCatalogUpdatedEvent(
+            store_id=self.store_id,
+            catalog_id=catalog.catalog_id,
+            catalog_reference=catalog_reference
+        ))
 
     def toggle_catalog(self, catalog_reference) -> None:
         """
@@ -176,7 +203,12 @@ class Store(EventMixin, Entity):
         catalog = self.get_catalog(catalog_reference=catalog_reference)  # type:StoreCatalog
         catalog.toggle()
 
-        self._record_event(StoreCatalogToggledEvent(catalog_reference=catalog_reference))
+        self._record_event(StoreCatalogToggledEvent(
+            store_id=self.store_id,
+            catalog_id=catalog.catalog_id,
+            catalog_reference=catalog_reference,
+            disabled=catalog.disabled
+        ))
 
     def _build_cache(self):
         # Need to build cache when loading from database. Therefore will need a table that contains all cached data,
@@ -190,6 +222,20 @@ class Store(EventMixin, Entity):
         self._record_event(StoreCatalogCreatedEvent(
             store_id=self.store_id,
             catalog_id=catalog.catalog_id,
-            catalog_reference=catalog.reference
+            catalog_reference=catalog.reference,
         ))
         return catalog.catalog_id
+
+    def make_catalog(
+            self,
+            reference: str,
+            display_name: str
+    ):
+        catalog = StoreCatalog.make_catalog(
+            display_name=display_name,
+            reference=reference
+        )
+
+        # add to self catalogs
+        self._catalogs.add(catalog)
+        return catalog

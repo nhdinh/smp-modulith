@@ -6,7 +6,10 @@ import uuid
 from dataclasses import dataclass
 
 from slugify import slugify
+from typing import TYPE_CHECKING, Optional
 
+if TYPE_CHECKING:
+    from store.domain.entities.store import Store
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId
 
@@ -36,9 +39,28 @@ class StoreCatalog:
         self.system = system
 
         self._collections = set()
+        self._store = None  # type:Store
+
+    @property
+    def default_collection(self) -> Optional[StoreCollection]:
+        try:
+            collection = next(c for c in self._collections if c.default)
+            return collection
+        except StopIteration:
+            return None
 
     def toggle(self):
         self.disabled = not self.disabled
+
+    def get_store_settings(self, setting_key: str, _default_value=None):
+        """
+        Get setting value from parent store
+
+        :param setting_key: key of the setting
+        :param _default_value: default value to return if there is nothing found.
+        :return:
+        """
+        return self._store.get_setting(setting_key=setting_key, default_value=_default_value)
 
     @classmethod
     def make_catalog(
@@ -62,7 +84,12 @@ class StoreCatalog:
         :param kwargs: 
         """
         catalog_id = StoreCatalogId(uuid.uuid4())
+
+        # generate `reference` field
         reference = kwargs.get('reference') if 'reference' in kwargs.keys() else slugify(display_name)
+        reference = reference if reference else slugify(display_name)
+
+        # build properties
         is_system = kwargs.get('system') if 'system' in kwargs.keys() else False
         display_image = kwargs.get('display_image') if 'display_image' in kwargs.keys() else ''
 
@@ -84,4 +111,17 @@ class StoreCatalog:
         return catalog
 
     def create_default_collection(self):
-        pass
+        # check if there is any default collection in the list of children
+        if self.default_collection:
+            return None
+
+        # get settings
+        reference = self.get_store_settings('default_collection_reference', 'default_collection')
+        display_name = self.get_store_settings('default_collection_display_name', 'Default Collection')
+        collection = StoreCollection.make_collection(reference=reference, display_name=display_name, default=True)
+
+        # add the collection into self
+        self._collections.add(collection)
+
+        # if the collection is new-ly created, then return (do we need this?)
+        return collection

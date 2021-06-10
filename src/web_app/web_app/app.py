@@ -1,6 +1,5 @@
 from datetime import timedelta, datetime, timezone
 from typing import Optional
-
 from flask import Flask, Response, request
 from flask_cors import CORS
 from flask_injector import FlaskInjector
@@ -19,6 +18,7 @@ from web_app.blueprints.shipping import shipping_blueprint
 from web_app.blueprints.manage_store_bp import store_blueprint, StoreAPI
 from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI
 from web_app.json_encoder import JSONEncoder
+# from apispec import APISpec
 
 
 def create_app(settings_override: Optional[dict] = None) -> Flask:
@@ -29,7 +29,19 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     app.json_encoder = JSONEncoder
     app.url_map.strict_slashes = False
-    
+
+    # config apispec
+    # app.config.update({
+    #     'APISPEC_SPEC': APISpec(
+    #         title='SMP',
+    #         version='v1',
+    #         plugins=[MarshmallowPlugin()],
+    #     ),
+    #     'APISPEC_SWAGGER_URL': '/swagger/',
+    # })
+
+    # register all blueprints
+
     app.register_blueprint(auth_blueprint, url_prefix='/user')
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
     app.register_blueprint(product_blueprint, url_prefix='/product')

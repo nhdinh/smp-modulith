@@ -56,7 +56,7 @@ class UpdateStoreCatalogUC:
 
                 # check catalog
                 if not store.has_catalog(catalog_reference=input_dto.catalog_reference):
-                    raise Exception(ExceptionMessages.CATALOG_NOT_FOUND)
+                    raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
                 # make update input data
                 update_data = {}

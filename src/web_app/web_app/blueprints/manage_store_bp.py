@@ -6,16 +6,16 @@ from flask import Blueprint, Response, request, current_app, jsonify, make_respo
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.usecases.add_store_manager import AddingStoreManagerResponseBoundary, AddingStoreManagerResponse, \
+from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, AddingStoreManagerResponse, \
     AddStoreManagerUC
 from store.application.usecases.choose_store_plan_uc import ChooseStorePlanUC, ChoosenStorePlanResponseBoundary, \
     ChoosenStorePlanRequest, ChoosenStorePlanResponse
-from store.application.usecases.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
+from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest, ConfirmingStoreRegistrationResponse
 from store.application.store_queries import FetchStoreSettingsQuery
-from store.application.usecases.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
+from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
     RegisteringStoreRequest, RegisteringStoreResponse
-from store.application.usecases.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
+from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
     UpdatingStoreSettingsRequest, UpdateStoreSettingsUC, UpdatingStoreSettingsResponse
 from web_app.serialization.dto import get_dto
 

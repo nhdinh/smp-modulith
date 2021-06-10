@@ -3,14 +3,16 @@
 import abc
 
 from flask import Response, make_response, jsonify
-from typing import NewType
 
-from store.application.usecases.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
+from store import GenericStoreResponseBoundary
+from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreatingStoreCatalogResponse
-from store.application.usecases.initialize_store_with_plan_uc import InitializingStoreWithPlanResponse
-from store.application.usecases.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
+from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponse, \
+    InitializingStoreWithPlanResponseBoundary
+from store.application.usecases.store_uc_common import GenericStoreActionResponse
+from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
-from store.application.usecases.update_store_collection_uc import UpdatingStoreCollectionResponse, \
+from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponse, \
     UpdatingStoreCollectionResponseBoundary
 
 
@@ -26,6 +28,13 @@ class AbstractResponseBoundary(abc.ABC):
 
     def present(self, response_dto) -> None:
         self.response = self._present(response_dto)
+
+
+class GenericStoreResponsePresenter(GenericStoreResponseBoundary):
+    response: Response
+
+    def present(self, dto: GenericStoreActionResponse) -> None:
+        self.response = make_response(jsonify(dto.__dict__))
 
 
 class CreatingStoreCatalogPresenter(CreatingStoreCatalogResponseBoundary):
@@ -49,7 +58,7 @@ class UpdatingStoreCollectionPresenter(UpdatingStoreCollectionResponseBoundary):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class InitializingStoreWithPlanResponsePresenter:
+class InitializingStoreWithPlanResponsePresenter(InitializingStoreWithPlanResponseBoundary):
     response: Response
 
     def present(self, response_dto: InitializingStoreWithPlanResponse) -> None:

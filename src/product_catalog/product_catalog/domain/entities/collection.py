@@ -28,10 +28,19 @@ class Collection:
         return None
 
     @classmethod
-    def make_collection(cls, reference, display_name):
+    def make_collection(
+            cls,
+            display_name,
+            **kwargs
+    ):
+        reference = kwargs.get('reference') if 'reference' in kwargs.keys() else slugify(display_name)
+        reference = reference if reference else slugify(display_name)
+        is_default = kwargs.get('default') if 'default' in kwargs.keys() else False
+
         return Collection(
             reference=reference,
-            display_name=display_name
+            display_name=display_name,
+            default=is_default
         )
 
     def __repr__(self):

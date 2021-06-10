@@ -8,17 +8,19 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
-from store.application.usecases.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
+from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
-from store.application.usecases.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
+from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
+from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
-from store.application.usecases.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
-from store.application.usecases.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
+from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
+from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
-from store.application.usecases.initialize_store_with_plan_uc import InitializingStoreWithPlanResponseBoundary, \
+from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
+from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
-    UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter
+    UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
@@ -29,6 +31,11 @@ class StoreCatalogAPI(injector.Module):
     @flask_injector.request
     def initialize_store_with_plan(self) -> InitializingStoreWithPlanResponseBoundary:
         return InitializingStoreWithPlanResponsePresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def generic_store_response_boundary(self) -> GenericStoreResponseBoundary:
+        return GenericStoreResponsePresenter()
 
     @injector.provider
     @flask_injector.request
@@ -95,6 +102,31 @@ def create_store_catalog(create_store_catalog_uc: CreateStoreCatalogUC,
         current_user = get_jwt_identity()
         dto = get_dto(request, CreatingStoreCatalogRequest, context={'current_user': current_user})
         create_store_catalog_uc.execute(dto)
+
+        return presenter.response, 201  # type:ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            raise exc
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+
+
+@store_catalog_blueprint.route('/cache-invalidate', methods=['POST'])
+@jwt_required()
+def rebuild_store_catalog_cache(invalidate_store_catalog_cache_uc: InvalidateStoreCatalogCacheUC,
+                                presenter: GenericStoreResponseBoundary) -> Response:
+    """
+    POST :5000/store-catalog/cache-invalidate
+    Invalidate the catalog cache of a store
+
+    :param invalidate_store_catalog_cache_uc:
+    :param presenter:
+    """
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, GenericStoreActionRequest, context={'current_user': current_user})
+        invalidate_store_catalog_cache_uc.execute(dto)
 
         return presenter.response, 201  # type:ignore
     except BusinessRuleValidationError as exc:

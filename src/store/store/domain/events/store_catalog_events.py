@@ -11,6 +11,9 @@ class StoreCatalogCreatedEvent(Event):
     store_id: StoreId
     catalog_id: StoreCatalogId
     catalog_reference: str
+    collections: {
+        cai nay phai update collections o day nua
+    }
 
 
 @dataclass(frozen=True)
