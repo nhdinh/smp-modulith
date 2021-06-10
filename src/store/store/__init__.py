@@ -15,6 +15,7 @@ from store.application.usecases.create_store_catalog_uc import CreatingStoreCata
     CreateStoreCatalogUC
 from store.application.usecases.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
+from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 from store.adapter import store_db
@@ -61,7 +62,7 @@ class StoreModule(injector.Module):
         return StoreHandlerFacade(connection=connection)
 
     def configure(self, binder: injector.Binder) -> None:
-        pass
+        binder.multibind(AsyncHandler[StoreCatalogCreatedEvent], to=AsyncEventHandlerProvider())
 
 
 class StoreInfrastructureModule(injector.Module):

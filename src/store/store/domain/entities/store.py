@@ -9,7 +9,8 @@ from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference
-from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent
+from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
+    StoreCatalogCreatedEvent
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
 from store.domain.rules.default_passed_rule import DefaultPassedRule
 
@@ -137,7 +138,7 @@ class Store(EventMixin, Entity):
             return None
 
         try:
-            catalog = next(c for c in self._catalogs if c.catalog_reference == catalog_reference)  # type:StoreCatalog
+            catalog = next(c for c in self._catalogs if c.reference == catalog_reference)  # type:StoreCatalog
             return catalog
         except StopIteration:
             return None
@@ -181,3 +182,14 @@ class Store(EventMixin, Entity):
         # Need to build cache when loading from database. Therefore will need a table that contains all cached data,
         # updated on saved.
         pass
+
+    def add_catalog(self, catalog: StoreCatalog):
+        self._catalogs.add(catalog)
+
+        # add catalog event
+        self._record_event(StoreCatalogCreatedEvent(
+            store_id=self.store_id,
+            catalog_id=catalog.catalog_id,
+            catalog_reference=catalog.reference
+        ))
+        return catalog.catalog_id

@@ -13,8 +13,9 @@ from store.adapter.store_db import store_table
 store_catalog_table = sa.Table(
     'store_catalog_table',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id), primary_key=True),
-    sa.Column('reference', sa.String(100), unique=True, primary_key=True),
+    sa.Column('catalog_id', GUID, primary_key=True),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+    sa.Column('reference', sa.String(100)),
     sa.Column('display_name', sa.String(255), nullable=False),
     sa.Column('system', sa.Boolean, default=False),
     sa.Column('disabled', sa.Boolean, default=False),

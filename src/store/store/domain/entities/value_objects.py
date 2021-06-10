@@ -8,11 +8,13 @@ RegistrationId = NewType("RegistrationId", tp=UUID)
 StoreId = NewType("StoreId", tp=UUID)
 
 StoreOwnerId = NewType("StoreOwnerId", tp=UUID)
-StoreCatalogId = NewType('StoreCatalogId', tp=UUID)
-StoreCollectionId = NewType('StoreCollectionId', tp=UUID)
-StoreProductId = NewType('StoreProductId', tp=UUID)
 
 RegistrationStatus = NewType('RegistrationStatus', tp=str)
 
+StoreCatalogId = NewType("StoreCatalogId", tp=UUID)
 StoreCatalogReference = NewType('StoreCatalogReference', tp=str)
+
+StoreCollectionId = NewType('StoreCollectionId', tp=UUID)
 StoreCollectionReference = NewType('StoreCollectionReference', tp=str)
+
+StoreProductId = NewType('StoreProductId', tp=UUID)

@@ -10,8 +10,8 @@ services:
       - "5000:5000"
     environment:
       FLASK_ENV: 'development'
-      DEBUG: 'true'
-      FLASK_DEBUG: 'true'
+      DEBUG: 1
+      FLASK_DEBUG: 1
       PAYMENTS_LOGIN: empty
       PAYMENTS_PASSWORD: empty
       EMAIL_HOST: smtp_server

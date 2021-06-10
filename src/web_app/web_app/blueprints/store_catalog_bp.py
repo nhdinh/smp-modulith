@@ -15,14 +15,21 @@ from store.application.usecases.update_store_catalog_uc import UpdatingStoreCata
 from store.application.usecases.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
 from store.application.usecases.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
+from store.application.usecases.initialize_store_with_plan_uc import InitializingStoreWithPlanResponseBoundary, \
+    InitializeStoreWithPlanUC
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
-    UpdatingStoreCollectionPresenter
+    UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
 
 
 class StoreCatalogAPI(injector.Module):
+    @injector.provider
+    @flask_injector.request
+    def initialize_store_with_plan(self) -> InitializingStoreWithPlanResponseBoundary:
+        return InitializingStoreWithPlanResponsePresenter()
+
     @injector.provider
     @flask_injector.request
     def create_store_catalog_response_boundary(self) -> CreatingStoreCatalogResponseBoundary:
@@ -46,7 +53,8 @@ INIT STORE
 
 @store_catalog_blueprint.route('/init', methods=['POST'])
 @jwt_required()
-def init_store_from_plan() -> Response:
+def init_store_from_plan(initialize_store_with_plan_uc: InitializeStoreWithPlanUC,
+                         presenter: InitializingStoreWithPlanResponseBoundary) -> Response:
     """
     POST :5000/store-catalog/init
     Init store with pre-defined plan
@@ -78,7 +86,7 @@ def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
 @store_catalog_blueprint.route('/', methods=['POST'])
 @jwt_required()
 def create_store_catalog(create_store_catalog_uc: CreateStoreCatalogUC,
-                         presenter: CreatingStoreCatalogPresenter) -> Response:
+                         presenter: CreatingStoreCatalogResponseBoundary) -> Response:
     """
     POST :5000/store-catalog/
     Create a new catalog
@@ -92,6 +100,8 @@ def create_store_catalog(create_store_catalog_uc: CreateStoreCatalogUC,
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
+        if current_app.debug:
+            raise exc
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 

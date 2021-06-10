@@ -3,6 +3,7 @@
 import abc
 
 from repository import AbstractRepository
+from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_registration import StoreRegistration
 from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreId
@@ -35,4 +36,4 @@ class SqlAlchemyStoreRepository(AbstractStoreRepository):
         Fetch store of the owner
         :param owner:
         """
-        self._sess.query(Store).filter(Store.owner.email == owner).first()
+        return self._sess.query(Store).join(StoreOwner).filter(StoreOwner.email == owner).first()

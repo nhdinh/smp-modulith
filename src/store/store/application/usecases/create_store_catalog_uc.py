@@ -4,6 +4,7 @@ import abc
 from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
 
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId
@@ -36,7 +37,7 @@ class CreateStoreCatalogUC:
     def execute(self, dto: CreatingStoreCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = uow.stores.fetch_store_of_owner(owner=dto.current_user)
+                store = uow.stores.fetch_store_of_owner(owner=dto.current_user)  # type:Store
                 if not store:
                     raise Exception('Store not found or current user do not have any store created')
 
