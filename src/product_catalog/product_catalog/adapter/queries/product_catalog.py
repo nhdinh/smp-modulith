@@ -7,12 +7,13 @@ from sqlalchemy import func, select
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
+from db_infrastructure.base import paginate
 from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
     brand_table
 from product_catalog.application.queries.product_catalog import FetchAllProductsQuery, ProductDto, FetchProductQuery, \
     CollectionDto, BrandDto, FetchAllBrandsQuery
 from product_catalog.application.queries.product_catalog import FetchCatalogQuery, CatalogDto, FetchAllCatalogsQuery
-from web_app.serialization.dto import PaginationOutputDto
+from web_app.serialization.dto import PaginationOutputDto, paginate_response_factory
 
 
 class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
@@ -84,19 +85,18 @@ class SqlFetchProductQuery(FetchProductQuery, SqlQuery):
 
 
 class SqlFetchAllProductsQuery(FetchAllProductsQuery, SqlQuery):
-    def query(self, page: int, page_size: int) -> PaginationOutputDto:
+    def query(self, page: int, page_size: int) -> PaginationOutputDto[ProductDto]:
         total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
 
         query = joined_product_table_query()
 
         query = paginate(query, page, page_size)
 
-        return PaginationOutputDto(
-            items=[_row_to_product_dto(row) for row in self._conn.execute(query)],
+        return paginate_response_factory(
             current_page=page,
             page_size=page_size,
             total_items=total_rows,
-            total_pages=math.ceil(total_rows / page_size),
+            items=[_row_to_product_dto(row) for row in self._conn.execute(query)],
         )
 
 
@@ -164,7 +164,3 @@ def _row_to_product_dto(product_proxy: RowProxy) -> ProductDto:
         collection=product_proxy.collection_display_name,
         created_at=product_proxy.created_at,
     )
-
-
-def paginate(query, page: int, page_size: int):
-    return query.limit(page_size).offset(page_size * (page - 1))

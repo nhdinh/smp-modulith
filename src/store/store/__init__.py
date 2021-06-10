@@ -11,6 +11,8 @@ from store.application.store_handler_facade import StoreHandlerFacade
 from store.application.usecases.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
+from store.application.usecases.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
+    CreateStoreCatalogUC
 from store.application.usecases.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
 from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
@@ -48,6 +50,11 @@ class StoreModule(injector.Module):
     def update_store_settings_uc(self, boundary: UpdatingStoreSettingsResponseBoundary,
                                  uow: StoreUnitOfWork) -> UpdateStoreSettingsUC:
         return UpdateStoreSettingsUC(boundary, uow)
+
+    @injector.provider
+    def create_store_catalog_uc(self, boundary: CreatingStoreCatalogResponseBoundary,
+                                uow: StoreUnitOfWork) -> CreateStoreCatalogUC:
+        return CreateStoreCatalogUC(boundary, uow)
 
     @injector.provider
     def facade(self, connection: Connection) -> StoreHandlerFacade:

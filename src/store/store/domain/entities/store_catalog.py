@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from dataclasses import dataclass
 
 from slugify import slugify
@@ -39,11 +40,21 @@ class StoreCatalog:
     def make_catalog(
             cls,
             display_name: str,
-            **kwargs):
+            **kwargs) -> StoreCatalog:
         """
-        Make and return an instance of StoreCatalog
+        Make and return an instance of StoreCatalog.
+        Besides the specified param `display_name`, the method can get additional params like belows:
+
+        * `reference`: Reference name of the catalog
+
+        * `system`: make this catalog as the system catalog, cant be deleted, cant be disabled
+
+        * `display_image`: the image avatar of the catalog
+
+        * `include_default_collection`: create default collection if there is not existence. All the products added
+        further to this catalog, will be children of this collection.
         
-        :param display_name: 
+        :param display_name: Display name of the catalog (mandatory)
         :param kwargs: 
         """
         reference = kwargs.get('reference') if 'reference' in kwargs.keys() else slugify(display_name)
@@ -65,3 +76,6 @@ class StoreCatalog:
                 catalog._collections.add(collection)
 
         return catalog
+
+    def create_default_collection(self):
+        pass

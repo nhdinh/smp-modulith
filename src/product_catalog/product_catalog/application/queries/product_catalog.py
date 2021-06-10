@@ -70,7 +70,7 @@ class FetchCatalogQuery(abc.ABC):
 
 class FetchAllProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, page: int, page_size: int) -> PaginationOutputDto:
+    def query(self, page: int, page_size: int) -> PaginationOutputDto[ProductDto]:
         pass
 
 

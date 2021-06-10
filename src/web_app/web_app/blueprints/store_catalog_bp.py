@@ -17,7 +17,7 @@ from store.application.usecases.update_store_collection_uc import UpdatingStoreC
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
 from web_app.presenters.store_catalog_presenters import UpdatingStoreCollectionPresenter, UpdatingStoreCatalogPresenter, \
     CreatingStoreCatalogPresenter
-from web_app.serialization.dto import get_dto, PaginationInputDto
+from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
 
@@ -68,7 +68,7 @@ def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
     """
     try:
         current_user = get_jwt_identity()
-        dto = get_dto(request, PaginationInputDto, context={'current_user': current_user})
+        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
         response = query.query(dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:

@@ -29,3 +29,10 @@ class SqlAlchemyStoreRepository(AbstractStoreRepository):
 
     def fetch_registration_by_token(self, token):
         return self._sess.query(StoreRegistration).filter(StoreRegistration.confirmation_token == token).first()
+
+    def fetch_store_of_owner(self, owner: str):
+        """
+        Fetch store of the owner
+        :param owner:
+        """
+        self._sess.query(Store).filter(Store.owner.email == owner).first()
