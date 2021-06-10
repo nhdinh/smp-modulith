@@ -7,14 +7,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-
-@dataclass
-class PaginationDto:
-    items: List
-    current_page: int
-    page_size: int
-    total_items: int
-    total_pages: int
+from web_app.serialization.dto import PaginationOutputDto
 
 
 @dataclass
@@ -77,7 +70,7 @@ class FetchCatalogQuery(abc.ABC):
 
 class FetchAllProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, page: int, page_size: int) -> PaginationDto:
+    def query(self, page: int, page_size: int) -> PaginationOutputDto:
         pass
 
 

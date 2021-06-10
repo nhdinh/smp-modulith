@@ -3,8 +3,6 @@ from dataclasses import dataclass
 
 import dotenv
 import injector
-
-import store.adapter.db_mappers
 from foundation import FoundationModule
 from identity import IdentityModule
 from sqlalchemy.engine import Engine, create_engine
@@ -24,9 +22,10 @@ from product_catalog.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 from store import StoreInfrastructureModule, StoreModule
-from store.adapter import store_db
 
 __all__ = ["bootstrap_app"]
+
+from store.adapter import start_mappers
 
 
 @dataclass
@@ -119,7 +118,7 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
         pass
 
     try:
-        store.adapter.db_mappers.start_mappers()
+        start_mappers()
     except Exception as exc:
         pass
 
@@ -130,7 +129,7 @@ def _create_db_schema(engine: Engine) -> None:
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
-    from store.adapter.store_db import store_table  # noqa
+    from store.adapter import store_table, store_registration_table, store_catalog_table, store_catalog_cache_table  # noqa
 
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)

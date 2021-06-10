@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import fetch_store_by_id, validate_store_ownership
-from store.application.usecases.update_store_catalog import UpdatingStoreCatalogResponseBoundary, \
+from store.application.usecases.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference
 

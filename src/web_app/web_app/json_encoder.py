@@ -6,7 +6,7 @@ from uuid import UUID
 from auctions import AuctionDto
 from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
-from product_catalog.application.queries.product_catalog import CatalogDto, PaginationDto, CollectionDto, BrandDto
+from product_catalog.application.queries.product_catalog import CatalogDto, CollectionDto, BrandDto
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -19,16 +19,6 @@ class JSONEncoder(json.JSONEncoder):
                 raise TypeError(f"Cannot serialize {type(obj)}")
         except:
             raise TypeError(f"Cannot serialize {type(obj)}")
-
-    @default.register(PaginationDto)
-    def serialize_pagingation_dto(self, obj: PaginationDto) -> object:
-        return {
-            'current_page': obj.current_page,
-            'page_size': obj.page_size,
-            'total_pages': obj.total_pages,
-            'total_items': obj.total_items,
-            'items': obj.items
-        }
 
     @default.register(AuctionDto)  # noqa: F811
     def serialize_auction_dto(self, obj: AuctionDto) -> object:

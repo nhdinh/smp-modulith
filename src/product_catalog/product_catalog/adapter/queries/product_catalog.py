@@ -11,8 +11,8 @@ from product_catalog.adapter.catalog_db import catalog_table, product_table, col
     brand_table
 from product_catalog.application.queries.product_catalog import FetchAllProductsQuery, ProductDto, FetchProductQuery, \
     CollectionDto, BrandDto, FetchAllBrandsQuery
-from product_catalog.application.queries.product_catalog import FetchCatalogQuery, CatalogDto, FetchAllCatalogsQuery, \
-    PaginationDto
+from product_catalog.application.queries.product_catalog import FetchCatalogQuery, CatalogDto, FetchAllCatalogsQuery
+from web_app.serialization.dto import PaginationOutputDto
 
 
 class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
@@ -84,14 +84,14 @@ class SqlFetchProductQuery(FetchProductQuery, SqlQuery):
 
 
 class SqlFetchAllProductsQuery(FetchAllProductsQuery, SqlQuery):
-    def query(self, page: int, page_size: int) -> PaginationDto:
+    def query(self, page: int, page_size: int) -> PaginationOutputDto:
         total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
 
         query = joined_product_table_query()
 
         query = paginate(query, page, page_size)
 
-        return PaginationDto(
+        return PaginationOutputDto(
             items=[_row_to_product_dto(row) for row in self._conn.execute(query)],
             current_page=page,
             page_size=page_size,

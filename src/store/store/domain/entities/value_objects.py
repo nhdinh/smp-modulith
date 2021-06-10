@@ -6,7 +6,11 @@ from typing import NewType
 
 RegistrationId = NewType("RegistrationId", tp=UUID)
 StoreId = NewType("StoreId", tp=UUID)
+
 StoreOwnerId = NewType("StoreOwnerId", tp=UUID)
+StoreCatalogId = NewType('StoreCatalogId', tp=UUID)
+StoreCollectionId = NewType('StoreCollectionId', tp=UUID)
+StoreProductId = NewType('StoreProductId', tp=UUID)
 
 RegistrationStatus = NewType('RegistrationStatus', tp=str)
 

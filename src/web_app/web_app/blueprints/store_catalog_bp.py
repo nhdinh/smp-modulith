@@ -7,12 +7,16 @@ from flask import Blueprint, Response, make_response, jsonify, request, current_
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.usecases.update_store_catalog import UpdatingStoreCatalogResponseBoundary, \
+from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
+from store.application.usecases.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
+    CreateStoreCatalogUC, CreatingStoreCatalogRequest
+from store.application.usecases.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
 from store.application.usecases.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
 from store.application.usecases.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
-from web_app.presenters.store_catalog_presenters import UpdatingStoreCollectionPresenter, UpdatingStoreCatalogPresenter
+from web_app.presenters.store_catalog_presenters import UpdatingStoreCollectionPresenter, UpdatingStoreCatalogPresenter, \
+    CreatingStoreCatalogPresenter
 from web_app.serialization.dto import get_dto, PaginationInputDto
 
 store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
@@ -21,13 +25,18 @@ store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
 class StoreCatalogAPI(injector.Module):
     @injector.provider
     @flask_injector.request
-    def update_store_collection_response_boundary(self) -> UpdatingStoreCollectionResponseBoundary:
-        return UpdatingStoreCollectionPresenter()
+    def create_store_catalog_response_boundary(self) -> CreatingStoreCatalogResponseBoundary:
+        return CreatingStoreCatalogPresenter()
 
     @injector.provider
     @flask_injector.request
     def update_store_catalog_response_boundnary(self) -> UpdatingStoreCatalogResponseBoundary:
         return UpdatingStoreCatalogPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def update_store_collection_response_boundary(self) -> UpdatingStoreCollectionResponseBoundary:
+        return UpdatingStoreCollectionPresenter()
 
 
 """
@@ -68,12 +77,22 @@ def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
 
 @store_catalog_blueprint.route('/', methods=['POST'])
 @jwt_required()
-def add_store_catalog() -> Response:
+def create_store_catalog(create_store_catalog_uc: CreateStoreCatalogUC,
+                         presenter: CreatingStoreCatalogPresenter) -> Response:
     """
     POST :5000/store-catalog/
     Create a new catalog
     """
-    raise NotImplementedError
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, CreatingStoreCatalogRequest, context={'current_user': current_user})
+        create_store_catalog_uc.execute(dto)
+
+        return presenter.response, 201  # type:ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
 @store_catalog_blueprint.route('/catalog:<string:catalog_reference>', methods=['GET'])

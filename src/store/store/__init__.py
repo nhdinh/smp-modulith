@@ -5,7 +5,9 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
-from store.application.store_handler_facade import StoreHandlerFacade, StoreRegistrationConfirmedEventHandler
+from store.adapter.queries import SqlFetchAllStoreCatalogsQuery
+from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
+from store.application.store_handler_facade import StoreHandlerFacade
 from store.application.usecases.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
@@ -52,8 +54,7 @@ class StoreModule(injector.Module):
         return StoreHandlerFacade(connection=connection)
 
     def configure(self, binder: injector.Binder) -> None:
-        binder.multibind(AsyncHandler[StoreRegistrationConfirmedEvent],
-                         to=AsyncEventHandlerProvider(StoreRegistrationConfirmedEventHandler))
+        pass
 
 
 class StoreInfrastructureModule(injector.Module):
@@ -81,3 +82,7 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def count_store_owner_by_email_query(self, conn: Connection) -> CountStoreOwnerByEmailQuery:
         return SqlCountStoreOwnerByEmailQuery(conn)
+
+    @injector.provider
+    def fetchall_store_catalogs_query(self, conn: Connection) -> FetchAllStoreCatalogsQuery:
+        return SqlFetchAllStoreCatalogsQuery(conn)
