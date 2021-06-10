@@ -9,9 +9,9 @@ from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.value_objects import StoreCatalogReference
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class StoreCatalog:
-    catalog_reference: StoreCatalogReference
+    reference: StoreCatalogReference
     display_name: str
     display_image: str
     disabled: bool = False
@@ -19,13 +19,13 @@ class StoreCatalog:
 
     def __init__(
             self,
-            catalog_reference: StoreCatalogReference,
+            reference: StoreCatalogReference,
             display_name: str,
             disabled: bool,
             system: bool,
             display_image: str
     ):
-        self.catalog_reference = catalog_reference
+        self.reference = reference
         self.display_name = display_name
         self.display_image = display_image
         self.disabled = disabled
@@ -62,7 +62,7 @@ class StoreCatalog:
         display_image = kwargs.get('display_image') if 'display_image' in kwargs.keys() else ''
 
         catalog = StoreCatalog(
-            catalog_reference=reference,
+            reference=reference,
             display_name=display_name,
             disabled=False,
             system=is_system,

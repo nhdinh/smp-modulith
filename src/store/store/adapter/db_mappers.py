@@ -6,9 +6,9 @@ from identity.domain.entities import User
 from store.adapter.store_catalog_db import store_catalog_table
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
     store_managers_table
-from store.domain.entities.catalog import Catalog
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
+from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_registration import StoreRegistration
 
@@ -42,7 +42,7 @@ def start_mappers():
     )
 
     mapper(
-        Catalog,
+        StoreCatalog,
         store_catalog_table
     )
 
@@ -69,7 +69,7 @@ def start_mappers():
                 collection_class=set,
             ),
             '_catalogs': relationship(
-                Catalog,
+                StoreCatalog,
                 collection_class=set,
             )
         }

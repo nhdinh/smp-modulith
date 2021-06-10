@@ -117,6 +117,7 @@ def confirm_store_package(choose_store_plan_uc: ChooseStorePlanUC,
 def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
     try:
         store_owner = get_jwt_identity()
+
         settings = query.query(store_of=store_owner)
         return make_response(jsonify(settings)), 200  # type:ignore
     except Exception as exc:
@@ -130,7 +131,9 @@ def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
 def update_store_settings(update_store_settings_uc: UpdateStoreSettingsUC,
                           presenter: UpdatingStoreSettingsResponseBoundary):
     try:
-        dto = get_dto(request, UpdatingStoreSettingsRequest, context={})
+        current_user = get_jwt_identity()
+
+        dto = get_dto(request, UpdatingStoreSettingsRequest, context={'current_user': current_user})
         update_store_settings_uc.execute(dto)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:

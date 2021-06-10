@@ -16,7 +16,7 @@ from web_app.blueprints.brand import brand_blueprint
 from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product_bp import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
-from web_app.blueprints.store_bp import store_blueprint, StoreAPI
+from web_app.blueprints.manage_store_bp import store_blueprint, StoreAPI
 from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI
 from web_app.json_encoder import JSONEncoder
 

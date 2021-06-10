@@ -4,43 +4,63 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.engine.row import RowProxy
-from typing import List
 
 from db_infrastructure import SqlQuery
-from identity.adapters.identity_db import user_table
-from store.adapter.store_db import store_settings_table, store_table
+from store.adapter.store_db import store_settings_table, store_table, store_owner_table
 
-from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingsDto, CountStoreOwnerByEmailQuery
+from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingResponseDto, \
+    CountStoreOwnerByEmailQuery, StoreInfoResponseDto
 
 
-def _row_to_store_settings_dto(row: RowProxy) -> StoreSettingsDto:
-    return StoreSettingsDto(
+def _row_to_store_settings_dto(row: RowProxy) -> StoreSettingResponseDto:
+    return StoreSettingResponseDto(
         name=row.setting_name,
         value=row.setting_value,
         type=row.setting_type,
     )
 
 
+def _row_to_store_info_dto(store_row_proxy: RowProxy) -> StoreInfoResponseDto:
+    return StoreInfoResponseDto(
+        store_id=store_row_proxy.store_id,
+        store_name=store_row_proxy.name,
+        settings=[]
+    )
+
+
 class SqlFetchStoreSettingsQuery(FetchStoreSettingsQuery, SqlQuery):
-    def query(self, store_of: str) -> List[StoreSettingsDto]:
-        joined_table = store_settings_table \
-            .join(store_table, onclause=(store_settings_table.c.store_id == store_table.c.store_id)) \
-            .join(user_table, onclause=(store_table.c.owner == user_table.c.id))
+    def query(self, store_of: str) -> StoreInfoResponseDto:
+        store_query = select([
+            store_table.c.store_id,
+            store_table.c.name,
+        ]) \
+            .select_from(store_table.join(store_owner_table, onclause=(store_table.c.owner == store_owner_table.c.id))) \
+            .select_from(store_table) \
+            .where(store_owner_table.c.email == store_of)
+
+        store_row_proxy = self._conn.execute(store_query).first()
+        if not store_row_proxy:
+            return None
+
+        # make StoreInfoResponseDto
+        return_dto = _row_to_store_info_dto(store_row_proxy)
 
         query = select([
             store_settings_table.c.setting_name,
             store_settings_table.c.setting_value,
             store_settings_table.c.setting_type,
         ]) \
-            .select_from(joined_table) \
             .select_from(store_settings_table) \
-            .select_from(user_table) \
-            .where(user_table.c.email == store_of)
+            .where(store_settings_table.c.store_id == return_dto.store_id)
 
-        rows = self._conn.execute(query)
-        return [
-            _row_to_store_settings_dto(row) for row in rows
-        ]
+        rows = self._conn.execute(query).all()
+
+        # build settings[]
+        for row in rows:
+            return_dto.settings.append(_row_to_store_settings_dto(row))
+
+        # return the dto
+        return return_dto
 
 
 class SqlCountStoreOwnerByEmailQuery(CountStoreOwnerByEmailQuery, SqlQuery):
