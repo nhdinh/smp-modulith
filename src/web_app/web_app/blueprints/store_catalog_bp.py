@@ -15,8 +15,8 @@ from store.application.usecases.update_store_catalog_uc import UpdatingStoreCata
 from store.application.usecases.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
 from store.application.usecases.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
-from web_app.presenters.store_catalog_presenters import UpdatingStoreCollectionPresenter, UpdatingStoreCatalogPresenter, \
-    CreatingStoreCatalogPresenter
+from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
+    UpdatingStoreCollectionPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
