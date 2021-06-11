@@ -125,7 +125,7 @@ class Store(EventMixin, Entity):
 
     def get_setting(self, setting_key: str, default_value: Any):
         if self.has_setting(setting_key):
-            return self.settings['setting_key']
+            return self.settings[setting_key]
         else:
             return default_value
 

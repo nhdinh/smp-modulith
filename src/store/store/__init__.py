@@ -107,3 +107,5 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def fetchall_store_catalogs_query(self, conn: Connection) -> FetchAllStoreCatalogsQuery:
         return SqlFetchAllStoreCatalogsQuery(conn)
+
+Khong update store_*_cache tu khi add catalog t3 tro di

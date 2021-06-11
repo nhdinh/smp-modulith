@@ -7,7 +7,7 @@ from typing import Optional, Set
 from slugify import slugify
 
 from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreCollectionReference, StoreCollectionId
+from store.domain.entities.value_objects import StoreCollectionReference, StoreCollectionId, StoreCatalogId, StoreId
 
 
 @dataclass(unsafe_hash=True)

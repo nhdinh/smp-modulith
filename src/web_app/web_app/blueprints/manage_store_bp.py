@@ -83,6 +83,8 @@ def confirm_store_registration_post(confirm_store_registration_uc: ConfirmStoreR
         dto = get_dto(request, ConfirmingStoreRegistrationRequest, context={})
         return confirm_store_registration(dto.confirmation_token, confirm_store_registration_uc, presenter)
     except Exception as exc:
+        if current_app.debug:
+            raise exc
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 

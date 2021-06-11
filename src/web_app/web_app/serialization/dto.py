@@ -28,7 +28,7 @@ class PaginationInputDto:
 @dataclass
 class AuthorizedPaginationInputDto:
     current_user: str
-    page: int = 0
+    page: int = 1
     page_size: int = 10
 
 
