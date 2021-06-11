@@ -3,7 +3,7 @@ from sqlalchemy.engine import Connection
 
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
-from store import StoreRegisteredEvent, StoreCreatedSuccessfullyEvent
+from store import StoreRegisteredEvent, StoreCreatedEvent
 from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.facade import CustomerRelationshipFacade
@@ -30,7 +30,7 @@ class CustomerRelationship(injector.Module):
         binder.multibind(AsyncHandler[BidderHasBeenOverbid], to=AsyncEventHandlerProvider(BidderHasBeenOverbidHandler))
         binder.multibind(AsyncHandler[WinningBidPlaced], to=AsyncEventHandlerProvider(WinningBidPlacedHandler))
         binder.multibind(AsyncHandler[StoreRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
-        binder.multibind(AsyncHandler[StoreCreatedSuccessfullyEvent],
+        binder.multibind(AsyncHandler[StoreCreatedEvent],
                          to=AsyncEventHandlerProvider(StoreCreatedSuccessfullyEventHandler))
         binder.multibind(AsyncHandler[RequestPasswordChangeCreatedEvent],
                          to=AsyncEventHandlerProvider(RequestPasswordChangeCreatedEventHandler))
@@ -73,7 +73,7 @@ class StoreCreatedSuccessfullyEventHandler:
     def __init__(self, facade: CustomerRelationshipFacade) -> None:
         self._facade = facade
 
-    def __call__(self, event: StoreCreatedSuccessfullyEvent) -> None:
+    def __call__(self, event: StoreCreatedEvent) -> None:
         self._facade.send_store_created_email(
             store_name=event.store_name,
             owner_name=event.owner_name,

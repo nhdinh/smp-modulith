@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 from foundation import Event
-from store.domain.entities.value_objects import StoreId, StoreCatalogId
+from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCollectionId
 
 
 @dataclass(frozen=True)
@@ -11,9 +11,6 @@ class StoreCatalogCreatedEvent(Event):
     store_id: StoreId
     catalog_id: StoreCatalogId
     catalog_reference: str
-    collections: {
-        cai nay phai update collections o day nua
-    }
 
 
 @dataclass(frozen=True)
@@ -29,3 +26,11 @@ class StoreCatalogToggledEvent(Event):
     catalog_id: StoreCatalogId
     catalog_reference: str
     disabled: bool
+
+
+@dataclass(frozen=True)
+class StoreCollectionCreatedEvent(Event):
+    store_id: StoreId
+    catalog_id: StoreCatalogId
+    collection_id: StoreCollectionId
+    collection_reference: str

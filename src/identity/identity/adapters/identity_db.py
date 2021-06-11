@@ -3,7 +3,6 @@
 from datetime import datetime
 
 import sqlalchemy as sa
-from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
 
 from db_infrastructure import metadata, GUID
@@ -65,10 +64,10 @@ revoked_token_table = sa.Table(
 
 
 def start_mappers():
-    mapper(
-        RevokedToken,
-        revoked_token_table
-    )
+    # mapper(
+    #     RevokedToken,
+    #     revoked_token_table
+    # )
 
     role_mapper = mapper(
         Role,
@@ -90,12 +89,12 @@ def start_mappers():
     )
 
 
-@event.listens_for(RevokedToken, 'load')
+@sa.event.listens_for(RevokedToken, 'load')
 def load_revoked_tokes(token, _):
     # token.revoked_tokens = revoked_token_table.select()
     pass
 
 
-@event.listens_for(User, 'load')
+@sa.event.listens_for(User, 'load')
 def user_loaded(user, _):
     user.domain_events = []

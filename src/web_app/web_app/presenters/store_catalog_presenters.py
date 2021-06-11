@@ -4,12 +4,11 @@ import abc
 
 from flask import Response, make_response, jsonify
 
-from store import GenericStoreResponseBoundary
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreatingStoreCatalogResponse
 from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponse, \
     InitializingStoreWithPlanResponseBoundary
-from store.application.usecases.store_uc_common import GenericStoreActionResponse
+from store.application.usecases.store_uc_common import GenericStoreActionResponse, GenericStoreResponseBoundary
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
 from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponse, \

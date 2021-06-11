@@ -52,6 +52,7 @@ def start_mappers():
 
     store_mapper = mapper(Store, store_table, properties={
         '_owner_id': store_table.c.owner,
+        'owner_email': store_table.c.owner_email,
         '_settings': relationship(
             Setting,
             collection_class=set

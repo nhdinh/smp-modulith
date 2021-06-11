@@ -14,7 +14,7 @@ from store.application.store_queries import FetchStoreSettingsQuery, StoreSettin
 
 def _row_to_store_settings_dto(row: RowProxy) -> StoreSettingResponseDto:
     return StoreSettingResponseDto(
-        name=row.setting_name,
+        name=row.setting_key,
         value=row.setting_value,
         type=row.setting_type,
     )
@@ -46,7 +46,7 @@ class SqlFetchStoreSettingsQuery(FetchStoreSettingsQuery, SqlQuery):
         return_dto = _row_to_store_info_dto(store_row_proxy)
 
         query = select([
-            store_settings_table.c.setting_name,
+            store_settings_table.c.setting_key,
             store_settings_table.c.setting_value,
             store_settings_table.c.setting_type,
         ]) \

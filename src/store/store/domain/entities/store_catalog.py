@@ -6,7 +6,7 @@ import uuid
 from dataclasses import dataclass
 
 from slugify import slugify
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Set
 
 if TYPE_CHECKING:
     from store.domain.entities.store import Store
@@ -48,6 +48,10 @@ class StoreCatalog:
             return collection
         except StopIteration:
             return None
+
+    @property
+    def collections(self) -> Set[StoreCollection]:
+        return self._collections
 
     def toggle(self):
         self.disabled = not self.disabled

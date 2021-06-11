@@ -10,8 +10,8 @@ from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
-    StoreCatalogCreatedEvent
-from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
+    StoreCatalogCreatedEvent, StoreCollectionCreatedEvent
+from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.rules.default_passed_rule import DefaultPassedRule
 
 
@@ -35,6 +35,7 @@ class Store(EventMixin, Entity):
 
         # make a list of StoreOwner and Manager
         self._owner = store_owner
+        self.owner_email = self._owner.email
         self._managers = set()
 
         # initial settings
@@ -43,15 +44,11 @@ class Store(EventMixin, Entity):
         else:
             self._settings: Set[Setting] = Store.default_settings()
 
-        # raise the event
-        self._record_event(StoreCreatedSuccessfullyEvent(
-            store_name=self.name,
-            owner_name=self._owner.email,
-            owner_email=self._owner.email,
-        ))
-
         # its catalog
         self._catalogs = {self._make_default_catalog()}  # type:Set[StoreCatalog]
+
+        # raise the event
+        self._raise_store_created_event()
 
         # build cache
         self._build_cache()
@@ -105,11 +102,14 @@ class Store(EventMixin, Entity):
 
     @classmethod
     def create_store_from_registration(cls, store_id, store_name, store_owner):
-        return Store(
+        # create the store from registrationd data
+        store = Store(
             store_id=store_id,
             store_name=store_name,
             store_owner=store_owner
         )
+
+        return store
 
     def update_settings(self, setting_key: str, setting_value: Union[str, int, float]):
         setting = Setting(key=setting_key, value=str(setting_value), type=type(setting_value))
@@ -130,11 +130,13 @@ class Store(EventMixin, Entity):
             return default_value
 
     def _make_default_catalog(self) -> StoreCatalog:
+        default_catalog_reference = self.get_setting('default_catalog_reference', 'default-catalog')
         default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
         default_collection_name = self.get_setting('default_collection_name', 'Default Collection')
 
-        return StoreCatalog.make_catalog(
-            reference='default_catalog',
+        # create the new StoreCatalog as default catalog
+        default_catalog = StoreCatalog.make_catalog(
+            reference=default_catalog_reference,
             display_name=default_catalog_name,
             display_image='',
             disabled=False,
@@ -144,6 +146,8 @@ class Store(EventMixin, Entity):
                 display_name=default_collection_name
             )
         )
+
+        return default_catalog
 
     def get_catalog(self, catalog_reference: StoreCatalogReference) -> Optional[StoreCatalog]:
         """
@@ -218,12 +222,23 @@ class Store(EventMixin, Entity):
     def add_catalog(self, catalog: StoreCatalog):
         self._catalogs.add(catalog)
 
+        # add collection event
+
         # add catalog event
         self._record_event(StoreCatalogCreatedEvent(
             store_id=self.store_id,
             catalog_id=catalog.catalog_id,
             catalog_reference=catalog.reference,
         ))
+
+        for collection in catalog.collections:
+            self._record_event(StoreCollectionCreatedEvent(
+                store_id=self.store_id,
+                catalog_id=catalog.catalog_id,
+                collection_id=collection.collection_id,
+                collection_reference=collection.reference
+            ))
+
         return catalog.catalog_id
 
     def make_catalog(
@@ -239,3 +254,29 @@ class Store(EventMixin, Entity):
         # add to self catalogs
         self._catalogs.add(catalog)
         return catalog
+
+    def _raise_store_created_event(self) -> None:
+        """
+        Raise all the events related to the newly created store
+        """
+        self._record_event(StoreCreatedEvent(
+            store_id=self.store_id,
+            store_name=self.name,
+            owner_name=self._owner.email,
+            owner_email=self._owner.email,
+        ))
+
+        for catalog in self._catalogs:
+            self._record_event(StoreCatalogCreatedEvent(
+                store_id=self.store_id,
+                catalog_id=catalog.catalog_id,
+                catalog_reference=catalog.reference
+            ))
+
+            for collection in catalog.collections:
+                self._record_event(StoreCollectionCreatedEvent(
+                    store_id=self.store_id,
+                    catalog_id=catalog.catalog_id,
+                    collection_id=collection.collection_id,
+                    collection_reference=collection.reference,
+                ))

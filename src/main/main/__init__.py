@@ -59,9 +59,9 @@ def bootstrap_app() -> AppContext:
     dependency_injector = _setup_dependency_injection(settings, engine)
     _setup_orm_events(dependency_injector)
 
-    _setup_orm_mappings(dependency_injector)
-
     _create_db_schema(engine)  # TEMPORARY
+
+    _setup_orm_mappings(dependency_injector)
 
     return AppContext(dependency_injector)
 

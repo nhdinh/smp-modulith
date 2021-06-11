@@ -17,7 +17,7 @@ class UserEmailMustBeValidRule(BusinessRuleBase):
 
         try:
             # Validate.
-            valid = validate_email(self.email)
+            validate_email(self.email)
 
             # Update with the normalized form.
             return not broken

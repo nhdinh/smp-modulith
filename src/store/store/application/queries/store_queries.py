@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from typing import List
 
-from web_app.serialization.dto import PaginationInputDto, PaginationOutputDto
+from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 
 @dataclass
@@ -24,5 +24,5 @@ class StoreCatalogResponseDto:
 
 class FetchAllStoreCatalogsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: PaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
         pass

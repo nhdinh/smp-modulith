@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
-from store.adapter import store_catalog_table, store_table, store_owner_table
+from store.adapter import store_catalog_table, store_table
 from store.adapter.store_db import store_catalog_cache_table
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, StoreCatalogResponseDto
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
@@ -19,23 +19,23 @@ def _row_to_catalog_dto(row: RowProxy) -> StoreCatalogResponseDto:
 
 class SqlFetchAllStoreCatalogsQuery(FetchAllStoreCatalogsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
-        # count rows
-        total_rows = self._conn.scalar(
-            select([func.count()]).select_from(store_catalog_cache_table).where(
-                store_catalog_cache_table.c.store_owner == dto.current_user
-            )
+        store_id = self._conn.scalar(
+            select(store_table.c.store_id).where(store_table.c.owner_email == dto.current_user)
         )
 
-        joined_table = store_catalog_table \
-            .join(store_table, onclause=(store_catalog_table.c.store_id == store_table.c.store_id)) \
-            .join(store_owner_table, onclause=(store_table.c.owner == store_owner_table.c.id))
+        # count rows
+        total_catalogs = self._conn.scalar(
+            select([func.count()]) \
+                .select_from(store_catalog_cache_table) \
+                .where(store_catalog_cache_table.c.store_id == store_id)
+        )
 
         query = select([
             store_catalog_table.c.reference,
             store_catalog_table.c.display_name
         ]) \
-            .select_from(joined_table) \
-            .where(store_owner_table.c.email == dto.current_user)
+            .select_from(store_catalog_table) \
+            .where(store_catalog_table.c.store_id == store_id)
 
         try:
             result = self._conn.execute(query).all()
@@ -43,7 +43,7 @@ class SqlFetchAllStoreCatalogsQuery(FetchAllStoreCatalogsQuery, SqlQuery):
                 return paginate_response_factory(
                     current_page=dto.page,
                     page_size=dto.page_size,
-                    total_items=total_rows,
+                    total_items=total_catalogs,
                     items=[_row_to_catalog_dto(row) for row in result]
                 )
         except Exception as exc:

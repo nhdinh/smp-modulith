@@ -7,9 +7,11 @@ from sqlalchemy.orm import sessionmaker
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.adapter.queries import SqlFetchAllStoreCatalogsQuery
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
-from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler
+from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
+    StoreCollectionCreatedEventHandler
 from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
-from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmingStoreRegistrationResponseBoundary, \
+from store.application.usecases.initialize.confirm_store_registration_uc import \
+    ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC
@@ -17,8 +19,8 @@ from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
 from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
-from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent
-from store.domain.events.store_created_successfully_event import StoreCreatedSuccessfullyEvent
+from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent
+from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 from store.adapter import store_db
 from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
@@ -29,7 +31,7 @@ from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
 
 __all__ = [
-    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedSuccessfullyEvent'
+    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedEvent'
 ]
 
 
@@ -69,8 +71,11 @@ class StoreModule(injector.Module):
         return StoreHandlerFacade(connection=connection)
 
     def configure(self, binder: injector.Binder) -> None:
+        # binder.multibind(AsyncHandler[StoreCreatedEvent], to=AsyncEventHandlerProvider(StoreCreatedEventHandler))
         binder.multibind(AsyncHandler[StoreCatalogCreatedEvent],
                          to=AsyncEventHandlerProvider(StoreCatalogCreatedEventHandler))
+        binder.multibind(AsyncHandler[StoreCollectionCreatedEvent],
+                         to=AsyncEventHandlerProvider(StoreCollectionCreatedEventHandler))
 
 
 class StoreInfrastructureModule(injector.Module):

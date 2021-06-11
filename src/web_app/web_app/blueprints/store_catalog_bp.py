@@ -17,7 +17,8 @@ from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleSto
 from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
-from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponseBoundary, \
+from store.application.usecases.initialize.initialize_store_with_plan_uc import \
+    InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter
@@ -87,6 +88,8 @@ def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
         response = query.query(dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:
+        if current_app.debug:
+            raise exc
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
