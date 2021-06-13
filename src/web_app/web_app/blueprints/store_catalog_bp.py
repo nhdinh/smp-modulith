@@ -25,12 +25,15 @@ from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
+from web_app.openapi import docs
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
     CreatingStoreCollectionPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
-store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
+STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'
+store_catalog_blueprint = Blueprint(STORE_CATALOG_BLUEPRINT_NAME, __name__)
+store_catalog_blueprint_endpoint_callers = []
 
 
 class StoreCatalogAPI(injector.Module):
@@ -81,6 +84,8 @@ def init_store_from_plan(initialize_store_with_plan_uc: InitializeStoreWithPlanU
     raise NotImplementedError
 
 
+store_catalog_blueprint_endpoint_callers.append(init_store_from_plan)
+
 """
 STORE-CATALOG(S)
 """
@@ -102,6 +107,9 @@ def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
         if current_app.debug:
             logger.exception(exc)
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+
+
+store_catalog_blueprint_endpoint_callers.append(fetch_store_catalogs)
 
 
 @store_catalog_blueprint.route('/', methods=['POST'])

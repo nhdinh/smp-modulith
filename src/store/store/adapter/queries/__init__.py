@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 from typing import List
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, join
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
 from store.adapter import store_catalog_table, store_table
-from store.adapter.store_db import store_catalog_cache_table, store_collection_table
+from store.adapter.store_db import store_catalog_cache_table, store_collection_table, store_owner_table
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, StoreCatalogResponseDto, \
     StoreCollectionResponseDto
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
@@ -43,6 +43,14 @@ class SqlFetchAllStoreCatalogsQuery(FetchAllStoreCatalogsQuery, SqlQuery):
         store_id = self._conn.scalar(
             select(store_table.c.store_id).where(store_table.c.owner_email == dto.current_user)
         )
+
+        # problem with the cache email from the `Store` table, we need to fetch the store by user_id
+        if not store_id:
+            store_id = self._conn.scalar(
+                select(store_table.c.store_id) \
+                    .join(store_owner_table, onclause=(store_table.c.owner == store_owner_table.c.id)) \
+                    .where(store_owner_table.c.email == dto.current_user)
+            )
 
         # count number of catalogs of this store
         catalog_count = self._conn.scalar(

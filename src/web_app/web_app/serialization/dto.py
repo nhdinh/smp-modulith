@@ -80,10 +80,19 @@ def paginate_response_factory(
 def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
     schema_cls = class_schema(dto_cls, base_schema=BaseSchema)
     schema = schema_cls()
+    input_data ={}
     try:
         request_json = getattr(request, 'json', {})
         request_json = request_json if request_json else {}
 
-        return cast(TDto, schema.load(dict(context, **request_json), unknown=ma.EXCLUDE))
+        request_form = getattr(request, 'form', {})
+        request_form = request_form if request_form else {}
+
+        # collect all data
+        input_data.update(request_json)
+        input_data.update(request_form)
+
+        # parse them
+        return cast(TDto, schema.load(dict(context, **input_data), unknown=ma.EXCLUDE))
     except ma.exceptions.ValidationError as exc:
         raise exc

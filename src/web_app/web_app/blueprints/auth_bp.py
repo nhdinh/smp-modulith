@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import flask_injector
 import injector
+from factory.base import logger
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 
@@ -63,7 +64,7 @@ def register_user(registering_user_uc: RegisteringUserUC, presenter: Registering
         return make_response(jsonify({'message': exc.details})), 400  # type:ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
 
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
@@ -78,7 +79,7 @@ def user_login(logging_user_in_uc: LoggingUserInUC, presenter: LoggingUserInResp
         return presenter.response, 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
 
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
@@ -94,7 +95,7 @@ def user_logout_access(revoking_token_uc: RevokingTokenUC):
         return make_response(jsonify({'message': 'Access token has been revoked'}))
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
 
         return make_response(jsonify({'message': 'Something wrong'})), 500
 
@@ -110,7 +111,7 @@ def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
         return make_response(jsonify({'message': 'Refresh token has been revoked'}))
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
 
         return make_response(jsonify({'message': 'Something wrong'})), 500
 
@@ -164,7 +165,7 @@ def request_change_password(request_to_change_password_uc: RequestToChangePasswo
         return presenter.response, 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
 
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
@@ -196,7 +197,7 @@ def change_password_authorizedly(change_password_uc: ChangePasswordUC,
         return presenter.response, 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
 
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
@@ -255,8 +256,7 @@ class ChangingPasswordPresenter(ChangingPasswordResponseBoundary):
 
         # update response_dto with access_token and refresh_token
         response_dto = _merge_dict(
-            response_dto.__dict__,
-            {
+            response_dto.__dict__, {
                 'access_token': _access_token,
                 'refresh_token': _refresh_token
             }

@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 import flask_injector
 import injector
+from factory.base import logger
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, AddingStoreManagerResponse, \
+from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
+    AddingStoreManagerResponse, \
     AddStoreManagerUC
 from store.application.usecases.choose_store_plan_uc import ChooseStorePlanUC, ChoosenStorePlanResponseBoundary, \
     ChoosenStorePlanRequest, ChoosenStorePlanResponse
@@ -59,7 +61,7 @@ def register_new_store(register_store_uc: RegisterStoreUC, presenter: Registerin
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
@@ -72,7 +74,7 @@ def confirm_store_registration(confirmation_token, confirm_store_registration_uc
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
@@ -84,7 +86,7 @@ def confirm_store_registration_post(confirm_store_registration_uc: ConfirmStoreR
         return confirm_store_registration(dto.confirmation_token, confirm_store_registration_uc, presenter)
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
@@ -110,7 +112,7 @@ def confirm_store_package(choose_store_plan_uc: ChooseStorePlanUC,
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
@@ -124,7 +126,7 @@ def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
         return make_response(jsonify(settings)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
@@ -142,7 +144,7 @@ def update_store_settings(update_store_settings_uc: UpdateStoreSettingsUC,
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 

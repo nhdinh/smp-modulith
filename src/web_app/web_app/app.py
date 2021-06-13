@@ -1,5 +1,8 @@
 from datetime import timedelta, datetime, timezone
 from typing import Optional
+
+from apispec import APISpec
+from apispec.ext.marshmallow import MarshmallowPlugin
 from flask import Flask, Response, request
 from flask_cors import CORS
 from flask_injector import FlaskInjector
@@ -9,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from main import bootstrap_app
 from main.modules import RequestScope
+from web_app import openapi
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
 from web_app.blueprints.auth_bp import auth_blueprint, AuthenticationAPI
 from web_app.blueprints.brand import brand_blueprint
@@ -16,9 +20,10 @@ from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
 from web_app.blueprints.product_bp import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
 from web_app.blueprints.manage_store_bp import store_blueprint, StoreAPI
-from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI
+from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI, \
+    store_catalog_blueprint_endpoint_callers, STORE_CATALOG_BLUEPRINT_NAME
 from web_app.json_encoder import JSONEncoder
-# from apispec import APISpec
+from web_app.openapi import docs
 
 
 def create_app(settings_override: Optional[dict] = None) -> Flask:
@@ -30,18 +35,14 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.json_encoder = JSONEncoder
     app.url_map.strict_slashes = False
 
-    # config apispec
-    # app.config.update({
-    #     'APISPEC_SPEC': APISpec(
-    #         title='SMP',
-    #         version='v1',
-    #         plugins=[MarshmallowPlugin()],
-    #     ),
-    #     'APISPEC_SWAGGER_URL': '/swagger/',
-    # })
+    # config openapi
+    app.config.update({
+        'APISPEC_SPEC': APISpec(title='SMP', openapi_version='3.0', version='v1', plugins=[MarshmallowPlugin()]),
+        'APISPEC_SWAGGER_URL': '/docs',
+    })
+    docs.init_app(app)
 
     # register all blueprints
-
     app.register_blueprint(auth_blueprint, url_prefix='/user')
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
     app.register_blueprint(product_blueprint, url_prefix='/product')
@@ -50,6 +51,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.register_blueprint(brand_blueprint, url_prefix='/brand')
     app.register_blueprint(store_blueprint, url_prefix='/manage-store')
     app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
+    for _handler in store_catalog_blueprint_endpoint_callers:
+        docs.register(_handler, blueprint=STORE_CATALOG_BLUEPRINT_NAME)
 
     # TODO: move this config
     app.config["SECRET_KEY"] = "super-secret"

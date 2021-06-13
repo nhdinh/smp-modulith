@@ -15,7 +15,7 @@ RUN pip install -r requirements.txt -r requirements-dev.txt
 COPY src/ ./
 RUN make dev
 
-ENV FLASK_APP='web_app.app:create_app'
-CMD ["cd", "/usr/src/app", ";", "/usr/local/bin/flask", "run", "--host=0.0.0.0", "--reload"]
+ENV FLASK_APP='web_app.web_app.app:create_app'
+CMD ["/usr/local/bin/flask", "run", "--host=0.0.0.0", "--reload"]
 ENTRYPOINT ["dockerize", "-wait", "tcp://database:5432"]
 
