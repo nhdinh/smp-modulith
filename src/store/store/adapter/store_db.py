@@ -8,6 +8,7 @@ from sqlalchemy import event
 from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
 from store.domain.entities.store import Store
+from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = sa.Table(
@@ -161,3 +162,20 @@ def store_load(store, connection):
         store_collection_cache_table.c.store_id == store.store_id)
     fetched_collections = connection.session.execute(q).all()
     store.__cached['collections'] = [r.collection_reference for r in fetched_collections]
+
+
+@event.listens_for(StoreCatalog, 'load')
+def ctalog_load(catalog, connection):
+    catalog.__cached = {
+        'collections': [],
+        'products': []
+    }
+
+    # fetch cache of collectons into the store
+    q = sa.select([store_collection_cache_table.c.collection_reference]).where(
+        store_collection_cache_table.c.store_id == catalog.store_id).where(
+        store_collection_cache_table.c.catalog_id == catalog.catalog_id
+    )
+
+    fetched_collections = connection.session.execute(q).all()
+    catalog.__cached['collections'] = [r.collection_reference for r in fetched_collections]

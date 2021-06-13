@@ -8,9 +8,11 @@ from flask import Blueprint, Response, make_response, jsonify, request, current_
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
+from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
+from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogRequest, \
+    RemoveStoreCatalogUC, RemovingStoreCatalogResponseBoundary
 from store.application.usecases.collections.create_store_collection_uc import CreateStoreCollectionUC, \
     CreatingStoreCollectionResponseBoundary, CreatingStoreCollectionRequest
 from store.application.usecases.collections.toggle_store_collection_uc import TogglingStoreCollectionRequest, \
@@ -25,10 +27,9 @@ from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
-from web_app.openapi import docs
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
-    CreatingStoreCollectionPresenter
+    CreatingStoreCollectionPresenter, RemovingStoreCatalogPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'
@@ -54,8 +55,13 @@ class StoreCatalogAPI(injector.Module):
 
     @injector.provider
     @flask_injector.request
-    def update_store_catalog_response_boundnary(self) -> UpdatingStoreCatalogResponseBoundary:
+    def update_store_catalog_response_boundary(self) -> UpdatingStoreCatalogResponseBoundary:
         return UpdatingStoreCatalogPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def remove_store_catalog_response_boundary(self) -> RemovingStoreCatalogResponseBoundary:
+        return RemovingStoreCatalogPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -93,7 +99,7 @@ STORE-CATALOG(S)
 
 @store_catalog_blueprint.route('/', methods=['GET'])
 @jwt_required()
-def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
+def fetch_store_catalogs(fetch_all_store_catalogs_query: FetchAllStoreCatalogsQuery) -> Response:
     """
     GET :5000/store-catalog/
     Fetch catalogs from store
@@ -101,7 +107,7 @@ def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
     try:
         current_user = get_jwt_identity()
         dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
-        response = query.query(dto)
+        response = fetch_all_store_catalogs_query.query(dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
@@ -159,24 +165,36 @@ def rebuild_store_catalog_cache(invalidate_store_catalog_cache_uc: InvalidateSto
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
-@store_catalog_blueprint.route('/catalog:<string:catalog_reference>', methods=['GET'])
+@store_catalog_blueprint.route('/catalog/<string:catalog_reference>', methods=['GET'])
 @jwt_required()
-def fetch_store_catalog_collections(catalog_reference: str) -> Response:
+def fetch_store_collections(
+        catalog_reference: str,
+        fetch_all_store_collections_query: FetchAllStoreCollectionsQuery
+) -> Response:
     """
-    GET :5000/store-catalog/catalog:catalog_reference
+    GET :5000/store-catalog/catalog/catalog_reference
     Fetch collections from catalog
 
+    :param fetch_all_store_collections_query:
     :param catalog_reference:
     """
-    raise NotImplementedError
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        response = fetch_all_store_collections_query.query(catalog_reference=catalog_reference, dto=dto)
+        return make_response(jsonify(response)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
-@store_catalog_blueprint.route('/catalog:<string:catalog_reference>', methods=['PATCH'])
+@store_catalog_blueprint.route('/catalog/<string:catalog_reference>', methods=['PATCH'])
 @jwt_required()
 def update_store_catalog(catalog_reference: str, update_store_catalog_uc: UpdateStoreCatalogUC,
                          presenter: UpdatingStoreCatalogResponseBoundary) -> Response:
     """
-    PATCH :5000/store-catalog/catalog:catalog_reference
+    PATCH :5000/store-catalog/catalog/catalog_reference
     Update information of a catalog
 
     :param presenter:
@@ -198,12 +216,12 @@ def update_store_catalog(catalog_reference: str, update_store_catalog_uc: Update
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_catalog_blueprint.route('/catalog:<string:catalog_reference>/toggle', methods=['PATCH'])
+@store_catalog_blueprint.route('/catalog/<string:catalog_reference>/toggle', methods=['PATCH'])
 @jwt_required()
 def toggle_store_catalog(catalog_reference: str, toogle_store_catalog_uc: ToggleStoreCatalogUC,
                          presenter: UpdatingStoreCatalogResponseBoundary) -> Response:
     """
-    PATCH :5000/store-catalog/catalog:catalog_reference/toggle
+    PATCH :5000/store-catalog/catalog/catalog_reference/toggle
     Enable/Disable a catalog
 
     :param presenter:
@@ -225,16 +243,33 @@ def toggle_store_catalog(catalog_reference: str, toogle_store_catalog_uc: Toggle
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_catalog_blueprint.route('/catalog:<string:catalog_reference>', methods=['DELETE'])
+@store_catalog_blueprint.route('/catalog/<string:catalog_reference>', methods=['DELETE'])
 @jwt_required()
-def remove_store_catalog(catalog_reference: str) -> Response:
+def remove_store_catalog(catalog_reference: str,
+                         remove_store_catalog_uc: RemoveStoreCatalogUC,
+                         presenter: RemovingStoreCatalogResponseBoundary) -> Response:
     """
-    DELETE :5000/store-catalog/catalog:catalog_reference
+    DELETE :5000/store-catalog/catalog/catalog_reference
     Delete a catalog with or without its contents
 
+    :param presenter:
+    :param remove_store_catalog_uc:
     :param catalog_reference:
     """
-    raise NotImplementedError
+    try:
+        dto = get_dto(request, RemovingStoreCatalogRequest, context={
+            'catalog_reference': catalog_reference,
+            'current_user': get_jwt_identity()
+        })
+        remove_store_catalog_uc.execute(dto)
+
+        return presenter.response, 200  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 """
@@ -242,13 +277,13 @@ STORE-COLLECTION(S)
 """
 
 
-@store_catalog_blueprint.route('/catalog:<string:catalog_reference>', methods=['POST'])
+@store_catalog_blueprint.route('/catalog/<string:catalog_reference>', methods=['POST'])
 @jwt_required()
-def add_catalog_collection(catalog_reference: str,
-                           create_store_collection_uc: CreateStoreCollectionUC,
-                           presenter: CreatingStoreCollectionResponseBoundary) -> Response:
+def create_store_collection(catalog_reference: str,
+                            create_store_collection_uc: CreateStoreCollectionUC,
+                            presenter: CreatingStoreCollectionResponseBoundary) -> Response:
     """
-    POST :5000/store-catalog/catalog:catalog_reference
+    POST :5000/store-catalog/catalog/catalog_reference
     Create new collection in a catalog
 
     :param create_store_collection_uc:
@@ -271,18 +306,18 @@ def add_catalog_collection(catalog_reference: str,
 
 
 @store_catalog_blueprint.route(
-    '/catalog:<string:catalog_reference>/collection:<string:collection_reference>',
+    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>',
     methods=['PATCH']
 )
 @jwt_required()
-def update_catalog_collection(
+def update_store_collection(
         catalog_reference: str,
         collection_reference: str,
         update_store_collection_uc: UpdateStoreCollectionUC,
         presenter: UpdatingStoreCollectionResponseBoundary
 ) -> Response:
     """
-    PATCH :5000/store-catalog/catalog:catalog_reference/collection:collection_reference
+    PATCH :5000/store-catalog/catalog/catalog_reference/collection:collection_reference
     Update a collection
 
     :param presenter:
@@ -306,15 +341,15 @@ def update_catalog_collection(
 
 
 @store_catalog_blueprint.route(
-    '/catalog:<string:catalog_reference>/collection:<string:collection_reference>/toggle',
+    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>/toggle',
     methods=['PATCH']
 )
 @jwt_required()
-def toggle_catalog_collection(catalog_reference: str, collection_reference: str,
-                              toggle_store_collection_uc: ToggleStoreCollectionUC,
-                              presenter: UpdatingStoreCollectionResponseBoundary) -> Response:
+def toggle_store_collection(catalog_reference: str, collection_reference: str,
+                            toggle_store_collection_uc: ToggleStoreCollectionUC,
+                            presenter: UpdatingStoreCollectionResponseBoundary) -> Response:
     """
-    PATCH :5000/store-catalog/catalog:catalog_reference/collection:collection_reference/toggle
+    PATCH :5000/store-catalog/catalog/catalog_reference/collection:collection_reference/toggle
     Enable/Disable a collection
 
     :param presenter:
@@ -340,13 +375,13 @@ def toggle_catalog_collection(catalog_reference: str, collection_reference: str,
 
 
 @store_catalog_blueprint.route(
-    '/catalog:<string:catalog_reference>/collection:<string:collection_reference>',
+    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>',
     methods=['DELETE']
 )
 @jwt_required()
-def remove_catalog_collection(catalog_reference: str, collection_reference: str) -> Response:
+def remove_store_collection(catalog_reference: str, collection_reference: str) -> Response:
     """
-    DELETE :5000/store-catalog/catalog:catalog_reference/collection:collection_reference
+    DELETE :5000/store-catalog/catalog/catalog_reference/collection:collection_reference
     Delete a collection
 
     :param catalog_reference:
@@ -361,13 +396,17 @@ STORE-CATALOG-COLLECTION-PRODUCT(s)
 
 
 @store_catalog_blueprint.route(
-    '/catalog:<string:catalog_reference>/collection:<string:collection_reference>',
+    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>',
     methods=['GET']
 )
 @jwt_required()
-def fetch_collection_products(catalog_reference: str, collection_reference: str) -> Response:
+def fetch_store_products(
+        collection_reference: str,
+        catalog_reference: str,
+
+) -> Response:
     """
-    GET :5000/store-catalog/catalog:catalog_reference/collection:collection_reference
+    GET :5000/store-catalog/catalog/catalog_reference/collection/collection_reference
     Fetch products in catalog/ collection
 
     :param catalog_reference:
@@ -377,13 +416,13 @@ def fetch_collection_products(catalog_reference: str, collection_reference: str)
 
 
 @store_catalog_blueprint.route(
-    '/catalog:<string:catalog_reference>/collection:<string:collection_reference>',
+    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>',
     methods=['POST']
 )
 @jwt_required()
-def add_collection_product(catalog_reference: str, collection_reference: str) -> Response:
+def create_store_product(catalog_reference: str, collection_reference: str) -> Response:
     """
-    POST :5000/store-catalog/catalog:catalog_reference/collection:collection_reference
+    POST :5000/store-catalog/catalog/catalog_reference/collection:collection_reference
     Create new product in catalog/ collection
 
     :param catalog_reference:
@@ -394,7 +433,7 @@ def add_collection_product(catalog_reference: str, collection_reference: str) ->
 
 @store_catalog_blueprint.route('/product:<string:product_id>', methods=['PATCH'])
 @jwt_required()
-def update_product(product_id: str):
+def update_store_product(product_id: str):
     """
     PATCH :5000/store-catalog/product:product_id
     Update a product
@@ -406,7 +445,7 @@ def update_product(product_id: str):
 
 @store_catalog_blueprint.route('/product:<string:product_id>/toggle', methods=['PATCH'])
 @jwt_required()
-def toggle_product(product_id: str):
+def toggle_store__product(product_id: str):
     """
     PATCH :5000/store-catalog/product:product_id/toggle
     Enable/ Disable a product
@@ -418,7 +457,7 @@ def toggle_product(product_id: str):
 
 @store_catalog_blueprint.route('/product:<string:product_id>', methods=['DELETE'])
 @jwt_required()
-def remove_product(product_id: str):
+def remove_store__product(product_id: str):
     """
     DELETE :5000/store-catalog/product:product_id
     Delete a product

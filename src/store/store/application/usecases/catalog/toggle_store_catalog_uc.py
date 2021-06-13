@@ -42,7 +42,7 @@ class ToggleStoreCatalogUC:
                     raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
                 # check if catalog is system type
-                catalog = store.get_catalog(catalog_reference=input_dto.catalog_reference)
+                catalog = store.get_catalog_by_reference(catalog_reference=input_dto.catalog_reference)
                 if catalog.system:
                     raise Exception(ExceptionMessages.SYSTEM_STORE_CATALOG_CANNOT_BE_DISABLED)
 

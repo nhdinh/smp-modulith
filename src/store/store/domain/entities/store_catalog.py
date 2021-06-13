@@ -2,16 +2,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import re
 import uuid
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional, Set, Dict
 
 from slugify import slugify
 
+from store.application.usecases.const import ExceptionMessages
+
 if TYPE_CHECKING:
     from store.domain.entities.store import Store
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId, StoreCollectionReference
+
+
+class DuplicatedCollectionReferenceError(Exception):
+    pass
 
 
 @dataclass(unsafe_hash=True)
@@ -44,6 +51,12 @@ class StoreCatalog:
 
         # get settings from store as dict
         self._store_settings = kwargs.get('store_settings') if 'store_settings' in kwargs.keys() else {}  # type: Dict
+
+        # cached
+        self.__cached = {
+            'collections': set(),
+            'products': set()
+        }
 
     @property
     def default_collection(self) -> Optional[StoreCollection]:
@@ -156,7 +169,33 @@ class StoreCatalog:
         # if the collection is new-ly created, then return (do we need this?)
         return collection
 
-    def add_collection(self, collection: StoreCollection):
+    def add_collection(self, collection: StoreCollection, rename_if_duplicated=True, keep_default=True):
+        """
+        Add new collection to this catalog
+
+        :param collection: the collection to be added
+
+        :param rename_if_duplicated: to rename the input collection if its reference has been taken. If set to True,
+        the collection's refrence will be added a number into its suffix, else False, the method will raise an
+        Exception
+
+        :param keep_default: If keep_default is set True, the collection to be added will be set to Default if its
+        default is True. Else, its default property will be set to False.
+        """
+        if self.has_collection_reference(collection.reference):
+            if not rename_if_duplicated:
+                raise DuplicatedCollectionReferenceError(ExceptionMessages.DUPLICATED_COLLECTION_REFERENCE_WHEN_COPYING)
+            else:
+                new_reference = self._make_new_collection_reference(collection.reference)
+                collection.reference = new_reference
+
+                # remove default collection if true
+                if not keep_default:
+                    collection.default = False
+
+        # set store_id for searching further
+        collection.store_id = self._store.store_id
+
         self._collections.add(collection)
 
     def get_collection(self, reference: StoreCollectionReference) -> Optional[StoreCollection]:
@@ -173,3 +212,66 @@ class StoreCatalog:
             return next(col for col in self._collections if col.reference == reference)
         except StopIteration:
             return None
+
+    @staticmethod
+    def make_collection(reference: StoreCatalogReference, display_name: str):
+        """
+        Make an instance of a collection
+
+        :param reference: reference of the collection to be created
+        :param display_name: display_name of the collection to be created
+        :return: instance of a collection
+        """
+        collection = StoreCollection.make_collection(display_name=display_name, reference=reference)
+        return collection
+
+    def has_collection_reference(self, reference: StoreCollectionReference) -> bool:
+        """
+        Return if the collection reference is list in this catalog's cache
+
+        :param reference: reference of the collection
+        :return: True or False
+        """
+        __cached = getattr(self, '__cached', dict())
+
+        # check if all conditions is good, return the value
+        if __cached and 'collections' in __cached.keys() and type(__cached['collections']) is Set:
+            return 'reference' in __cached['collections']
+
+        # else, build the value
+        if __cached is None or type(__cached) is not Dict:
+            setattr(self, '__cached', {'collections': set(), 'products': set()})
+
+        # build cached
+        _collection_cache = set()
+        for collection in self._collections:
+            _collection_cache.add(collection.reference)
+
+        # set cache
+        self.__cached['collections'] = _collection_cache
+
+        return reference in self.__cached['collections']
+
+    def _make_new_collection_reference(self, reference: StoreCollectionReference) -> str:
+        """
+        Search the whole list of collection and make change to the duplicated reference
+
+        :param reference: reference of the collection to change
+
+        :return: a new reference string
+        """
+        try:
+            reference_name_with_number = re.compile(f'^{reference}_([0-9]+)$')
+            numbers = []
+            for name in self.__cached['collections']:
+                matches = reference_name_with_number.match(name)
+                if matches:
+                    numbers.append(int(matches[1]))
+
+            number_to_change = max(numbers) + 1
+            new_reference = f"{reference}_{number_to_change}"
+
+            return new_reference
+        except Exception as exc:
+            print("Error while finding a new name for collection")
+            raise exc

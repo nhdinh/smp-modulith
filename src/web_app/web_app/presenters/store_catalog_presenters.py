@@ -3,9 +3,10 @@
 import abc
 
 from flask import Response, make_response, jsonify
-
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreatingStoreCatalogResponse
+from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogResponse, \
+    RemovingStoreCatalogResponseBoundary
 from store.application.usecases.collections.create_store_collection_uc import CreatingStoreCollectionResponse, \
     CreatingStoreCollectionResponseBoundary
 from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponse, \
@@ -49,6 +50,13 @@ class UpdatingStoreCatalogPresenter(UpdatingStoreCatalogResponseBoundary):
     response: Response
 
     def present(self, response_dto: UpdatingStoreCatalogResponse) -> None:
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class RemovingStoreCatalogPresenter(RemovingStoreCatalogResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: RemovingStoreCatalogResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
 
 

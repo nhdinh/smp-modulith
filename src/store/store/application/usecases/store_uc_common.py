@@ -50,7 +50,7 @@ def is_store_disabled(store: Store) -> bool:
     return getattr(store, 'disabled', False)
 
 
-def fetch_store_by_owner(store_owner: str, uow: StoreUnitOfWork, active_only=True) -> Store:
+def fetch_store_by_owner(store_owner: str, uow: StoreUnitOfWork, active_only: bool = True) -> Store:
     """
     Fetch store information from persisted data by its owner's email
 
@@ -89,7 +89,7 @@ def fetch_catalog_from_store(
 
         catalog = None
         if type(by_catalog) is str:
-            catalog = store.get_catalog(catalog_reference=by_catalog)
+            catalog = store.get_catalog_by_reference(catalog_reference=by_catalog)
         elif type(by_catalog) is StoreCatalogId:
             catalog = store.get_catalog_by_id(catalog_id=by_catalog)
 

@@ -3,9 +3,8 @@ version: '3.1'
 services:
   app:
     build: .
-    image: app
     volumes:
-      - "./src/:/usr/src/app"
+      - ./src/:/usr/src/app
     ports:
       - "5000:5000"
     environment:

@@ -46,7 +46,7 @@ class CreateStoreCollectionUC:
                 store = fetch_store_by_owner(store_owner=dto.current_user, uow=uow)  # type:Store
 
                 # validate collection reference
-                reference = dto.reference if dto.reference else slugify(dto.display_name)
+                reference = slugify(dto.reference) if dto.reference else slugify(dto.display_name)
 
                 # make collection
                 collection = store.make_children_collection(of_catalog=dto.catalog_reference,

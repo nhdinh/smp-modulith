@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 from typing import List
 
-from sqlalchemy import select, func, join
+from sqlalchemy import select, func
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
-from store.adapter import store_catalog_table, store_table
-from store.adapter.store_db import store_catalog_cache_table, store_collection_table, store_owner_table
+from store.adapter import store_catalog_table
+from store.adapter.queries.query_common import sql_fetch_store_by_owner, sql_count_catalog_from_store, \
+    sql_count_collection_from_catalog, sql_fetch_catalog_by_reference
+from store.adapter.store_db import store_collection_table
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, StoreCatalogResponseDto, \
-    StoreCollectionResponseDto
+    StoreCollectionResponseDto, FetchAllStoreCollectionsQuery, FetchAllStoreProductsQuery, StoreProductResponseDto
+from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
 
@@ -40,24 +43,10 @@ class SqlFetchAllStoreCatalogsQuery(FetchAllStoreCatalogsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
         current_page = dto.page if dto.page > 0 else 1
 
-        store_id = self._conn.scalar(
-            select(store_table.c.store_id).where(store_table.c.owner_email == dto.current_user)
-        )
-
-        # problem with the cache email from the `Store` table, we need to fetch the store by user_id
-        if not store_id:
-            store_id = self._conn.scalar(
-                select(store_table.c.store_id) \
-                    .join(store_owner_table, onclause=(store_table.c.owner == store_owner_table.c.id)) \
-                    .where(store_owner_table.c.email == dto.current_user)
-            )
+        store_id = sql_fetch_store_by_owner(store_owner=dto.current_user, conn=self._conn)
 
         # count number of catalogs of this store
-        catalog_count = self._conn.scalar(
-            select([func.count()]) \
-                .select_from(store_catalog_cache_table) \
-                .where(store_catalog_cache_table.c.store_id == store_id)
-        )
+        catalog_count = sql_count_catalog_from_store(store_id=store_id, conn=self._conn)
 
         # get all catalogs limit by page and offset
         get_all_catalogs_query = select([
@@ -110,5 +99,59 @@ class SqlFetchAllStoreCatalogsQuery(FetchAllStoreCatalogsQuery, SqlQuery):
                     _row_to_catalog_dto(row, collections=[c for c in collections if c.catalog_id == row.catalog_id])
                     for row in catalogs]
             )
+        except Exception as exc:
+            raise exc
+
+
+class SqlFetchAllStoreCollectionsQuery(FetchAllStoreCollectionsQuery, SqlQuery):
+    def query(self, catalog_reference: StoreCatalogReference, dto: AuthorizedPaginationInputDto):
+        try:
+            current_page = dto.page if dto.page else 1
+
+            store_id = sql_fetch_store_by_owner(store_owner=dto.current_user, conn=self._conn)
+            catalog_id = sql_fetch_catalog_by_reference(catalog_reference=catalog_reference, store_id=store_id,
+                                                        conn=self._conn)
+            collection_count = sql_count_collection_from_catalog(store_id=store_id, catalog_id=catalog_id,
+                                                                 conn=self._conn)
+
+            collection_query = select([
+                store_collection_table.c.collection_id,
+                store_collection_table.c.store_id,
+                store_collection_table.c.catalog_id,
+                store_collection_table.c.reference,
+                store_collection_table.c.display_name,
+                store_collection_table.c.disabled,
+            ]) \
+                .select_from(store_collection_table) \
+                .where(store_collection_table.c.store_id == store_id) \
+                .where(store_collection_table.c.catalog_id == catalog_id)
+
+            collections = self._conn.execute(collection_query).all()
+            return paginate_response_factory(
+                current_page=current_page,
+                page_size=dto.page_size,
+                total_items=collection_count,
+                items=[
+                    _row_to_collection_dto(row) for row in collections
+                ]
+            )
+        except Exception as exc:
+            raise exc
+
+
+class SqlFetchAllStoreProductsQuery(FetchAllStoreProductsQuery, SqlQuery):
+    def query(
+            self,
+            collection_reference: StoreCollectionReference,
+            catalog_reference: StoreCatalogReference,
+            dto: AuthorizedPaginationInputDto
+    ) -> PaginationOutputDto[StoreProductResponseDto]:
+        try:
+            current_page = dto.page if dto.page else 1
+
+            store_id = sql_fetch_store_by_owner(store_owner=dto.current_user, conn=self._conn)
+            catalog_id = sql_fetch_catalog_by_reference(catalog_reference=catalog_reference, store_id=store_id,
+                                                        conn=self._conn)
+            return None
         except Exception as exc:
             raise exc

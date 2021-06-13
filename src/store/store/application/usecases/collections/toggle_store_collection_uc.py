@@ -44,7 +44,7 @@ class ToggleStoreCollectionUC:
                     raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
                 # get collection
-                catalog = store.get_catalog(catalog_reference=input_dto.catalog_reference)  # type:StoreCatalog
+                catalog = store.get_catalog_by_reference(catalog_reference=input_dto.catalog_reference)  # type:StoreCatalog
                 collection = catalog.get_collection(reference=input_dto.collection_reference)
                 if not collection:
                     raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)

@@ -6,9 +6,9 @@ from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.adapter import store_db
-from store.adapter.queries import SqlFetchAllStoreCatalogsQuery
+from store.adapter.queries import SqlFetchAllStoreCatalogsQuery, SqlFetchAllStoreCollectionsQuery
 from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
-from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
+from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
@@ -18,6 +18,8 @@ from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
+from store.application.usecases.catalog.remove_store_catalog_uc import RemoveStoreCatalogUC, \
+    RemovingStoreCatalogResponseBoundary
 from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary
 from store.application.usecases.collections.create_store_collection_uc import CreateStoreCollectionUC, \
@@ -62,6 +64,11 @@ class StoreModule(injector.Module):
                                  uow: StoreUnitOfWork) -> UpdateStoreSettingsUC:
         return UpdateStoreSettingsUC(boundary, uow)
 
+    @injector.provider
+    def invalidate_store_catalog_cache_uc(self, boundary: GenericStoreResponseBoundary,
+                                          uow: StoreUnitOfWork) -> InvalidateStoreCatalogCacheUC:
+        return InvalidateStoreCatalogCacheUC(boundary, uow)
+
     """
     STORE CATALOG OPERATIONS
     """
@@ -77,9 +84,9 @@ class StoreModule(injector.Module):
         return ToggleStoreCatalogUC(boundary, uow)
 
     @injector.provider
-    def invalidate_store_catalog_cache_uc(self, boundary: GenericStoreResponseBoundary,
-                                          uow: StoreUnitOfWork) -> InvalidateStoreCatalogCacheUC:
-        return InvalidateStoreCatalogCacheUC(boundary, uow)
+    def remove_store_catalog_uc(self, boundary: RemovingStoreCatalogResponseBoundary,
+                                uow: StoreUnitOfWork) -> RemoveStoreCatalogUC:
+        return RemoveStoreCatalogUC(boundary, uow)
 
     """
     STORE COLLECTION OPERATIONS
@@ -134,5 +141,9 @@ class StoreInfrastructureModule(injector.Module):
         return SqlCountStoreOwnerByEmailQuery(conn)
 
     @injector.provider
-    def fetchall_store_catalogs_query(self, conn: Connection) -> FetchAllStoreCatalogsQuery:
+    def fetch_store_catalogs_query(self, conn: Connection) -> FetchAllStoreCatalogsQuery:
         return SqlFetchAllStoreCatalogsQuery(conn)
+
+    @injector.provider
+    def fetch_store_collections_query(self, conn: Connection) -> FetchAllStoreCollectionsQuery:
+        return SqlFetchAllStoreCollectionsQuery(conn)
