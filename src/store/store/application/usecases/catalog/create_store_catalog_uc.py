@@ -8,10 +8,9 @@ from slugify import slugify
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
+from store.application.usecases.store_uc_common import fetch_store_by_owner
 from store.domain.entities.store import Store
-from store.domain.entities.store_catalog import StoreCatalog
-
-from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId
+from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId
 
 
 @dataclass
@@ -41,18 +40,16 @@ class CreateStoreCatalogUC:
     def execute(self, dto: CreatingStoreCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = uow.stores.fetch_store_of_owner(owner=dto.current_user)  # type:Store
-                if not store:
-                    raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+                store = fetch_store_by_owner(store_owner=dto.current_user,uow=uow)
 
-                if store.has_catalog(dto.catalog_reference):
+                if store.has_catalog_reference(dto.catalog_reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
 
                 # validate inputs
                 reference = dto.catalog_reference if dto.catalog_reference else slugify(dto.display_name)
 
                 # make catalog
-                catalog = store.make_catalog(
+                catalog = store.make_children_catalog(
                     reference=reference,
                     display_name=dto.display_name,
                 )

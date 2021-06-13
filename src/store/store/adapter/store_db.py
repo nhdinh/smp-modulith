@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from datetime import datetime
+
 import sqlalchemy as sa
+from sqlalchemy import event
 
 from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
@@ -42,6 +44,7 @@ store_table = sa.Table(
     sa.Column('name', sa.String(100)),
     sa.Column('owner', sa.ForeignKey(store_owner_table.c.id)),
     sa.Column('owner_email', sa.String(255), comment='For easy linking'),
+    sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
@@ -105,17 +108,18 @@ store_collection_table = sa.Table(
 store_catalog_cache_table = sa.Table(
     'store_catalogs_cache',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id)),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='SET NULL', onupdate='CASCADE')),
     sa.Column('catalog_reference', sa.String(100))
 )
 
 store_collection_cache_table = sa.Table(
     'store_collection_cache',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id)),
-    sa.Column('collection_id', sa.ForeignKey(store_collection_table.c.collection_id)),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('collection_id',
+              sa.ForeignKey(store_collection_table.c.collection_id, ondelete='SET NULL', onupdate='CASCADE')),
     sa.Column('collection_reference', sa.String(100))
 )
 
@@ -132,12 +136,12 @@ store_collection_cache_table = sa.Table(
 # )
 
 
-@sa.event.listens_for(StoreRegistration, 'load')
+@event.listens_for(StoreRegistration, 'load')
 def store_registration_load(store_registration, _):
     store_registration.domain_events = []
 
 
-@sa.event.listens_for(Store, 'load')
+@event.listens_for(Store, 'load')
 def store_load(store, connection):
     store.domain_events = []
     store.__cached = {

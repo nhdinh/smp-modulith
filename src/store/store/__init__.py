@@ -5,30 +5,36 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
+from store.adapter import store_db
 from store.adapter.queries import SqlFetchAllStoreCatalogsQuery
+from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
+from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
     StoreCollectionCreatedEventHandler
-from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
-from store.application.usecases.initialize.confirm_store_registration_uc import \
-    ConfirmingStoreRegistrationResponseBoundary, \
-    ConfirmStoreRegistrationUC
+from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
+from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
-from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
+from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC
+from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary
+from store.application.usecases.collections.create_store_collection_uc import CreateStoreCollectionUC, \
+    CreatingStoreCollectionResponseBoundary
+from store.application.usecases.collections.toggle_store_collection_uc import ToggleStoreCollectionUC
+from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary
+from store.application.usecases.initialize.confirm_store_registration_uc import \
+    ConfirmingStoreRegistrationResponseBoundary, \
+    ConfirmStoreRegistrationUC
+from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
+from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
+from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
 from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
-from store.adapter import store_db
-from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
-from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.services.user_counter_services import UserCounters
-from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
-from store.application.store_repository import SqlAlchemyStoreRepository
-from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
 
 __all__ = [
     'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedEvent'
@@ -56,15 +62,38 @@ class StoreModule(injector.Module):
                                  uow: StoreUnitOfWork) -> UpdateStoreSettingsUC:
         return UpdateStoreSettingsUC(boundary, uow)
 
+    """
+    STORE CATALOG OPERATIONS
+    """
+
     @injector.provider
     def create_store_catalog_uc(self, boundary: CreatingStoreCatalogResponseBoundary,
                                 uow: StoreUnitOfWork) -> CreateStoreCatalogUC:
         return CreateStoreCatalogUC(boundary, uow)
 
     @injector.provider
+    def toggle_store_catalog_uc(self, boundary: UpdatingStoreCatalogResponseBoundary,
+                                uow: StoreUnitOfWork) -> ToggleStoreCatalogUC:
+        return ToggleStoreCatalogUC(boundary, uow)
+
+    @injector.provider
     def invalidate_store_catalog_cache_uc(self, boundary: GenericStoreResponseBoundary,
                                           uow: StoreUnitOfWork) -> InvalidateStoreCatalogCacheUC:
         return InvalidateStoreCatalogCacheUC(boundary, uow)
+
+    """
+    STORE COLLECTION OPERATIONS
+    """
+
+    @injector.provider
+    def create_store_collection_uc(self, boundary: CreatingStoreCollectionResponseBoundary,
+                                   uow: StoreUnitOfWork) -> CreateStoreCollectionUC:
+        return CreateStoreCollectionUC(boundary, uow)
+
+    @injector.provider
+    def toggle_store_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
+                                   uow: StoreUnitOfWork) -> ToggleStoreCollectionUC:
+        return ToggleStoreCollectionUC(boundary, uow)
 
     @injector.provider
     def facade(self, connection: Connection) -> StoreHandlerFacade:
@@ -107,5 +136,3 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def fetchall_store_catalogs_query(self, conn: Connection) -> FetchAllStoreCatalogsQuery:
         return SqlFetchAllStoreCatalogsQuery(conn)
-
-Khong update store_*_cache tu khi add catalog t3 tro di

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-
 from typing import List
 
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto

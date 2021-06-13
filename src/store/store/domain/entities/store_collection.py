@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import uuid
 from dataclasses import dataclass
-from typing import Optional, Set
+from typing import Set
 
 from slugify import slugify
 
 from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreCollectionReference, StoreCollectionId, StoreCatalogId, StoreId
+from store.domain.entities.value_objects import StoreCollectionReference, StoreCollectionId
 
 
 @dataclass(unsafe_hash=True)
@@ -16,6 +16,7 @@ class StoreCollection:
     reference: StoreCollectionReference
     display_name: str
     default: bool = False
+    disabled: bool = False
 
     @property
     def products(self) -> Set[StoreProduct]:

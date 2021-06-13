@@ -3,16 +3,16 @@
 from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import fetch_store_by_id, validate_store_ownership
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
-from store.domain.entities.value_objects import StoreId, StoreCatalogReference
+from store.application.usecases.const import ExceptionMessages
+from store.application.usecases.store_uc_common import validate_store_ownership
+from store.domain.entities.store import Store
+from store.domain.entities.value_objects import StoreCatalogReference
 
 
 @dataclass
 class TogglingStoreCatalogRequest:
-    store_id: StoreId
     current_user: str
     catalog_reference: StoreCatalogReference
 
@@ -26,20 +26,25 @@ class ToggleStoreCatalogUC:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
                 # fetch store data by id ID
-                store = fetch_store_by_id(store_id=input_dto.store_id, uow=uow)
+                store = uow.stores.fetch_store_of_owner(owner=input_dto.current_user)
                 if store is None:
                     raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
                 # if the Store is disabled by admin
-                if getattr(store, 'disabled', False):
+                if ToggleStoreCatalogUC._is_store_disabled(store):
                     raise Exception(ExceptionMessages.STORE_NOT_AVAILABLE)
 
                 if not validate_store_ownership(store=store, owner_email=input_dto.current_user):
                     raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE)
 
                 # check catalog
-                if not store.has_catalog(catalog_reference=input_dto.catalog_reference):
+                if not store.has_catalog_reference(catalog_reference=input_dto.catalog_reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+
+                # check if catalog is system type
+                catalog = store.get_catalog(catalog_reference=input_dto.catalog_reference)
+                if catalog.system:
+                    raise Exception(ExceptionMessages.SYSTEM_STORE_CATALOG_CANNOT_BE_DISABLED)
 
                 # do update
                 store.toggle_catalog(catalog_reference=input_dto.catalog_reference)
@@ -48,7 +53,8 @@ class ToggleStoreCatalogUC:
                 response_dto = UpdatingStoreCatalogResponse(
                     store_id=store.store_id,
                     catalog_reference=input_dto.catalog_reference,
-                    status=True
+                    status=True,
+                    disabled=catalog.disabled
                 )
                 self._ob.present(response_dto=response_dto)
 
@@ -56,3 +62,7 @@ class ToggleStoreCatalogUC:
                 uow.commit()
             except Exception as exc:
                 raise exc
+
+    @classmethod
+    def _is_store_disabled(cls, store: Store):
+        return getattr(store, 'disabled', False)

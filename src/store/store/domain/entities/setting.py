@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import decimal
 from dataclasses import dataclass
 
-from typing import Type, Any
+from typing import Any
 
 
 @dataclass(unsafe_hash=True)

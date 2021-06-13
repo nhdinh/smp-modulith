@@ -3,6 +3,7 @@
 
 import flask_injector
 import injector
+from factory.base import logger
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -10,6 +11,10 @@ from foundation.business_rule import BusinessRuleValidationError
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
+from store.application.usecases.collections.create_store_collection_uc import CreateStoreCollectionUC, \
+    CreatingStoreCollectionResponseBoundary, CreatingStoreCollectionRequest
+from store.application.usecases.collections.toggle_store_collection_uc import TogglingStoreCollectionRequest, \
+    ToggleStoreCollectionUC
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
@@ -21,7 +26,8 @@ from store.application.usecases.initialize.initialize_store_with_plan_uc import 
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
-    UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter
+    UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
+    CreatingStoreCollectionPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 store_catalog_blueprint = Blueprint('store_catalog_blueprint', __name__)
@@ -47,6 +53,11 @@ class StoreCatalogAPI(injector.Module):
     @flask_injector.request
     def update_store_catalog_response_boundnary(self) -> UpdatingStoreCatalogResponseBoundary:
         return UpdatingStoreCatalogPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def create_store_collection_response_boundary(self) -> CreatingStoreCollectionResponseBoundary:
+        return CreatingStoreCollectionPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -89,7 +100,7 @@ def fetch_store_catalogs(query: FetchAllStoreCatalogsQuery) -> Response:
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
@@ -111,7 +122,7 @@ def create_store_catalog(create_store_catalog_uc: CreateStoreCatalogUC,
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
@@ -136,7 +147,7 @@ def rebuild_store_catalog_cache(invalidate_store_catalog_cache_uc: InvalidateSto
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
@@ -155,7 +166,7 @@ def fetch_store_catalog_collections(catalog_reference: str) -> Response:
 @store_catalog_blueprint.route('/catalog:<string:catalog_reference>', methods=['PATCH'])
 @jwt_required()
 def update_store_catalog(catalog_reference: str, update_store_catalog_uc: UpdateStoreCatalogUC,
-                         presenter: UpdatingStoreCatalogPresenter) -> Response:
+                         presenter: UpdatingStoreCatalogResponseBoundary) -> Response:
     """
     PATCH :5000/store-catalog/catalog:catalog_reference
     Update information of a catalog
@@ -175,14 +186,14 @@ def update_store_catalog(catalog_reference: str, update_store_catalog_uc: Update
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 @store_catalog_blueprint.route('/catalog:<string:catalog_reference>/toggle', methods=['PATCH'])
 @jwt_required()
 def toggle_store_catalog(catalog_reference: str, toogle_store_catalog_uc: ToggleStoreCatalogUC,
-                         presenter: UpdatingStoreCatalogPresenter) -> Response:
+                         presenter: UpdatingStoreCatalogResponseBoundary) -> Response:
     """
     PATCH :5000/store-catalog/catalog:catalog_reference/toggle
     Enable/Disable a catalog
@@ -202,7 +213,7 @@ def toggle_store_catalog(catalog_reference: str, toogle_store_catalog_uc: Toggle
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
@@ -223,19 +234,32 @@ STORE-COLLECTION(S)
 """
 
 
-@store_catalog_blueprint.route(
-    '/catalog:<string:catalog_reference>',
-    methods=['POST']
-)
+@store_catalog_blueprint.route('/catalog:<string:catalog_reference>', methods=['POST'])
 @jwt_required()
-def add_catalog_collection(catalog_reference: str) -> Response:
+def add_catalog_collection(catalog_reference: str,
+                           create_store_collection_uc: CreateStoreCollectionUC,
+                           presenter: CreatingStoreCollectionResponseBoundary) -> Response:
     """
     POST :5000/store-catalog/catalog:catalog_reference
     Create new collection in a catalog
 
+    :param create_store_collection_uc:
+    :param presenter:
     :param catalog_reference:
     """
-    raise NotImplementedError
+    try:
+        dto = get_dto(request, CreatingStoreCollectionRequest, context={
+            'current_user': get_jwt_identity(),
+            'catalog_reference': catalog_reference
+        })
+        create_store_collection_uc.execute(dto)
+        return presenter.response, 200  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 @store_catalog_blueprint.route(
@@ -269,7 +293,7 @@ def update_catalog_collection(
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
         if current_app.debug:
-            raise exc
+            logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
@@ -278,15 +302,33 @@ def update_catalog_collection(
     methods=['PATCH']
 )
 @jwt_required()
-def toggle_catalog_collection(catalog_reference: str, collection_reference: str) -> Response:
+def toggle_catalog_collection(catalog_reference: str, collection_reference: str,
+                              toggle_store_collection_uc: ToggleStoreCollectionUC,
+                              presenter: UpdatingStoreCollectionResponseBoundary) -> Response:
     """
     PATCH :5000/store-catalog/catalog:catalog_reference/collection:collection_reference/toggle
     Enable/Disable a collection
 
+    :param presenter:
+    :param toggle_store_collection_uc:
     :param catalog_reference:
     :param collection_reference:
     """
-    raise NotImplementedError
+
+    try:
+        dto = get_dto(request, TogglingStoreCollectionRequest, context={
+            'current_user': get_jwt_identity(),
+            'catalog_reference': catalog_reference,
+            'collection_reference': collection_reference
+        })
+        toggle_store_collection_uc.execute(dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 @store_catalog_blueprint.route(

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Optional, Set, Dict
 
 from slugify import slugify
-from typing import TYPE_CHECKING, Optional, Set
 
 if TYPE_CHECKING:
     from store.domain.entities.store import Store
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId
+from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId, StoreCollectionReference
 
 
 @dataclass(unsafe_hash=True)
@@ -29,7 +29,8 @@ class StoreCatalog:
             display_name: str,
             disabled: bool,
             system: bool,
-            display_image: str
+            display_image: str,
+            **kwargs
     ):
         self.catalog_id = catalog_id
         self.reference = reference
@@ -39,10 +40,21 @@ class StoreCatalog:
         self.system = system
 
         self._collections = set()
-        self._store = None  # type:Store
+        self._store = None  # type: Optional[Store]
+
+        # get settings from store as dict
+        self._store_settings = kwargs.get('store_settings') if 'store_settings' in kwargs.keys() else {}  # type: Dict
 
     @property
     def default_collection(self) -> Optional[StoreCollection]:
+        """
+        Get the collection which is set as default.
+
+        :return: instance of `StoreCollection`
+        """
+        if len(self._collections) == 0:
+            return None
+
         try:
             collection = next(c for c in self._collections if c.default)
             return collection
@@ -51,9 +63,18 @@ class StoreCatalog:
 
     @property
     def collections(self) -> Set[StoreCollection]:
+        """
+        Return a list of children collection
+
+        :return: List of `StoreCollection`
+        """
         return self._collections
 
     def toggle(self):
+        """
+        Toggle the disabled/enabled feature of this catalog.
+
+        """
         self.disabled = not self.disabled
 
     def get_store_settings(self, setting_key: str, _default_value=None):
@@ -64,7 +85,11 @@ class StoreCatalog:
         :param _default_value: default value to return if there is nothing found.
         :return:
         """
-        return self._store.get_setting(setting_key=setting_key, default_value=_default_value)
+        value = self._store_settings.get(setting_key)
+        if not value:
+            value = _default_value
+
+        return value
 
     @classmethod
     def make_catalog(
@@ -97,20 +122,24 @@ class StoreCatalog:
         is_system = kwargs.get('system') if 'system' in kwargs.keys() else False
         display_image = kwargs.get('display_image') if 'display_image' in kwargs.keys() else ''
 
+        # get store settings
+        store_settings = kwargs.get('store_settings') if 'store_settings' in kwargs.keys() else {}
+
         catalog = StoreCatalog(
             catalog_id=catalog_id,
             reference=reference,
             display_name=display_name,
             disabled=False,
             system=is_system,
-            display_image=display_image
+            display_image=display_image,
+            store_settings=store_settings,
         )
 
-        if 'included_default_collection' in kwargs.keys():
-            collection = kwargs.get('included_default_collection')  # type:StoreCollection
-            if type(collection) is StoreCollection:
-                collection.default = True
-                catalog._collections.add(collection)
+        included_default_collection = kwargs.get(
+            'included_default_collection') if 'included_default_collection' in kwargs.keys() else True
+        if included_default_collection:
+            collection = catalog.create_default_collection()
+            catalog.add_collection(collection)
 
         return catalog
 
@@ -124,8 +153,23 @@ class StoreCatalog:
         display_name = self.get_store_settings('default_collection_display_name', 'Default Collection')
         collection = StoreCollection.make_collection(reference=reference, display_name=display_name, default=True)
 
-        # add the collection into self
-        self._collections.add(collection)
-
         # if the collection is new-ly created, then return (do we need this?)
         return collection
+
+    def add_collection(self, collection: StoreCollection):
+        self._collections.add(collection)
+
+    def get_collection(self, reference: StoreCollectionReference) -> Optional[StoreCollection]:
+        """
+        Get the child collection by it reference
+
+        :param reference: reference to search
+        :return: instance of `StoreCollection` or None
+        """
+        if len(self._collections) == 0:
+            return None
+
+        try:
+            return next(col for col in self._collections if col.reference == reference)
+        except StopIteration:
+            return None

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork

@@ -27,7 +27,7 @@ class StoreHandlerFacade:
 
     def update_store_collection_cache(self, store_id: StoreId, catalog_id: StoreCatalogId,
                                       collection_id: StoreCollectionId, collection_reference: str):
-        query = insert(store_collection_cache_table).value(**{
+        query = insert(store_collection_cache_table).values(**{
             'store_id': store_id,
             'catalog_id': catalog_id,
             'collection_id': collection_id,

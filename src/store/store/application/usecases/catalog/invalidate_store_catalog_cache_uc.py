@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from sqlalchemy import insert, delete
-from store.adapter.store_db import store_catalog_cache_table
 
+from store.adapter.store_db import store_catalog_cache_table
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary, \

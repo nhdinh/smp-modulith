@@ -4,11 +4,12 @@ from typing import Set, List, Any, Optional, Union
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
+from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
-from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.value_objects import StoreId, StoreCatalogReference
+from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCollectionReference, StoreCatalogId
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
     StoreCatalogCreatedEvent, StoreCollectionCreatedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
@@ -45,7 +46,8 @@ class Store(EventMixin, Entity):
             self._settings: Set[Setting] = Store.default_settings()
 
         # its catalog
-        self._catalogs = {self._make_default_catalog()}  # type:Set[StoreCatalog]
+        self._catalogs = set()  # type:Set[StoreCatalog]
+        self._make_default_catalog()
 
         # raise the event
         self._raise_store_created_event()
@@ -129,26 +131,6 @@ class Store(EventMixin, Entity):
         else:
             return default_value
 
-    def _make_default_catalog(self) -> StoreCatalog:
-        default_catalog_reference = self.get_setting('default_catalog_reference', 'default-catalog')
-        default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
-        default_collection_name = self.get_setting('default_collection_name', 'Default Collection')
-
-        # create the new StoreCatalog as default catalog
-        default_catalog = StoreCatalog.make_catalog(
-            reference=default_catalog_reference,
-            display_name=default_catalog_name,
-            display_image='',
-            disabled=False,
-            system=True,
-            include_default_collection=StoreCollection.make_collection(
-                reference='default_collection',
-                display_name=default_collection_name
-            )
-        )
-
-        return default_catalog
-
     def get_catalog(self, catalog_reference: StoreCatalogReference) -> Optional[StoreCatalog]:
         """
         Get child catalog by catalog_reference
@@ -165,7 +147,7 @@ class Store(EventMixin, Entity):
         except StopIteration:
             return None
 
-    def has_catalog(self, catalog_reference: StoreCatalogReference):
+    def has_catalog_reference(self, catalog_reference: StoreCatalogReference):
         """
         Return the existence of specified `catalog_reference` in this store
 
@@ -220,40 +202,70 @@ class Store(EventMixin, Entity):
         pass
 
     def add_catalog(self, catalog: StoreCatalog):
+        """
+        Add the `catalog` into self catalogs children
+
+        :param catalog: the catalog to add
+        :return: id of the catalog
+        """
+        if self.has_catalog_reference(catalog_reference=catalog.reference):
+            raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
+
+        # assign store_id to children catalog and collection
+        catalog.store_id = self.store_id
+        for collection in catalog.collections:
+            collection.store_id = self.store_id
+
         self._catalogs.add(catalog)
 
         # add collection event
 
         # add catalog event
-        self._record_event(StoreCatalogCreatedEvent(
-            store_id=self.store_id,
-            catalog_id=catalog.catalog_id,
-            catalog_reference=catalog.reference,
-        ))
-
-        for collection in catalog.collections:
-            self._record_event(StoreCollectionCreatedEvent(
-                store_id=self.store_id,
-                catalog_id=catalog.catalog_id,
-                collection_id=collection.collection_id,
-                collection_reference=collection.reference
-            ))
+        self._raise_catalog_created_event(catalog=catalog)
 
         return catalog.catalog_id
 
-    def make_catalog(
+    def make_children_catalog(
             self,
             reference: str,
             display_name: str
     ):
+        """
+        Make a new children catalog
+
+        :param reference: reference of the newly catalog
+        :param display_name: catalog's display name
+        :return: instance of `StoreCatalog`
+        """
         catalog = StoreCatalog.make_catalog(
             display_name=display_name,
-            reference=reference
+            reference=reference,
+            store_settings=self.settings
         )
 
-        # add to self catalogs
-        self._catalogs.add(catalog)
+        # add children to self
+        self.add_catalog(catalog)
+
         return catalog
+
+    def _make_default_catalog(self) -> StoreCatalog:
+        default_catalog_reference = self.get_setting('default_catalog_reference', 'default-catalog')
+        default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
+
+        # create the new StoreCatalog as default catalog
+        default_catalog = StoreCatalog.make_catalog(
+            reference=default_catalog_reference,
+            display_name=default_catalog_name,
+            display_image='',
+            disabled=False,
+            system=True,
+            include_default_collection=True
+        )
+
+        # add children to self
+        self.add_catalog(default_catalog)
+
+        return default_catalog
 
     def _raise_store_created_event(self) -> None:
         """
@@ -267,16 +279,95 @@ class Store(EventMixin, Entity):
         ))
 
         for catalog in self._catalogs:
-            self._record_event(StoreCatalogCreatedEvent(
-                store_id=self.store_id,
-                catalog_id=catalog.catalog_id,
-                catalog_reference=catalog.reference
-            ))
+            self._raise_catalog_created_event(catalog)
 
-            for collection in catalog.collections:
-                self._record_event(StoreCollectionCreatedEvent(
-                    store_id=self.store_id,
-                    catalog_id=catalog.catalog_id,
-                    collection_id=collection.collection_id,
-                    collection_reference=collection.reference,
-                ))
+    def _raise_catalog_created_event(self, catalog: StoreCatalog):
+        """
+        Raise all the events related to the newly created catalot
+        :param catalog: the catalog instance
+        """
+        self._record_event(StoreCatalogCreatedEvent(
+            store_id=self.store_id,
+            catalog_id=catalog.catalog_id,
+            catalog_reference=catalog.reference
+        ))
+
+        for collection in catalog.collections:
+            self._raise_collection_created_event(collection)
+
+    def _raise_collection_created_event(self, collection: StoreCollection):
+        self._record_event(StoreCollectionCreatedEvent(
+            store_id=self.store_id,
+            catalog_id=collection.catalog.catalog_id,
+            collection_id=collection.collection_id,
+            collection_reference=collection.reference,
+        ))
+
+    def toggle_collection(self, collection: Union[StoreCollection, StoreCollectionReference], **kwargs):
+        """
+        Toggle disable/ enable property of a `StoreCollection`. Input can be an instance of `StoreCollection` or
+        `StoreCollectionReference`. For examples:
+
+        collection = StoreCollection(...)
+        store.toggle_collection(collection)
+        store.toggle_collection(collection.reference, catalog_reference=collection.catalog.reference)
+
+        If the collection is specified by its reference, then the catalog_reference is need too
+
+        :param collection: The collection to be toggled on or off. Can be instance of `StoreCollection` or
+        `StoreCollectionReference`
+
+        :param kwargs:
+        """
+
+        # check the input collection and make sure it's a child of any catalog
+        _catalog = None
+        _collection = None
+        if type(collection) is StoreCollection:
+            if collection.catalog is None and 'catalog_reference' not in kwargs.keys():
+                raise Exception(ExceptionMessages.STORE_CATALOG_MUST_BE_SPECIFIED)
+
+            if collection.catalog is None and 'catalog_reference' in kwargs.keys():
+                catalog_reference = kwargs.get('catalog_reference')
+                if not type(catalog_reference) is StoreCatalogReference:
+                    raise Exception(ExceptionMessages.INVALID_STORE_CATALOG_REFERENCE_FORMAT)
+
+                # check if the catalog is children of this store
+                _catalog = self.get_catalog(catalog_reference=catalog_reference)
+                if not _catalog:
+                    raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+
+                # if catalog found, add this collection into this children list
+                _catalog.add_collection(collection)
+
+            if collection.catalog not in self.catalogs:
+                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            else:
+                _catalog = collection.catalog
+                _collection = collection
+        elif type(collection) is StoreCollectionReference:
+            if 'catalog_reference' not in kwargs.keys():
+                raise Exception(ExceptionMessages.STORE_CATALOG_MUST_BE_SPECIFIED)
+
+            catalog_reference = kwargs.get('catalog_reference')
+            if not type(catalog_reference) is StoreCatalogReference:
+                raise Exception(ExceptionMessages.INVALID_STORE_CATALOG_REFERENCE_FORMAT)
+
+            # valid catalog_reference, search for the catalog and collection
+            _catalog = self.get_catalog(catalog_reference=catalog_reference)
+            if not _catalog:
+                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+
+            _collection = _catalog.get_collection(reference=collection)
+            if not _collection:
+                raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
+
+        # all fine
+        _collection.disabled = not _collection.disabled
+
+    def get_catalog_by_id(self, catalog_id: StoreCatalogId):
+        try:
+            catalog = next(c for c in self._catalogs if c.catalog_id == catalog_id)
+            return catalog
+        except StopIteration:
+            return None

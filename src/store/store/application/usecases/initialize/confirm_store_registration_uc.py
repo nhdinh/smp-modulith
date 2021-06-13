@@ -3,10 +3,9 @@
 import abc
 from dataclasses import dataclass
 
+from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.domain.entities.registration_status import RegistrationWaitingForConfirmation
 from store.domain.entities.store_registration import StoreRegistration
-
-from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.domain.entities.value_objects import StoreId
 
 

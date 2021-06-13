@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
 from store.adapter.store_db import store_settings_table, store_table, store_owner_table
-
 from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingResponseDto, \
     CountStoreOwnerByEmailQuery, StoreInfoResponseDto
 

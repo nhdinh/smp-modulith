@@ -6,6 +6,8 @@ from flask import Response, make_response, jsonify
 
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreatingStoreCatalogResponse
+from store.application.usecases.collections.create_store_collection_uc import CreatingStoreCollectionResponse, \
+    CreatingStoreCollectionResponseBoundary
 from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponse, \
     InitializingStoreWithPlanResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreActionResponse, GenericStoreResponseBoundary
@@ -47,6 +49,13 @@ class UpdatingStoreCatalogPresenter(UpdatingStoreCatalogResponseBoundary):
     response: Response
 
     def present(self, response_dto: UpdatingStoreCatalogResponse) -> None:
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class CreatingStoreCollectionPresenter(CreatingStoreCollectionResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: CreatingStoreCollectionResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
 
 

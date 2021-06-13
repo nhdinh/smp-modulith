@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import select, func, and_
-from sqlalchemy.engine.row import RowProxy
 from typing import List
+
+from sqlalchemy import select, func
+from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
 from store.adapter import store_catalog_table, store_table

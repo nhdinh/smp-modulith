@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy.orm import Session
 
 from foundation.uow import SqlAlchemyUnitOfWork
 from store.application.store_repository import SqlAlchemyStoreRepository

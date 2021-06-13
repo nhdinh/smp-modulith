@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
+from typing import Optional
 
 from repository import AbstractRepository
+from store.domain.entities.store import Store
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_registration import StoreRegistration
-from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreId
 
 
@@ -19,8 +20,8 @@ class AbstractStoreRepository(AbstractRepository):
 
 
 class SqlAlchemyStoreRepository(AbstractStoreRepository):
-    def get(self, store_id_to_find: StoreId) -> Store:
-        self._sess.query(Store).filter(Store.store_id == store_id_to_find).all()
+    def get(self, store_id_to_find: StoreId) -> Optional[Store]:
+        return self._sess.query(Store).filter(Store.store_id == store_id_to_find).first()
 
     def _save(self, store: Store) -> None:
         self._sess.add(store)
@@ -31,7 +32,7 @@ class SqlAlchemyStoreRepository(AbstractStoreRepository):
     def fetch_registration_by_token(self, token):
         return self._sess.query(StoreRegistration).filter(StoreRegistration.confirmation_token == token).first()
 
-    def fetch_store_of_owner(self, owner: str):
+    def fetch_store_of_owner(self, owner: str) -> Store:
         """
         Fetch store of the owner
         :param owner:

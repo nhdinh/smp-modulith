@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-import uuid
+
 import secrets
+import uuid
 from datetime import datetime
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
-from store.domain.entities.store import Store
-from store.domain.entities.store_owner import StoreOwner
-from store.domain.events.store_registered_event import StoreRegisteredEvent
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation, \
     RegistrationConfirmed
+from store.domain.entities.store import Store
+from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.value_objects import RegistrationId
+from store.domain.events.store_registered_event import StoreRegisteredEvent
 from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
 from store.domain.rules.store_registration_must_have_valid_expiration_rule import \
     StoreRegistrationMustHaveValidExpirationRule

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass, field
+from typing import List
 from uuid import UUID
 
-from typing import List
 import marshmallow as ma
 
 
