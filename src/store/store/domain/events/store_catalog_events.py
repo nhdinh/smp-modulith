@@ -51,3 +51,20 @@ class StoreCollectionToggledEvent(Event):
     collection_id: StoreCollectionId
     collection_reference: str
     disabled: bool
+
+
+@dataclass(frozen=True)
+class StoreCollectionUpdatedEvent(Event):
+    store_id: StoreId
+    catalog_id: StoreCatalogId
+    collection_id: StoreCollectionId
+    collection_reference: str
+    disabled: bool
+
+
+@dataclass(frozen=True)
+class StoreCollectionDeletedEvent(Event):
+    store_id: StoreId
+    catalog_id: StoreCatalogId
+    collection_id: StoreCollectionId
+    collection_reference: str

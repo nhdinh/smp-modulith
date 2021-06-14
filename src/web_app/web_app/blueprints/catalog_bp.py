@@ -84,7 +84,7 @@ def create_new_catalog(create_catalog_uc: CreateCatalogUC, presenter: CreatingCa
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@catalog_blueprint.route('/<string:catalog_query>/collections', methods=['POST'])
+@catalog_blueprint.route('/<string:catalog_query>/collection', methods=['POST'])
 @jwt_required()
 def create_new_collection(catalog_query: str, create_collection_uc: CreateCollectionUC,
                           presenter: CreatingCatalogResponseBoundary) -> Response:

@@ -148,7 +148,7 @@ def store_load(store, connection):
     store.domain_events = []
     store._cached = {
         'catalogs': [],
-        'collections': [],
+        'collection': [],
         'products': []
     }
 
@@ -162,13 +162,13 @@ def store_load(store, connection):
     q = sa.select([store_collection_cache_table.c.collection_reference]).where(
         store_collection_cache_table.c.store_id == store.store_id)
     fetched_collections = connection.session.execute(q).all()
-    store._cached['collections'] = [r.collection_reference for r in fetched_collections]
+    store._cached['collection'] = [r.collection_reference for r in fetched_collections]
 
 
 @event.listens_for(StoreCatalog, 'load')
 def ctalog_load(catalog, connection):
     catalog._cached = {
-        'collections': [],
+        'collection': [],
         'products': []
     }
 
@@ -179,4 +179,4 @@ def ctalog_load(catalog, connection):
     )
 
     fetched_collections = connection.session.execute(q).all()
-    catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]
+    catalog._cached['collection'] = [r.collection_reference for r in fetched_collections]

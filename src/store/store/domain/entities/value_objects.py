@@ -17,3 +17,4 @@ StoreCollectionId = NewType('StoreCollectionId', tp=UUID)
 StoreCollectionReference = NewType('StoreCollectionReference', tp=str)
 
 StoreProductId = NewType('StoreProductId', tp=UUID)
+StoreProductReference = NewType('StoreProductReference', tp=str)

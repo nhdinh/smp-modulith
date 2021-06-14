@@ -5,6 +5,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 from typing import Type
 
+from store.application.usecases.catalog.systemize_store_catalog_uc import SystemizeStoreCatalogUC
+
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.adapter import store_db
 from store.adapter.queries import SqlFetchAllStoreCatalogsQuery, SqlFetchAllStoreCollectionsQuery
@@ -22,11 +24,14 @@ from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import
 from store.application.usecases.catalog.remove_store_catalog_uc import RemoveStoreCatalogUC, \
     RemovingStoreCatalogResponseBoundary
 from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC
-from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary
-from store.application.usecases.collections.create_store_collection_uc import CreateStoreCollectionUC, \
+from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
+    UpdateStoreCatalogUC
+from store.application.usecases.collection.create_store_collection_uc import CreateStoreCollectionUC, \
     CreatingStoreCollectionResponseBoundary
-from store.application.usecases.collections.toggle_store_collection_uc import ToggleStoreCollectionUC
-from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary
+from store.application.usecases.collection.make_store_collection_default_uc import MakeStoreCollectionDefaultUC
+from store.application.usecases.collection.toggle_store_collection_uc import ToggleStoreCollectionUC
+from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
+    UpdateStoreCollectionUC
 from store.application.usecases.initialize.confirm_store_registration_uc import \
     ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
@@ -90,6 +95,16 @@ class StoreModule(injector.Module):
                                 uow: StoreUnitOfWork) -> RemoveStoreCatalogUC:
         return RemoveStoreCatalogUC(boundary, uow)
 
+    @injector.provider
+    def update_store_catalog_uc(self, boundary: UpdatingStoreCatalogResponseBoundary,
+                                uow: StoreUnitOfWork) -> UpdateStoreCatalogUC:
+        return UpdateStoreCatalogUC(boundary, uow)
+
+    @injector.provider
+    def make_store_catalog_system_uc(self, boundary: UpdatingStoreCatalogResponseBoundary,
+                                     uow: StoreUnitOfWork) -> SystemizeStoreCatalogUC:
+        return SystemizeStoreCatalogUC(boundary, uow)
+
     """
     STORE COLLECTION OPERATIONS
     """
@@ -100,9 +115,23 @@ class StoreModule(injector.Module):
         return CreateStoreCollectionUC(boundary, uow)
 
     @injector.provider
+    def update_store_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
+                                   uow: StoreUnitOfWork) -> UpdateStoreCollectionUC:
+        return UpdateStoreCollectionUC(boundary, uow)
+
+    @injector.provider
     def toggle_store_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
                                    uow: StoreUnitOfWork) -> ToggleStoreCollectionUC:
         return ToggleStoreCollectionUC(boundary, uow)
+
+    @injector.provider
+    def make_store_collection_default_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
+                                         uow: StoreUnitOfWork) -> MakeStoreCollectionDefaultUC:
+        return MakeStoreCollectionDefaultUC(boundary, uow)
+
+    """
+    STORE HANDLERS FACADE
+    """
 
     @injector.provider
     def facade(self, connection: Connection) -> StoreHandlerFacade:

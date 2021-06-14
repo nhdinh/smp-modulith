@@ -14,6 +14,7 @@ class StoreCollectionResponseDto:
     reference: str
     display_name: str
     disabled: bool
+    default: bool
 
     def serialize(self):
         return {
@@ -21,6 +22,7 @@ class StoreCollectionResponseDto:
             'collection_reference': self.reference,
             'collection_display_name': self.display_name,
             'disabled': self.disabled,
+            'default': self.default,
         }
 
 
@@ -42,7 +44,7 @@ class StoreCatalogResponseDto:
             'catalog_display_name': self.display_name,
             'system': self.system,
             'disabled': self.disabled,
-            'collections': [c.serialize() for c in self.collections]
+            'collection': [c.serialize() for c in self.collections]
         }
 
 

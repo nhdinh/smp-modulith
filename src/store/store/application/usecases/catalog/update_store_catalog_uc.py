@@ -5,9 +5,8 @@ from dataclasses import dataclass
 from typing import Optional
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import validate_store_ownership
-from store.domain.entities.value_objects import StoreId, StoreCatalogReference
+from store.application.usecases.store_uc_common import fetch_store_by_owner
+from store.domain.entities.value_objects import StoreCatalogReference
 
 
 @dataclass
@@ -21,10 +20,7 @@ class UpdatingStoreCatalogRequest:
 
 @dataclass
 class UpdatingStoreCatalogResponse:
-    store_id: StoreId
-    catalog_reference: StoreCatalogReference
     status: bool
-    disabled: bool
 
 
 class UpdatingStoreCatalogResponseBoundary(abc.ABC):
@@ -41,22 +37,8 @@ class UpdateStoreCatalogUC:
     def execute(self, input_dto: UpdatingStoreCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                # fetch store data by id ID
-                store = uow.stores.fetch_store_of_owner(owner=input_dto.current_user)
-
-                if store is None:
-                    raise Exception(ExceptionMessages.STORE_NOT_FOUND)
-
-                # if the Store is disabled by admin
-                if getattr(store, 'disabled', False):
-                    raise Exception(ExceptionMessages.STORE_NOT_AVAILABLE)
-
-                if not validate_store_ownership(store=store, owner_email=input_dto.current_user):
-                    raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE)
-
-                # check catalog
-                if not store.has_catalog_reference(catalog_reference=input_dto.catalog_reference):
-                    raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+                # get store
+                store = fetch_store_by_owner(store_owner=input_dto.current_user, uow=uow)
 
                 # make update input data
                 update_data = {}
@@ -74,12 +56,10 @@ class UpdateStoreCatalogUC:
                     update_data['display_image'] = input_dto.display_image
 
                 # do update
-                store.update_catalog_data(catalog_reference=input_dto.catalog_reference, update_data=update_data)
+                store.update_catalog(catalog_reference=input_dto.catalog_reference, update_data=update_data)
 
                 # build the output
                 response_dto = UpdatingStoreCatalogResponse(
-                    store_id=store.store_id,
-                    catalog_reference=input_dto.catalog_reference,
                     status=True
                 )
                 self._ob.present(response_dto=response_dto)

@@ -11,4 +11,5 @@ SQLAlchemy
 flasgger==0.9.5
 flask-cors
 apispec
+flask
 flask-apispec

@@ -3,11 +3,9 @@
 from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
+from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
-from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import is_store_disabled, validate_store_ownership, fetch_store_by_owner
-from store.domain.entities.store_catalog import StoreCatalog
+from store.application.usecases.store_uc_common import fetch_store_by_owner
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference
 
 

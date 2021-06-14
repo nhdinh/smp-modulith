@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import fetch_store_by_owner
 
 

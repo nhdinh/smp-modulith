@@ -45,8 +45,8 @@ class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
             if catalog_dto.reference not in ret.keys():
                 ret[catalog_dto.reference] = catalog_dto
 
-            if not hasattr(ret[catalog_dto.reference], 'collections'):
-                setattr(ret[catalog_dto.reference], 'collections', [])
+            if not hasattr(ret[catalog_dto.reference], 'collection'):
+                setattr(ret[catalog_dto.reference], 'collection', [])
 
             # fetch collection from RowProxy and make sure its content is not Null in both reference and display_name
             _collection = _row_to_collection_dto(row)

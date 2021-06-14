@@ -50,7 +50,7 @@ class StoreCatalog:
 
         # cached
         self._cached = {
-            'collections': set(),
+            'collection': set(),
             'products': set()
         }
 
@@ -178,18 +178,18 @@ class StoreCatalog:
         # add the collection to self
         self._collections.add(collection)
 
-    def get_collection(self, reference: StoreCollectionReference) -> Optional[StoreCollection]:
+    def get_collection(self, collection_reference: StoreCollectionReference) -> Optional[StoreCollection]:
         """
         Get the child collection by it reference
 
-        :param reference: reference to search
+        :param collection_reference: reference to search
         :return: instance of `StoreCollection` or None
         """
         if len(self._collections) == 0:
             return None
 
         try:
-            return next(col for col in self._collections if col.reference == reference)
+            return next(col for col in self._collections if col.reference == collection_reference)
         except StopIteration:
             return None
 
@@ -203,12 +203,12 @@ class StoreCatalog:
         _cached = getattr(self, '_cached', dict())
 
         # check if all conditions is good, return the value
-        if _cached and 'collections' in _cached.keys() and type(_cached['collections']) is Set:
-            return 'reference' in _cached['collections']
+        if _cached and 'collection' in _cached.keys() and type(_cached['collection']) is Set:
+            return 'reference' in _cached['collection']
 
         # else, build the value
         if _cached is None or type(_cached) is not dict:
-            setattr(self, '_cached', {'collections': set(), 'products': set()})
+            setattr(self, '_cached', {'collection': set(), 'products': set()})
 
         # build cached
         _collection_cache = set()
@@ -216,10 +216,10 @@ class StoreCatalog:
             _collection_cache.add(collection.reference)
 
         # set cache
-        _cached['collections'] = _collection_cache
+        _cached['collection'] = _collection_cache
         setattr(self, '_cached', _cached)
 
-        return reference in _cached['collections']
+        return reference in _cached['collection']
 
     def _make_new_collection_reference(self, reference: StoreCollectionReference) -> str:
         """
@@ -232,7 +232,7 @@ class StoreCatalog:
         try:
             reference_name_with_number = re.compile(f'^{reference}_([0-9]+)$')
             numbers = []
-            for name in self._cached['collections']:
+            for name in self._cached['collection']:
                 matches = reference_name_with_number.match(name)
                 if matches:
                     numbers.append(int(matches[1]))

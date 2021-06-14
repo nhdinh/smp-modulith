@@ -55,7 +55,7 @@ class Catalog(EventMixin, Entity):
         if type(self._collections) is list:
             self._collections = set(self._collections)
         elif type(self._collections) is not set and type(self._collections) is not InstrumentedSet:
-            raise TypeError('Catalog.collections must be a set')
+            raise TypeError('Catalog.collection must be a set')
 
         self._collections.add(child_collection)
 

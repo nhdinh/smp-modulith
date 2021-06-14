@@ -52,7 +52,7 @@ class JSONEncoder(json.JSONEncoder):
             'reference': obj.reference,
             'display_name': obj.display_name,
             'disabled': obj.disabled,
-            'collections': obj.collections,
+            'collection': obj.collections,
             'system': obj.system,
         }
 

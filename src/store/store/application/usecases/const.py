@@ -22,3 +22,4 @@ class ExceptionMessages:
     STORE_COLLECTION_NOT_FOUND = 'Collection not found'
     DEFAULT_STORE_COLLECTION_CANNOT_BE_DISABLED = 'Cannot disable/enable default collection'
     DUPLICATED_COLLECTION_REFERENCE_WHEN_COPYING = 'Destination catalog already has collection with this reference'
+    DEFAULT_STORE_COLLECTION_CANNOT_BE_DELETED = 'Cannot delete default collection'

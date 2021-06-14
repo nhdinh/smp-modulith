@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from typing import Union
 
 import email_validator
+from store.application.services.store_unit_of_work import StoreUnitOfWork
 
-from store import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog

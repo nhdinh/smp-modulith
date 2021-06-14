@@ -3,9 +3,14 @@
 
 import flask_injector
 import injector
-from factory.base import logger
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from store.application.usecases.product.create_store_product_uc import CreateStoreProductUC, \
+    CreatingStoreProductResponseBoundary, CreatingStoreProductRequest
+
+from foundation.logger import logger
+from store.application.usecases.catalog.systemize_store_catalog_uc import SystemizeStoreCatalogUC, \
+    SystemizingStoreCatalogRequest
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery
@@ -17,11 +22,13 @@ from store.application.usecases.catalog.remove_store_catalog_uc import RemovingS
 from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
-from store.application.usecases.collections.create_store_collection_uc import CreateStoreCollectionUC, \
+from store.application.usecases.collection.create_store_collection_uc import CreateStoreCollectionUC, \
     CreatingStoreCollectionResponseBoundary, CreatingStoreCollectionRequest
-from store.application.usecases.collections.toggle_store_collection_uc import TogglingStoreCollectionRequest, \
+from store.application.usecases.collection.make_store_collection_default_uc import MakingStoreCollectionDefaultRequest, \
+    MakeStoreCollectionDefaultUC
+from store.application.usecases.collection.toggle_store_collection_uc import TogglingStoreCollectionRequest, \
     ToggleStoreCollectionUC
-from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
+from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
@@ -173,7 +180,7 @@ def fetch_store_collections(
 ) -> Response:
     """
     GET :5000/store-catalog/catalog/catalog_reference
-    Fetch collections from catalog
+    Fetch collection from catalog
 
     :param fetch_all_store_collections_query:
     :param catalog_reference:
@@ -243,6 +250,33 @@ def toggle_store_catalog(catalog_reference: str, toogle_store_catalog_uc: Toggle
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
+@store_catalog_blueprint.route('/catalog/<string:catalog_reference>/system', methods=['PATCH'])
+@jwt_required()
+def systemize_store_catalog(catalog_reference: str, systemize_store_catalog_uc: SystemizeStoreCatalogUC,
+                            presenter: UpdatingStoreCatalogResponseBoundary) -> Response:
+    """
+    PATCH :5000/store-catalog/catalog/catalog_reference/system
+    Make a catalog system
+
+    :param presenter:
+    :param systemize_store_catalog_uc:
+    :param catalog_reference:
+    """
+    try:
+        dto = get_dto(request, SystemizingStoreCatalogRequest, context={
+            'current_user': get_jwt_identity(),
+            'catalog_reference': catalog_reference
+        })
+        systemize_store_catalog_uc.execute(dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
 @store_catalog_blueprint.route('/catalog/<string:catalog_reference>', methods=['DELETE'])
 @jwt_required()
 def remove_store_catalog(catalog_reference: str,
@@ -296,7 +330,7 @@ def create_store_collection(catalog_reference: str,
             'catalog_reference': catalog_reference
         })
         create_store_collection_uc.execute(dto)
-        return presenter.response, 200  # type: ignore
+        return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
@@ -327,6 +361,7 @@ def update_store_collection(
     """
     try:
         dto = get_dto(request, UpdatingStoreCollectionRequest, context={
+            'current_user': get_jwt_identity(),
             'catalog_reference': catalog_reference,
             'collection_reference': collection_reference,
         })
@@ -365,6 +400,40 @@ def toggle_store_collection(catalog_reference: str, collection_reference: str,
             'collection_reference': collection_reference
         })
         toggle_store_collection_uc.execute(dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_catalog_blueprint.route(
+    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>/default',
+    methods=['PATCH']
+)
+@jwt_required()
+def make_store_collection_default(catalog_reference: str, collection_reference: str,
+                                  make_store_collection_default_uc: MakeStoreCollectionDefaultUC,
+                                  presenter: UpdatingStoreCollectionResponseBoundary) -> Response:
+    """
+    PATCH :5000/store-catalog/catalog/catalog_reference/collection:collection_reference/default
+    Make this collection to be default collection
+
+    :param presenter:
+    :param make_store_collection_default_uc:
+    :param catalog_reference:
+    :param collection_reference:
+    """
+
+    try:
+        dto = get_dto(request, MakingStoreCollectionDefaultRequest, context={
+            'current_user': get_jwt_identity(),
+            'catalog_reference': catalog_reference,
+            'collection_reference': collection_reference
+        })
+        make_store_collection_default_uc.execute(dto)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
@@ -420,7 +489,9 @@ def fetch_store_products(
     methods=['POST']
 )
 @jwt_required()
-def create_store_product(catalog_reference: str, collection_reference: str) -> Response:
+def create_store_product(catalog_reference: str, collection_reference: str,
+                         create_store_product_uc: CreateStoreProductUC,
+                         presenter: CreatingStoreProductResponseBoundary) -> Response:
     """
     POST :5000/store-catalog/catalog/catalog_reference/collection:collection_reference
     Create new product in catalog/ collection
@@ -428,7 +499,20 @@ def create_store_product(catalog_reference: str, collection_reference: str) -> R
     :param catalog_reference:
     :param collection_reference:
     """
-    raise NotImplementedError
+    try:
+        dto = get_dto(request, CreatingStoreProductRequest, context={
+            'current_user': get_jwt_identity(),
+            'catalog_reference': catalog_reference,
+            'collection_reference': collection_reference
+        })
+        create_store_product_uc.execute(dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 @store_catalog_blueprint.route('/product:<string:product_id>', methods=['PATCH'])

@@ -36,6 +36,7 @@ def _row_to_collection_dto(row: RowProxy) -> StoreCollectionResponseDto:
         reference=row.reference,
         display_name=row.display_name,
         disabled=row.disabled,
+        default=row.default,
     )
 
 
@@ -72,7 +73,7 @@ class SqlFetchAllStoreCatalogsQuery(FetchAllStoreCatalogsQuery, SqlQuery):
                     items=[]
                 )
 
-            # else, continue to load collections
+            # else, continue to load collection
             catalog_indices = set()
             for catalog in catalogs:
                 catalog_indices.add(catalog.catalog_id)
@@ -85,6 +86,7 @@ class SqlFetchAllStoreCatalogsQuery(FetchAllStoreCatalogsQuery, SqlQuery):
                 store_collection_table.c.reference,
                 store_collection_table.c.display_name,
                 store_collection_table.c.disabled,
+                store_collection_table.c.default,
             ], store_collection_table.c.catalog_id.in_(list(catalog_indices))) \
                 .select_from(store_collection_table) \
                 .where(store_collection_table.c.store_id == store_id)
