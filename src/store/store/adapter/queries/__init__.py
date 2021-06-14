@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from typing import List
 
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery

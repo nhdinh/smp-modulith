@@ -5,10 +5,10 @@ from typing import Union
 import injector
 from sqlalchemy.engine import Connection
 
-from identity_handler_facade import IdentityHandlerFacade
-from foundation.events import AsyncHandler, AsyncEventHandlerProvider, EventHandlerProvider, Handler
+from foundation.events import AsyncHandler, AsyncEventHandlerProvider
 from identity.config import IdentityModuleConfig
 from identity.domain.events.user_registration_confirmed_event import UserRegistrationConfirmedEvent
+from identity_handler_facade import IdentityHandlerFacade
 
 
 class IdentityModule(injector.Module):

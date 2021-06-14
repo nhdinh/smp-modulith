@@ -4,12 +4,9 @@ import abc
 from dataclasses import dataclass
 from datetime import timedelta, datetime
 
-from identity.domain.value_objects import UserEmail
-
-from identity.domain.rules.password_must_meet_requirement_rule import PasswordMustMeetRequirementRule
-
 from identity.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
 from identity.domain.entities import User
+from identity.domain.value_objects import UserEmail
 
 
 @dataclass

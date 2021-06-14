@@ -18,8 +18,8 @@ class StoreCollectionResponseDto:
     def serialize(self):
         return {
             'collection_id': self.collection_id,
-            'reference': self.reference,
-            'display_name': self.display_name,
+            'collection_reference': self.reference,
+            'collection_display_name': self.display_name,
             'disabled': self.disabled,
         }
 
@@ -38,8 +38,8 @@ class StoreCatalogResponseDto:
         return {
             'catalog_id': str(self.catalog_id),
             'store_id': str(self.store_id),
-            'reference': self.reference,
-            'display_name': self.display_name,
+            'catalog_reference': self.reference,
+            'catalog_display_name': self.display_name,
             'system': self.system,
             'disabled': self.disabled,
             'collections': [c.serialize() for c in self.collections]

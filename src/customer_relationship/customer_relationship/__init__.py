@@ -1,14 +1,14 @@
 import injector
 from sqlalchemy.engine import Connection
 
-from identity.domain.events.password_resetted_event import PasswordResettedEvent
-from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
-from store import StoreRegisteredEvent, StoreCreatedEvent
 from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.facade import CustomerRelationshipFacade
 from customer_relationship.models import customers
 from foundation.events import AsyncEventHandlerProvider, AsyncHandler
+from identity.domain.events.password_resetted_event import PasswordResettedEvent
+from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
+from store import StoreRegisteredEvent, StoreCreatedEvent
 
 __all__ = [
     # module

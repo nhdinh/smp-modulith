@@ -3,14 +3,14 @@ from dataclasses import dataclass
 
 import dotenv
 import injector
-from foundation import FoundationModule
-from identity import IdentityModule
 from sqlalchemy.engine import Engine, create_engine
 
 from auctions import Auctions
 from auctions_infrastructure import AuctionsInfrastructure
 from customer_relationship import CustomerRelationship
 from db_infrastructure import metadata
+from foundation import FoundationModule
+from identity import IdentityModule
 from identity.adapters import identity_db
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule

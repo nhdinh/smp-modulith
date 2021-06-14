@@ -4,9 +4,9 @@ import abc
 from dataclasses import dataclass, field
 from typing import Optional, List
 
-from slugify import slugify
 from sqlalchemy.orm import Session
 
+from foundation import slugify
 from product_catalog import CatalogUnitOfWork
 from product_catalog.domain.entities.brand import Brand
 from product_catalog.domain.entities.catalog import Catalog

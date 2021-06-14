@@ -4,10 +4,9 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-from slugify import slugify
-
+from foundation import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import fetch_store_by_owner, fetch_catalog_from_store
+from store.application.usecases.store_uc_common import fetch_store_by_owner
 from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference, StoreId, \
     StoreCollectionId

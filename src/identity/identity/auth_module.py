@@ -9,10 +9,8 @@ from identity.application.services.authentication_unit_of_work import Authentica
 from identity.application.usecases.change_password_uc import ChangePasswordUC, ChangingPasswordResponseBoundary
 from identity.application.usecases.log_user_in import LoggingUserInUC, LoggingUserInResponseBoundary
 from identity.application.usecases.register_user import RegisteringUserUC, RegisteringUserResponseBoundary
-
 from identity.application.usecases.request_to_change_password_uc import RequestToChangePasswordUC, \
     RequestingToChangePasswordResponseBoundary
-
 from identity.application.usecases.revoke_token import RevokingTokenUC
 
 __all__ = [

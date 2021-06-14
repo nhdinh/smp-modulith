@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Union
-from uuid import UUID
 
 import email_validator
 from sqlalchemy import select, func, distinct
@@ -9,7 +7,7 @@ from sqlalchemy.engine import Connection
 
 from store.adapter.store_db import store_table, store_owner_table, store_catalog_cache_table, \
     store_collection_cache_table, store_catalog_table
-from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCatalogReference
+from store.domain.entities.value_objects import StoreId, StoreCatalogId
 
 
 def sql_fetch_store_by_owner(store_owner: str, conn: Connection, active_only: bool = True):

@@ -4,12 +4,10 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-from slugify import slugify
-
+from foundation import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import fetch_store_by_owner
-from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId
 
 
@@ -40,13 +38,13 @@ class CreateStoreCatalogUC:
     def execute(self, dto: CreatingStoreCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner(store_owner=dto.current_user,uow=uow)
+                store = fetch_store_by_owner(store_owner=dto.current_user, uow=uow)
 
                 if store.has_catalog_reference(dto.catalog_reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
 
                 # validate inputs
-                reference = dto.catalog_reference if dto.catalog_reference else slugify(dto.display_name)
+                reference = slugify(dto.catalog_reference) if dto.catalog_reference else slugify(dto.display_name)
 
                 # make catalog
                 catalog = store.make_children_catalog(
@@ -54,15 +52,9 @@ class CreateStoreCatalogUC:
                     display_name=dto.display_name,
                 )
 
-                # make default collection
-                if dto.enable_default_collection:
-                    catalog.create_default_collection()
-
-                catalog_id = store.add_catalog(catalog)
-
                 # make response
                 response_dto = CreatingStoreCatalogResponse(
-                    catalog_id=catalog_id
+                    catalog_id=catalog.catalog_id
                 )
                 self._ob.present(response_dto)
 

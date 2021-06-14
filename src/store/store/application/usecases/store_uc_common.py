@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Union
 
 import email_validator
 

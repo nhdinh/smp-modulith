@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 from typing import Set, List, Any, Optional, Union
 
-from slugify import slugify
-
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.usecases.const import ExceptionMessages
@@ -223,7 +221,65 @@ class Store(EventMixin, Entity):
         # updated on saved.
         pass
 
-    def add_catalog(self, catalog: StoreCatalog):
+    def _make_default_catalog(self) -> StoreCatalog:
+        """
+        Make default catalog for store
+
+        :return: instance of `StoreCatalog`
+        """
+        default_catalog_reference = self.get_setting('default_catalog_reference', 'default-catalog')
+        default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
+
+        # create the new StoreCatalog as default catalog
+        return self.make_children_catalog(
+            reference=default_catalog_reference,
+            display_name=default_catalog_name,
+            display_image='',
+            disabled=False,
+            system=True
+        )
+
+    def make_children_catalog(
+            self,
+            reference: str,
+            display_name: str,
+            **kwargs,
+    ):
+        """
+        Make a new children catalog
+
+        :param reference: reference of the newly catalog
+        :param display_name: catalog's display name
+        :return: instance of `StoreCatalog`
+        """
+
+        display_image = kwargs.get('display_image') if 'display_image' in kwargs.keys() else ''
+        disabled = kwargs.get('disabled') if 'disabled' in kwargs.keys() else False
+        system = kwargs.get('system') if 'system' in kwargs.keys() else False
+
+        catalog = StoreCatalog.make_catalog(
+            display_name=display_name,
+            reference=reference,
+            display_image=display_image,
+            disabled=disabled,
+            system=system
+        )
+
+        # create its default collection
+        default_collection_reference = self.get_setting('default_collection_reference', 'default-reference')
+        default_collection_display_name = self.get_setting('default_collection_name', 'Default Catalog')
+
+        default_collection = StoreCollection.make_collection(reference=default_collection_reference,
+                                                             display_name=default_collection_display_name,
+                                                             default=True)
+        catalog.add_collection(default_collection)
+
+        # add children to self
+        self._add_catalog(catalog)
+
+        return catalog
+
+    def _add_catalog(self, catalog: StoreCatalog):
         """
         Add the `catalog` into self catalogs children
 
@@ -234,39 +290,18 @@ class Store(EventMixin, Entity):
             raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
 
         # assign store_id to children catalog and collection
-        catalog.store_id = self.store_id
+        catalog.store = self
         for collection in catalog.collections:
-            collection.store_id = self.store_id
+            collection.store = self
 
         self._catalogs.add(catalog)
-
-        # add collection event
 
         # add catalog event
         self._raise_catalog_created_event(catalog=catalog)
 
         return catalog.catalog_id
 
-    def make_children_catalog(self, reference: str, display_name: str):
-        """
-        Make a new children catalog
-
-        :param reference: reference of the newly catalog
-        :param display_name: catalog's display name
-        :return: instance of `StoreCatalog`
-        """
-        catalog = StoreCatalog.make_catalog(
-            display_name=display_name,
-            reference=reference,
-            store_settings=self.settings
-        )
-
-        # add children to self
-        self.add_catalog(catalog)
-
-        return catalog
-
-    def make_children_collection(self, of_catalog: StoreCatalogReference,
+    def make_children_collection(self, of_catalog: Union[StoreCatalogReference, StoreCatalog],
                                  display_name: str,
                                  reference: str) -> StoreCollection:
         """
@@ -276,16 +311,20 @@ class Store(EventMixin, Entity):
         :param reference:
         """
         try:
-            if not self.has_catalog_reference(of_catalog):
-                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            if type(of_catalog) is not StoreCatalog:
+                catalog = self.get_catalog_by_reference(catalog_reference=of_catalog)  # type:StoreCatalog
+                if not catalog:
+                    raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            else:
+                catalog = of_catalog  # type:StoreCatalog
 
-            catalog = self.get_catalog_by_reference(catalog_reference=of_catalog)  # type:StoreCatalog
-
-            collection = catalog.make_collection(
+            # make collection
+            collection = StoreCollection.make_collection(
                 reference=reference,
                 display_name=display_name
             )
 
+            collection.store = self
             catalog.add_collection(collection)
 
             self._raise_collection_created_event(collection=collection)
@@ -356,25 +395,6 @@ class Store(EventMixin, Entity):
         # all fine
         _collection.disabled = not _collection.disabled
 
-    def _make_default_catalog(self) -> StoreCatalog:
-        default_catalog_reference = self.get_setting('default_catalog_reference', 'default-catalog')
-        default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
-
-        # create the new StoreCatalog as default catalog
-        default_catalog = StoreCatalog.make_catalog(
-            reference=default_catalog_reference,
-            display_name=default_catalog_name,
-            display_image='',
-            disabled=False,
-            system=True,
-            include_default_collection=True
-        )
-
-        # add children to self
-        self.add_catalog(default_catalog)
-
-        return default_catalog
-
     def _raise_store_created_event(self) -> None:
         """
         Raise all the events related to the newly created store
@@ -443,8 +463,9 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    def delete_catalog(self, reference: StoreCatalogReference) -> None:
+    def delete_catalog(self, catalog: StoreCatalog) -> None:
         try:
-            ...
+            if catalog in self._catalogs:
+                self._catalogs.remove(catalog)
         except Exception as exc:
             raise exc

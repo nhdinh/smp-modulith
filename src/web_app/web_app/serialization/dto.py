@@ -1,8 +1,8 @@
 import math
 from dataclasses import field
 from typing import Type, TypeVar, cast, List, Generic
-import marshmallow as ma
 
+import marshmallow as ma
 from flask import Request
 from marshmallow_dataclass import class_schema, dataclass
 

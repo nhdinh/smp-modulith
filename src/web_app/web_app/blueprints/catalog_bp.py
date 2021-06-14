@@ -3,7 +3,7 @@
 
 import flask_injector
 import injector
-from flask import Blueprint, jsonify, make_response, Response, abort, request, current_app
+from flask import Blueprint, jsonify, make_response, Response, request, current_app
 from flask_jwt_extended import jwt_required
 from flask_login import current_user
 

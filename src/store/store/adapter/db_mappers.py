@@ -41,7 +41,10 @@ def start_mappers():
         }
     )
 
-    mapper(StoreCollection, store_collection_table)
+    mapper(StoreCollection, store_collection_table, properties={
+        '_store_id': store_collection_table.c.store_id,
+    })
+
     mapper(StoreCatalog, store_catalog_table, properties={
         '_collections': relationship(
             StoreCollection,
@@ -53,10 +56,12 @@ def start_mappers():
     store_mapper = mapper(Store, store_table, properties={
         '_owner_id': store_table.c.owner,
         'owner_email': store_table.c.owner_email,
+
         '_settings': relationship(
             Setting,
             collection_class=set
         ),
+
         '_owner': relationship(
             StoreOwner,
             # foreign_keys=[store_table.c.owner],
@@ -64,13 +69,21 @@ def start_mappers():
             # viewonly=True,
             backref=backref('_store'),
         ),
+
         '_managers': relationship(
             User,
             secondary=store_managers_table,
             collection_class=set,
         ),
+
         '_catalogs': relationship(
             StoreCatalog,
+            collection_class=set,
+            backref=backref('_store')
+        ),
+
+        '_collections': relationship(
+            StoreCollection,
             collection_class=set,
             backref=backref('_store')
         )

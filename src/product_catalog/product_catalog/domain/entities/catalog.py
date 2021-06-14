@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional, Set
 
-from slugify import slugify
 from sqlalchemy.orm.collections import InstrumentedSet
 
+from foundation import slugify
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from product_catalog.domain.entities.collection import Collection

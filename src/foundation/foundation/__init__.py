@@ -3,6 +3,7 @@
 from datetime import datetime
 
 import injector
+import slugify as slug1fy
 from sqlalchemy.engine import Connection
 
 from foundation.events import AsyncHandler, Event, AsyncEventHandlerProvider
@@ -32,3 +33,12 @@ class RecordAllEventHandler:
 
     def __call__(self, event):
         self._facade.record_event(event)
+
+
+"""
+ALL HELPERS
+"""
+
+
+def slugify(text: str) -> str:
+    return slug1fy.slugify(text.strip(), separator='_')

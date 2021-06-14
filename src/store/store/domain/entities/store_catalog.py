@@ -5,10 +5,9 @@ from __future__ import annotations
 import re
 import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Set, Dict
+from typing import TYPE_CHECKING, Optional, Set
 
-from slugify import slugify
-
+from foundation import slugify
 from store.application.usecases.const import ExceptionMessages
 
 if TYPE_CHECKING:
@@ -49,14 +48,20 @@ class StoreCatalog:
         self._collections = set()
         self._store = None  # type: Optional[Store]
 
-        # get settings from store as dict
-        self._store_settings = kwargs.get('store_settings') if 'store_settings' in kwargs.keys() else {}  # type: Dict
-
         # cached
-        self.__cached = {
+        self._cached = {
             'collections': set(),
             'products': set()
         }
+
+    @property
+    def store(self) -> Store:
+        return self._store
+
+    @store.setter
+    def store(self, value: Store):
+        setattr(self, 'store_id', value.store_id)  # set store_id for the data field
+        self._store = value
 
     @property
     def default_collection(self) -> Optional[StoreCollection]:
@@ -128,15 +133,12 @@ class StoreCatalog:
         catalog_id = StoreCatalogId(uuid.uuid4())
 
         # generate `reference` field
-        reference = kwargs.get('reference') if 'reference' in kwargs.keys() else slugify(display_name)
+        reference = slugify(kwargs.get('reference')) if 'reference' in kwargs.keys() else slugify(display_name)
         reference = reference if reference else slugify(display_name)
 
         # build properties
         is_system = kwargs.get('system') if 'system' in kwargs.keys() else False
         display_image = kwargs.get('display_image') if 'display_image' in kwargs.keys() else ''
-
-        # get store settings
-        store_settings = kwargs.get('store_settings') if 'store_settings' in kwargs.keys() else {}
 
         catalog = StoreCatalog(
             catalog_id=catalog_id,
@@ -144,30 +146,10 @@ class StoreCatalog:
             display_name=display_name,
             disabled=False,
             system=is_system,
-            display_image=display_image,
-            store_settings=store_settings,
+            display_image=display_image
         )
 
-        included_default_collection = kwargs.get(
-            'included_default_collection') if 'included_default_collection' in kwargs.keys() else True
-        if included_default_collection:
-            collection = catalog.create_default_collection()
-            catalog.add_collection(collection)
-
         return catalog
-
-    def create_default_collection(self):
-        # check if there is any default collection in the list of children
-        if self.default_collection:
-            return None
-
-        # get settings
-        reference = self.get_store_settings('default_collection_reference', 'default_collection')
-        display_name = self.get_store_settings('default_collection_display_name', 'Default Collection')
-        collection = StoreCollection.make_collection(reference=reference, display_name=display_name, default=True)
-
-        # if the collection is new-ly created, then return (do we need this?)
-        return collection
 
     def add_collection(self, collection: StoreCollection, rename_if_duplicated=True, keep_default=True):
         """
@@ -193,9 +175,7 @@ class StoreCatalog:
                 if not keep_default:
                     collection.default = False
 
-        # set store_id for searching further
-        collection.store_id = self._store.store_id
-
+        # add the collection to self
         self._collections.add(collection)
 
     def get_collection(self, reference: StoreCollectionReference) -> Optional[StoreCollection]:
@@ -213,18 +193,6 @@ class StoreCatalog:
         except StopIteration:
             return None
 
-    @staticmethod
-    def make_collection(reference: StoreCatalogReference, display_name: str):
-        """
-        Make an instance of a collection
-
-        :param reference: reference of the collection to be created
-        :param display_name: display_name of the collection to be created
-        :return: instance of a collection
-        """
-        collection = StoreCollection.make_collection(display_name=display_name, reference=reference)
-        return collection
-
     def has_collection_reference(self, reference: StoreCollectionReference) -> bool:
         """
         Return if the collection reference is list in this catalog's cache
@@ -232,15 +200,15 @@ class StoreCatalog:
         :param reference: reference of the collection
         :return: True or False
         """
-        __cached = getattr(self, '__cached', dict())
+        _cached = getattr(self, '_cached', dict())
 
         # check if all conditions is good, return the value
-        if __cached and 'collections' in __cached.keys() and type(__cached['collections']) is Set:
-            return 'reference' in __cached['collections']
+        if _cached and 'collections' in _cached.keys() and type(_cached['collections']) is Set:
+            return 'reference' in _cached['collections']
 
         # else, build the value
-        if __cached is None or type(__cached) is not Dict:
-            setattr(self, '__cached', {'collections': set(), 'products': set()})
+        if _cached is None or type(_cached) is not dict:
+            setattr(self, '_cached', {'collections': set(), 'products': set()})
 
         # build cached
         _collection_cache = set()
@@ -248,9 +216,10 @@ class StoreCatalog:
             _collection_cache.add(collection.reference)
 
         # set cache
-        self.__cached['collections'] = _collection_cache
+        _cached['collections'] = _collection_cache
+        setattr(self, '_cached', _cached)
 
-        return reference in self.__cached['collections']
+        return reference in _cached['collections']
 
     def _make_new_collection_reference(self, reference: StoreCollectionReference) -> str:
         """
@@ -263,12 +232,12 @@ class StoreCatalog:
         try:
             reference_name_with_number = re.compile(f'^{reference}_([0-9]+)$')
             numbers = []
-            for name in self.__cached['collections']:
+            for name in self._cached['collections']:
                 matches = reference_name_with_number.match(name)
                 if matches:
                     numbers.append(int(matches[1]))
 
-            number_to_change = max(numbers) + 1
+            number_to_change = max(numbers) + 1 if len(numbers) else 1
             new_reference = f"{reference}_{number_to_change}"
 
             return new_reference

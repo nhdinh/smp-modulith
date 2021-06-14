@@ -8,7 +8,6 @@ from store.application.usecases.collections.update_store_collection_uc import Up
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import is_store_disabled, validate_store_ownership
 from store.domain.entities.store_catalog import StoreCatalog
-
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference
 
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy.orm import mapper, relationship, backref

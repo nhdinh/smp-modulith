@@ -11,22 +11,22 @@ from foundation.business_rule import BusinessRuleValidationError
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
+from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
 from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogRequest, \
     RemoveStoreCatalogUC, RemovingStoreCatalogResponseBoundary
+from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
+from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
+    UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
 from store.application.usecases.collections.create_store_collection_uc import CreateStoreCollectionUC, \
     CreatingStoreCollectionResponseBoundary, CreatingStoreCollectionRequest
 from store.application.usecases.collections.toggle_store_collection_uc import TogglingStoreCollectionRequest, \
     ToggleStoreCollectionUC
-from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
-from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
-    UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
-from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
 from store.application.usecases.collections.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
-from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
+from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
     CreatingStoreCollectionPresenter, RemovingStoreCatalogPresenter

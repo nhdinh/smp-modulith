@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from identity.adapters.identity_db import user_table
 from sqlalchemy import insert
-
-from identity.domain.value_objects import UserId
 from sqlalchemy.engine import Connection
+
+from identity.adapters.identity_db import user_table
+from identity.domain.value_objects import UserId
 
 
 class IdentityHandlerFacade:

@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import uuid
 from dataclasses import dataclass
-from typing import Set
+from typing import Set, TYPE_CHECKING
 
-from slugify import slugify
+from foundation import slugify
 
+if TYPE_CHECKING:
+    from store.domain.entities.store import Store
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.value_objects import StoreCollectionReference, StoreCollectionId
 
@@ -17,6 +21,15 @@ class StoreCollection:
     display_name: str
     default: bool = False
     disabled: bool = False
+
+    @property
+    def store(self):
+        return getattr(self, '_store', None)
+
+    @store.setter
+    def store(self, value: Store):
+        setattr(self, '_store', value)
+        setattr(self, '_store_id', value.store_id)
 
     @property
     def products(self) -> Set[StoreProduct]:
@@ -39,11 +52,10 @@ class StoreCollection:
             **kwargs
     ):
         # generate collection_id
-        collection_id = kwargs.get('collection_id') if 'collection_id' in kwargs.keys() else StoreCollectionId(
-            uuid.uuid4())
+        collection_id = StoreCollectionId(uuid.uuid4())
 
         # generate reference
-        reference = kwargs.get('reference') if 'reference' in kwargs.keys() else slugify(display_name)
+        reference = slugify(kwargs.get('reference')) if 'reference' in kwargs.keys() else slugify(display_name)
         reference = reference if reference else slugify(display_name)
 
         # generate is_default

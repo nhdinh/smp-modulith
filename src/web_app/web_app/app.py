@@ -12,14 +12,13 @@ from sqlalchemy.orm import Session
 
 from main import bootstrap_app
 from main.modules import RequestScope
-from web_app import openapi
 from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
 from web_app.blueprints.auth_bp import auth_blueprint, AuthenticationAPI
 from web_app.blueprints.brand import brand_blueprint
 from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
+from web_app.blueprints.manage_store_bp import store_blueprint, StoreAPI
 from web_app.blueprints.product_bp import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
-from web_app.blueprints.manage_store_bp import store_blueprint, StoreAPI
 from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI, \
     store_catalog_blueprint_endpoint_callers, STORE_CATALOG_BLUEPRINT_NAME
 from web_app.json_encoder import JSONEncoder

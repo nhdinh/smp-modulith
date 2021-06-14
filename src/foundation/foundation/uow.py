@@ -5,7 +5,6 @@ from __future__ import annotations
 import abc
 from typing import Optional
 
-from blinker import signal
 from sqlalchemy import event
 from sqlalchemy.orm import Session
 

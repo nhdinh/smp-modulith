@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import flask_injector
 import injector
 from flask import Blueprint, jsonify, make_response, Response, current_app
 

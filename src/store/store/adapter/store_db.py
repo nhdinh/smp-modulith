@@ -166,7 +166,7 @@ def store_load(store, connection):
 
 @event.listens_for(StoreCatalog, 'load')
 def ctalog_load(catalog, connection):
-    catalog.__cached = {
+    catalog._cached = {
         'collections': [],
         'products': []
     }
@@ -178,4 +178,4 @@ def ctalog_load(catalog, connection):
     )
 
     fetched_collections = connection.session.execute(q).all()
-    catalog.__cached['collections'] = [r.collection_reference for r in fetched_collections]
+    catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]

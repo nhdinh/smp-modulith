@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import math
 from typing import Optional, List
 
 from sqlalchemy import func, select
