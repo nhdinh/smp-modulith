@@ -53,7 +53,7 @@ class RemoveStoreCatalogUC:
                 # catalog found, do delete
                 if remove_completely:
                     store.delete_catalog(catalog=catalog_to_deleted)
-                    collection dang khong xoa ma bi set null
+                    # collection dang khong xoa ma bi set null
                 else:
                     store.move_catalog_content(source_reference=dto.catalog_reference, dest_reference='default')
                     store.delete_catalog(catalog=catalog_to_deleted)

@@ -14,6 +14,7 @@ from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, S
     StoreCatalogCreatedEvent, StoreCollectionCreatedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.rules.default_passed_rule import DefaultPassedRule
+from store.domain.rules.new_catalog_reference_should_not_existed_rule import NewCatalogReferenceShouldNotExistedRule
 
 
 class Store(EventMixin, Entity):
@@ -256,6 +257,8 @@ class Store(EventMixin, Entity):
         display_image = kwargs.get('display_image') if 'display_image' in kwargs.keys() else ''
         disabled = kwargs.get('disabled') if 'disabled' in kwargs.keys() else False
         system = kwargs.get('system') if 'system' in kwargs.keys() else False
+
+        self.check_rule(NewCatalogReferenceShouldNotExistedRule(reference=reference))
 
         catalog = StoreCatalog.make_catalog(
             display_name=display_name,

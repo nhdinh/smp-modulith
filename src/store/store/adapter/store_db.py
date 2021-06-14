@@ -43,7 +43,7 @@ store_table = sa.Table(
     metadata,
     sa.Column('store_id', GUID, primary_key=True),
     sa.Column('name', sa.String(100)),
-    sa.Column('owner', sa.ForeignKey(store_owner_table.c.id)),
+    sa.Column('owner', sa.ForeignKey(store_owner_table.c.id, ondelete='SET NULL', onupdate='CASCADE')),
     sa.Column('owner_email', sa.String(255), comment='For easy linking'),
     sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
@@ -53,7 +53,8 @@ store_table = sa.Table(
 store_settings_table = sa.Table(
     'store_settings',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id), primary_key=True),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE'),
+              primary_key=True),
     sa.Column('setting_key', sa.String(100), nullable=False, primary_key=True),
     sa.Column('setting_value', sa.String(100), nullable=False),
     sa.Column('setting_type', sa.String(100), nullable=False),
@@ -64,8 +65,8 @@ store_settings_table = sa.Table(
 store_managers_table = sa.Table(
     'store_managers',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
-    sa.Column('user_id', sa.ForeignKey(user_table.c.id)),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('user_id', sa.ForeignKey(user_table.c.id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('store_role_id', sa.String(100), default='store_manager'),
 )
 
@@ -73,14 +74,14 @@ store_address_table = sa.Table(
     'store_addresses',
     metadata,
     sa.Column('address_id', GUID, primary_key=True),
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
 )
 
 store_catalog_table = sa.Table(
     'store_catalog',
     metadata,
     sa.Column('catalog_id', GUID, primary_key=True),
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False),
     sa.Column('display_name', sa.String(255), nullable=False),
     sa.Column('display_image', sa.String(255)),
@@ -96,8 +97,8 @@ store_collection_table = sa.Table(
     'store_collection',
     metadata,
     sa.Column('collection_id', GUID, primary_key=True),
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id)),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False),
     sa.Column('display_name', sa.String(255), nullable=False),
     sa.Column('default', sa.Boolean, default=False),
@@ -109,18 +110,18 @@ store_collection_table = sa.Table(
 store_catalog_cache_table = sa.Table(
     'store_catalogs_cache',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='SET NULL', onupdate='CASCADE')),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('catalog_reference', sa.String(100))
 )
 
 store_collection_cache_table = sa.Table(
     'store_collection_cache',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='SET NULL', onupdate='CASCADE')),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('collection_id',
-              sa.ForeignKey(store_collection_table.c.collection_id, ondelete='SET NULL', onupdate='CASCADE')),
+              sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('collection_reference', sa.String(100))
 )
 
