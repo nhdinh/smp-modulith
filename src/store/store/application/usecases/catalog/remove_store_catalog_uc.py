@@ -41,25 +41,11 @@ class RemoveStoreCatalogUC:
                 # get store
                 store = fetch_store_by_owner(store_owner=dto.current_user, uow=uow)
 
-                # find catalog
-                if not store.has_catalog_reference(dto.catalog_reference):
-                    raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
-
-                # check if the catalog to be deleted is not system
-                catalog_to_deleted = store.get_catalog_by_reference(dto.catalog_reference)
-                if catalog_to_deleted.system:
-                    raise Exception(ExceptionMessages.SYSTEM_STORE_CATALOG_CANNOT_BE_REMOVED)
-
-                # catalog found, do delete
-                if remove_completely:
-                    store.delete_catalog(catalog=catalog_to_deleted)
-                    # collection dang khong xoa ma bi set null
-                else:
-                    store.move_catalog_content(source_reference=dto.catalog_reference, dest_reference='default')
-                    store.delete_catalog(catalog=catalog_to_deleted)
-
-                # do delete
-                uow.session.delete(catalog_to_deleted)
+                # delete catalog
+                store.delete_catalog(
+                    catalog_reference=dto.catalog_reference,
+                    remove_completely=remove_completely
+                )
 
                 # release the dto
                 response = RemovingStoreCatalogResponse(status=True)

@@ -146,7 +146,7 @@ def store_registration_load(store_registration, _):
 @event.listens_for(Store, 'load')
 def store_load(store, connection):
     store.domain_events = []
-    store.__cached = {
+    store._cached = {
         'catalogs': [],
         'collections': [],
         'products': []
@@ -156,13 +156,13 @@ def store_load(store, connection):
     q = sa.select([store_catalog_cache_table.c.catalog_reference]).where(
         store_catalog_cache_table.c.store_id == store.store_id)
     fetched_catalogs = connection.session.execute(q).all()
-    store.__cached['catalogs'] = [r.catalog_reference for r in fetched_catalogs]
+    store._cached['catalogs'] = [r.catalog_reference for r in fetched_catalogs]
 
     # fetch cache of collectons into the store
     q = sa.select([store_collection_cache_table.c.collection_reference]).where(
         store_collection_cache_table.c.store_id == store.store_id)
     fetched_collections = connection.session.execute(q).all()
-    store.__cached['collections'] = [r.collection_reference for r in fetched_collections]
+    store._cached['collections'] = [r.collection_reference for r in fetched_collections]
 
 
 @event.listens_for(StoreCatalog, 'load')

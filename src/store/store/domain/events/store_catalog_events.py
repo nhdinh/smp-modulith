@@ -21,6 +21,14 @@ class StoreCatalogUpdatedEvent(Event):
 
 
 @dataclass(frozen=True)
+class StoreCatalogDeletedEvent(Event):
+    store_id: StoreId
+    catalog_id: StoreCatalogId
+    owner_name: str
+    delete_completely: bool
+
+
+@dataclass(frozen=True)
 class StoreCatalogToggledEvent(Event):
     store_id: StoreId
     catalog_id: StoreCatalogId
@@ -34,3 +42,12 @@ class StoreCollectionCreatedEvent(Event):
     catalog_id: StoreCatalogId
     collection_id: StoreCollectionId
     collection_reference: str
+
+
+@dataclass(frozen=True)
+class StoreCollectionToggledEvent(Event):
+    store_id: StoreId
+    catalog_id: StoreCatalogId
+    collection_id: StoreCollectionId
+    collection_reference: str
+    disabled: bool

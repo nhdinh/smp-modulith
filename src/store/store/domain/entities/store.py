@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Set, List, Any, Optional, Union
+from typing import Set, List, Any, Optional, Union, Dict, Type
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
@@ -11,7 +11,7 @@ from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCollectionReference, StoreCatalogId
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
-    StoreCatalogCreatedEvent, StoreCollectionCreatedEvent
+    StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, StoreCatalogDeletedEvent, StoreCollectionToggledEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.rules.default_passed_rule import DefaultPassedRule
 from store.domain.rules.new_catalog_reference_should_not_existed_rule import NewCatalogReferenceShouldNotExistedRule
@@ -114,6 +114,10 @@ class Store(EventMixin, Entity):
 
         return store
 
+    """
+    SETTINGS SECTION
+    """
+
     def update_settings(self, setting_key: str, setting_value: Union[str, int, float]):
         setting = Setting(key=setting_key, value=str(setting_value), type=type(setting_value))
         self._settings.add(setting)
@@ -131,6 +135,20 @@ class Store(EventMixin, Entity):
             return self.settings[setting_key]
         else:
             return default_value
+
+    """
+    CATALOG SECTIONS
+    """
+
+    def has_catalog_reference(self, catalog_reference: StoreCatalogReference):
+        """
+        Return the existence of specified `catalog_reference` in this store
+
+        :param catalog_reference: Reference of the catalog to search for
+        """
+
+        _cached = self._build_cache()
+        return catalog_reference in _cached['catalogs']
 
     def get_catalog_by_reference(self, catalog_reference: StoreCatalogReference) -> Optional[StoreCatalog]:
         """
@@ -168,21 +186,39 @@ class Store(EventMixin, Entity):
         except StopIteration:
             return None
 
-    def has_catalog_reference(self, catalog_reference: StoreCatalogReference):
+    def toggle_catalog(self, catalog_reference: StoreCatalogReference) -> None:
         """
-        Return the existence of specified `catalog_reference` in this store
+        Toggle the catalog on/ off
 
-        :param catalog_reference: Reference of the catalog to search for
+        :param catalog_reference: reference of the catalogs
+        """
+        try:
+            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)  # type:StoreCatalog
+            if not catalog:
+                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+
+            self._toggle_catalog(catalog)
+        except Exception as exc:
+            raise exc
+
+    def _toggle_catalog(self, catalog: StoreCatalog) -> None:
         """
 
-        __cached = getattr(self, '__cached', None)
+        Internal method for toggle catalog
 
-        if __cached is None or type(__cached) is not dict:
-            return False
-        elif 'catalogs' not in __cached.keys():
-            return False
-        else:
-            return catalog_reference in __cached['catalogs']
+        :param catalog:
+        """
+        try:
+            catalog.toggle()
+
+            self._record_event(StoreCatalogToggledEvent(
+                store_id=self.store_id,
+                catalog_id=catalog.catalog_id,
+                catalog_reference=catalog.reference,
+                disabled=catalog.disabled
+            ))
+        except Exception as exc:
+            raise exc
 
     def update_catalog_data(self, catalog_reference: StoreCatalogReference, update_data: dict) -> None:
         """
@@ -201,25 +237,7 @@ class Store(EventMixin, Entity):
             catalog_reference=catalog_reference
         ))
 
-    def toggle_catalog(self, catalog_reference) -> None:
-        """
-        Toggle the catalog on/ off
-
-        :param catalog_reference: reference of the catalogs
-        """
-        catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)  # type:StoreCatalog
-        catalog.toggle()
-
-        self._record_event(StoreCatalogToggledEvent(
-            store_id=self.store_id,
-            catalog_id=catalog.catalog_id,
-            catalog_reference=catalog_reference,
-            disabled=catalog.disabled
-        ))
-
-    def _build_cache(self):
-        # Need to build cache when loading from database. Therefore will need a table that contains all cached data,
-        # updated on saved.
+    def _update_catalog(self, catalog: StoreCatalog, update_data: Type[Dict]) -> None:
         pass
 
     def _make_default_catalog(self) -> StoreCatalog:
@@ -229,10 +247,10 @@ class Store(EventMixin, Entity):
         :return: instance of `StoreCatalog`
         """
         default_catalog_reference = self.get_setting('default_catalog_reference', 'default-catalog')
-        default_catalog_name = self.get_setting('default_catalog_name', 'Default Catalog')
+        default_catalog_name = self.get_setting('default_catalog_display_name', 'Default Catalog')
 
         # create the new StoreCatalog as default catalog
-        return self.make_children_catalog(
+        return self.make_catalog(
             reference=default_catalog_reference,
             display_name=default_catalog_name,
             display_image='',
@@ -240,12 +258,7 @@ class Store(EventMixin, Entity):
             system=True
         )
 
-    def make_children_catalog(
-            self,
-            reference: str,
-            display_name: str,
-            **kwargs,
-    ):
+    def make_catalog(self, reference: str, display_name: str, **kwargs, ):
         """
         Make a new children catalog
 
@@ -258,7 +271,10 @@ class Store(EventMixin, Entity):
         disabled = kwargs.get('disabled') if 'disabled' in kwargs.keys() else False
         system = kwargs.get('system') if 'system' in kwargs.keys() else False
 
-        self.check_rule(NewCatalogReferenceShouldNotExistedRule(reference=reference))
+        _cached = self._build_cache()
+        self.check_rule(NewCatalogReferenceShouldNotExistedRule(
+            reference=reference, store_catalog_list=_cached['catalogs']
+        ))
 
         catalog = StoreCatalog.make_catalog(
             display_name=display_name,
@@ -270,7 +286,7 @@ class Store(EventMixin, Entity):
 
         # create its default collection
         default_collection_reference = self.get_setting('default_collection_reference', 'default-reference')
-        default_collection_display_name = self.get_setting('default_collection_name', 'Default Catalog')
+        default_collection_display_name = self.get_setting('default_collection_display_name', 'Default Collection')
 
         default_collection = StoreCollection.make_collection(reference=default_collection_reference,
                                                              display_name=default_collection_display_name,
@@ -304,23 +320,32 @@ class Store(EventMixin, Entity):
 
         return catalog.catalog_id
 
-    def make_children_collection(self, of_catalog: Union[StoreCatalogReference, StoreCatalog],
-                                 display_name: str,
-                                 reference: str) -> StoreCollection:
+    """
+    COLLECTION SECTIONS
+    """
+
+    def make_collection(self, of_catalog: StoreCatalogReference, display_name: str, reference: str) -> StoreCollection:
         """
         Make a collection into the children catalog
-        :param of_catalog:
-        :param display_name:
-        :param reference:
+
+        :param of_catalog: reference of the catalog which will contain this collection
+
+        :param display_name: display name of the new created
+
+        :param reference: reference of the new created
         """
         try:
-            if type(of_catalog) is not StoreCatalog:
-                catalog = self.get_catalog_by_reference(catalog_reference=of_catalog)  # type:StoreCatalog
-                if not catalog:
-                    raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
-            else:
-                catalog = of_catalog  # type:StoreCatalog
+            # check catalog availability
+            catalog = self.get_catalog_by_reference(catalog_reference=of_catalog)  # type:StoreCatalog
+            if not catalog:
+                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
+            return self._make_collection(catalog, display_name=display_name, reference=reference)
+        except Exception as exc:
+            raise exc
+
+    def _make_collection(self, catalog: StoreCatalog, display_name: str, reference: str) -> StoreCollection:
+        try:
             # make collection
             collection = StoreCollection.make_collection(
                 reference=reference,
@@ -336,7 +361,94 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    def toggle_collection(self, collection: Union[StoreCollection, StoreCollectionReference], **kwargs):
+    def move_catalog_content(self, source_reference: StoreCatalogReference,
+                             dest_reference: Optional[StoreCatalogReference] = None) -> None:
+        """
+        Move content of a catalog to another one
+
+        :param source_reference: Reference of a source catalog
+
+        :param dest_reference: Reference of a destination catalog. Specified as 'default' or leave it None to tell
+        the method to move to default catalog
+        """
+        try:
+            source_catalog = self.get_catalog_by_reference(catalog_reference=source_reference)
+
+            if not dest_reference or dest_reference == 'default' or dest_reference == '':
+                dest_catalog = self.get_default_catalog()
+            else:
+                dest_catalog = self.get_catalog_by_reference(catalog_reference=dest_reference)
+
+            # make sure that the two catalogs is not identical
+            if source_catalog == dest_catalog:
+                raise Exception(ExceptionMessages.CANNOT_MOVE_CATALOG_CONTENT_TO_ITSELF)
+
+            self._move_catalog_content(source=source_catalog, dest=dest_catalog)
+        except Exception as exc:
+            raise exc
+
+    def _move_catalog_content(self, source: StoreCatalog, dest: StoreCatalog) -> None:
+        # ok, so move now
+        while len(source.collections):
+            collection = source.collections.pop()
+
+            # add collection to catalog, with all to be removed as default
+            dest.add_collection(collection, keep_default=False)
+
+            # raise event
+            self._raise_collection_created_event(collection=collection)
+
+    def delete_catalog(self, catalog_reference: StoreCatalogReference, **kwargs, ) -> None:
+        """
+        Search and delete a catalog by its reference
+
+        :param catalog_reference: reference of a catalog to delete
+
+        :param kwargs: Options
+
+        Options can contains:
+
+        * `delete_completely`: bool value. Specify `True` if need to discard all of catalog's contents. Else,
+        specify `False`, then content of the catalog will be move to the default catalog.
+
+        """
+        # find catalog
+        if not self.has_catalog_reference(catalog_reference=catalog_reference):
+            raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+
+        # check if the catalog to be deleted is not system
+        catalog_to_deleted = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+
+        # check if catalog_to_deleted is system catalog
+        if catalog_to_deleted.system:
+            raise Exception(ExceptionMessages.SYSTEM_STORE_CATALOG_CANNOT_BE_REMOVED)
+
+        try:
+            remove_completely = kwargs.get('remove_completely')
+            if not remove_completely:  # move the data to default_catalog
+                default_catalog = self.get_default_catalog()
+                self._move_catalog_content(source=catalog_to_deleted, dest=default_catalog)
+
+            # delete the specified one
+            self._delete_catalog(catalog=catalog_to_deleted)
+
+            self._raise_catalog_delete_event(catalog=catalog_to_deleted, delete_completely=remove_completely)
+        except Exception as exc:
+            raise exc
+
+    def _delete_catalog(self, catalog: StoreCatalog) -> None:
+        """
+        Internal delete function (work with entities)
+
+        """
+        try:
+            self._catalogs.remove(catalog)
+            catalog = None
+        except Exception as exc:
+            raise exc
+
+    def toggle_collection(self, catalog_reference: StoreCatalogReference,
+                          collection_reference: StoreCollectionReference) -> None:
         """
         Toggle disable/ enable property of a `StoreCollection`. Input can be an instance of `StoreCollection` or
         `StoreCollectionReference`. For examples:
@@ -347,56 +459,43 @@ class Store(EventMixin, Entity):
 
         If the collection is specified by its reference, then the catalog_reference is need too
 
-        :param collection: The collection to be toggled on or off. Can be instance of `StoreCollection` or
-        `StoreCollectionReference`
+        :param catalog_reference:
+        :param collection_reference:
 
-        :param kwargs:
         """
-
-        # check the input collection and make sure it's a child of any catalog
-        _catalog = None
-        _collection = None
-        if type(collection) is StoreCollection:
-            if collection.catalog is None and 'catalog_reference' not in kwargs.keys():
-                raise Exception(ExceptionMessages.STORE_CATALOG_MUST_BE_SPECIFIED)
-
-            if collection.catalog is None and 'catalog_reference' in kwargs.keys():
-                catalog_reference = kwargs.get('catalog_reference')
-                if not type(catalog_reference) is StoreCatalogReference:
-                    raise Exception(ExceptionMessages.INVALID_STORE_CATALOG_REFERENCE_FORMAT)
-
-                # check if the catalog is children of this store
-                _catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
-                if not _catalog:
-                    raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
-
-                # if catalog found, add this collection into this children list
-                _catalog.add_collection(collection)
-
-            if collection.catalog not in self.catalogs:
-                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
-            else:
-                _catalog = collection.catalog
-                _collection = collection
-        elif type(collection) is StoreCollectionReference:
-            if 'catalog_reference' not in kwargs.keys():
-                raise Exception(ExceptionMessages.STORE_CATALOG_MUST_BE_SPECIFIED)
-
-            catalog_reference = kwargs.get('catalog_reference')
-            if not type(catalog_reference) is StoreCatalogReference:
-                raise Exception(ExceptionMessages.INVALID_STORE_CATALOG_REFERENCE_FORMAT)
-
-            # valid catalog_reference, search for the catalog and collection
-            _catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
-            if not _catalog:
+        try:
+            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+            if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
-            _collection = _catalog.get_collection(reference=collection)
-            if not _collection:
+            collection = catalog.get_collection(reference=collection_reference)
+            if not collection:
                 raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
-        # all fine
-        _collection.disabled = not _collection.disabled
+            if collection.default:
+                raise Exception(ExceptionMessages.DEFAULT_STORE_COLLECTION_CANNOT_BE_DISABLED)
+
+            self._toggle_collection(collection=collection)
+        except Exception as exc:
+            raise exc
+
+    def _toggle_collection(self, collection: StoreCollection) -> None:
+        try:
+            collection.toggle()
+
+            self._record_event(StoreCollectionToggledEvent(
+                store_id=self.store_id,
+                catalog_id=collection.catalog.catalog_id,
+                collection_id=collection.collection_id,
+                collection_reference=collection.reference,
+                disabled=collection.disabled
+            ))
+        except Exception as exc:
+            raise exc
+
+    """
+    EVENT RAISE SECTIONS
+    """
 
     def _raise_store_created_event(self) -> None:
         """
@@ -426,6 +525,14 @@ class Store(EventMixin, Entity):
         for collection in catalog.collections:
             self._raise_collection_created_event(collection)
 
+    def _raise_catalog_delete_event(self, catalog: StoreCatalog, delete_completely: bool) -> None:
+        self._record_event(StoreCatalogDeletedEvent(
+            store_id=self.store_id,
+            catalog_id=catalog.catalog_id,
+            owner_name=self._owner.email,
+            delete_completely=delete_completely
+        ))
+
     def _raise_collection_created_event(self, collection: StoreCollection):
         self._record_event(StoreCollectionCreatedEvent(
             store_id=self.store_id,
@@ -434,41 +541,20 @@ class Store(EventMixin, Entity):
             collection_reference=collection.reference,
         ))
 
-    def move_catalog_content(self, source_reference: StoreCatalogReference,
-                             dest_reference: Optional[StoreCatalogReference] = None) -> None:
-        """
-        Move content of a catalog to another one
+    """
+    MISC SECTION
+    """
 
-        :param source_reference: Reference of a source catalog
+    def _build_cache(self) -> Dict:
+        if not hasattr(self, '_cached'):
+            _cached = {
+                'catalogs': set(),
+                'collections': set(),
+            }
 
-        :param dest_reference: Reference of a destination catalog. Specified as 'default' or leave it None to tell
-        the method to move to default catalog
-        """
-        try:
-            source_catalog = self.get_catalog_by_reference(catalog_reference=source_reference)
+            for catalog in self._catalogs:
+                _cached['catalogs'].add(catalog.reference)
 
-            if not dest_reference or dest_reference == 'default' or dest_reference == '':
-                dest_catalog = self.get_default_catalog()
-            else:
-                dest_catalog = self.get_catalog_by_reference(catalog_reference=dest_reference)
+            setattr(self, '_cached', _cached)
 
-            # make sure that the two catalogs is not identical
-            if source_catalog == dest_catalog:
-                raise Exception(ExceptionMessages.CANNOT_MOVE_CATALOG_CONTENT_TO_ITSELF)
-
-            # ok, so move now
-            while len(source_catalog.collections):
-                collection = source_catalog.collections.pop()
-
-                # add collection to catalog, with all to be removed as default
-                dest_catalog.add_collection(collection, keep_default=False)
-
-        except Exception as exc:
-            raise exc
-
-    def delete_catalog(self, catalog: StoreCatalog) -> None:
-        try:
-            if catalog in self._catalogs:
-                self._catalogs.remove(catalog)
-        except Exception as exc:
-            raise exc
+        return self._cached

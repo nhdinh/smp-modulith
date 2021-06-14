@@ -47,7 +47,7 @@ class CreateStoreCatalogUC:
                 reference = slugify(dto.catalog_reference) if dto.catalog_reference else slugify(dto.display_name)
 
                 # make catalog
-                catalog = store.make_children_catalog(
+                catalog = store.make_catalog(
                     reference=reference,
                     display_name=dto.display_name,
                 )

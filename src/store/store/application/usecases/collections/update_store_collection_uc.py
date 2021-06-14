@@ -17,10 +17,7 @@ class UpdatingStoreCollectionRequest:
 
 @dataclass
 class UpdatingStoreCollectionResponse:
-    store_id: StoreId
-    catalog_reference: StoreCatalogReference
-    collection_reference: StoreCollectionReference
-    disabled: bool
+    status: bool
 
 
 class UpdatingStoreCollectionResponseBoundary(abc.ABC):

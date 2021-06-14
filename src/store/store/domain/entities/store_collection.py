@@ -68,5 +68,8 @@ class StoreCollection:
             default=is_default
         )
 
+    def toggle(self):
+        self.disabled = not self.disabled
+
     def __repr__(self):
         return f'<StoreCollection reference="{self.reference}" display_name="{self.display_name}" product_cnt={len(self.products)}>'

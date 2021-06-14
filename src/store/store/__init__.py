@@ -3,6 +3,7 @@
 import injector
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
+from typing import Type
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.adapter import store_db
@@ -12,7 +13,7 @@ from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
-    StoreCollectionCreatedEventHandler
+    StoreCollectionCreatedEventHandler, StoreCatalogDeletedEventHandler
 from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
@@ -34,7 +35,8 @@ from store.application.usecases.manage.add_store_manager import AddStoreManagerU
 from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
-from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent
+from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, \
+    StoreCatalogDeletedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 
@@ -106,12 +108,17 @@ class StoreModule(injector.Module):
     def facade(self, connection: Connection) -> StoreHandlerFacade:
         return StoreHandlerFacade(connection=connection)
 
+    def async_bind(self, binder: injector.Binder, event: Type, handler: Type) -> None:
+        # shorthand for multibind
+        binder.multibind(AsyncHandler[event], to=AsyncEventHandlerProvider(handler))
+
     def configure(self, binder: injector.Binder) -> None:
         # binder.multibind(AsyncHandler[StoreCreatedEvent], to=AsyncEventHandlerProvider(StoreCreatedEventHandler))
-        binder.multibind(AsyncHandler[StoreCatalogCreatedEvent],
-                         to=AsyncEventHandlerProvider(StoreCatalogCreatedEventHandler))
-        binder.multibind(AsyncHandler[StoreCollectionCreatedEvent],
-                         to=AsyncEventHandlerProvider(StoreCollectionCreatedEventHandler))
+
+        self.async_bind(binder, StoreCatalogCreatedEvent, StoreCatalogCreatedEventHandler)
+        self.async_bind(binder, StoreCatalogDeletedEvent, StoreCatalogDeletedEventHandler)
+
+        self.async_bind(binder, StoreCollectionCreatedEvent, StoreCollectionCreatedEventHandler)
 
 
 class StoreInfrastructureModule(injector.Module):
