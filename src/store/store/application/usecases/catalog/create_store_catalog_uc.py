@@ -14,7 +14,7 @@ from store.domain.entities.value_objects import StoreCatalogReference, StoreCata
 @dataclass
 class CreatingStoreCatalogRequest:
     current_user: str
-    catalog_reference: Optional[StoreCatalogReference]
+    reference: Optional[StoreCatalogReference]
     display_name: str
     enable_default_collection: bool = True
 
@@ -40,14 +40,14 @@ class CreateStoreCatalogUC:
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
-                if store.has_catalog_reference(dto.catalog_reference):
+                if store.has_catalog_reference(dto.reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
 
                 # validate inputs
-                reference = slugify(dto.catalog_reference) if dto.catalog_reference else slugify(dto.display_name)
+                reference = slugify(dto.reference) if dto.reference else slugify(dto.display_name)
 
                 # make catalog
-                catalog = store.make_catalog(
+                catalog = store.make_children_catalog(
                     reference=reference,
                     display_name=dto.display_name,
                 )

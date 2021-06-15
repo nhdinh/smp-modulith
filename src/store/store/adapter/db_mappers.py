@@ -49,42 +49,50 @@ def start_mappers():
         '_collections': relationship(
             StoreCollection,
             collection_class=set,
-            backref=backref('_catalog')
+            cascade='all, delete-orphan',
+            backref=backref('_catalog', cascade="all", single_parent=True),
         )
     })
 
-    store_mapper = mapper(Store, store_table, properties={
-        '_owner_id': store_table.c.owner,
-        'owner_email': store_table.c.owner_email,
+    store_mapper = mapper(
+        Store, store_table,
+        version_id_col=store_table.c.version,
+        version_id_generator=None,
+        properties={
+            '_owner_id': store_table.c.owner,
+            'owner_email': store_table.c.owner_email,
 
-        '_settings': relationship(
-            Setting,
-            collection_class=set
-        ),
+            '_settings': relationship(
+                Setting,
+                collection_class=set
+            ),
 
-        '_owner': relationship(
-            StoreOwner,
-            # foreign_keys=[store_table.c.owner],
-            # remote_side=[store_owner_table.c.id],
-            # viewonly=True,
-            backref=backref('_store'),
-        ),
+            '_owner': relationship(
+                StoreOwner,
+                # foreign_keys=[store_table.c.owner],
+                # remote_side=[store_owner_table.c.id],
+                # viewonly=True,
+                backref=backref('_store'),
+            ),
 
-        '_managers': relationship(
-            User,
-            secondary=store_managers_table,
-            collection_class=set,
-        ),
+            '_managers': relationship(
+                User,
+                secondary=store_managers_table,
+                collection_class=set,
+            ),
 
-        '_catalogs': relationship(
-            StoreCatalog,
-            collection_class=set,
-            backref=backref('_store')
-        ),
+            '_catalogs': relationship(
+                StoreCatalog,
+                collection_class=set,
+                cascade='all, delete-orphan',
+                backref=backref('_store', cascade="all", single_parent=True),
+                # single_parent=True
+            ),
 
-        '_collections': relationship(
-            StoreCollection,
-            collection_class=set,
-            backref=backref('_store')
-        )
-    })
+            '_collections': relationship(
+                StoreCollection,
+                collection_class=set,
+                backref=backref('_store'),
+                # viewonly=True,
+            )
+        })

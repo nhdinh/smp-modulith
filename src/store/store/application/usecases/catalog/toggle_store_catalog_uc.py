@@ -50,12 +50,7 @@ class ToggleStoreCatalogUC:
                 store.toggle_catalog(catalog_reference=input_dto.catalog_reference)
 
                 # build the output
-                response_dto = UpdatingStoreCatalogResponse(
-                    store_id=store.store_id,
-                    catalog_reference=input_dto.catalog_reference,
-                    status=True,
-                    disabled=catalog.disabled
-                )
+                response_dto = UpdatingStoreCatalogResponse(status=True)
                 self._ob.present(response_dto=response_dto)
 
                 # commit

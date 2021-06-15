@@ -5,7 +5,7 @@ import email_validator
 from sqlalchemy import select, func, distinct
 from sqlalchemy.engine import Connection
 
-from store.adapter.store_db import store_table, store_owner_table, store_catalog_cache_table, \
+from store.adapter.store_db import store_table, store_owner_table, \
     store_collection_cache_table, store_catalog_table
 from store.domain.entities.value_objects import StoreId, StoreCatalogId
 
@@ -45,8 +45,8 @@ def sql_fetch_catalog_by_reference(catalog_reference: str, store_id: StoreId, co
 def sql_count_catalog_from_store(store_id: StoreId, conn: Connection, active_only: bool = False) -> int:
     catalog_count = conn.scalar(
         select([func.count(distinct(store_catalog_table.c.reference))]) \
-            .select_from(store_catalog_cache_table) \
-            .where(store_catalog_cache_table.c.store_id == store_id)
+            .select_from(store_catalog_table) \
+            .where(store_catalog_table.c.store_id == store_id)
     )
 
     return catalog_count

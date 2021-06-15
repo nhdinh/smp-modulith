@@ -2,12 +2,20 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from time import sleep
 from typing import Optional as Opt
+from uuid import uuid4
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference, StoreProductReference, \
     StoreProductId
+
+
+@dataclass(frozen=True)
+class CreatingUnitConversionRequest:
+    unit: str
+    multiplier: float
 
 
 @dataclass
@@ -58,11 +66,8 @@ class CreateStoreProductUC:
                     'seller_phone',
                     'catalog_display_name',
                     'collection_display_name',
-                    'unit'
+                    'base_unit',
                 ]
-
-                # Liệt kê hết tất cả các data field của Product ra đây rồi code.
-                # Nếu ví dụ người dùng nhập catalog, collection chưa có trong hệ thống thì kiểm tra và tạo ngay tại đây
 
                 for data_field in product_data_fields:
                     if getattr(dto, data_field, None) is not None:
@@ -81,8 +86,6 @@ class CreateStoreProductUC:
                 )
                 self._ob.present(response_dto=response_dto)
 
-                # commit
-                store.version += 1
                 uow.commit()
             except Exception as exc:
                 raise exc

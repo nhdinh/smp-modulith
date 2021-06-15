@@ -4,7 +4,8 @@ import injector
 from sqlalchemy import insert, delete
 from sqlalchemy.engine import Connection
 
-from store.adapter.store_db import store_catalog_cache_table, store_collection_cache_table, store_catalog_table
+from store.adapter.store_db import store_catalog_cache_table, store_collection_cache_table, store_catalog_table, \
+    store_collection_table
 from store.domain.entities.value_objects import StoreCatalogId, StoreId, StoreCollectionId
 from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, \
     StoreCatalogDeletedEvent
@@ -41,8 +42,11 @@ class StoreHandlerFacade:
         # just to do something with the cache
         pass
 
-    def delete_orphan_catalog(self, catalog_id: StoreCatalogId):
+    def delete_orphan_catalog_children(self, catalog_id: StoreCatalogId):
         query = delete(store_catalog_table).where(store_catalog_table.c.catalog_id == catalog_id)
+        self._conn.execute(query)
+
+        query = delete(store_collection_table).where(store_collection_table.c.catalog_id is None)
         self._conn.execute(query)
 
 
@@ -70,7 +74,7 @@ class StoreCatalogDeletedEventHandler:
         self._facade = facade
 
     def __call__(self, event: StoreCatalogDeletedEvent) -> None:
-        self._facade.delete_orphan_catalog(event.catalog_id)
+        self._facade.delete_orphan_catalog_children(event.catalog_id)
         # self._facade.update_store_catalog_cache(event.store_id)
 
 

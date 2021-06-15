@@ -22,6 +22,24 @@ class StoreCollection:
     default: bool = False
     disabled: bool = False
 
+    def __init__(
+            self,
+            collection_id: StoreCollectionId,
+            reference: StoreCollectionReference,
+            display_name: str,
+            disabled: bool
+    ):
+        self.collection_id = collection_id
+        self.reference = reference
+        self.display_name = display_name
+        self.disabled = disabled
+
+        # catalog (parent)
+        self._catalog = None
+
+        # products
+        self._products: Set[StoreProduct] = set()
+
     @property
     def store(self):
         return getattr(self, '_store', None)
@@ -44,6 +62,10 @@ class StoreCollection:
             return self._catalog
 
         return None
+
+    @catalog.setter
+    def catalog(self, value):
+        setattr(self, '_catalog', value)
 
     @classmethod
     def make_collection(
@@ -73,3 +95,6 @@ class StoreCollection:
 
     def __repr__(self):
         return f'<StoreCollection reference="{self.reference}" display_name="{self.display_name}" product_cnt={len(self.products)}>'
+
+    def add_product(self, product, keep_default):
+        self._products.add(product)

@@ -198,7 +198,7 @@ class Catalog(EventMixin, Entity):
             collection = self.default_collection
 
         # set protected data
-        product.catalog_reference = self.reference
+        product.reference = self.reference
         product.collection_reference = collection.reference
         product._collection = collection
         product._catalog = self

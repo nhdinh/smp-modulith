@@ -19,7 +19,7 @@ class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
     def query(self, select_active_only: bool = True) -> List[CatalogDto]:
         # make query
         query_table = catalog_table.join(collection_table, onclause=(
-                catalog_table.c.reference == collection_table.c.catalog_reference), isouter=True)
+                catalog_table.c.reference == collection_table.c.reference), isouter=True)
 
         query = select([
             catalog_table.c.reference,
@@ -107,7 +107,7 @@ class SqlFetchAllBrandsQuery(FetchAllBrandsQuery, SqlQuery):
 def joined_product_table_query():
     joined_table = product_table \
         .join(collection_table, collection_table.c.reference == product_table.c.collection_reference) \
-        .join(catalog_table, catalog_table.c.reference == collection_table.c.catalog_reference) \
+        .join(catalog_table, catalog_table.c.reference == collection_table.c.reference) \
         .join(brand_table, brand_table.c.reference == product_table.c.brand_reference)
 
     query = select([

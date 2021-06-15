@@ -129,8 +129,8 @@ def _create_db_schema(engine: Engine) -> None:
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
-    from store.adapter import store_table, store_registration_table, store_catalog_table, \
-        store_catalog_cache_table  # noqa
+    from store.adapter.store_db import store_table, store_registration_table, store_catalog_table, \
+        store_collection_table, store_settings_table  # noqa
 
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)

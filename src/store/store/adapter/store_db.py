@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
@@ -46,7 +47,8 @@ store_table = sa.Table(
     sa.Column('owner', sa.ForeignKey(store_owner_table.c.id, ondelete='SET NULL', onupdate='CASCADE')),
     sa.Column('owner_email', sa.String(255), comment='For easy linking'),
     sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
-    sa.Column('version', sa.Integer, default=1),
+    sa.Column('version', GUID, nullable=False, default=uuid.uuid4),
+    sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
@@ -149,21 +151,23 @@ def store_load(store, connection):
     store.domain_events = []
     store._cached = {
         'catalogs': [],
-        'collection': [],
+        'collections': [],
         'products': []
     }
 
     # fetch cache of catalogs into the store
-    q = sa.select([store_catalog_cache_table.c.catalog_reference]).where(
-        store_catalog_cache_table.c.store_id == store.store_id)
+    q = sa.select([store_catalog_table.c.reference, store_catalog_table.c.catalog_id]).where(
+        store_catalog_table.c.store_id == store.store_id)
     fetched_catalogs = connection.session.execute(q).all()
-    store._cached['catalogs'] = [r.catalog_reference for r in fetched_catalogs]
+    store._cached['catalogs'] = [r.reference for r in fetched_catalogs]
+    _catalog_indice = [r.catalog_id for r in fetched_catalogs]
 
-    # fetch cache of collectons into the store
-    q = sa.select([store_collection_cache_table.c.collection_reference]).where(
-        store_collection_cache_table.c.store_id == store.store_id)
+    # fetch cache of collections into the store
+    q = sa.select([store_collection_table.c.reference, store_collection_table.c.collection_id]).where(
+        store_collection_cache_table.c.catalog_id.in_(_catalog_indice)
+    )
     fetched_collections = connection.session.execute(q).all()
-    store._cached['collection'] = [r.collection_reference for r in fetched_collections]
+    store._cached['collections'] = [r.reference for r in fetched_collections]
 
 
 @event.listens_for(StoreCatalog, 'load')
@@ -173,7 +177,7 @@ def ctalog_load(catalog, connection):
         'products': []
     }
 
-    # fetch cache of collectons into the store
+    # fetch cache of collections into the store
     q = sa.select([store_collection_cache_table.c.collection_reference]).where(
         store_collection_cache_table.c.store_id == catalog.store_id).where(
         store_collection_cache_table.c.catalog_id == catalog.catalog_id
