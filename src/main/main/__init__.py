@@ -55,7 +55,7 @@ def bootstrap_app() -> AppContext:
 
     db_echo = os.environ.get('DB_ECHO') in ('True', 'true', '1')
 
-    engine = create_engine(os.environ["DB_DSN"], echo=db_echo)
+    engine = create_engine(os.environ["DB_DSN"], isolation_level="REPEATABLE READ", echo=db_echo)
     dependency_injector = _setup_dependency_injection(settings, engine)
     _setup_orm_events(dependency_injector)
 
@@ -129,7 +129,8 @@ def _create_db_schema(engine: Engine) -> None:
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
-    from store.adapter import store_table, store_registration_table, store_catalog_table, store_catalog_cache_table  # noqa
+    from store.adapter import store_table, store_registration_table, store_catalog_table, \
+        store_catalog_cache_table  # noqa
 
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)

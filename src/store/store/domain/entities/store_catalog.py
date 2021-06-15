@@ -213,12 +213,12 @@ class StoreCatalog:
         _cached = getattr(self, '_cached', dict())
 
         # check if all conditions is good, return the value
-        if _cached and 'collection' in _cached.keys() and type(_cached['collection']) is Set:
-            return 'reference' in _cached['collection']
+        if _cached and 'collections' in _cached.keys() and type(_cached['collections']) is Set:
+            return 'reference' in _cached['collections']
 
         # else, build the value
         if _cached is None or type(_cached) is not dict:
-            setattr(self, '_cached', {'collection': set(), 'products': set()})
+            setattr(self, '_cached', {'collections': set(), 'products': set()})
 
         # build cached
         _collection_cache = set()
@@ -226,29 +226,32 @@ class StoreCatalog:
             _collection_cache.add(collection.reference)
 
         # set cache
-        _cached['collection'] = _collection_cache
+        _cached['collections'] = _collection_cache
         setattr(self, '_cached', _cached)
 
-        return reference in _cached['collection']
+        return reference in _cached['collections']
 
-    def _make_new_collection_reference(self, reference: StoreCollectionReference) -> str:
+    def next_collection_reference(self, base_reference: StoreCollectionReference) -> str:
+        return self._make_new_collection_reference(base_reference=base_reference)
+
+    def _make_new_collection_reference(self, base_reference: StoreCollectionReference) -> str:
         """
         Search the whole list of collection and make change to the duplicated reference
 
-        :param reference: reference of the collection to change
+        :param base_reference: reference of the collection to change
 
         :return: a new reference string
         """
         try:
-            reference_name_with_number = re.compile(f'^{reference}_([0-9]+)$')
+            reference_name_with_number = re.compile(f'^{base_reference}_([0-9]+)$')
             numbers = []
-            for name in self._cached['collection']:
+            for name in self._cached['collections']:
                 matches = reference_name_with_number.match(name)
                 if matches:
                     numbers.append(int(matches[1]))
 
             number_to_change = max(numbers) + 1 if len(numbers) else 1
-            new_reference = f"{reference}_{number_to_change}"
+            new_reference = f"{base_reference}_{number_to_change}"
 
             return new_reference
         except Exception as exc:

@@ -46,6 +46,7 @@ store_table = sa.Table(
     sa.Column('owner', sa.ForeignKey(store_owner_table.c.id, ondelete='SET NULL', onupdate='CASCADE')),
     sa.Column('owner_email', sa.String(255), comment='For easy linking'),
     sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
+    sa.Column('version', sa.Integer, default=1),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
@@ -179,4 +180,4 @@ def ctalog_load(catalog, connection):
     )
 
     fetched_collections = connection.session.execute(q).all()
-    catalog._cached['collection'] = [r.collection_reference for r in fetched_collections]
+    catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]

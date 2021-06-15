@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 from typing import Set, List, Any, Optional, Union, Dict
 
 from foundation import slugify, uuid_validate
@@ -29,6 +30,7 @@ class Store(EventMixin, Entity):
             store_id: StoreId,
             store_name: str,
             store_owner: StoreOwner,
+            version: int = 0,
             settings: List[Setting] = None
     ):
         super(Store, self).__init__()
@@ -58,7 +60,10 @@ class Store(EventMixin, Entity):
         self._raise_store_created_event()
 
         # build cache
-        self._build_cache()
+        self._cached = self._build_cache()
+
+        # version number
+        self.version: int = version
 
     # region ## Properties ##
 
@@ -414,36 +419,65 @@ class Store(EventMixin, Entity):
             reference: Optional[StoreCatalogReference] = '',
             display_name: Optional[str] = ''
     ) -> StoreCatalog:
-        def _do_something(reference: StoreCatalogReference, display_name: str) -> StoreCatalog:
-            if self.has_catalog_reference(catalog_reference=reference):
-                catalog = self._get_catalog_by_reference(catalog_reference=reference)
-
-                if display_name:
-                    if catalog.display_name == display_name:
-                        return catalog
-                    else:
-                        catalog = self.make_catalog(display_name=display_name, reference=reference,
-                                                    new_reference_if_duplicated=True)
-                        self._add_catalog_to_store(catalog)
-                        return catalog
-                else:
-                    return catalog
-            else:
-                # reference isn't in the list
-                catalog = self.make_catalog(display_name=display_name, reference=reference)
+        # IF there is no reference and no display_name
+        if not reference and not display_name:
+            catalog = self.get_default_catalog()
+            if not catalog:  # if there is even no default catalog
+                catalog = self._make_default_catalog()
                 self._add_catalog_to_store(catalog)
-                return catalog
 
-        if display_name:
-            if not reference:
-                reference = slugify(display_name)
+            return catalog
 
-            return _do_something(reference, display_name)
-        else:
-            if reference:
-                return _do_something(reference, display_name)
+        if not reference and display_name:
+            reference = slugify(display_name)
+
+        if reference:
+            if self.has_catalog_reference(reference):
+                catalog = self._get_catalog_by_reference(catalog_reference=reference)
+                if display_name and catalog.display_name != display_name:
+                    catalog = self.make_catalog(display_name=display_name,
+                                                reference=self._make_new_catalog_reference(reference))
             else:
-                return self.get_default_catalog()
+                catalog = self.make_catalog(reference=reference,
+                                            display_name=display_name if display_name else reference)
+                self._add_catalog_to_store(catalog)
+
+            return catalog
+
+    def _try_to_get_collection_or_default_or_make_new(
+            self,
+            from_catalog: StoreCatalog,
+            reference: Optional[StoreCollectionReference] = '',
+            display_name: Optional[str] = '',
+    ) -> StoreCollection:
+        if not reference and not display_name:
+            collection = from_catalog.default_collection
+
+            if not collection:  # even no default collection
+                collection = self._make_collection(catalog=from_catalog,
+                                                   display_name=self.get_setting('default_collection_display_name', ''),
+                                                   reference=self.get_setting('default_collection_reference', ''))
+                self._add_collection_to_catalog(collection=collection, dest=from_catalog)
+
+            return collection
+
+        if not reference and display_name:
+            reference = slugify(display_name)
+
+        if reference:
+            if from_catalog.has_collection_reference(reference):
+                collection = from_catalog.get_collection_by_reference(collection_reference=reference)
+                if display_name and collection.display_name != display_name:
+                    collection = self.make_collection(
+                        of_catalog=from_catalog,
+                        display_name=display_name,
+                        reference=from_catalog.next_collection_reference(base_reference=reference))
+            else:
+                collection = self.make_collection(of_catalog=from_catalog, reference=reference,
+                                                  display_name=display_name if display_name else reference)
+                self._add_collection_to_catalog(collection=collection, dest=from_catalog)
+
+            return collection
 
     def move_catalog_content(self, source_reference: StoreCatalogReference,
                              dest_reference: Optional[StoreCatalogReference] = None) -> None:
@@ -530,6 +564,23 @@ class Store(EventMixin, Entity):
         try:
             self._catalogs.remove(catalog)
         except Exception as exc:
+            raise exc
+
+    def _make_new_catalog_reference(self, reference: StoreCatalogReference) -> str:
+        try:
+            reference_name_with_number = re.compile(f'^{reference}_([0-9]+)$')
+            numbers = []
+            for name in self._cached['catalogs']:
+                matches = reference_name_with_number.match(name)
+                if matches:
+                    numbers.append(int(matches[1]))
+
+            number_to_change = max(numbers) + 1 if len(numbers) else 1
+            new_reference = f"{reference}_{number_to_change}"
+
+            return new_reference
+        except Exception as exc:
+            print("Error while finding a new reference for new catalog")
             raise exc
 
     # endregion
@@ -771,11 +822,12 @@ class Store(EventMixin, Entity):
             **kwargs,
     ) -> StoreProduct:
         # try to get catalog or make new one
-        catalog = self._try_to_get_catalog_or_default_or_make_new(reference=catalog_reference,
-                                                                  display_name=catalog_display_name)
-
         try:
-            raise Exception("Nothing")
+            catalog = self._try_to_get_catalog_or_default_or_make_new(reference=catalog_reference,
+                                                                      display_name=catalog_display_name)
+            collection = self._try_to_get_collection_or_default_or_make_new(from_catalog=catalog,
+                                                                            reference=collection_reference,
+                                                                            display_name=collection_display_name)
         except Exception as exc:
             raise exc
 
@@ -850,7 +902,7 @@ class Store(EventMixin, Entity):
         if not hasattr(self, '_cached'):
             _cached = {
                 'catalogs': set(),
-                'collection': set(),
+                'collections': set(),
                 'products': set(),
             }
 
@@ -858,10 +910,10 @@ class Store(EventMixin, Entity):
                 _cached['catalogs'].add(catalog.reference)
 
                 for collection in catalog.collections:
-                    _cached['collection'].add(collection.reference)
+                    _cached['collections'].add(collection.reference)
 
-                    for product in collection.products:
-                        _cached['products'].add(product.reference)
+                    # for product in collection.products:
+                    #     _cached['products'].add(product.reference)
 
             setattr(self, '_cached', _cached)
 

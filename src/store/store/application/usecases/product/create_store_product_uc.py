@@ -76,12 +76,13 @@ class CreateStoreProductUC:
 
                 # make response
                 response_dto = CreatingStoreProductResponse(
-                    product_id=product.product_id,
-                    product_reference=product.product_reference
+                    product_id='product.product_id',
+                    product_reference='product.product_reference'
                 )
                 self._ob.present(response_dto=response_dto)
 
                 # commit
+                store.version += 1
                 uow.commit()
             except Exception as exc:
                 raise exc

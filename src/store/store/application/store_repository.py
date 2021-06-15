@@ -37,4 +37,4 @@ class SqlAlchemyStoreRepository(AbstractStoreRepository):
         Fetch store of the owner
         :param owner:
         """
-        return self._sess.query(Store).join(StoreOwner).filter(StoreOwner.email == owner).first()
+        return self._sess.query(Store).join(StoreOwner).filter(StoreOwner.email == owner).with_for_update().first()
