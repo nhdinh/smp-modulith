@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from typing import Set, List, Any, Optional, Union, Dict
 
+from foundation import slugify, uuid_validate
+
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.usecases.const import ExceptionMessages
@@ -58,6 +60,8 @@ class Store(EventMixin, Entity):
         # build cache
         self._build_cache()
 
+    # region ## Properties ##
+
     @property
     def settings(self) -> dict:
         """
@@ -94,6 +98,8 @@ class Store(EventMixin, Entity):
         """
         return self._catalogs
 
+    # endregion
+
     @classmethod
     def default_settings(cls) -> Set[Setting]:
         settings = set()  # type: Set[Setting]
@@ -116,9 +122,7 @@ class Store(EventMixin, Entity):
 
         return store
 
-    """
-    SETTINGS SECTION
-    """
+    # region ## StoreSetting Operations ##
 
     def update_settings(self, setting_key: str, setting_value: Union[str, int, float]):
         setting = Setting(key=setting_key, value=str(setting_value), type=type(setting_value))
@@ -138,9 +142,9 @@ class Store(EventMixin, Entity):
         else:
             return default_value
 
-    """
-    CATALOG SECTIONS
-    """
+    # endregion
+
+    # region ## StoreCatalog Operations ##
 
     def has_catalog_reference(self, catalog_reference: StoreCatalogReference):
         """
@@ -152,7 +156,20 @@ class Store(EventMixin, Entity):
         _cached = self._build_cache()
         return catalog_reference in _cached['catalogs']
 
-    def get_catalog_by_reference(self, catalog_reference: StoreCatalogReference) -> Optional[StoreCatalog]:
+    def get_catalog(self, search_term: str) -> Optional[StoreCatalog]:
+        try:
+            catalog = None
+            catalog_id = uuid_validate(search_term)
+            if catalog_id:
+                catalog = self._get_catalog_by_id(catalog_id=catalog_id)
+            else:
+                catalog = self._get_catalog_by_reference(catalog_reference=search_term)
+
+            return catalog
+        except Exception as exc:
+            raise exc
+
+    def _get_catalog_by_reference(self, catalog_reference: StoreCatalogReference) -> Optional[StoreCatalog]:
         """
         Get child catalog by catalog_reference
 
@@ -168,7 +185,7 @@ class Store(EventMixin, Entity):
         except StopIteration:
             return None
 
-    def get_catalog_by_id(self, catalog_id: StoreCatalogId) -> Optional[StoreCatalog]:
+    def _get_catalog_by_id(self, catalog_id: StoreCatalogId) -> Optional[StoreCatalog]:
         if not hasattr(self, '_catalogs'):
             return None
 
@@ -195,7 +212,7 @@ class Store(EventMixin, Entity):
         :param catalog_reference: reference of the catalogs
         """
         try:
-            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)  # type:StoreCatalog
+            catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)  # type:StoreCatalog
             if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
@@ -229,7 +246,7 @@ class Store(EventMixin, Entity):
         :param catalog_reference: reference of the catalog
         :param update_data:
         """
-        catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+        catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
 
         if not catalog:
             raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
@@ -271,7 +288,7 @@ class Store(EventMixin, Entity):
             system=True
         )
 
-    def make_catalog(self, reference: str, display_name: str, **kwargs, ):
+    def make_catalog(self, display_name: str, **kwargs, ):
         """
         Make a new children catalog
 
@@ -280,14 +297,39 @@ class Store(EventMixin, Entity):
         :return: instance of `StoreCatalog`
         """
 
-        display_image = kwargs.get('display_image') if 'display_image' in kwargs.keys() else ''
-        disabled = kwargs.get('disabled') if 'disabled' in kwargs.keys() else False
-        system = kwargs.get('system') if 'system' in kwargs.keys() else False
+        display_image = kwargs.get('display_image')
+
+        # catalog reference
+        input_reference = kwargs.get('reference')
+        if not input_reference:
+            reference = slugify(display_name)
+        else:
+            reference = input_reference
+
+        # catalog is disabled?
+        disabled = kwargs.get('disabled')
+        if not disabled:
+            disabled = False
+
+        # catalog is system?
+        system = kwargs.get('system')
+        if not system:
+            system = False
+
+        # make new reference
+        new_reference_if_duplicated = kwargs.get('new_reference_if_duplicated')
+        if not new_reference_if_duplicated:
+            new_reference_if_duplicated = False
 
         _cached = self._build_cache()
-        self.check_rule(NewCatalogReferenceShouldNotExistedRule(
-            reference=reference, store_catalog_list=_cached['catalogs']
-        ))
+        if input_reference and not new_reference_if_duplicated:
+            self.check_rule(NewCatalogReferenceShouldNotExistedRule(
+                reference=reference, store_catalog_list=_cached['catalogs']
+            ))
+        else:
+            if reference in _cached['catalogs']:
+                # make new reference
+                reference = self._make_new_catalog_reference(reference=reference)
 
         catalog = StoreCatalog.make_catalog(
             display_name=display_name,
@@ -307,11 +349,11 @@ class Store(EventMixin, Entity):
         catalog.add_collection(default_collection)
 
         # add children to self
-        self._add_catalog(catalog)
+        self._add_catalog_to_store(catalog)
 
         return catalog
 
-    def _add_catalog(self, catalog: StoreCatalog):
+    def _add_catalog_to_store(self, catalog: StoreCatalog):
         """
         Add the `catalog` into self catalogs children
 
@@ -340,7 +382,7 @@ class Store(EventMixin, Entity):
         :param catalog_reference: reference of the catalog
         """
         try:
-            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)  # type:StoreCatalog
+            catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)  # type:StoreCatalog
             if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
@@ -378,12 +420,12 @@ class Store(EventMixin, Entity):
         the method to move to default catalog
         """
         try:
-            source_catalog = self.get_catalog_by_reference(catalog_reference=source_reference)
+            source_catalog = self._get_catalog_by_reference(catalog_reference=source_reference)
 
             if not dest_reference or dest_reference == 'default' or dest_reference == '':
                 dest_catalog = self.get_default_catalog()
             else:
-                dest_catalog = self.get_catalog_by_reference(catalog_reference=dest_reference)
+                dest_catalog = self._get_catalog_by_reference(catalog_reference=dest_reference)
 
             # make sure that the two catalogs is not identical
             if source_catalog == dest_catalog:
@@ -400,7 +442,7 @@ class Store(EventMixin, Entity):
 
             # add collection to catalog, with all to be removed as default
             # dest.add_collection(collection, keep_default=False)
-            self._add_collection(collection=collection, dest=dest, keep_default=True)
+            self._add_collection_to_catalog(collection=collection, dest=dest, keep_default=True)
 
             # raise event
             self._raise_collection_created_event(collection=collection)
@@ -426,7 +468,7 @@ class Store(EventMixin, Entity):
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
             # check if the catalog to be deleted is not system
-            catalog_to_deleted = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+            catalog_to_deleted = self._get_catalog_by_reference(catalog_reference=catalog_reference)
 
             # check if catalog_to_deleted is system catalog
             if catalog_to_deleted.system:
@@ -454,9 +496,9 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    """
-    COLLECTION SECTIONS
-    """
+    # endregion
+
+    # region ## StoreCollection Operations ##
 
     def make_collection(self, of_catalog: StoreCatalogReference, display_name: str, reference: str) -> StoreCollection:
         """
@@ -470,7 +512,7 @@ class Store(EventMixin, Entity):
         """
         try:
             # check catalog availability
-            catalog = self.get_catalog_by_reference(catalog_reference=of_catalog)  # type:StoreCatalog
+            catalog = self._get_catalog_by_reference(catalog_reference=of_catalog)  # type:StoreCatalog
             if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
@@ -495,7 +537,7 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    def _add_collection(self, collection: StoreCollection, dest: StoreCatalog, **kwargs):
+    def _add_collection_to_catalog(self, collection: StoreCollection, dest: StoreCatalog, **kwargs):
         """
         Internal method for adding a collection to a catalog. All the children products will be added accordingly.
 
@@ -525,11 +567,11 @@ class Store(EventMixin, Entity):
         :param remove_completely: remove completely its content or not?
         """
         try:
-            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+            catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
             if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
-            collection_to_delete = catalog.get_collection(collection_reference=collection_reference)
+            collection_to_delete = catalog.get_collection_by_reference(collection_reference=collection_reference)
             if not collection_to_delete:
                 raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
@@ -577,11 +619,11 @@ class Store(EventMixin, Entity):
     def update_collection(self, catalog_reference: StoreCatalogReference,
                           collection_reference: StoreCollectionReference, update_data: Dict) -> None:
         try:
-            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+            catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
             if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
-            collection = catalog.get_collection(collection_reference=collection_reference)
+            collection = catalog.get_collection_by_reference(collection_reference=collection_reference)
             if not collection:
                 raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
@@ -624,11 +666,11 @@ class Store(EventMixin, Entity):
 
         """
         try:
-            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+            catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
             if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
-            collection = catalog.get_collection(collection_reference=collection_reference)
+            collection = catalog.get_collection_by_reference(collection_reference=collection_reference)
             if not collection:
                 raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
@@ -656,11 +698,11 @@ class Store(EventMixin, Entity):
     def make_collection_default(self, collection_reference: StoreCollectionReference,
                                 catalog_reference: StoreCatalogReference) -> None:
         try:
-            catalog = self.get_catalog_by_reference(catalog_reference=catalog_reference)
+            catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
             if not catalog:
                 raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
-            collection = catalog.get_collection(collection_reference=collection_reference)
+            collection = catalog.get_collection_by_reference(collection_reference=collection_reference)
             if not collection:
                 raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
@@ -679,16 +721,53 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    """
-    PRODUCT OPERATION SECTIONS
-    """
+    # endregion
+
+    # region ## StoreProduct Operations ##
+
+    def make_product(
+            self,
+            display_name: str,
+            catalog_reference: StoreCatalogReference = '',
+            catalog_display_name: str = '',
+            collection_reference: StoreCollectionReference = '',
+            collection_display_name: str = '',
+            **kwargs,
+    ) -> StoreProduct:
+        # try to get catalog or make new one
+        try:
+            if catalog_reference:
+                catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
+                if catalog:
+                    if catalog_display_name and catalog.display_name != catalog_display_name:
+                        # make new, maybe error or something while input the data
+                        catalog_reference = slugify(catalog_display_name)
+                        catalog = self.make_catalog(display_name=catalog_display_name)
+                    else:
+                        # ok, pass
+                        pass
+                else:
+                    catalog = self.get_default_catalog()
+        except Exception as exc:
+            # if there is no catalog in this store, make a default one
+            catalog = self._make_default_catalog()
+
+        raise Exception("Nothing")
+
+        try:
+            pass
+            # get collection
+
+            return None
+        except Exception as exc:
+            raise exc
 
     def _add_product(self, product: StoreProduct, dest: StoreCollection):
         ...
 
-    """
-    EVENT RAISE SECTIONS
-    """
+    # endregion
+
+    # region ## Events Emitter ##
 
     def _raise_store_created_event(self) -> None:
         """
@@ -743,9 +822,12 @@ class Store(EventMixin, Entity):
             collection_reference=collection.reference
         ))
 
-    """
-    MISC SECTION
-    """
+    def _raise_product_created_event(self, product):
+        pass
+
+    # endregion
+
+    # region ## Misc Operations ##
 
     def _build_cache(self) -> Dict:
         if not hasattr(self, '_cached'):
@@ -767,3 +849,5 @@ class Store(EventMixin, Entity):
             setattr(self, '_cached', _cached)
 
         return self._cached
+
+    # endregion

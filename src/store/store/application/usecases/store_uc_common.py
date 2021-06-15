@@ -7,10 +7,13 @@ from typing import Union
 import email_validator
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 
+from foundation import uuid_validate
+from store.domain.entities.store_collection import StoreCollection
+
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.value_objects import StoreCatalogId, StoreCatalogReference
+from store.domain.entities.value_objects import StoreCatalogId, StoreCatalogReference, StoreCollectionId
 
 
 @dataclass
@@ -50,7 +53,7 @@ def is_store_disabled(store: Store) -> bool:
     return getattr(store, 'disabled', False)
 
 
-def fetch_store_by_owner(store_owner: str, uow: StoreUnitOfWork, active_only: bool = True) -> Store:
+def fetch_store_by_owner_or_raise(store_owner: str, uow: StoreUnitOfWork, active_only: bool = True) -> Store:
     """
     Fetch store information from persisted data by its owner's email
 
@@ -78,24 +81,46 @@ def fetch_store_by_owner(store_owner: str, uow: StoreUnitOfWork, active_only: bo
         raise exc
 
 
-def fetch_catalog_from_store(
-        by_catalog: Union[StoreCatalogId, StoreCatalogReference],
-        store: Store
-) -> StoreCatalog:
+def fetch_catalog_from_store_or_raise(by_catalog: str, store: Store) -> StoreCatalog:
+    """
+    Fetch the catalog from specified store, by it reference or catalog_id
+
+    :param by_catalog: reference or catalog_id, the catalog which is want to fetch, in str
+    :param store: instance of `Store`
+
+    :return: instance of `StoreCatalog` or raise Exception if not found
+    """
     try:
         # validate store
         if not store or getattr(store, 'store_id') is None:
             raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
-        catalog = None
-        if type(by_catalog) is str:
-            catalog = store.get_catalog_by_reference(catalog_reference=by_catalog)
-        elif type(by_catalog) is StoreCatalogId:
-            catalog = store.get_catalog_by_id(catalog_id=by_catalog)
+        catalog = store.get_catalog(search_term=by_catalog)
 
         if not catalog:
             raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
         return catalog
+    except Exception as exc:
+        raise exc
+
+
+def fetch_collection_from_catalog_or_raise(by_collection: str, catalog: StoreCatalog) -> StoreCollection:
+    try:
+        # validate catalog
+        if not catalog or type(catalog) is not StoreCatalog or getattr(catalog, 'catalog_id') is None:
+            raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+
+        collection = None
+        uuid = uuid_validate(by_collection)
+        if uuid:
+            collection = catalog.get_collection_by_id(collection_id=StoreCollectionId(uuid))
+        else:
+            collection = catalog.get_collection_by_reference(collection_reference=by_collection)
+
+        if not collection:
+            raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
+
+        return collection
     except Exception as exc:
         raise exc

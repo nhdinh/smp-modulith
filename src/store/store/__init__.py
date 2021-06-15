@@ -39,6 +39,8 @@ from store.application.usecases.initialize.register_store_uc import RegisterStor
 from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
+from store.application.usecases.product.create_store_product_uc import CreatingStoreProductResponseBoundary, \
+    CreateStoreProductUC
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
 from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, \
     StoreCatalogDeletedEvent
@@ -76,9 +78,7 @@ class StoreModule(injector.Module):
                                           uow: StoreUnitOfWork) -> InvalidateStoreCatalogCacheUC:
         return InvalidateStoreCatalogCacheUC(boundary, uow)
 
-    """
-    STORE CATALOG OPERATIONS
-    """
+    # region ## StoreCatalog Operations ##
 
     @injector.provider
     def create_store_catalog_uc(self, boundary: CreatingStoreCatalogResponseBoundary,
@@ -105,9 +105,9 @@ class StoreModule(injector.Module):
                                      uow: StoreUnitOfWork) -> SystemizeStoreCatalogUC:
         return SystemizeStoreCatalogUC(boundary, uow)
 
-    """
-    STORE COLLECTION OPERATIONS
-    """
+    # endregion
+
+    # region ## StoreCollection Operations ##
 
     @injector.provider
     def create_store_collection_uc(self, boundary: CreatingStoreCollectionResponseBoundary,
@@ -129,9 +129,18 @@ class StoreModule(injector.Module):
                                          uow: StoreUnitOfWork) -> MakeStoreCollectionDefaultUC:
         return MakeStoreCollectionDefaultUC(boundary, uow)
 
-    """
-    STORE HANDLERS FACADE
-    """
+    # endregion
+
+    # region ## StoreProduct Operation ##
+
+    @injector.provider
+    def create_store_product_uc(self, boundary: CreatingStoreProductResponseBoundary,
+                                uow: StoreUnitOfWork) -> CreateStoreProductUC:
+        return CreateStoreProductUC(boundary, uow)
+
+    # endregion
+
+    # region ## StoreHandlers Facade and configuration for event listening ##
 
     @injector.provider
     def facade(self, connection: Connection) -> StoreHandlerFacade:
@@ -148,6 +157,8 @@ class StoreModule(injector.Module):
         self.async_bind(binder, StoreCatalogDeletedEvent, StoreCatalogDeletedEventHandler)
 
         self.async_bind(binder, StoreCollectionCreatedEvent, StoreCollectionCreatedEventHandler)
+
+    # endregion
 
 
 class StoreInfrastructureModule(injector.Module):

@@ -13,7 +13,8 @@ from store.application.usecases.const import ExceptionMessages
 if TYPE_CHECKING:
     from store.domain.entities.store import Store
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId, StoreCollectionReference
+from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId, StoreCollectionReference, \
+    StoreCollectionId
 
 
 class DuplicatedCollectionReferenceError(Exception):
@@ -45,7 +46,7 @@ class StoreCatalog:
         self.disabled = disabled
         self.system = system
 
-        self._collections = set()
+        self._collections = set()  # type:Set[StoreCollection]
         self._store = None  # type: Optional[Store]
 
         # cached
@@ -178,7 +179,7 @@ class StoreCatalog:
         # add the collection to self
         self._collections.add(collection)
 
-    def get_collection(self, collection_reference: StoreCollectionReference) -> Optional[StoreCollection]:
+    def get_collection_by_reference(self, collection_reference: StoreCollectionReference) -> Optional[StoreCollection]:
         """
         Get the child collection by it reference
 
@@ -190,6 +191,15 @@ class StoreCatalog:
 
         try:
             return next(col for col in self._collections if col.reference == collection_reference)
+        except StopIteration:
+            return None
+
+    def get_collection_by_id(self, collection_id: StoreCollectionId) -> Optional[StoreCollection]:
+        if len(self._collections) == 0:
+            return None
+
+        try:
+            return next(col for col in self._collections if col.collection_id == collection_id)
         except StopIteration:
             return None
 

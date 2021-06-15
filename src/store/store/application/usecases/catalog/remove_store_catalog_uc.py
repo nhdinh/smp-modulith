@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import fetch_store_by_owner
+from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 
 
 @dataclass
@@ -38,7 +38,7 @@ class RemoveStoreCatalogUC:
                 remove_completely = dto.remove_completely
 
                 # get store
-                store = fetch_store_by_owner(store_owner=dto.current_user, uow=uow)
+                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 # delete catalog
                 store.delete_catalog(

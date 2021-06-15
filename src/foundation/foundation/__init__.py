@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from typing import Optional
+from uuid import UUID
 
 import injector
 import slugify as slug1fy
@@ -35,10 +37,23 @@ class RecordAllEventHandler:
         self._facade.record_event(event)
 
 
-"""
-ALL HELPERS
-"""
+# region ## App Helpers ##
 
 
 def slugify(text: str) -> str:
     return slug1fy.slugify(text.strip(), separator='_')
+
+
+def uuid_validate(text: str) -> Optional[UUID]:
+    """
+    Try to validate a string as an UUID
+
+    :param text: input string
+    :return: an UUID if valid, else None
+    """
+    try:
+        return UUID(text)
+    except:
+        return None
+
+# endregion

@@ -123,6 +123,7 @@ class SqlFetchAllStoreCollectionsQuery(FetchAllStoreCollectionsQuery, SqlQuery):
                 store_collection_table.c.reference,
                 store_collection_table.c.display_name,
                 store_collection_table.c.disabled,
+                store_collection_table.c.default,
             ]) \
                 .select_from(store_collection_table) \
                 .where(store_collection_table.c.store_id == store_id) \

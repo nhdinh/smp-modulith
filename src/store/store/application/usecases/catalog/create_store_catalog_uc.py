@@ -7,7 +7,7 @@ from typing import Optional
 from foundation import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import fetch_store_by_owner
+from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId
 
 
@@ -38,7 +38,7 @@ class CreateStoreCatalogUC:
     def execute(self, dto: CreatingStoreCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner(store_owner=dto.current_user, uow=uow)
+                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 if store.has_catalog_reference(dto.catalog_reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)

@@ -6,7 +6,7 @@ from typing import Optional
 
 from foundation import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import fetch_store_by_owner
+from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference, StoreId, \
     StoreCollectionId
@@ -42,7 +42,7 @@ class CreateStoreCollectionUC:
     def execute(self, dto: CreatingStoreCollectionRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner(store_owner=dto.current_user, uow=uow)  # type:Store
+                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)  # type:Store
 
                 # validate collection reference
                 reference = slugify(dto.reference) if dto.reference else slugify(dto.display_name)

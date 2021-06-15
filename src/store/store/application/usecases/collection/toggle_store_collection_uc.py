@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
-from store.application.usecases.store_uc_common import fetch_store_by_owner
+from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference
 
 
@@ -25,7 +25,7 @@ class ToggleStoreCollectionUC:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
                 # get store
-                store = fetch_store_by_owner(store_owner=input_dto.current_user, uow=uow)
+                store = fetch_store_by_owner_or_raise(store_owner=input_dto.current_user, uow=uow)
 
                 # do update
                 store.toggle_collection(catalog_reference=input_dto.catalog_reference,

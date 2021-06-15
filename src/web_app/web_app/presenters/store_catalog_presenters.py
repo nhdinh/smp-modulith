@@ -16,6 +16,8 @@ from store.application.usecases.collection.update_store_collection_uc import Upd
     UpdatingStoreCollectionResponseBoundary
 from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponse, \
     InitializingStoreWithPlanResponseBoundary
+from store.application.usecases.product.create_store_product_uc import CreatingStoreProductResponseBoundary, \
+    CreatingStoreProductRequest
 from store.application.usecases.store_uc_common import GenericStoreActionResponse, GenericStoreResponseBoundary
 
 
@@ -80,3 +82,12 @@ class InitializingStoreWithPlanResponsePresenter(InitializingStoreWithPlanRespon
 
     def present(self, response_dto: InitializingStoreWithPlanResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
+
+
+# region ## Store Product Presenters ##
+class CreatingStoreProductPresenter(CreatingStoreProductResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: CreatingStoreProductRequest) -> None:
+        self.response = make_response(jsonify(response_dto.__dict__))
+# endregion
