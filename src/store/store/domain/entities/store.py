@@ -409,6 +409,42 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
+    def _try_to_get_catalog_or_default_or_make_new(
+            self,
+            reference: Optional[StoreCatalogReference] = '',
+            display_name: Optional[str] = ''
+    ) -> StoreCatalog:
+        def _do_something(reference: StoreCatalogReference, display_name: str) -> StoreCatalog:
+            if self.has_catalog_reference(catalog_reference=reference):
+                catalog = self._get_catalog_by_reference(catalog_reference=reference)
+
+                if display_name:
+                    if catalog.display_name == display_name:
+                        return catalog
+                    else:
+                        catalog = self.make_catalog(display_name=display_name, reference=reference,
+                                                    new_reference_if_duplicated=True)
+                        self._add_catalog_to_store(catalog)
+                        return catalog
+                else:
+                    return catalog
+            else:
+                # reference isn't in the list
+                catalog = self.make_catalog(display_name=display_name, reference=reference)
+                self._add_catalog_to_store(catalog)
+                return catalog
+
+        if display_name:
+            if not reference:
+                reference = slugify(display_name)
+
+            return _do_something(reference, display_name)
+        else:
+            if reference:
+                return _do_something(reference, display_name)
+            else:
+                return self.get_default_catalog()
+
     def move_catalog_content(self, source_reference: StoreCatalogReference,
                              dest_reference: Optional[StoreCatalogReference] = None) -> None:
         """
@@ -735,30 +771,11 @@ class Store(EventMixin, Entity):
             **kwargs,
     ) -> StoreProduct:
         # try to get catalog or make new one
-        try:
-            if catalog_reference:
-                catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
-                if catalog:
-                    if catalog_display_name and catalog.display_name != catalog_display_name:
-                        # make new, maybe error or something while input the data
-                        catalog_reference = slugify(catalog_display_name)
-                        catalog = self.make_catalog(display_name=catalog_display_name)
-                    else:
-                        # ok, pass
-                        pass
-                else:
-                    catalog = self.get_default_catalog()
-        except Exception as exc:
-            # if there is no catalog in this store, make a default one
-            catalog = self._make_default_catalog()
-
-        raise Exception("Nothing")
+        catalog = self._try_to_get_catalog_or_default_or_make_new(reference=catalog_reference,
+                                                                  display_name=catalog_display_name)
 
         try:
-            pass
-            # get collection
-
-            return None
+            raise Exception("Nothing")
         except Exception as exc:
             raise exc
 
