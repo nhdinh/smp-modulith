@@ -27,12 +27,14 @@ class StoreCollection:
             collection_id: StoreCollectionId,
             reference: StoreCollectionReference,
             display_name: str,
-            disabled: bool
+            default: bool = False,
+            disabled: bool = False,
     ):
         self.collection_id = collection_id
         self.reference = reference
         self.display_name = display_name
         self.disabled = disabled
+        self.default = default
 
         # catalog (parent)
         self._catalog = None

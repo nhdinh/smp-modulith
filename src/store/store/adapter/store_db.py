@@ -110,6 +110,16 @@ store_collection_table = sa.Table(
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
 
+store_product_table = sa.Table(
+    'store_product',
+    metadata,
+    sa.Column('product_id', GUID, primary_key=True),
+    sa.Column('collection_id',
+              sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('reference', sa.String(100), nullable=False),
+    sa.Column('display_name', sa.String(255), nullable=False),
+)
+
 store_catalog_cache_table = sa.Table(
     'store_catalogs_cache',
     metadata,
@@ -128,7 +138,6 @@ store_collection_cache_table = sa.Table(
     sa.Column('collection_reference', sa.String(100))
 )
 
-
 # store_product_cache_table = sa.Table(
 #     'store_product_cache',
 #     metadata,
@@ -139,6 +148,30 @@ store_collection_cache_table = sa.Table(
 #     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
 #     sa.Column('product_reference', sa.String(255))
 # )
+
+# region ## Store Data Value ##
+store_brand_table = sa.Table(
+    'store_brand',
+    metadata,
+    sa.Column('reference', sa.String(100), primary_key=True),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE'),
+              primary_key=True),
+    sa.Column('display_name', sa.String(255), nullable=False)
+)
+
+store_product_brands_table = sa.Table(
+    'store_product_brands',
+    metadata,
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('store_id', GUID, nullable=False),
+    sa.Column('brand_reference', sa.String(100), nullable=False),
+
+    sa.ForeignKeyConstraint(('store_id', 'brand_reference'),
+                            [store_brand_table.c.store_id, store_brand_table.c.reference])
+)
+
+
+# endregion
 
 
 @event.listens_for(StoreRegistration, 'load')

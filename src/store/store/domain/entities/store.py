@@ -16,7 +16,9 @@ from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCollectionReference, StoreCatalogId
+from store.domain.entities.store_product_brand import StoreProductBrand, StoreProductBrandReference
+from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCollectionReference, \
+    StoreCatalogId, StoreProductReference
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
     StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, StoreCatalogDeletedEvent, StoreCollectionToggledEvent, \
     StoreCollectionUpdatedEvent, StoreCollectionDeletedEvent
@@ -69,6 +71,9 @@ class Store(EventMixin, Entity):
         self._catalogs = set()  # type:Set[StoreCatalog]
         self._make_default_catalog()
 
+        # its brands
+        self._brands = set()  # type:Set[StoreProductBrand]
+
         # version number
         self.version = version
 
@@ -109,6 +114,10 @@ class Store(EventMixin, Entity):
         :return:
         """
         return self._catalogs
+
+    @property
+    def brands(self) -> Set[StoreProductBrand]:
+        return self._brands
 
     # endregion
 
@@ -857,6 +866,29 @@ class Store(EventMixin, Entity):
 
     # endregion
 
+    # region ## StoreBrand Operations ##
+    def _try_to_get_brand(
+            self,
+            reference: StoreProductBrandReference,
+            display_name: str
+    ) -> Optional[StoreProductBrand]:
+        if reference:
+            try:
+                brand = next(b for b in self._brands if b.reference == reference)  # type: StoreProductBrand
+                return brand
+            except StopIteration:
+                brand = None
+
+        if display_name:
+            if not reference:
+                reference = slugify(display_name)
+
+            brand = StoreProductBrand(reference=reference, display_name=display_name)
+            return brand
+
+        return None
+
+    # endregion
     # region ## StoreProduct Operations ##
 
     def make_product(
@@ -868,26 +900,50 @@ class Store(EventMixin, Entity):
             collection_display_name: str = '',
             **kwargs,
     ) -> StoreProduct:
-        # try to get catalog or make new one
         try:
+            # make product creating params
+            product_params = {}
+
+            # try to get catalog or make new one
             catalog = self._try_to_get_catalog_or_default_or_make_new(reference=catalog_reference,
                                                                       display_name=catalog_display_name)
+
+            # try to get collection or make new one
             collection = self._try_to_get_collection_or_default_or_make_new(from_catalog=catalog,
                                                                             reference=collection_reference,
                                                                             display_name=collection_display_name)
 
-            reference = slugify(kwargs.get('reference'))
+            product_params['catalog'] = catalog
+            product_params['collection'] = collection
+
+            # make brand
+            brand_reference = kwargs.get('brand_reference')
+            brand_display_name = kwargs.get('brand_display_name')
+            brand = self._try_to_get_brand(
+                reference=brand_reference,
+                display_name=brand_display_name)  # type: StoreProductBrand
+            if brand:
+                brand.store = self
+                self.brands.add(brand)
+                product_params['brand'] = brand
+
+            # get product_reference
+            reference = kwargs.get('reference')
             if not reference:
                 reference = slugify(display_name)
 
+            self.version += 1
+            return self._make_product(reference=reference, display_name=display_name, **product_params)
+        except Exception as exc:
+            raise exc
+
+    def _make_product(self, reference: StoreProductReference, display_name: str, **params) -> StoreProduct:
+        try:
             product = StoreProduct.create_product(
                 reference=reference,
                 display_name=display_name,
             )
 
-            self._add_product(product=product, dest=collection)
-
-            self.version += 1
             return product
         except Exception as exc:
             raise exc

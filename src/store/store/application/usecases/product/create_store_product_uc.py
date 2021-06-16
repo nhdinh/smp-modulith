@@ -129,16 +129,12 @@ class CreateStoreProductUC:
                     if getattr(dto, data_field, None) is not None:
                         product_data[data_field] = getattr(dto, data_field)
 
-                product = store.make_product(
-                    **product_data,
-                    catalog_reference=dto.catalog_reference,
-                    collection_reference=dto.collection_reference
-                )
+                product = store.make_product(**product_data)
 
                 # make response
                 response_dto = CreatingStoreProductResponse(
-                    product_id='product.product_id',
-                    product_reference='product.product_reference'
+                    product_id=product.product_id,
+                    product_reference=product.reference
                 )
                 self._ob.present(response_dto=response_dto)
 
