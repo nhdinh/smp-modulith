@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from time import sleep
-from typing import Optional as Opt
+from typing import Optional as Opt, List
 from uuid import uuid4
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
@@ -13,24 +13,55 @@ from store.domain.entities.value_objects import StoreCatalogReference, StoreColl
 
 
 @dataclass(frozen=True)
-class CreatingUnitConversionRequest:
+class CreatingStoreProductUnitConversionRequest:
     unit: str
     multiplier: float
+
+
+@dataclass(frozen=True)
+class CreatingStoreProductFirstStockingRequest:
+    unit: str
+    stocking: int
 
 
 @dataclass
 class CreatingStoreProductRequest:
     current_user: str
 
-    catalog_reference: Opt[StoreCatalogReference]
-    catalog_display_name: Opt[str]
-    collection_reference: Opt[StoreCollectionReference]
-    collection_display_name: Opt[str]
-
-    reference: Opt[StoreProductReference]
+    # product data (mandatory)
     display_name: str
-    image: Opt[str] = ''
-    sku: Opt[str] = ''
+
+    # product data (options)
+    reference: Opt[StoreProductReference] = None
+    image: Opt[str] = None
+    sku: Opt[str] = None
+    barcode: Opt[str] = None
+
+    # tags (optional)
+    tags: Opt[List[str]] = field(default_factory=list)
+
+    # brands (optional)
+    brand_display_name: Opt[str] = None
+    brand_reference: Opt[str] = None
+
+    # seller (optional)
+    seller_phone: Opt[str] = None
+    seller_contact_name: Opt[str] = None
+
+    # catalog & collection (optional)
+    catalog_reference: Opt[StoreCatalogReference] = None
+    catalog_display_name: Opt[str] = None
+    collection_reference: Opt[StoreCollectionReference] = None
+    collection_display_name: Opt[str] = None
+
+    # unit & first stocking (optional)
+    default_unit: Opt[str] = None
+    first_inventory_stocking: Opt[int] = None
+
+    # conversion units (optional)
+    unit_conversions: Opt[List[CreatingStoreProductUnitConversionRequest]] = field(default_factory=list)
+    first_inventory_stocking_for_unit_conversions: Opt[List[CreatingStoreProductFirstStockingRequest]] = field(
+        default_factory=list)
 
 
 @dataclass
@@ -57,16 +88,41 @@ class CreateStoreProductUC:
 
                 product_data = dict()
                 product_data_fields = [
-                    'reference',
+                    # product data (required)
                     'display_name',
+
+                    # product data (optional_
+                    'reference',
                     'image',
                     'sku',
                     'barcode',
+
+                    # tags
+                    'tags',
+
+                    # brand
                     'brand_display_name',
+                    'brand_reference',
+
+                    # seller
                     'seller_phone',
+                    'seller_contact_name',
+
+                    # catalog
                     'catalog_display_name',
+                    'catalog_reference',
+
+                    # collection
                     'collection_display_name',
-                    'base_unit',
+                    'collection_reference',
+
+                    # unit & first stocking
+                    'default_unit',
+                    'first_inventory_stocking',
+
+                    # conversion units
+                    'unit_conversions',
+                    'first_inventory_stocking_for_unit_conversions',
                 ]
 
                 for data_field in product_data_fields:

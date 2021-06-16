@@ -888,7 +888,7 @@ class Store(EventMixin, Entity):
             self._add_product(product=product, dest=collection)
 
             self.version += 1
-            return StoreProduct()
+            return product
         except Exception as exc:
             raise exc
 

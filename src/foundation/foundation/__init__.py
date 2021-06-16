@@ -41,6 +41,9 @@ class RecordAllEventHandler:
 
 
 def slugify(text: str) -> str:
+    if text is None:
+        return text
+
     return slug1fy.slugify(text.strip(), separator='_')
 
 
