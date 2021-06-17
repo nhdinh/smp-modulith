@@ -511,6 +511,7 @@ def fetch_store_products_from_collection(
             catalog_reference=catalog_reference,
             dto=dto
         )
+
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:

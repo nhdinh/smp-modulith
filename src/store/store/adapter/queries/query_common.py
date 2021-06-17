@@ -6,8 +6,8 @@ from sqlalchemy import select, func, distinct
 from sqlalchemy.engine import Connection
 
 from store.adapter.store_db import store_table, store_owner_table, \
-    store_collection_cache_table, store_catalog_table
-from store.domain.entities.value_objects import StoreId, StoreCatalogId
+    store_collection_cache_table, store_catalog_table, store_collection_table, store_product_table
+from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCatalogReference, StoreCollectionReference
 
 
 def sql_fetch_store_by_owner(store_owner: str, conn: Connection, active_only: bool = True):
@@ -42,9 +42,21 @@ def sql_fetch_catalog_by_reference(catalog_reference: str, store_id: StoreId, co
     return catalog_id
 
 
+def sql_fetch_collection_by_reference(collection_reference: str, catalog_reference: str, store_id: StoreId,
+                                      conn: Connection):
+    q = select([store_collection_table.c.collection_id]). \
+        join(store_catalog_table, onclause=(store_catalog_table.c.reference == catalog_reference)). \
+        select_from(store_collection_table). \
+        where(store_collection_table.c.reference == collection_reference). \
+        where(store_collection_table.c.store_id == store_id)
+    collection_id = conn.scalar(q)
+
+    return collection_id
+
+
 def sql_count_catalog_from_store(store_id: StoreId, conn: Connection, active_only: bool = False) -> int:
     catalog_count = conn.scalar(
-        select([func.count(distinct(store_catalog_table.c.reference))]) \
+        select([func.count(distinct(store_catalog_table.c.catalog_id))]) \
             .select_from(store_catalog_table) \
             .where(store_catalog_table.c.store_id == store_id)
     )
@@ -59,14 +71,30 @@ def sql_count_collection_from_catalog(
         active_only: bool = False
 ) -> int:
     collection_count = conn.scalar(
-        select([func.count(distinct(store_collection_cache_table.c.collection_reference))]) \
-            .select_from(store_collection_cache_table) \
-            .where(store_collection_cache_table.c.store_id == store_id) \
-            .where(store_collection_cache_table.c.catalog_id == catalog_id)
+        select([func.count(distinct(store_collection_table.c.collection_id))]) \
+            .select_from(store_collection_table) \
+            .where(store_collection_table.c.store_id == store_id) \
+            .where(store_collection_table.c.catalog_id == catalog_id)
     )
 
     return collection_count
 
 
-def sql_count_collection_from_store() -> int:
-    pass
+def sql_count_products_from_collection(
+        store_id: StoreId,
+        catalog_reference: StoreCatalogReference,
+        collection_reference: StoreCollectionReference,
+        conn: Connection,
+        active_only: bool = False
+) -> int:
+    products_count = conn.scalar(
+        select([func.count(distinct(store_product_table.c.product_id))]) \
+            .select_from(store_product_table) \
+            .join(store_collection_table,
+                  onclause=(store_collection_table.c.collection_id == store_product_table.c.collection_id)) \
+            .join(store_catalog_table,
+                  onclause=(store_catalog_table.c.catalog_id == store_collection_table.c.catalog_id)) \
+            .where(store_catalog_table.c.store_id == store_id)
+    )
+
+    return products_count

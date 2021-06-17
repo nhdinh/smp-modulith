@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List
 
 from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference
@@ -50,13 +51,23 @@ class StoreCatalogResponseDto:
 
 @dataclass
 class StoreProductResponseDto:
-    collection_id: str
+    product_id: str
     reference: str
     display_name: str
 
+    brand: str
+    catalog: str
+    collection: str
+    created_at: datetime
+
     def serialize(self):
         return {
-            'display_name': self.display_name
+            'product_id': self.product_id,
+            'display_name': self.display_name,
+            'catalog': self.catalog,
+            'collection': self.collection,
+            'brand': self.brand,
+            'created_at': self.created_at
         }
 
 

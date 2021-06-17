@@ -118,6 +118,8 @@ store_product_table = sa.Table(
               sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False),
     sa.Column('display_name', sa.String(255), nullable=False),
+    sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now())
 )
 
 # store_unit_table = sa.Table(

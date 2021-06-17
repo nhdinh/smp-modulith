@@ -8,10 +8,11 @@ from sqlalchemy.engine.row import RowProxy
 from db_infrastructure import SqlQuery
 from store.adapter import store_catalog_table
 from store.adapter.queries.query_common import sql_fetch_store_by_owner, sql_count_catalog_from_store, \
-    sql_count_collection_from_catalog, sql_fetch_catalog_by_reference
-from store.adapter.store_db import store_collection_table
+    sql_count_collection_from_catalog, sql_fetch_catalog_by_reference, sql_fetch_collection_by_reference
+from store.adapter.store_db import store_collection_table, store_product_table, store_table, store_brand_table
 from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, StoreCatalogResponseDto, \
-    StoreCollectionResponseDto, FetchAllStoreCollectionsQuery, FetchAllStoreProductsQuery, StoreProductResponseDto
+    StoreCollectionResponseDto, FetchAllStoreCollectionsQuery, StoreProductResponseDto, \
+    FetchStoreProductsFromCollectionQuery
 from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
@@ -138,23 +139,5 @@ class SqlFetchAllStoreCollectionsQuery(FetchAllStoreCollectionsQuery, SqlQuery):
                     _row_to_collection_dto(row) for row in collections
                 ]
             )
-        except Exception as exc:
-            raise exc
-
-
-class SqlFetchAllStoreProductsQuery(FetchAllStoreProductsQuery, SqlQuery):
-    def query(
-            self,
-            collection_reference: StoreCollectionReference,
-            catalog_reference: StoreCatalogReference,
-            dto: AuthorizedPaginationInputDto
-    ) -> PaginationOutputDto[StoreProductResponseDto]:
-        try:
-            current_page = dto.page if dto.page else 1
-
-            store_id = sql_fetch_store_by_owner(store_owner=dto.current_user, conn=self._conn)
-            catalog_id = sql_fetch_catalog_by_reference(catalog_reference=catalog_reference, store_id=store_id,
-                                                        conn=self._conn)
-            return None
         except Exception as exc:
             raise exc

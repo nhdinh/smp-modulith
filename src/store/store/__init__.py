@@ -11,8 +11,10 @@ from store.application.usecases.catalog.systemize_store_catalog_uc import System
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.adapter import store_db
 from store.adapter.queries import SqlFetchAllStoreCatalogsQuery, SqlFetchAllStoreCollectionsQuery
-from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery
-from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery
+from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
+    SqlFetchStoreProductsFromCollectionQuery
+from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery, \
+    FetchStoreProductsFromCollectionQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
@@ -154,7 +156,7 @@ class StoreModule(injector.Module):
         return StoreHandlerFacade(connection=connection)
 
     def async_bind(self, binder: injector.Binder, event: Type, handler: Type) -> None:
-        # shorthand for multibind
+        # shorthand for multi-bind
         binder.multibind(AsyncHandler[event], to=AsyncEventHandlerProvider(handler))
 
     def configure(self, binder: injector.Binder) -> None:
@@ -201,3 +203,7 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def fetch_store_collections_query(self, conn: Connection) -> FetchAllStoreCollectionsQuery:
         return SqlFetchAllStoreCollectionsQuery(conn)
+
+    @injector.provider
+    def fetch_products_from_collection_query(self, conn: Connection) -> FetchStoreProductsFromCollectionQuery:
+        return SqlFetchStoreProductsFromCollectionQuery(conn)
