@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relationship, backref
 from identity.domain.entities import User
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
     store_managers_table, store_catalog_table, store_collection_table, store_brand_table, store_product_table, \
-    store_product_brands_table
+    store_product_brands_table, store_product_unit_table
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
@@ -14,6 +14,7 @@ from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.store_unit import StoreProductUnit
 
 
 def start_mappers():
@@ -44,12 +45,33 @@ def start_mappers():
         }
     )
 
+    mapper(
+        StoreProductUnit,
+        store_product_unit_table,
+        properties={
+            '_product_id': store_product_unit_table.c.product_id,
+            '_base_product_id': store_product_unit_table.c.base_product_id,
+            'from_unit': relationship(
+                StoreProductUnit,
+                foreign_keys=[store_product_unit_table.c.base_product_id, store_product_unit_table.c.base_unit],
+                remote_side=[store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
+            ),
+        })
+
     mapper(StoreProductBrand, store_brand_table)
 
     mapper(
         StoreProduct, store_product_table,
         properties={
+            '_brand': relationship(
+                StoreProductBrand,
+                secondary=store_product_brands_table
+            ),
 
+            '_units': relationship(
+                StoreProductUnit,
+                collection_class=set
+            )
         })
 
     mapper(
@@ -63,11 +85,6 @@ def start_mappers():
                 cascade='all, delete-orphan',
                 backref=backref('_collection', cascade='all', single_parent=True)
             ),
-
-            '_brand': relationship(
-                StoreProductBrand,
-                secondary=store_product_brands_table
-            )
         })
 
     mapper(StoreCatalog, store_catalog_table, properties={

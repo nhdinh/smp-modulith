@@ -3,7 +3,7 @@ from typing import Optional
 
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
-from flask import Flask, Response, request
+from flask import Flask, Response, request, make_response
 from flask_cors import CORS
 from flask_injector import FlaskInjector
 from flask_jwt_extended import JWTManager, get_jwt, create_access_token, get_jwt_identity, set_access_cookies
@@ -125,5 +125,9 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     # enable CORS
     CORS(app)
+
+    @app.route('/health/live')
+    def health_check():
+        return make_response({'status': True}), 200
 
     return app

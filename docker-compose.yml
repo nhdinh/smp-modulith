@@ -21,11 +21,20 @@ services:
       EMAIL_FROM_ADDRESS: admin@smp.io
       DB_DSN: postgresql://postgres:clone@database:5432/smp_db
       REDIS_HOST: redis
+      MINIO_HOST: minio
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
     depends_on:
       - database
       - smtp_server
       - redis
       - worker
+      - minio
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
   database:
     image: postgres:12
@@ -73,25 +82,30 @@ services:
     depends_on:
       - redis
 
-#  ghost:
-#    image: emilol/ghost-cloudinary
-#    restart: always
-#    ports:
-#      - "2368:2368"
-#    volumes:
-#      - $INSTALL_PATH/content:${GHOST_INSTALL:-/var/lib/ghost}/content
-#      - $INSTALL_PATH/content.orig:${GHOST_INSTALL:-/var/lib/ghost}/content.orig
-#      - $CONFIG_PATH:${GHOST_INSTALL:-/var/lib/ghost}/config.production.json
-#    environment:
-#      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:?run export CLOUDINARY_CLOUD_NAME="your cloud name"}
-#      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:?run export CLOUDINARY_API_KEY="your api key"}
-#      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:?run export CLOUDINARY_API_SECRET="your api secret"}
-#    command: "bash -c \"su-exec node ghost config storage.cloudinary-store.cloud_name '$CLOUDINARY_CLOUD_NAME'; \
-#                        su-exec node ghost config storage.cloudinary-store.api_key '$CLOUDINARY_API_KEY'; \
-#                        su-exec node ghost config storage.cloudinary-store.api_secret '$CLOUDINARY_API_SECRET' &> /dev/null; \
-#                        node current/index.js\""
-#  localtunnel:
-#    image: node:10-alpine
-#    command: npx localtunnel --port 2368 --local-host ${GHOST_HOST:-localhost} --subdomain ${GHOST_SUBDOMAIN}
-#    depends_on:
-#      - ghost
+  minio:
+    image: minio/minio:RELEASE.2021-06-14T01-29-23Z
+    hostname: minio
+    volumes:
+      - ../data:/data
+    expose:
+      - "9000"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+#    command: server http://minio/data
+    command: minio server /data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  nginx:
+    image: nginx:1.19.2-alpine
+    hostname: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "9000:9000"
+    depends_on:
+      - minio

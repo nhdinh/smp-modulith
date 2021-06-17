@@ -1,6 +1,7 @@
 import threading
 from typing import Type
-
+from minio import Minio
+from minio.error import S3Error
 import injector
 from injector import Provider, T
 from redis import Redis
@@ -102,6 +103,19 @@ class Rq(injector.Module):
             )
 
         return enqueue_after_commit
+
+
+class MinIOService(injector.Module):
+    def __init__(self, host: str, access_key: str, secret_key: str):
+        self.minio_host = host
+        self.minio_access_key = access_key
+        self.minio_secret_key = secret_key
+
+    @injector.singleton
+    @injector.provider
+    def client(self) -> Minio:
+        _client = Minio(self.minio_host, self.minio_access_key, self.minio_secret_key)  # type:Minio
+        return _client
 
 
 class EventBusMod(injector.Module):

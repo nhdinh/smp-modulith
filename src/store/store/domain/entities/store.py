@@ -17,6 +17,7 @@ from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand, StoreProductBrandReference
+from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCollectionReference, \
     StoreCatalogId, StoreProductReference
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
@@ -69,7 +70,8 @@ class Store(EventMixin, Entity):
 
         # its catalog
         self._catalogs = set()  # type:Set[StoreCatalog]
-        self._make_default_catalog()
+        default_catalog = self._make_default_catalog()
+        self._add_catalog_to_store(catalog=default_catalog)
 
         # its brands
         self._brands = set()  # type:Set[StoreProductBrand]
@@ -872,23 +874,34 @@ class Store(EventMixin, Entity):
             reference: StoreProductBrandReference,
             display_name: str
     ) -> Optional[StoreProductBrand]:
+        if display_name:
+            reference = slugify(reference) if reference else slugify(display_name)
+
         if reference:
             try:
                 brand = next(b for b in self._brands if b.reference == reference)  # type: StoreProductBrand
-                return brand
             except StopIteration:
-                brand = None
+                brand = StoreProductBrand(reference=reference, display_name=display_name)
 
-        if display_name:
-            if not reference:
-                reference = slugify(display_name)
-
-            brand = StoreProductBrand(reference=reference, display_name=display_name)
             return brand
+        else:
+            return None
 
-        return None
+    def _try_to_make_unit(
+            self,
+            unit: str,
+            default: bool,
+            disabled: bool = False) -> StoreProductUnit:
+        return StoreProductUnit(
+            unit=unit,
+            conversion_factor=0,
+            default=default,
+            disabled=disabled,
+            from_unit=None
+        )
 
     # endregion
+
     # region ## StoreProduct Operations ##
 
     def make_product(
@@ -927,13 +940,26 @@ class Store(EventMixin, Entity):
                 self.brands.add(brand)
                 product_params['brand'] = brand
 
+            # make unit
+            default_unit = kwargs.get('default_unit')
+            if default_unit:
+                unit = self._try_to_make_unit(unit=default_unit, default=True)
+                product_params['default_unit'] = unit
+
             # get product_reference
             reference = kwargs.get('reference')
             if not reference:
                 reference = slugify(display_name)
 
+            # make product
+            product = self._make_product(reference=reference, display_name=display_name, **product_params)
+
+            # add it to collection
+            self._add_product(product=product, dest=collection)
+
             self.version += 1
-            return self._make_product(reference=reference, display_name=display_name, **product_params)
+
+            return product
         except Exception as exc:
             raise exc
 
@@ -944,18 +970,24 @@ class Store(EventMixin, Entity):
                 display_name=display_name,
             )
 
+            # set product's default unit
+            default_unit = params.get('default_unit')
+            if default_unit and type(default_unit) is StoreProductUnit:
+                default_unit.product = product
+                product.default_unit = default_unit
+
             return product
         except Exception as exc:
             raise exc
 
     def _add_product(self, product: StoreProduct, dest: StoreCollection, **kwargs):
         """
-                Internal method for adding a collection to a catalog. All the children products will be added accordingly.
+        Internal method for adding a collection to a catalog. All the children products will be added accordingly.
 
-                :param collection: the collection to be added
-                :param dest: destination catalog
-                :param kwargs: some options
-                """
+        :param collection: the collection to be added
+        :param dest: destination catalog
+        :param kwargs: some options
+        """
         # `keep_default` is the flag to specify that the default collection in the destination catalog will be keep or
         # not. It `True` is passed, the default collection in the destination catalog will be keep, all the new
         # collections to be copied will be mark as non default. Else, the default collection in the destination

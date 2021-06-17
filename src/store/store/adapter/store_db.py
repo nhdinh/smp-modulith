@@ -120,6 +120,62 @@ store_product_table = sa.Table(
     sa.Column('display_name', sa.String(255), nullable=False),
 )
 
+# store_unit_table = sa.Table(
+#     'store_unit',
+#     metadata,
+#     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
+#     sa.Column('unit', sa.String(100), nullable=False),
+#     sa.Column('base_unit', sa.String(100), nullable=True),
+#     sa.Column('conversion_factor', sa.Float, nullable=True),
+#
+#     sa.PrimaryKeyConstraint(['product_id', 'unit']),
+#     sa.ForeignKeyConstraint(('base_unit', 'product_id'), ['store_unit.unit', 'store_unit.product_id'])
+# )
+
+store_product_unit_table = sa.Table(
+    'store_product_unit',
+    metadata,
+    sa.Column('product_id', GUID,
+              sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('unit', sa.String(50)),
+    sa.Column('default', sa.Boolean, server_default='0'),
+    sa.Column('conversion_factor', sa.Numeric, nullable=True, server_default='1'),
+    sa.Column('base_product_id', nullable=True, default=None),
+    sa.Column('base_unit', nullable=True, default=None),
+    sa.Column('disabled', sa.Boolean, default=False, server_default='0'),
+    sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+
+    sa.PrimaryKeyConstraint('product_id', 'unit', name='store_product_unit_pk'),
+    sa.ForeignKeyConstraint(
+        ('base_product_id', 'base_unit'),
+        ['store_product_unit.product_id', 'store_product_unit.unit'],
+        name='store_product_unit_fk',
+        ondelete='SET NULL'
+    )
+)
+
+store_unit_cache_table = sa.Table(
+    'store_units_cache',
+    metadata,
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+    sa.Column('unit', sa.String(100))
+)
+
+store_product_tag_table = sa.Table(
+    'store_product_tags',
+    metadata,
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
+    sa.Column('tag', sa.String(100))
+)
+
+store_tags_cache_table = sa.Table(
+    'store_tags_cache',
+    metadata,
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+    sa.Column('tag', sa.String(100))
+)
+
 store_catalog_cache_table = sa.Table(
     'store_catalogs_cache',
     metadata,

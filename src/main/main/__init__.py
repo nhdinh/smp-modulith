@@ -14,7 +14,7 @@ from identity import IdentityModule
 from identity.adapters import identity_db
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
-from main.modules import Configs, Db, EventBusMod, RedisMod, Rq
+from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService
 from payments import Payments
 from processes import Processes
 from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureModule
@@ -51,6 +51,9 @@ def bootstrap_app() -> AppContext:
         "email.from.name": os.environ["EMAIL_FROM_NAME"],
         "email.from.address": os.environ["EMAIL_FROM_ADDRESS"],
         "redis.host": os.environ["REDIS_HOST"],
+        "minio.host": os.environ["MINIO_HOST"],
+        "minio.access_key": os.environ["MINIO_ACCESS_KEY"],
+        "minio.secret_key": os.environ["MINIO_SECRET_KEY"],
     }
 
     db_echo = os.environ.get('DB_ECHO') in ('True', 'true', '1')
@@ -73,6 +76,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             RedisMod(settings["redis.host"]),
             Rq(),
             EventBusMod(),
+            MinIOService(settings["minio.host"], settings["minio.access_key"], settings["minio.secret_key"]),
             Configs(settings),
             FoundationModule(),
             IdentityModule(),

@@ -21,7 +21,9 @@ blinker==1.4
     #   flask-mail
     #   flask-principal
 certifi==2020.6.20
-    # via requests
+    # via
+    #   minio
+    #   requests
 cffi==1.14.3
     # via bcrypt
 chardet==3.0.4
@@ -132,6 +134,8 @@ marshmallow==3.10.0
     #   flask-apispec
     #   marshmallow-dataclass
     #   webargs
+minio==7.0.4
+    # via -r ./main/requirements.txt
 mistune==0.8.4
     # via flasgger
 mypy-extensions==0.4.3
@@ -245,7 +249,9 @@ typing-inspect==0.6.0
 typing==3.7.4.3
     # via flask-injector
 urllib3==1.25.11
-    # via requests
+    # via
+    #   minio
+    #   requests
 webargs==8.0.0
     # via flask-apispec
 werkzeug==1.0.1

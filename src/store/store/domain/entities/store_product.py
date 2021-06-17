@@ -7,7 +7,7 @@ from foundation import slugify
 from store.domain.entities.value_objects import StoreProductReference, StoreProductId
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class StoreProduct:
     def __init__(
             self,
