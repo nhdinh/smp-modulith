@@ -20,7 +20,7 @@ from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary, fetch_store_by_owner_or_raise, \
     GenericStoreActionResponse
 
-ALLOWED_EXTENSIONS = {'image/jpg', 'image/jpeg', 'image/png'}
+ALLOWED_MIME_TYPES = {'image/jpg', 'image/jpeg', 'image/png'}
 
 
 @dataclass
@@ -48,7 +48,7 @@ class UploadImageUC:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 # validate allowed file extension
-                if uploaded_file.content_type not in ALLOWED_EXTENSIONS:
+                if uploaded_file.content_type not in ALLOWED_MIME_TYPES:
                     raise Exception(ExceptionMessages.INVALID_FILE_TYPE)
 
                 # validate file size
@@ -97,6 +97,8 @@ class UploadImageUC:
                     status=True
                 )
                 self._ob.present(dto=response_dto)
+
+                # TODO: write data into database
 
                 uow.commit()
             except Exception as exc:
