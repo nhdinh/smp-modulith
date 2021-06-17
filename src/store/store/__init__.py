@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import injector
+from minio import Minio
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 from typing import Type
@@ -39,6 +40,7 @@ from store.application.usecases.initialize.register_store_uc import RegisterStor
 from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
+from store.application.usecases.manage.upload_image_uc import UploadImageUC
 from store.application.usecases.product.create_store_product_uc import CreatingStoreProductResponseBoundary, \
     CreateStoreProductUC
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
@@ -77,6 +79,11 @@ class StoreModule(injector.Module):
     def invalidate_store_catalog_cache_uc(self, boundary: GenericStoreResponseBoundary,
                                           uow: StoreUnitOfWork) -> InvalidateStoreCatalogCacheUC:
         return InvalidateStoreCatalogCacheUC(boundary, uow)
+
+    @injector.provider
+    def upload_image_uc(self, boundary: GenericStoreResponseBoundary, uow: StoreUnitOfWork,
+                        minio_client: Minio) -> UploadImageUC:
+        return UploadImageUC(boundary, uow, minio_client)
 
     # region ## StoreCatalog Operations ##
 

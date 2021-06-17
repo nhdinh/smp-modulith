@@ -21,9 +21,9 @@ services:
       EMAIL_FROM_ADDRESS: admin@smp.io
       DB_DSN: postgresql://postgres:clone@database:5432/smp_db
       REDIS_HOST: redis
-      MINIO_HOST: minio
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
+      MINIO_HOST: minio:9000
+      MINIO_ACCESS_KEY: Q3AM3UQ867
+      MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
     depends_on:
       - database
       - smtp_server
@@ -90,8 +90,8 @@ services:
     expose:
       - "9000"
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
+      MINIO_ROOT_USER: Q3AM3UQ867
+      MINIO_ROOT_PASSWORD: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
 #    command: server http://minio/data
     command: minio server /data
     healthcheck:

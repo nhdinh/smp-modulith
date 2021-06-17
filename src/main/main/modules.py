@@ -106,15 +106,16 @@ class Rq(injector.Module):
 
 
 class MinIOService(injector.Module):
-    def __init__(self, host: str, access_key: str, secret_key: str):
+    def __init__(self, host: str, access_key: str, secret_key: str, connect_securely: bool = False):
         self.minio_host = host
         self.minio_access_key = access_key
         self.minio_secret_key = secret_key
+        self.secure = connect_securely
 
     @injector.singleton
     @injector.provider
     def client(self) -> Minio:
-        _client = Minio(self.minio_host, self.minio_access_key, self.minio_secret_key)  # type:Minio
+        _client = Minio(self.minio_host, self.minio_access_key, self.minio_secret_key, secure=self.secure)  # type:Minio
         return _client
 
 

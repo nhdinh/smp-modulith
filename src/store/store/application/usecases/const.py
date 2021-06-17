@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ExceptionMessages:
+    INVALID_FILE_TYPE = 'Upload invalid file type'
+
     CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE = 'Current user do not have permission on this store'
     STORE_NOT_FOUND = 'Store not found or current user do not have any store created'
     STORE_NOT_AVAILABLE = 'Store not available'

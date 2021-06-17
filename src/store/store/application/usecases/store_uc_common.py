@@ -28,7 +28,7 @@ class GenericStoreActionResponse:
 
 class GenericStoreResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, generic_dto: GenericStoreActionResponse):
+    def present(self, dto: GenericStoreActionResponse):
         raise NotImplementedError
 
 

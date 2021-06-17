@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from http import HTTPStatus
+
 import flask_injector
 import injector
 from factory.base import logger
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from store import UploadImageUC
+from store.application.usecases.manage.upload_image_uc import UploadingImageRequest
+from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.store_queries import FetchStoreSettingsQuery
@@ -165,6 +171,27 @@ def add_store_manager(add_store_manager_uc: AddStoreManagerUC,
 @jwt_required()
 def patch_store_manager(login: str) -> Response:
     raise NotImplementedError
+
+
+@store_blueprint.route('/images', methods=['POST'])
+@jwt_required()
+def upload_image(upload_image_uc: UploadImageUC, presenter: GenericStoreResponseBoundary) -> Response:
+    try:
+        dto = get_dto(request, UploadingImageRequest, context={'current_user': get_jwt_identity()})
+
+        if 'file' not in request.files:
+            raise Exception('No file input')
+
+        uploaded_file = request.files['file']
+
+        upload_image_uc.execute(uploaded_file, dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 class RegisteringStorePresenter(RegisteringStoreResponseBoundary):
