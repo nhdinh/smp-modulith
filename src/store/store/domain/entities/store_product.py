@@ -3,7 +3,10 @@
 import uuid
 from dataclasses import dataclass
 
+from typing import Set, Optional
+
 from foundation import slugify
+from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreProductReference, StoreProductId
 
 
@@ -20,6 +23,7 @@ class StoreProduct:
         self.display_name = display_name
 
         self._collection = None
+        self._units = set()  # type:Set[StoreProductUnit]
 
     @property
     def collection(self):
@@ -28,6 +32,25 @@ class StoreProduct:
     @collection.setter
     def collection(self, value):
         self._collection = value
+
+    @property
+    def units(self) -> Set[StoreProductUnit]:
+        return self._units
+
+    @property
+    def default_unit(self) -> Optional[StoreProductUnit]:
+        if len(self._units) == 0:
+            return None
+
+        try:
+            return next(sp_unit for sp_unit in self._units if sp_unit.default)
+        except StopIteration:
+            return None
+
+    @default_unit.setter
+    def default_unit(self, value):
+        if type(value) is StoreProductUnit:
+            self._units.add(value)
 
     @classmethod
     def create_product(cls, reference: StoreProductReference, display_name: str):

@@ -6,8 +6,11 @@ from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
 from store.adapter.store_db import store_settings_table, store_table, store_owner_table
+from store.application.queries.store_queries import FetchStoreProductsFromCollectionQuery, StoreProductResponseDto
 from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingResponseDto, \
     CountStoreOwnerByEmailQuery, StoreInfoResponseDto
+from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference
+from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 
 def _row_to_store_settings_dto(row: RowProxy) -> StoreSettingResponseDto:
@@ -64,3 +67,11 @@ class SqlFetchStoreSettingsQuery(FetchStoreSettingsQuery, SqlQuery):
 class SqlCountStoreOwnerByEmailQuery(CountStoreOwnerByEmailQuery, SqlQuery):
     def query(self, email: str) -> int:
         raise NotImplementedError
+
+
+class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQuery, SqlQuery):
+    def query(self,
+              collection_reference: StoreCollectionReference,
+              catalog_reference: StoreCatalogReference,
+              dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductResponseDto]:
+        pass

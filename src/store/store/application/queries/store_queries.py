@@ -76,7 +76,7 @@ class FetchAllStoreCollectionsQuery(abc.ABC):
         pass
 
 
-class FetchAllStoreProductsQuery(abc.ABC):
+class FetchStoreProductsFromCollectionQuery(abc.ABC):
     @abc.abstractmethod
     def query(
             self,

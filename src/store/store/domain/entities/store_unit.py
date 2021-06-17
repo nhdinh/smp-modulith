@@ -13,3 +13,11 @@ class StoreProductUnit:
     default: bool
     disabled: bool = False
     from_unit: Optional[StoreProductUnit] = None
+
+    @property
+    def product(self):
+        return getattr(self, '_product')
+
+    @product.setter
+    def product(self, value):
+        setattr(self, '_product', value)

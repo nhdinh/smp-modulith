@@ -70,6 +70,7 @@ def start_mappers():
 
             '_units': relationship(
                 StoreProductUnit,
+                backref=backref('_product', cascade='all', single_parent=True),
                 collection_class=set
             )
         })

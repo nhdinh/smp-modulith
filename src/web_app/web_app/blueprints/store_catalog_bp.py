@@ -13,7 +13,8 @@ from store.application.usecases.catalog.systemize_store_catalog_uc import System
     SystemizingStoreCatalogRequest
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery
+from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery, \
+    FetchStoreProductsFromCollectionQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
@@ -485,19 +486,36 @@ def remove_store_collection(catalog_reference: str, collection_reference: str) -
     methods=['GET']
 )
 @jwt_required()
-def fetch_store_products(
+def fetch_store_products_from_collection(
         collection_reference: str,
         catalog_reference: str,
-
+        fetch_store_products_from_collection_query: FetchStoreProductsFromCollectionQuery
 ) -> Response:
     """
     GET :5000/store-catalog/catalog/<catalog_reference>/collection/<collection_reference>
     Fetch products in catalog/ collection
 
+    :param fetch_store_products_from_collection_query:
     :param catalog_reference:
     :param collection_reference:
     """
-    raise NotImplementedError
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, AuthorizedPaginationInputDto, context={
+            'current_user': current_user,
+            'collection_reference': collection_reference,
+            'catalog_reference': catalog_reference
+        })
+        response = fetch_store_products_from_collection_query.query(
+            collection_reference=collection_reference,
+            catalog_reference=catalog_reference,
+            dto=dto
+        )
+        return make_response(jsonify(response)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
 def create_store_product_common(dto: CreatingStoreProductRequest,
