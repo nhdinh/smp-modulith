@@ -39,7 +39,8 @@ from store.application.usecases.product.update_store_product_uc import UpdatingS
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
-    CreatingStoreCollectionPresenter, RemovingStoreCatalogPresenter, CreatingStoreProductPresenter
+    CreatingStoreCollectionPresenter, RemovingStoreCatalogPresenter, CreatingStoreProductPresenter, \
+    UpdatingStoreProductPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'
@@ -97,6 +98,11 @@ class StoreCatalogAPI(injector.Module):
     @flask_injector.request
     def create_store_product_response_boundary(self) -> CreatingStoreProductResponseBoundary:
         return CreatingStoreProductPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def update_store_product_response_boundary(self) -> UpdatingStoreProductResponseBoundary:
+        return UpdatingStoreProductPresenter()
 
     # endregion
 
@@ -623,7 +629,7 @@ def create_store_product_with_collection(catalog_reference: str, collection_refe
 @jwt_required()
 def update_store_product(product_id: str,
                          update_store_product_uc: UpdateStoreProductUC,
-                         presenter: UpdatingStoreProductResponseBoundary):
+                         presenter: UpdatingStoreProductResponseBoundary) -> Response:
     """
     PATCH :5000/store-catalog/product:product_id
     Update a product
@@ -633,9 +639,12 @@ def update_store_product(product_id: str,
     :param presenter:
     """
     try:
+        if 'image' in request.files:
+            uploaded_file=request.files['image']
+
         dto = get_dto(request, UpdatingStoreProductRequest, context={
             'current_user': get_jwt_identity(),
-            'product_id': product_id
+            'product_id': product_id,
         })
 
         update_store_product_uc.execute(dto)

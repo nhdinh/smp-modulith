@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
 import uuid
 from datetime import datetime
 
@@ -10,6 +11,7 @@ from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
+from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = sa.Table(
@@ -249,26 +251,33 @@ def store_load(store, connection):
         'products': []
     }
 
+    """
     # fetch cache of catalogs into the store
-    q = sa.select([store_catalog_table.c.reference, store_catalog_table.c.catalog_id]).where(
-        store_catalog_table.c.store_id == store.store_id)
+    q = sa.select([StoreCatalog.reference, StoreCatalog.catalog_id]).join(Store).where(
+        Store.store_id == store.store_id)
     fetched_catalogs = connection.session.execute(q).all()
     store._cached['catalogs'] = [r.reference for r in fetched_catalogs]
     _catalog_indice = [r.catalog_id for r in fetched_catalogs]
 
     # fetch cache of collections into the store
-    q = sa.select([store_collection_table.c.reference, store_collection_table.c.collection_id]).where(
-        store_collection_cache_table.c.catalog_id.in_(_catalog_indice)
+    q = sa.select([StoreCollection.reference, StoreCollection.collection_id]).join(StoreCatalog).where(
+        StoreCatalog.catalog_id.in_(_catalog_indice)
     )
     fetched_collections = connection.session.execute(q).all()
     store._cached['collections'] = [r.reference for r in fetched_collections]
+    """
+
+    store._cached['catalogs'] = {c.catalog_id: c for c in store.catalogs}
+    store._cached['catalogs_2'] = {c.reference: c for c in store.catalogs}
+
+    store.SIZE = sys.getsizeof(store)
 
 
 @event.listens_for(StoreCatalog, 'load')
 def ctalog_load(catalog, connection):
     catalog._cached = {
-        'collection': [],
-        'products': []
+        'collections': [],
+        'products': [],
     }
 
     # fetch cache of collections into the store

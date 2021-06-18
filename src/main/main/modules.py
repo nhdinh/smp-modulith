@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from customer_relationship import CustomerRelationshipConfig
 from foundation.events import EventBus, InjectorEventBus, RunAsyncHandler
 from foundation.locks import Lock, LockFactory
+from fs import FileSystem
 from main.async_handler_task import async_handler_generic_task
 from main.redis import RedisLock
 from payments import PaymentsConfig
@@ -117,6 +118,12 @@ class MinIOService(injector.Module):
     def client(self) -> Minio:
         _client = Minio(self.minio_host, self.minio_access_key, self.minio_secret_key, secure=self.secure)  # type:Minio
         return _client
+
+
+class FileSystemProvider(injector.Module):
+    @injector.provider
+    def file_system(self, minio: Minio) -> FileSystem:
+        return FileSystem(minio)
 
 
 class EventBusMod(injector.Module):

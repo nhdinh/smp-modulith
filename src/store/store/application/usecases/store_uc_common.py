@@ -13,7 +13,8 @@ from store.domain.entities.store_collection import StoreCollection
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.value_objects import StoreCatalogId, StoreCatalogReference, StoreCollectionId
+from store.domain.entities.store_product import StoreProduct
+from store.domain.entities.value_objects import StoreCatalogId, StoreCatalogReference, StoreCollectionId, StoreProductId
 
 
 @dataclass
@@ -122,5 +123,17 @@ def fetch_collection_from_catalog_or_raise(by_collection: str, catalog: StoreCat
             raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
         return collection
+    except Exception as exc:
+        raise exc
+
+
+def fetch_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWork) -> StoreProduct:
+    try:
+        # validate product_id
+        product = uow.stores.fetch_product_by_id(product_id=product_id)
+        if not product:
+            raise Exception(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+
+        return product
     except Exception as exc:
         raise exc

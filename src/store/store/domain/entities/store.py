@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import re
 import uuid
-from typing import Set, List, Any, Optional, Union, Dict
+from typing import Set, List, Any, Optional, Union, Dict, Type
 
 from sqlalchemy.orm import Session
 
@@ -19,7 +19,7 @@ from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand, StoreProductBrandReference
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCollectionReference, \
-    StoreCatalogId, StoreProductReference
+    StoreCatalogId, StoreProductReference, StoreProductId
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
     StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, StoreCatalogDeletedEvent, StoreCollectionToggledEvent, \
     StoreCollectionUpdatedEvent, StoreCollectionDeletedEvent
@@ -1077,3 +1077,8 @@ class Store(EventMixin, Entity):
         return self._cached
 
     # endregion
+    def update_product(self, product: StoreProduct, update: Type[Dict]):
+        if 'display_name' in update.keys():
+            product.display_name = update['display_name']
+
+        self.version += 1
