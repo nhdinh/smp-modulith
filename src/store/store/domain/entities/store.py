@@ -30,6 +30,8 @@ from store.domain.rules.new_catalog_reference_should_not_existed_rule import New
 
 class Store(EventMixin, Entity):
     store_id: StoreId
+    name: str
+    disabled: bool
 
     def __init__(
             self,
@@ -46,6 +48,7 @@ class Store(EventMixin, Entity):
 
         self.store_id = store_id
         self.name = store_name
+        self.disabled = False
 
         # make a list of StoreOwner and Manager
         self._owner = store_owner
@@ -80,6 +83,10 @@ class Store(EventMixin, Entity):
         self.version = version
 
     # region ## Properties ##
+
+    @property
+    def owner_email(self) -> str:
+        return getattr(self, 'owner_email')
 
     @property
     def settings(self) -> dict:

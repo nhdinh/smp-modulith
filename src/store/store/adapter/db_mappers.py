@@ -50,10 +50,11 @@ def start_mappers():
         store_product_unit_table,
         properties={
             '_product_id': store_product_unit_table.c.product_id,
-            '_base_product_id': store_product_unit_table.c.base_product_id,
+            # '_base_product_id': store_product_unit_table.c.base_product_id,
             'from_unit': relationship(
                 StoreProductUnit,
-                foreign_keys=[store_product_unit_table.c.base_product_id, store_product_unit_table.c.base_unit],
+                # foreign_keys=[store_product_unit_table.c.base_product_id, store_product_unit_table.c.base_unit],
+                foreign_keys=[store_product_unit_table.c.product_id, store_product_unit_table.c.base_unit],
                 remote_side=[store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
             ),
         })
@@ -107,7 +108,8 @@ def start_mappers():
 
             '_settings': relationship(
                 Setting,
-                collection_class=set
+                collection_class=set,
+                backref=backref('_store')
             ),
 
             '_owner': relationship(

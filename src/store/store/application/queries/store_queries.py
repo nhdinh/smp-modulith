@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference
+from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 
@@ -50,6 +50,28 @@ class StoreCatalogResponseDto:
 
 
 @dataclass
+class StoreProductShortResponseDto:
+    product_id: str
+    reference: str
+    display_name: str
+
+    brand: str
+    catalog: str
+    collection: str
+    created_at: datetime
+
+    def serialize(self):
+        return {
+            'product_id': self.product_id,
+            'display_name': self.display_name,
+            'catalog': self.catalog,
+            'collection': self.collection,
+            'brand': self.brand,
+            'created_at': self.created_at
+        }
+
+
+@dataclass
 class StoreProductResponseDto:
     product_id: str
     reference: str
@@ -71,13 +93,13 @@ class StoreProductResponseDto:
         }
 
 
-class FetchAllStoreCatalogsQuery(abc.ABC):
+class FetchStoreCatalogsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
         pass
 
 
-class FetchAllStoreCollectionsQuery(abc.ABC):
+class FetchStoreCollectionsQuery(abc.ABC):
     @abc.abstractmethod
     def query(
             self,
@@ -94,5 +116,14 @@ class FetchStoreProductsFromCollectionQuery(abc.ABC):
             collection_reference: StoreCollectionReference,
             catalog_reference: StoreCatalogReference,
             dto: AuthorizedPaginationInputDto
-    ) -> PaginationOutputDto[StoreProductResponseDto]:
+    ) -> PaginationOutputDto[StoreProductShortResponseDto]:
+        pass
+
+
+class FetchStoreProductQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, owner_email: str,
+              catalog_reference: StoreCatalogReference,
+              collection_reference: StoreCollectionReference,
+              product_reference: StoreProductReference) -> StoreProductResponseDto:
         pass

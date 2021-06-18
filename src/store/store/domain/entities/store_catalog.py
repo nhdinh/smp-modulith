@@ -23,6 +23,7 @@ class DuplicatedCollectionReferenceError(Exception):
 
 @dataclass(unsafe_hash=True)
 class StoreCatalog:
+    catalog_id: StoreCatalogId
     reference: StoreCatalogReference
     display_name: str
     display_image: str

@@ -12,6 +12,10 @@ from store.domain.entities.value_objects import StoreProductReference, StoreProd
 
 @dataclass(unsafe_hash=True)
 class StoreProduct:
+    product_id: StoreProductId
+    reference: StoreProductReference
+    display_name: str
+
     def __init__(
             self,
             product_id: StoreProductId,
@@ -23,6 +27,7 @@ class StoreProduct:
         self.display_name = display_name
 
         self._collection = None
+        self._brand = None
         self._units = set()  # type:Set[StoreProductUnit]
 
     @property
@@ -62,3 +67,11 @@ class StoreProduct:
             reference=reference,
             display_name=display_name
         )
+
+    @property
+    def brand(self):
+        return self._brand
+
+    @brand.setter
+    def brand(self, value):
+        setattr(self, '_brand', value)

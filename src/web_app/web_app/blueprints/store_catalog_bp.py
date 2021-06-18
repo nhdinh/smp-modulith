@@ -13,8 +13,8 @@ from store.application.usecases.catalog.systemize_store_catalog_uc import System
     SystemizingStoreCatalogRequest
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery, \
-    FetchStoreProductsFromCollectionQuery
+from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
+    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
@@ -34,6 +34,8 @@ from store.application.usecases.collection.update_store_collection_uc import Upd
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
+from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductRequest, \
+    UpdateStoreProductUC, UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
@@ -123,7 +125,7 @@ store_catalog_blueprint_endpoint_callers.append(init_store_from_plan)
 
 @store_catalog_blueprint.route('/', methods=['GET'])
 @jwt_required()
-def fetch_store_catalogs(fetch_all_store_catalogs_query: FetchAllStoreCatalogsQuery) -> Response:
+def fetch_store_catalogs(fetch_all_store_catalogs_query: FetchStoreCatalogsQuery) -> Response:
     """
     GET :5000/store-catalog/
     Fetch catalogs from store
@@ -193,7 +195,7 @@ def rebuild_store_catalog_cache(invalidate_store_catalog_cache_uc: InvalidateSto
 @jwt_required()
 def fetch_store_collections(
         catalog_reference: str,
-        fetch_all_store_collections_query: FetchAllStoreCollectionsQuery
+        fetch_all_store_collections_query: FetchStoreCollectionsQuery
 ) -> Response:
     """
     GET :5000/store-catalog/catalog/<catalog_reference>
@@ -519,6 +521,39 @@ def fetch_store_products_from_collection(
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
+@store_catalog_blueprint.route(
+    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>/product/<string:product_reference>',
+    methods=['GET']
+)
+@jwt_required()
+def fetch_store_product(
+        product_reference: str,
+        collection_reference: str,
+        catalog_reference: str,
+        fetch_store_product_query: FetchStoreProductQuery
+) -> Response:
+    """
+    GET :5000/store-catalog/store-catalog/catalog/<catalog_reference>/collection/<collection_reference>/product/<product_reference>
+    :param product_reference:
+    :param collection_reference:
+    :param catalog_reference:
+    :param fetch_store_product_query:
+    :return:
+    """
+    try:
+        current_user = get_jwt_identity()
+        response = fetch_store_product_query.query(owner_email=current_user,
+                                                   catalog_reference=catalog_reference,
+                                                   collection_reference=collection_reference,
+                                                   product_reference=product_reference)
+
+        return make_response(jsonify(response)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+
+
 def create_store_product_common(dto: CreatingStoreProductRequest,
                                 create_store_product_uc: CreateStoreProductUC,
                                 presenter: CreatingStoreProductResponseBoundary) -> Response:
@@ -586,14 +621,31 @@ def create_store_product_with_collection(catalog_reference: str, collection_refe
 
 @store_catalog_blueprint.route('/product:<string:product_id>', methods=['PATCH'])
 @jwt_required()
-def update_store_product(product_id: str):
+def update_store_product(product_id: str,
+                         update_store_product_uc: UpdateStoreProductUC,
+                         presenter: UpdatingStoreProductResponseBoundary):
     """
     PATCH :5000/store-catalog/product:product_id
     Update a product
 
     :param product_id:
+    :param update_store_product_uc:
+    :param presenter:
     """
-    raise NotImplementedError
+    try:
+        dto = get_dto(request, UpdatingStoreProductRequest, context={
+            'current_user': get_jwt_identity(),
+            'product_id': product_id
+        })
+
+        update_store_product_uc.execute(dto)
+        return presenter.response, 200  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
 @store_catalog_blueprint.route('/product:<string:product_id>/toggle', methods=['PATCH'])

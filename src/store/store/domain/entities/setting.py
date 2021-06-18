@@ -20,3 +20,7 @@ class Setting:
             return self.value
         else:
             return self.value
+
+    @property
+    def store(self):
+        return getattr(self, '_store')

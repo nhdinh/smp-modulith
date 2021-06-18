@@ -10,11 +10,11 @@ from store.application.usecases.catalog.systemize_store_catalog_uc import System
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from store.adapter import store_db
-from store.adapter.queries import SqlFetchAllStoreCatalogsQuery, SqlFetchAllStoreCollectionsQuery
-from store.adapter.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
-    SqlFetchStoreProductsFromCollectionQuery
-from store.application.queries.store_queries import FetchAllStoreCatalogsQuery, FetchAllStoreCollectionsQuery, \
-    FetchStoreProductsFromCollectionQuery
+from store.adapter.queries.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
+    SqlFetchStoreProductsFromCollectionQuery, SqlFetchStoreCollectionsQuery, SqlFetchStoreCatalogsQuery, \
+    SqlFetchStoreProductQuery
+from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
+    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
@@ -45,6 +45,8 @@ from store.application.usecases.manage.update_store_settings_uc import UpdateSto
 from store.application.usecases.manage.upload_image_uc import UploadImageUC
 from store.application.usecases.product.create_store_product_uc import CreatingStoreProductResponseBoundary, \
     CreateStoreProductUC
+from store.application.usecases.product.update_store_product_uc import UpdateStoreProductUC, \
+    UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
 from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, \
     StoreCatalogDeletedEvent
@@ -147,6 +149,11 @@ class StoreModule(injector.Module):
                                 uow: StoreUnitOfWork) -> CreateStoreProductUC:
         return CreateStoreProductUC(boundary, uow)
 
+    @injector.provider
+    def update_store_product_uc(self, boundary: UpdatingStoreProductResponseBoundary,
+                                uow: StoreUnitOfWork) -> UpdateStoreProductUC:
+        return UpdateStoreProductUC(boundary, uow)
+
     # endregion
 
     # region ## StoreHandlers Facade and configuration for event listening ##
@@ -197,13 +204,17 @@ class StoreInfrastructureModule(injector.Module):
         return SqlCountStoreOwnerByEmailQuery(conn)
 
     @injector.provider
-    def fetch_store_catalogs_query(self, conn: Connection) -> FetchAllStoreCatalogsQuery:
-        return SqlFetchAllStoreCatalogsQuery(conn)
+    def fetch_store_catalogs_query(self, conn: Connection) -> FetchStoreCatalogsQuery:
+        return SqlFetchStoreCatalogsQuery(conn)
 
     @injector.provider
-    def fetch_store_collections_query(self, conn: Connection) -> FetchAllStoreCollectionsQuery:
-        return SqlFetchAllStoreCollectionsQuery(conn)
+    def fetch_store_collections_query(self, conn: Connection) -> FetchStoreCollectionsQuery:
+        return SqlFetchStoreCollectionsQuery(conn)
 
     @injector.provider
     def fetch_products_from_collection_query(self, conn: Connection) -> FetchStoreProductsFromCollectionQuery:
         return SqlFetchStoreProductsFromCollectionQuery(conn)
+
+    @injector.provider
+    def fetch_product_query(self, conn: Connection) -> FetchStoreProductQuery:
+        return SqlFetchStoreProductQuery(conn)
