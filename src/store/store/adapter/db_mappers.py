@@ -72,7 +72,8 @@ def start_mappers():
             '_units': relationship(
                 StoreProductUnit,
                 backref=backref('_product', cascade='all', single_parent=True),
-                collection_class=set
+                collection_class=set,
+                overlaps="_product, product_id",
             )
         })
 

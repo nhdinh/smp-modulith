@@ -14,9 +14,14 @@ class UpdatingStoreProductRequest:
     product_id: StoreProductId
 
 
+@dataclass
+class UpdatingStoreProductResponse:
+    status: bool
+
+
 class UpdatingStoreProductResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self) -> None:
+    def present(self, response_dto: UpdatingStoreProductResponse) -> None:
         raise NotImplementedError
 
 

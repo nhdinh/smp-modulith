@@ -619,7 +619,7 @@ def create_store_product_with_collection(catalog_reference: str, collection_refe
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_catalog_blueprint.route('/product:<string:product_id>', methods=['PATCH'])
+@store_catalog_blueprint.route('/product/<string:product_id>', methods=['PATCH'])
 @jwt_required()
 def update_store_product(product_id: str,
                          update_store_product_uc: UpdateStoreProductUC,
