@@ -39,7 +39,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         'APISPEC_SPEC': APISpec(title='SMP', openapi_version='3.0', version='v1', plugins=[MarshmallowPlugin()]),
         'APISPEC_SWAGGER_URL': '/docs',
     })
-    docs.init_app(app)
+    # docs.init_app(app)
 
     # register all blueprints
     app.register_blueprint(auth_blueprint, url_prefix='/user')

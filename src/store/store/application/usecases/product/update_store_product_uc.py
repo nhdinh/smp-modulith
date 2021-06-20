@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
-from typing import Optional as Opt
 from dataclasses import dataclass
+from typing import Optional as Opt
 
+from fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise, fetch_product_by_id_or_raise
@@ -16,6 +17,7 @@ class UpdatingStoreProductRequest:
     product_id: StoreProductId
 
     display_name: Opt[str]
+    image: Opt[str]
 
 
 @dataclass
@@ -30,9 +32,10 @@ class UpdatingStoreProductResponseBoundary(abc.ABC):
 
 
 class UpdateStoreProductUC:
-    def __init__(self, boundary: UpdatingStoreProductResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: UpdatingStoreProductResponseBoundary, uow: StoreUnitOfWork, fs: FileSystem):
         self._ob = boundary
         self._uow = uow
+        self._fs = fs
 
     def execute(self, dto: UpdatingStoreProductRequest) -> None:
         with self._uow as uow:  # type:StoreUnitOfWork

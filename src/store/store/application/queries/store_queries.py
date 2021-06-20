@@ -3,10 +3,36 @@
 import abc
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from typing import List, OrderedDict
 
-from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference
+from marshmallow import Schema
+
+from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
+    StoreProductId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
+
+
+@dataclass
+class StoreProductTagResponseDto:
+    tag: str
+
+    def serialize(self):
+        return {
+            'tag': self.tag
+        }
+
+
+@dataclass
+class StoreProductUnitResponseDto:
+    unit: str
+    conversion_factor: float
+
+    def serialize(self):
+        return {
+            'unit': self.unit,
+            'factor': self.conversion_factor,
+            'TODO': 'Finish StoreProductUnitResponseDto'
+        }
 
 
 @dataclass
@@ -55,6 +81,8 @@ class StoreProductShortResponseDto:
     reference: str
     display_name: str
 
+    image: str
+
     brand: str
     catalog: str
     collection: str
@@ -64,6 +92,7 @@ class StoreProductShortResponseDto:
         return {
             'product_id': self.product_id,
             'display_name': self.display_name,
+            'image': self.image if self.image else '',
             'catalog': self.catalog,
             'collection': self.collection,
             'brand': self.brand,
@@ -79,17 +108,31 @@ class StoreProductResponseDto:
 
     brand: str
     catalog: str
+    catalog_reference: str
     collection: str
+    collection_reference: str
     created_at: datetime
+    updated_at: datetime
+
+    units: List[StoreProductUnitResponseDto]
+    tags: List[StoreProductTagResponseDto]
 
     def serialize(self):
         return {
             'product_id': self.product_id,
             'display_name': self.display_name,
             'catalog': self.catalog,
+            'catalog_reference': self.catalog_reference,
+
             'collection': self.collection,
+            'collection_reference': self.collection_reference,
+
             'brand': self.brand,
-            'created_at': self.created_at
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+
+            'tags': getattr(self, 'tags', []),
+            'units': [u.serialize() for u in getattr(self, 'units', [])],
         }
 
 
@@ -126,4 +169,10 @@ class FetchStoreProductQuery(abc.ABC):
               catalog_reference: StoreCatalogReference,
               collection_reference: StoreCollectionReference,
               product_reference: StoreProductReference) -> StoreProductResponseDto:
+        pass
+
+
+class FetchStoreProductByIdQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, owner_email: str, product_id: StoreProductId) -> StoreProductResponseDto:
         pass

@@ -8,23 +8,23 @@ from factory.base import logger
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from store import UploadImageUC
-from store.application.usecases.manage.upload_image_uc import UploadingImageRequest
-from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
+from store.application.usecases.manage.upload_image_uc import UploadingImageRequest, UploadingImageResponseBoundary, \
+    UploadImageUC
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.store_queries import FetchStoreSettingsQuery
 from store.application.usecases.choose_store_plan_uc import ChooseStorePlanUC, ChoosenStorePlanResponseBoundary, \
-    ChoosenStorePlanRequest, ChoosenStorePlanResponse
+    ChoosenStorePlanRequest
 from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
-    ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest, ConfirmingStoreRegistrationResponse
+    ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest
 from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
-    RegisteringStoreRequest, RegisteringStoreResponse
+    RegisteringStoreRequest
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
-    AddingStoreManagerResponse, \
     AddStoreManagerUC
 from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
-    UpdatingStoreSettingsRequest, UpdateStoreSettingsUC, UpdatingStoreSettingsResponse
+    UpdatingStoreSettingsRequest, UpdateStoreSettingsUC
+from web_app.presenters.manage_store_presenters import RegisteringStorePresenter, ConfirmingStoreRegistrationPresenter, \
+    ChoosenStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter
 from web_app.serialization.dto import get_dto
 
 store_blueprint = Blueprint('store_blueprint', __name__)
@@ -55,6 +55,11 @@ class StoreAPI(injector.Module):
     @flask_injector.request
     def update_store_settings_boundary(self) -> UpdatingStoreSettingsResponseBoundary:
         return UpdatingStoreSettingsPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def upload_image_boundary(self) -> UploadingImageResponseBoundary:
+        return UploadingImagePresenter()
 
 
 @store_blueprint.route('/register', methods=['POST'])
@@ -175,7 +180,7 @@ def patch_store_manager(login: str) -> Response:
 
 @store_blueprint.route('/images', methods=['POST'])
 @jwt_required()
-def upload_image(upload_image_uc: UploadImageUC, presenter: GenericStoreResponseBoundary) -> Response:
+def upload_image(upload_image_uc: UploadImageUC, presenter: UploadingImageResponseBoundary) -> Response:
     try:
         dto = get_dto(request, UploadingImageRequest, context={'current_user': get_jwt_identity()})
 
@@ -192,38 +197,3 @@ def upload_image(upload_image_uc: UploadImageUC, presenter: GenericStoreResponse
         if current_app.debug:
             logger.exception(exc)
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
-
-
-class RegisteringStorePresenter(RegisteringStoreResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: RegisteringStoreResponse) -> None:
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class ConfirmingStoreRegistrationPresenter(ConfirmingStoreRegistrationResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: ConfirmingStoreRegistrationResponse):
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class ChoosenStorePlanPresenter(ChoosenStorePlanResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: ChoosenStorePlanResponse):
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class AddingStoreManagerPresenter(AddingStoreManagerResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: AddingStoreManagerResponse):
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class UpdatingStoreSettingsPresenter(UpdatingStoreSettingsResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: UpdatingStoreSettingsResponse):
-        self.response = make_response(jsonify(response_dto.__dict__))

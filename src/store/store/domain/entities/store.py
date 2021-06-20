@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-import uuid
-from typing import Set, List, Any, Optional, Union, Dict, Type
-
-from sqlalchemy.orm import Session
+from typing import Set, List, Any, Optional, Union, Dict, TYPE_CHECKING
 
 from foundation import slugify, uuid_validate
-
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.usecases.const import ExceptionMessages
@@ -17,15 +13,19 @@ from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand, StoreProductBrandReference
+from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCollectionReference, \
-    StoreCatalogId, StoreProductReference, StoreProductId
+    StoreCatalogId, StoreProductReference
 from store.domain.events.store_catalog_events import StoreCatalogUpdatedEvent, StoreCatalogToggledEvent, \
     StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, StoreCatalogDeletedEvent, StoreCollectionToggledEvent, \
     StoreCollectionUpdatedEvent, StoreCollectionDeletedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.rules.default_passed_rule import DefaultPassedRule
 from store.domain.rules.new_catalog_reference_should_not_existed_rule import NewCatalogReferenceShouldNotExistedRule
+
+if TYPE_CHECKING:
+    from store.application.usecases.product.create_store_product_uc import CreatingStoreProductUnitConversionRequest
 
 
 class Store(EventMixin, Entity):
@@ -897,15 +897,28 @@ class Store(EventMixin, Entity):
     def _try_to_make_unit(
             self,
             unit: str,
-            default: bool,
+            base_unit: str = None,
+            conversion_factor: float = 0,
+            default: bool = False,
             disabled: bool = False) -> StoreProductUnit:
-        return StoreProductUnit(
+        unit = StoreProductUnit(
             unit=unit,
-            conversion_factor=0,
+            conversion_factor=conversion_factor,
             default=default,
             disabled=disabled,
-            from_unit=None
+            from_unit=base_unit
         )
+
+        return unit
+
+    def _try_to_make_tags(self, tags: List[str]) -> List[StoreProductTag]:
+        compiled_tags = []
+        for tag in tags:
+            compiled_tags.append(
+                StoreProductTag(tag=tag)
+            )
+
+        return compiled_tags
 
     # endregion
 
@@ -953,13 +966,32 @@ class Store(EventMixin, Entity):
                 unit = self._try_to_make_unit(unit=default_unit, default=True)
                 product_params['default_unit'] = unit
 
+            # make tags
+            tags = kwargs.get('tags')
+            if tags:
+                if type(tags) is str:
+                    tags = [tags]
+
+                compiled_tags = self._try_to_make_tags(tags=tags)  # type:List[StoreProductTag]
+                product_params['tags'] = compiled_tags
+
             # get product_reference
             reference = kwargs.get('reference')
             if not reference:
                 reference = slugify(display_name)
 
             # make product
-            product = self._make_product(reference=reference, display_name=display_name, **product_params)
+            product = self._make_product(reference=reference, display_name=display_name,
+                                         **product_params)
+
+            # make secondary units
+            secondary_units = kwargs.get('unit_conversions')
+            if secondary_units:
+                for make_unit_request in secondary_units:  # type:CreatingStoreProductUnitConversionRequest
+                    unit = product.try_to_make_unit(unit=make_unit_request.unit,
+                                                    base_unit=make_unit_request.base_unit,
+                                                    conversion_factor=make_unit_request.conversion_factor)
+                    product.units.add(unit)
 
             # add it to collection
             self._add_product(product=product, dest=collection)
@@ -972,16 +1004,46 @@ class Store(EventMixin, Entity):
 
     def _make_product(self, reference: StoreProductReference, display_name: str, **params) -> StoreProduct:
         try:
+            catalog = params.get('catalog')
+            collection = params.get('collection')
+
             product = StoreProduct.create_product(
                 reference=reference,
                 display_name=display_name,
+                catalog=catalog,
+                collection=collection,
+                store=self
             )
+
+            # brand
+            brand = params.get('brand')
+            if brand and type(brand) is StoreProductBrand:
+                product.brand = brand
 
             # set product's default unit
             default_unit = params.get('default_unit')
             if default_unit and type(default_unit) is StoreProductUnit:
                 default_unit.product = product
                 product.default_unit = default_unit
+
+            secondary_units = params.get('secondary_units')
+            if secondary_units and type(secondary_units) is list:
+                for conversion_unit in secondary_units:  # type: StoreProductUnit
+                    ...
+                    conversion_unit.product = product
+                    product.units.add(conversion_unit)
+
+            # set tags
+            tags = params.get('tags')
+            if tags and type(tags) is list:
+                for tag in tags:
+                    tag.product = product
+                product.tags = tags
+
+            # image
+            image = params.get('image')
+            if image:
+                product.image = image
 
             return product
         except Exception as exc:
@@ -1077,7 +1139,7 @@ class Store(EventMixin, Entity):
         return self._cached
 
     # endregion
-    def update_product(self, product: StoreProduct, update: Type[Dict]):
+    def update_product(self, product: StoreProduct, update: Dict):
         if 'display_name' in update.keys():
             product.display_name = update['display_name']
 

@@ -1,5 +1,7 @@
+import decimal
 import json
 from datetime import datetime
+from decimal import Decimal
 from functools import singledispatchmethod
 from uuid import UUID
 
@@ -7,6 +9,13 @@ from auctions import AuctionDto
 from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
 from product_catalog.application.queries.product_catalog import CatalogDto, CollectionDto, BrandDto
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return '`' + str(o) + '`'  # ` is special, will be removed later
+        return super(DecimalEncoder, self).default(o)
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -74,3 +83,7 @@ class JSONEncoder(json.JSONEncoder):
     @default.register(UUID)  # noqa: F811
     def serialize_uuid(self, obj: UUID) -> str:
         return str(obj)
+
+    @default.register(Decimal)  # noqa: F811
+    def serialize_decimal(self, obj: Decimal) -> str:
+        return json.dumps(obj, cls=DecimalEncoder).replace("\"`", '').replace("`\"", '')

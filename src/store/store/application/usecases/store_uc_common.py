@@ -2,19 +2,17 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Union
 
 import email_validator
-from store.application.services.store_unit_of_work import StoreUnitOfWork
 
 from foundation import uuid_validate
-from store.domain.entities.store_collection import StoreCollection
-
+from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
+from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreCatalogId, StoreCatalogReference, StoreCollectionId, StoreProductId
+from store.domain.entities.value_objects import StoreCollectionId, StoreProductId
 
 
 @dataclass

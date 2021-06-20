@@ -6,8 +6,6 @@ import email_validator
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
 
-from store.adapter.store_db import store_table, store_owner_table, \
-    store_collection_cache_table, store_catalog_table, store_collection_table, store_product_table
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection

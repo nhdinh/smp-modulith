@@ -14,7 +14,7 @@ from identity import IdentityModule
 from identity.adapters import identity_db
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
-from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService
+from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService, FileSystemProvider
 from payments import Payments
 from processes import Processes
 from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureModule
@@ -77,6 +77,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             Rq(),
             EventBusMod(),
             MinIOService(settings["minio.host"], settings["minio.access_key"], settings["minio.secret_key"]),
+            FileSystemProvider(),
             Configs(settings),
             FoundationModule(),
             IdentityModule(),

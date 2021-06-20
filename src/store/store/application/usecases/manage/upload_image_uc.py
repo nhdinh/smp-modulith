@@ -1,24 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import json
-import os
+import abc
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from sys import path
 from typing import Optional
 
-from marshmallow import fields
 from minio import Minio
-from minio.helpers import ObjectWriteResult
 from werkzeug.datastructures import FileStorage
 
-from db_infrastructure import GUID
+from fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-
-from store.application.usecases.store_uc_common import GenericStoreResponseBoundary, fetch_store_by_owner_or_raise, \
-    GenericStoreActionResponse
+from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 
 ALLOWED_MIME_TYPES = {'image/jpg', 'image/jpeg', 'image/png'}
 
@@ -31,16 +25,26 @@ class UploadingImageRequest:
     identity: Optional[str] = ''
 
 
-@dataclass()
+@dataclass
 class UploadingImageResponse:
     status: bool
+    location: str
+    bucket_name: str
+    object_name: str
+
+
+class UploadingImageResponseBoundary(abc.ABC):
+    @abc.abstractmethod
+    def present(self, response_dto: UploadingImageResponse):
+        raise NotImplementedError
 
 
 class UploadImageUC:
-    def __init__(self, ob: GenericStoreResponseBoundary, uow: StoreUnitOfWork, minio_client: Minio):
+    def __init__(self, ob: UploadingImageResponseBoundary, uow: StoreUnitOfWork, minio_client: Minio, fs: FileSystem):
         self._ob = ob
         self._uow = uow
         self._minio = minio_client
+        self._fs = fs
 
     def execute(self, uploaded_file: FileStorage, dto: UploadingImageRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
@@ -51,52 +55,25 @@ class UploadImageUC:
                 if uploaded_file.content_type not in ALLOWED_MIME_TYPES:
                     raise Exception(ExceptionMessages.INVALID_FILE_TYPE)
 
-                # validate file size
-
                 # generate new file name
                 upload_for = dto.upload_for if dto.upload_for else 'unassigned'
                 identity = str(dto.identity) if dto.identity else str(uuid.uuid4())
                 file_ext = Path(uploaded_file.filename).suffix
                 new_file_name = f"{upload_for}_{identity}{file_ext}"
-                file_size = os.fstat(uploaded_file.fileno()).st_size
 
-                # get bucket
                 bucket_name = str(store.store_id)
-                default_bucket_policy = policy = {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Principal": {"AWS": "*"},
-                            "Action": ["s3:GetBucketLocation", "s3:ListBucket"],
-                            "Resource": f"arn:aws:s3:::{bucket_name}",
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Principal": {"AWS": "*"},
-                            "Action": "s3:GetObject",
-                            "Resource": f"arn:aws:s3:::{bucket_name}/*",
-                        },
-                    ],
-                }
-                if not self._minio.bucket_exists(bucket_name=bucket_name):
-                    self._minio.make_bucket(bucket_name=bucket_name)
-                    self._minio.set_bucket_policy(bucket_name=bucket_name, policy=json.dumps(default_bucket_policy))
-
-                # upload image
-                # write_result = self._minio.fput_object(bucket_name, new_file_name,
-                #                                        uploaded_file)  # type: ObjectWriteResult
-                write_result = self._minio.put_object(
-                    bucket_name=bucket_name,
-                    object_name=new_file_name,
-                    data=uploaded_file, length=file_size,
-                    content_type=uploaded_file.content_type)  # type: ObjectWriteResult
+                write_result = self._fs.upload_file(file_name=new_file_name, bucket=bucket_name, file=uploaded_file)
 
                 # respond_dto = UploadingImageResponse(
-                response_dto = GenericStoreActionResponse(
-                    status=True
+                output_dto = UploadingImageResponse(
+                    status=True,
+                    bucket_name=bucket_name,
+                    object_name=str(write_result.object_name),
+                    location=str(
+                        write_result.location if write_result.location else f"{self._minio._base_url.host}/{bucket_name}/{write_result.object_name}"
+                    )
                 )
-                self._ob.present(dto=response_dto)
+                self._ob.present(response_dto=output_dto)
 
                 # TODO: write data into database
 

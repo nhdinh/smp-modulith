@@ -29,7 +29,7 @@ services:
       - smtp_server
       - redis
       - worker
-      - minio
+      - nginx
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5000/health/live" ]
       interval: 30s

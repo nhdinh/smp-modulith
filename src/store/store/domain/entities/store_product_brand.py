@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from typing import NewType
+from typing import NewType, Set
 
 StoreProductBrandReference = NewType('StoreProductBrandReference', tp=str)
 
@@ -11,6 +11,9 @@ StoreProductBrandReference = NewType('StoreProductBrandReference', tp=str)
 class StoreProductBrand:
     reference: StoreProductBrandReference
     display_name: str
+
+    _products = None  # type: Set
+    _store = None
 
     @property
     def store(self):

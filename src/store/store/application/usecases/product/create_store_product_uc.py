@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass, field
-from time import sleep
 from typing import Optional as Opt, List
-from uuid import uuid4
+
+from marshmallow import fields
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
@@ -15,7 +15,8 @@ from store.domain.entities.value_objects import StoreCatalogReference, StoreColl
 @dataclass(frozen=True)
 class CreatingStoreProductUnitConversionRequest:
     unit: str
-    multiplier: float
+    base_unit: str
+    conversion_factor: float
 
 
 @dataclass(frozen=True)
@@ -24,7 +25,7 @@ class CreatingStoreProductFirstStockingRequest:
     stocking: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class CreatingStoreProductRequest:
     current_user: str
 
@@ -39,6 +40,7 @@ class CreatingStoreProductRequest:
 
     # tags (optional)
     tags: Opt[List[str]] = field(default_factory=list)
+    # tags: Opt[List[str]] = fields.List(fields.Str(required=False), required=False)
 
     # brands (optional)
     brand_display_name: Opt[str] = None
@@ -91,7 +93,7 @@ class CreateStoreProductUC:
                     # product data (required)
                     'display_name',
 
-                    # product data (optional_
+                    # product data (optional)
                     'reference',
                     'image',
                     'sku',

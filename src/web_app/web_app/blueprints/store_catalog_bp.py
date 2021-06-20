@@ -14,7 +14,7 @@ from store.application.usecases.catalog.systemize_store_catalog_uc import System
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
-    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery
+    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
@@ -527,6 +527,19 @@ def fetch_store_products_from_collection(
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
+@store_catalog_blueprint.route('/products/<string:product_id>', methods=['GET'])
+@jwt_required()
+def fetch_store_product_by_id(product_id: str, fetch_store_product_by_id_query: FetchStoreProductByIdQuery) -> Response:
+    try:
+        current_user = get_jwt_identity()
+        response = fetch_store_product_by_id_query.query(owner_email=current_user, product_id=product_id)
+        return make_response(jsonify(response)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+
+
 @store_catalog_blueprint.route(
     '/catalog/<string:catalog_reference>/collection/<string:collection_reference>/product/<string:product_reference>',
     methods=['GET']
@@ -639,9 +652,6 @@ def update_store_product(product_id: str,
     :param presenter:
     """
     try:
-        if 'image' in request.files:
-            uploaded_file=request.files['image']
-
         dto = get_dto(request, UpdatingStoreProductRequest, context={
             'current_user': get_jwt_identity(),
             'product_id': product_id,

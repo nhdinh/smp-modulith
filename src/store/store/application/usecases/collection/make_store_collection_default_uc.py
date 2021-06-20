@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
+from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
-
-from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference
 

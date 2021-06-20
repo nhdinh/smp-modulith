@@ -2,22 +2,19 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import select, and_
-from sqlalchemy.engine.row import RowProxy
 
+from db_infrastructure import SqlQuery
 from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_products_in_collection, sql_get_catalog_id_by_reference, sql_count_collections_in_catalog, \
     sql_count_catalogs_in_store
-
-from db_infrastructure import SqlQuery
-from store.adapter.queries.query_helpers import _row_to_store_settings_dto, _row_to_store_info_dto, _row_to_product_dto, \
-    _row_to_catalog_dto, _row_to_collection_dto
-from store.adapter.store_db import store_settings_table, store_table, store_owner_table, store_product_table, \
-    store_collection_table, store_brand_table, store_catalog_table
+from store.adapter.queries.query_helpers import _row_to_store_settings_dto, _row_to_store_info_dto, \
+    _row_to_product_short_dto, \
+    _row_to_catalog_dto, _row_to_collection_dto, _row_to_product_dto
 from store.application.queries.store_queries import FetchStoreProductsFromCollectionQuery, StoreProductShortResponseDto, \
     FetchStoreCollectionsQuery, FetchStoreCatalogsQuery, StoreCatalogResponseDto, FetchStoreProductQuery, \
-    StoreProductResponseDto
-from store.application.store_queries import FetchStoreSettingsQuery, StoreSettingResponseDto, \
-    CountStoreOwnerByEmailQuery, StoreInfoResponseDto
+    StoreProductResponseDto, FetchStoreProductByIdQuery
+from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery, StoreInfoResponseDto
+from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
@@ -25,8 +22,10 @@ from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
+from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
-from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference
+from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
+    StoreProductId, StoreId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
 
@@ -37,7 +36,7 @@ class SqlFetchStoreSettingsQuery(FetchStoreSettingsQuery, SqlQuery):
 
         store_row_proxy = self._conn.execute(store_query).first()
         if not store_row_proxy:
-            return None
+            raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
         # make StoreInfoResponseDto
         return_dto = _row_to_store_info_dto(store_row_proxy)
@@ -86,10 +85,11 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
                 StoreCatalog.display_name.label('catalog_display_name'),
                 StoreProductBrand.display_name.label('brand_display_name'),
             ]) \
-                .join(StoreCollection, StoreProduct.collection_id == StoreCollection.collection_id, isouter=True) \
-                .join(StoreCatalog, StoreCollection.catalog_id == StoreCatalog.catalog_id, isouter=True) \
-                .join(Store, Store.store_id == StoreCatalog.store_id, isouter=True) \
-                .join(StoreProductBrand, isouter=True) \
+                .join(StoreCollection, StoreProduct.collection_id == StoreCollection.collection_id) \
+                .join(StoreCatalog, StoreProduct.catalog_id == StoreCatalog.catalog_id) \
+                .join(Store, StoreProduct.store_id == Store.store_id) \
+                .join(StoreProductBrand, and_(StoreProduct.brand_reference == StoreProductBrand.reference,
+                                              Store.store_id == StoreProductBrand.store_id), isouter=True) \
                 .where(and_(StoreCollection.reference == collection_reference,
                             StoreCatalog.reference == catalog_reference,
                             Store.store_id == store_id
@@ -103,10 +103,9 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
                 page_size=dto.page_size,
                 total_items=product_in_collection_count,
                 items=[
-                    _row_to_product_dto(row) for row in products
+                    _row_to_product_short_dto(row) for row in products
                 ]
             )
-
         except Exception as exc:
             raise exc
 
@@ -187,6 +186,29 @@ class SqlFetchStoreCollectionsQuery(FetchStoreCollectionsQuery, SqlQuery):
             raise exc
 
 
+def fetch_store_product_query_factory(store_id: StoreId):
+    query = select([
+        StoreProduct,
+        StoreCatalog.reference.label('catalog_reference'),
+        StoreCatalog.display_name.label('catalog_display_name'),
+
+        StoreCollection.reference.label('collection_reference'),
+        StoreCollection.display_name.label('collection_display_name'),
+
+        StoreProductBrand.display_name.label('brand_display_name'),
+
+        StoreProductUnit
+    ]) \
+        .join(StoreCollection, StoreProduct.collection_id == StoreCollection.collection_id) \
+        .join(StoreCatalog, StoreProduct.catalog_id == StoreCatalog.catalog_id) \
+        .join(Store, StoreProduct.store_id == StoreCatalog.store_id) \
+        .join(StoreProductBrand, onclause=(StoreProduct.brand_reference == StoreProductBrand.reference), isouter=True) \
+        .join(StoreProductUnit, isouter=True) \
+        .where(Store.store_id == store_id)
+
+    return query
+
+
 class SqlFetchStoreProductQuery(FetchStoreProductQuery, SqlQuery):
     def query(self,
               owner_email: str,
@@ -196,14 +218,39 @@ class SqlFetchStoreProductQuery(FetchStoreProductQuery, SqlQuery):
               ) -> StoreProductResponseDto:
         try:
             store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
-            query = select(StoreProduct, StoreCatalog, StoreCollection, StoreProductBrand, StoreProductUnit) \
-                .join(StoreCollection).join(StoreCatalog).join(Store) \
-                .join(StoreProductBrand, isouter=True).join(StoreProductUnit, isouter=True) \
-                .where(and_(Store.store_id == store_id, StoreCatalog.reference == catalog_reference,
-                            StoreCollection.reference == collection_reference,
-                            StoreProduct.reference == product_reference))
+
+            query = fetch_store_product_query_factory(store_id=store_id)
+            query = query.where(
+                and_(StoreCatalog.reference == catalog_reference,
+                     StoreCollection.reference == collection_reference,
+                     StoreProduct.reference == product_reference))
 
             product = self._conn.execute(query).first()
             return product
+        except Exception as exc:
+            raise exc
+
+
+class SqlFetchStoreProductByIdQuery(FetchStoreProductByIdQuery, SqlQuery):
+    def query(self,
+              owner_email: str,
+              product_id: StoreProductId):
+        try:
+            store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
+            query = fetch_store_product_query_factory(store_id=store_id)
+            query = query.where(StoreProduct.product_id == product_id)
+
+            product = self._conn.execute(query).first()
+
+            fetch_units_query = select(StoreProductUnit) \
+                .join(StoreProduct) \
+                .where(StoreProduct.product_id == product_id)
+            units = self._conn.execute(fetch_units_query).all()
+
+            fetch_tags_query = select(StoreProductTag) \
+                .join(StoreProduct) \
+                .where(StoreProduct.product_id == product_id)
+            tags = self._conn.execute(fetch_tags_query).all()
+            return _row_to_product_dto(product, units=units, tags=tags)
         except Exception as exc:
             raise exc

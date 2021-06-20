@@ -27,3 +27,5 @@ class ExceptionMessages:
     DEFAULT_STORE_COLLECTION_CANNOT_BE_DELETED = 'Cannot delete default collection'
 
     STORE_PRODUCT_NOT_FOUND = 'Product not found'
+    PRODUCT_UNIT_NOT_FOUND = 'Product unit not found'
+    CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT = 'This product unit cannot be delete due to it is a dependency to another'
