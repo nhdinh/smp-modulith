@@ -134,9 +134,9 @@ class Store(EventMixin, Entity):
     def default_settings(cls) -> Set[Setting]:
         settings = set()  # type: Set[Setting]
         settings.add(Setting('default_page_size', '10', 'int'))
-        settings.add(Setting('default_catalog_reference', 'unassigned-catalog', 'str'))
+        settings.add(Setting('default_catalog_reference', 'unassigned_catalog', 'str'))
         settings.add(Setting('default_catalog_display_name', 'Chưa phân loại', 'str'))
-        settings.add(Setting('default_collection_reference', 'unassigned-collection', 'str'))
+        settings.add(Setting('default_collection_reference', 'unassigned_collection', 'str'))
         settings.add(Setting('default_collection_display_name', 'Chưa phân loại', 'str'))
 
         return settings

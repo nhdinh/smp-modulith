@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
@@ -14,7 +14,7 @@ from store.domain.entities.registration_status import RegistrationStatus, Regist
 from store.domain.entities.store import Store
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.value_objects import RegistrationId
-from store.domain.events.store_registered_event import StoreRegisteredEvent
+from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationResendEvent
 from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
 from store.domain.rules.store_registration_must_have_valid_expiration_rule import \
     StoreRegistrationMustHaveValidExpirationRule
@@ -36,11 +36,11 @@ class StoreRegistration(EventMixin, Entity):
             owner_password: str,
             confirmation_token: str,
             status: RegistrationStatus,
-            user_counter_services: UserCounters
-
+            last_resend: datetime,
+            user_counter_services: UserCounters,
+            version: int = 0,
     ):
         super(StoreRegistration, self).__init__()
-
         self.check_rule(StoreNameMustNotBeEmptyRule(store_name))
         self.check_rule(UserEmailMustBeValidRule(owner_email))
         self.check_rule(UserMobileMustBeValidRule(owner_mobile))
@@ -59,6 +59,8 @@ class StoreRegistration(EventMixin, Entity):
         self.confirmation_token = confirmation_token
         self.status = status
         self.confirmed_at = None
+        self.last_resend = last_resend
+        self.version = version
 
         # add domain event
         self._record_event(StoreRegisteredEvent(
@@ -75,6 +77,10 @@ class StoreRegistration(EventMixin, Entity):
     @store_name.setter
     def store_name(self, value):
         self._name = value
+
+    @property
+    def expired(self):
+        return (datetime.now() - self.created_at) > timedelta(days=2)
 
     @staticmethod
     def create_registration(
@@ -94,6 +100,8 @@ class StoreRegistration(EventMixin, Entity):
             owner_mobile=owner_mobile,
             confirmation_token=StoreRegistration._create_confirmation_token(),
             status=RegistrationWaitingForConfirmation,
+            version=1,
+            last_resend=datetime.now(),
             user_counter_services=user_counter_services,
         )
 
@@ -110,6 +118,7 @@ class StoreRegistration(EventMixin, Entity):
 
         self.status = RegistrationConfirmed
         self.confirmed_at = datetime.today()
+        self.version += 1
 
         # self._record_event(StoreRegistrationConfirmedEvent(
         #     store_id=self.registration_id,
@@ -143,3 +152,17 @@ class StoreRegistration(EventMixin, Entity):
     @staticmethod
     def _create_confirmation_token():
         return secrets.token_urlsafe(64)
+
+    def resend_confirmation_link(self):
+        # make new confirmation token
+        self.confirmation_token = StoreRegistration._create_confirmation_token()
+        self.last_resend = datetime.now()
+        self.version += 1
+
+        # add domain event
+        self._record_event(StoreRegistrationResendEvent(
+            self.registration_id,
+            self.store_name,
+            self.owner_email,
+            self.confirmation_token
+        ))

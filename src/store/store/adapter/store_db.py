@@ -25,6 +25,8 @@ store_registration_table = sa.Table(
     sa.Column('confirmation_token', sa.String(200), nullable=False),
     sa.Column('confirmed_at', sa.DateTime),
     sa.Column('status', sa.String(100), nullable=False, default='new_registration'),
+    sa.Column('version', sa.Integer, default='0'),
+    sa.Column('last_resend', sa.DateTime),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
 )
 

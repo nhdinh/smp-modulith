@@ -20,6 +20,8 @@ __all__ = [
     "customers",
 ]
 
+from store.domain.events.store_registered_event import StoreRegistrationResendEvent
+
 
 class CustomerRelationship(injector.Module):
     @injector.provider
@@ -30,6 +32,7 @@ class CustomerRelationship(injector.Module):
         binder.multibind(AsyncHandler[BidderHasBeenOverbid], to=AsyncEventHandlerProvider(BidderHasBeenOverbidHandler))
         binder.multibind(AsyncHandler[WinningBidPlaced], to=AsyncEventHandlerProvider(WinningBidPlacedHandler))
         binder.multibind(AsyncHandler[StoreRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
+        binder.multibind(AsyncHandler[StoreRegistrationResendEvent], to=AsyncEventHandlerProvider(StoreRegistrationResendEvent))
         binder.multibind(AsyncHandler[StoreCreatedEvent],
                          to=AsyncEventHandlerProvider(StoreCreatedSuccessfullyEventHandler))
         binder.multibind(AsyncHandler[RequestPasswordChangeCreatedEvent],
@@ -62,6 +65,18 @@ class StoreRegisteredEventHandler:
         self._facade = facade
 
     def __call__(self, event: StoreRegisteredEvent) -> None:
+        self._facade.send_store_registration_confirmation_token_email(
+            event.store_name, event.confirmation_token,
+            event.owner_email
+        )
+
+
+class StoreRegistrationResendEventHandler:
+    @injector.inject
+    def __init__(self, facade: CustomerRelationshipFacade) -> None:
+        self._facade = facade
+
+    def __call__(self, event: StoreRegistrationResendEvent) -> None:
         self._facade.send_store_registration_confirmation_token_email(
             event.store_name, event.confirmation_token,
             event.owner_email

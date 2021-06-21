@@ -41,6 +41,8 @@ from store.application.usecases.initialize.confirm_store_registration_uc import 
     ConfirmStoreRegistrationUC
 from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
 from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
+from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
+    ResendingRegistrationConfirmationResponseBoundary, ResendRegistrationConfirmationUC
 from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
     UpdatingStoreSettingsResponseBoundary
 from store.application.usecases.manage.upload_image_uc import UploadImageUC, UploadingImageResponseBoundary
@@ -69,6 +71,11 @@ class StoreModule(injector.Module):
     def confirm_store_registration_uc(self, boundary: ConfirmingStoreRegistrationResponseBoundary,
                                       uow: StoreUnitOfWork) -> ConfirmStoreRegistrationUC:
         return ConfirmStoreRegistrationUC(boundary, uow)
+
+    @injector.provider
+    def resend_store_registration_uc(self, boundary: ResendingRegistrationConfirmationResponseBoundary,
+                                     uow: StoreUnitOfWork) -> ResendRegistrationConfirmationUC:
+        return ResendRegistrationConfirmationUC(boundary, uow)
 
     @injector.provider
     def add_store_manager_uc(self, boundary: AddingStoreManagerResponseBoundary,

@@ -7,31 +7,31 @@ from store.application.services.store_unit_of_work import StoreUnitOfWork
 
 
 @dataclass
-class ChoosenStorePlanRequest:
+class SelectingStorePlanRequest:
     store_owner: str
     plan_id: str
 
 
 @dataclass
-class ChoosenStorePlanResponse:
+class SelectingStorePlanResponse:
     status: str
     store_id: str
     plan_id: str
     store_status: str
 
 
-class ChoosenStorePlanResponseBoundary(abc.ABC):
+class SelectingStorePlanResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, response_dto: ChoosenStorePlanResponse) -> None:
+    def present(self, response_dto: SelectingStorePlanResponse) -> None:
         raise NotImplementedError
 
 
-class ChooseStorePlanUC:
+class SelectStorePlanUC:
     def __init__(self, ob, uow: StoreUnitOfWork):
         self._ob = ob
         self._uow = uow
 
-    def execute(self, dto: ChoosenStorePlanRequest):
+    def execute(self, dto: SelectingStorePlanRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             """ 
             TODO: Need the following things to implemented first:

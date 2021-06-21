@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from flask import Response, make_response, jsonify
+
+from store import ResendingRegistrationConfirmationResponseBoundary
+from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
+    ResendingRegistrationConfirmationResponse
 from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
     UpdatingStoreSettingsResponse
 
-from store.application.usecases.choose_store_plan_uc import ChoosenStorePlanResponseBoundary, ChoosenStorePlanResponse
+from store.application.usecases.select_store_plan_uc import SelectingStorePlanResponseBoundary, SelectingStorePlanResponse
 from store.application.usecases.initialize.confirm_store_registration_uc import \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationResponse
 
@@ -22,6 +26,13 @@ class RegisteringStorePresenter(RegisteringStoreResponseBoundary):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
+class ResendingRegistrationResponsePresenter(ResendingRegistrationConfirmationResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: ResendingRegistrationConfirmationResponse) -> None:
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
 class ConfirmingStoreRegistrationPresenter(ConfirmingStoreRegistrationResponseBoundary):
     response: Response
 
@@ -29,10 +40,10 @@ class ConfirmingStoreRegistrationPresenter(ConfirmingStoreRegistrationResponseBo
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class ChoosenStorePlanPresenter(ChoosenStorePlanResponseBoundary):
+class SelectingStorePlanPresenter(SelectingStorePlanResponseBoundary):
     response: Response
 
-    def present(self, response_dto: ChoosenStorePlanResponse):
+    def present(self, response_dto: SelectingStorePlanResponse):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 

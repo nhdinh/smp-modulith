@@ -5,6 +5,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ExceptionMessages:
+    REGISTRATION_HAS_BEEN_EXPIRED = 'Store registration confirmation link has been expired'
+    REGISTRATION_HAS_BEEN_CONFIRMED = 'Store registration has been confirmed'
+    REGISTRATION_NOT_FOUND = 'No registration found'
+
     INVALID_FILE_TYPE = 'Upload invalid file type'
 
     CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE = 'Current user do not have permission on this store'
@@ -29,3 +33,4 @@ class ExceptionMessages:
     STORE_PRODUCT_NOT_FOUND = 'Product not found'
     PRODUCT_UNIT_NOT_FOUND = 'Product unit not found'
     CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT = 'This product unit cannot be delete due to it is a dependency to another'
+    REGISTRATION_RESEND_TOO_MUCH = 'Too much request, try again later'

@@ -8,13 +8,16 @@ from factory.base import logger
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
+    ResendingRegistrationConfirmationRequest, ResendRegistrationConfirmationUC, \
+    ResendingRegistrationConfirmationResponseBoundary
 from store.application.usecases.manage.upload_image_uc import UploadingImageRequest, UploadingImageResponseBoundary, \
     UploadImageUC
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.store_queries import FetchStoreSettingsQuery
-from store.application.usecases.choose_store_plan_uc import ChooseStorePlanUC, ChoosenStorePlanResponseBoundary, \
-    ChoosenStorePlanRequest
+from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
+    SelectingStorePlanRequest
 from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest
 from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
@@ -24,7 +27,8 @@ from store.application.usecases.manage.add_store_manager import AddingStoreManag
 from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
     UpdatingStoreSettingsRequest, UpdateStoreSettingsUC
 from web_app.presenters.manage_store_presenters import RegisteringStorePresenter, ConfirmingStoreRegistrationPresenter, \
-    ChoosenStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter
+    SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
+    ResendingRegistrationResponsePresenter
 from web_app.serialization.dto import get_dto
 
 store_blueprint = Blueprint('store_blueprint', __name__)
@@ -38,13 +42,18 @@ class StoreAPI(injector.Module):
 
     @injector.provider
     @flask_injector.request
+    def resend_store_register_response_boundary(self) -> ResendingRegistrationConfirmationResponseBoundary:
+        return ResendingRegistrationResponsePresenter()
+
+    @injector.provider
+    @flask_injector.request
     def confirm_store_registration_boundary(self) -> ConfirmingStoreRegistrationResponseBoundary:
         return ConfirmingStoreRegistrationPresenter()
 
     @injector.provider
     @flask_injector.request
-    def choose_store_plan_boundary(self) -> ChoosenStorePlanResponseBoundary:
-        return ChoosenStorePlanPresenter()
+    def choose_store_plan_boundary(self) -> SelectingStorePlanResponseBoundary:
+        return SelectingStorePlanPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -67,6 +76,21 @@ def register_new_store(register_store_uc: RegisterStoreUC, presenter: Registerin
     try:
         dto = get_dto(request, RegisteringStoreRequest, context={})
         register_store_uc.execute(dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_blueprint.route('/resend-confirmation', methods=['POST'])
+def resend_registration_confirmation(resend_registration_confirmation_uc: ResendRegistrationConfirmationUC,
+                                     presenter: ResendingRegistrationConfirmationResponseBoundary) -> Response:
+    try:
+        dto = get_dto(request, ResendingRegistrationConfirmationRequest, context={})
+        resend_registration_confirmation_uc.execute(dto)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
@@ -112,11 +136,11 @@ def confirm_store_registration_get(confirmation_token: str, confirm_store_regist
 
 @store_blueprint.route('/choose', methods=['POST'])
 @jwt_required()
-def confirm_store_package(choose_store_plan_uc: ChooseStorePlanUC,
-                          presenter: ChoosenStorePlanResponseBoundary) -> Response:
+def confirm_store_package(choose_store_plan_uc: SelectStorePlanUC,
+                          presenter: SelectingStorePlanResponseBoundary) -> Response:
     try:
         store_owner = get_jwt_identity()
-        dto = get_dto(request, ChoosenStorePlanRequest, context={'store_owner': store_owner})
+        dto = get_dto(request, SelectingStorePlanRequest, context={'store_owner': store_owner})
         choose_store_plan_uc.execute(dto)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:

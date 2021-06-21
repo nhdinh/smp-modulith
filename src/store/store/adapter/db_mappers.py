@@ -28,7 +28,10 @@ def start_mappers():
     )
 
     mapper(
-        StoreRegistration, store_registration_table, properties={
+        StoreRegistration, store_registration_table,
+        version_id_col=store_registration_table.c.version,
+        version_id_generator=None,
+        properties={
             'registration_id': store_registration_table.c.store_registration_id,
             'store_name': store_registration_table.c.name,
         }

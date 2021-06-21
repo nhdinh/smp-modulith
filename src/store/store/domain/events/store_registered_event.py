@@ -16,6 +16,14 @@ class StoreRegisteredEvent(Event):
 
 
 @dataclass(frozen=True)
+class StoreRegistrationResendEvent(Event):
+    registration_id: UUID
+    store_name: str
+    owner_email: str
+    confirmation_token: str
+
+
+@dataclass(frozen=True)
 class StoreRegistrationConfirmedEvent(Event):
     store_id: StoreId
     store_name: str
