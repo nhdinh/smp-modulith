@@ -9,7 +9,7 @@ from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.registration_status import RegistrationWaitingForConfirmation
 from store.domain.entities.store_registration import StoreRegistration
 
-ALLOWABLE_RESEND_DURATION = timedelta(minutes=30)
+ALLOWABLE_RESEND_DURATION = timedelta(minutes=0)
 
 
 @dataclass

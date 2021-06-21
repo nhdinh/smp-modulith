@@ -743,7 +743,7 @@ class Store(EventMixin, Entity):
                 product = source.products.pop()
 
                 # add to destination
-                self._add_product(product=product, dest=dest)
+                self._add_product_to_collection(product=product, dest=dest)
 
                 # raise event
                 self._raise_product_created_event(product=product)
@@ -845,8 +845,8 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    def make_collection_default(self, collection_reference: StoreCollectionReference,
-                                catalog_reference: StoreCatalogReference) -> None:
+    def set_collection_to_default(self, collection_reference: StoreCollectionReference,
+                                  catalog_reference: StoreCatalogReference) -> None:
         try:
             catalog = self._get_catalog_by_reference(catalog_reference=catalog_reference)
             if not catalog:
@@ -857,13 +857,13 @@ class Store(EventMixin, Entity):
                 raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
             if not collection.default:
-                self._make_collection_default(collection=collection, catalog=catalog)
+                self._set_collection_to_default(collection=collection, catalog=catalog)
 
             self.version += 1
         except Exception as exc:
             raise exc
 
-    def _make_collection_default(self, collection: StoreCollection, catalog: StoreCatalog) -> None:
+    def _set_collection_to_default(self, collection: StoreCollection, catalog: StoreCatalog) -> None:
         try:
             for _collection in catalog.collections:
                 _collection.default = False
@@ -940,11 +940,13 @@ class Store(EventMixin, Entity):
             # try to get catalog or make new one
             catalog = self._try_to_get_catalog_or_default_or_make_new(reference=catalog_reference,
                                                                       display_name=catalog_display_name)
+            self.catalogs.add(catalog)
 
             # try to get collection or make new one
             collection = self._try_to_get_collection_or_default_or_make_new(from_catalog=catalog,
                                                                             reference=collection_reference,
                                                                             display_name=collection_display_name)
+            self._add_collection_to_catalog(collection=collection, dest=catalog)
 
             product_params['catalog'] = catalog
             product_params['collection'] = collection
@@ -994,7 +996,7 @@ class Store(EventMixin, Entity):
                     product.units.add(unit)
 
             # add it to collection
-            self._add_product(product=product, dest=collection)
+            self._add_product_to_collection(product=product, dest=collection)
 
             self.version += 1
 
@@ -1049,7 +1051,7 @@ class Store(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    def _add_product(self, product: StoreProduct, dest: StoreCollection, **kwargs):
+    def _add_product_to_collection(self, product: StoreProduct, dest: StoreCollection, **kwargs):
         """
         Internal method for adding a collection to a catalog. All the children products will be added accordingly.
 

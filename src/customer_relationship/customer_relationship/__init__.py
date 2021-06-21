@@ -32,7 +32,7 @@ class CustomerRelationship(injector.Module):
         binder.multibind(AsyncHandler[BidderHasBeenOverbid], to=AsyncEventHandlerProvider(BidderHasBeenOverbidHandler))
         binder.multibind(AsyncHandler[WinningBidPlaced], to=AsyncEventHandlerProvider(WinningBidPlacedHandler))
         binder.multibind(AsyncHandler[StoreRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
-        binder.multibind(AsyncHandler[StoreRegistrationResendEvent], to=AsyncEventHandlerProvider(StoreRegistrationResendEvent))
+        binder.multibind(AsyncHandler[StoreRegistrationResendEvent], to=AsyncEventHandlerProvider(StoreRegistrationResendEventHandler))
         binder.multibind(AsyncHandler[StoreCreatedEvent],
                          to=AsyncEventHandlerProvider(StoreCreatedSuccessfullyEventHandler))
         binder.multibind(AsyncHandler[RequestPasswordChangeCreatedEvent],

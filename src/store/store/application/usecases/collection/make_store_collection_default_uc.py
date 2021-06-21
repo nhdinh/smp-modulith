@@ -25,8 +25,8 @@ class MakeStoreCollectionDefaultUC:
         with self._uow as uow:  # type: StoreUnitOfWork
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
-                store.make_collection_default(collection_reference=dto.collection_reference,
-                                              catalog_reference=dto.catalog_reference)
+                store.set_collection_to_default(collection_reference=dto.collection_reference,
+                                                catalog_reference=dto.catalog_reference)
 
                 response_dto = UpdatingStoreCollectionResponse(status=True)
                 self._ob.present(response_dto=response_dto)
