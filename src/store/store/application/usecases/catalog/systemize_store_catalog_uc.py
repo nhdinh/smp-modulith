@@ -25,7 +25,7 @@ class SystemizeStoreCatalogUC:
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
-                store.make_system_catalog(catalog_reference=dto.catalog_reference)
+                store.turn_on_system_catalog(catalog_reference=dto.catalog_reference)
 
                 response_dto = UpdatingStoreCatalogResponse(status=True)
                 self._ob.present(response_dto=response_dto)

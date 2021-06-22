@@ -48,9 +48,9 @@ class CreateStoreCollectionUC:
                 reference = slugify(dto.reference) if dto.reference else slugify(dto.display_name)
 
                 # make collection
-                collection = store.make_collection(of_catalog=dto.catalog_reference,
-                                                   display_name=dto.display_name,
-                                                   reference=reference)
+                collection = store.create_store_collection(of_catalog=dto.catalog_reference,
+                                                           display_name=dto.display_name,
+                                                           reference=reference)
 
                 # make response
                 respose_dto = CreatingStoreCollectionResponse(store_id=store.store_id,
