@@ -146,22 +146,22 @@ class StoreCatalog:
         :param collection: the collection to be added
 
         :param rename_if_duplicated: to rename the input collection if its reference has been taken. If set to True,
-        the collection's refrence will be added a number into its suffix, else False, the method will raise an
+        the collection's reference will be added a number into its suffix, else False, the method will raise an
         Exception
 
         :param keep_default: If keep_default is set True, the collection to be added will be set to Default if its
         default is True. Else, its default property will be set to False.
         """
-        if self.has_collection_reference(collection.reference):
-            if not rename_if_duplicated:
-                raise DuplicatedCollectionReferenceError(ExceptionMessages.DUPLICATED_COLLECTION_REFERENCE_WHEN_COPYING)
-            else:
-                new_reference = self._make_new_collection_reference(collection.reference)
-                collection.reference = new_reference
+        # if self.has_collection_reference(collection.reference):
+        #     if not rename_if_duplicated:
+        #         raise DuplicatedCollectionReferenceError(ExceptionMessages.DUPLICATED_COLLECTION_REFERENCE_WHEN_COPYING)
+        #     else:
+        #         new_reference = self._make_new_collection_reference(collection.reference)
+        #         collection.reference = new_reference
 
-                # remove default collection if true
-                if not keep_default:
-                    collection.default = False
+        # remove default collection if true
+        if not keep_default:
+            collection.default = False
 
         # add the collection to self
         self._collections.add(collection)

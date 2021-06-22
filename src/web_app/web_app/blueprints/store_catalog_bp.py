@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import flask_injector
 import injector
@@ -690,4 +693,35 @@ def remove_store_product(product_id: str):
     """
     raise NotImplementedError
 
+
 # endregion
+
+
+@store_catalog_blueprint.route('/testsendmail', methods=['GET'])
+def test_send_mail():
+    EMAIL_HOST = 'smtp_server'
+    EMAIL_PORT = 2525
+    EMAIL_USERNAME = None
+    EMAIL_PASSWORD = None
+    EMAIL_FROM = 'admin@smp.io'
+    email = {
+        'title': 'Some title',
+        'text': 'Some text',
+        'html': 'Some html'
+    }
+
+    with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
+        try:
+            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = email['title']
+            msg["From"] = EMAIL_FROM
+            msg["To"] = EMAIL_FROM
+            msg.attach(MIMEText(email['text'], "plain"))
+            msg.attach(MIMEText(email['html'], "html"))
+
+            server.sendmail(EMAIL_FROM, EMAIL_FROM, msg.as_string())
+        except Exception as exc:
+            logger.exception(exc)
+
+    return make_response({'status': 'OK'}), 201

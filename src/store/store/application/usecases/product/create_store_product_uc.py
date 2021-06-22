@@ -140,6 +140,8 @@ class CreateStoreProductUC:
                 )
                 self._ob.present(response_dto=response_dto)
 
+                # increase aggregate version
+                store.version += 1
                 uow.commit()
             except Exception as exc:
                 raise exc

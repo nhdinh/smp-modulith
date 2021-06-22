@@ -359,6 +359,9 @@ class Store(EventMixin, Entity):
             collection = self._create_store_collection(display_name=default_collection_display_name,
                                                        reference=default_collection_reference, default=True)
 
+            if catalog.has_collection_reference(reference=collection.reference):
+                collection.reference = catalog.next_collection_reference(base_reference=collection.reference)
+
             self._add_collection_to_catalog(collection=collection, dest=catalog)
 
             return catalog
@@ -451,85 +454,74 @@ class Store(EventMixin, Entity):
     ) -> StoreCatalog:
         catalog_reference = reference
         catalog_display_name = display_name
+        catalog = None
 
+        # if no catalog_reference and no display_name as well, we would return the default catalog
         if not catalog_reference:
-            if catalog_display_name:
-                catalog_reference = slugify(catalog_display_name)
+            if not catalog_display_name:
+                catalog = self.system_catalog
+                if catalog:
+                    return catalog
             else:
-                catalog_reference = self.get_setting('default_catalog_reference', 'unassigned_catalog')
-                catalog_display_name = self.get_setting('default_catalog_display_name', 'Chưa phân loại')
-        else:
-            catalog_reference = slugify(catalog_reference)
-            if catalog_reference == 'unassigned_catalog' \
-                    and catalog_display_name != self.get_setting('default_catalog_display_name', 'Chưa phân loại'):
+                # but if there is display_name, we would make the reference out of the display_name by slugify it
                 catalog_reference = slugify(catalog_display_name)
 
-        # fetch catalog
-        catalog = self._fetch_catalog_by_reference(catalog_reference=catalog_reference)
-        if not catalog:
-            catalog = self.create_store_catalog(display_name=catalog_display_name, reference=catalog_reference)
-            return catalog
+        # then fetch catalog by the reference
+        if catalog_reference:
+            catalog_reference = slugify(catalog_reference)
+            catalog = self._fetch_catalog_by_reference(catalog_reference=catalog_reference)
 
-        if catalog.display_name.lower() != catalog_display_name.lower():
-            # make new
-            catalog_reference = self._make_new_catalog_reference(reference=catalog_reference)
-            catalog = self.create_store_catalog(display_name=catalog_display_name, reference=catalog_reference)
+        # if catalog found
+        if catalog:
+            # and if the user input display_name. If the fetched catalog has different display_name, then it's a different one. Then we would generate a new catalog reference for it, set the fetch_catalog to None
+            if catalog_display_name and catalog.display_name.lower() != catalog_display_name.lower():
+                catalog_reference = self._make_new_catalog_reference(catalog_reference)
+                catalog = None
+            else:
+                return catalog
+
+        # if the catalog is set to None, then we need to create it
+        if not catalog:
+            catalog_display_name = 'Unnammed' if not catalog_display_name else catalog_display_name
+            catalog = self.create_store_catalog(reference=catalog_reference, display_name=catalog_display_name)
+            self._add_catalog_to_store(catalog)
 
         return catalog
 
     def _try_get_collection_or_create(
             self,
             parent_catalog: StoreCatalog,
-            reference: Optional[StoreCollectionReference] = '',
-            display_name: Optional[str] = '',
+            collection_reference: Optional[StoreCollectionReference] = '',
+            collection_display_name: Optional[str] = '',
     ) -> StoreCollection:
-        if not reference:
-            if display_name:
-                reference = slugify(display_name)
-            else:
-                reference = self.get_setting('default_collection_reference', 'unassigned_collection')
-                display_name = self.get_setting('default_collection_display_name', 'Chưa phân loại')
-        else:
-            reference = slugify(reference)
-            if reference == 'unassigned_collection' \
-                    and display_name != self.get_setting('default_collection_display_name', 'Chưa phân loại'):
-                reference = slugify(display_name)
+        collection = None
 
-        # fetch collection
-        collection = parent_catalog.get_collection_by_reference(collection_reference=reference)
+        if not collection_reference:
+            if not collection_display_name:
+                collection = parent_catalog.default_collection
+                if collection:
+                    return collection
+            else:
+                collection_reference = slugify(collection_display_name)
+
+        if collection_reference:
+            collection_reference = slugify(collection_reference)
+            collection = parent_catalog.get_collection_by_reference(collection_reference=collection_reference)
+
+        if collection:
+            if collection_display_name and collection.display_name.lower() != collection_display_name.lower():
+                collection_reference = parent_catalog.next_collection_reference(base_reference=collection_reference)
+                collection = None
+            else:
+                return collection
+
         if not collection:
-            collection=self.create_store_collection(of_catalog=parent_catalog,display_name=display_name, reference=reference)
+            collection_display_name = 'Unnamed' if not collection_display_name else collection_display_name
+            collection = self.create_store_collection(reference=collection_reference,
+                                                      display_name=collection_display_name)
+            self._add_collection_to_catalog(collection=collection, dest=parent_catalog)
 
-        if not reference and not display_name:
-            collection = parent_catalog.default_collection
-
-            if not collection:  # even no default collection
-                collection = self._create_store_collection(catalog=parent_catalog,
-                                                           display_name=self.get_setting(
-                                                               'default_collection_display_name', ''),
-                                                           reference=self.get_setting('default_collection_reference',
-                                                                                      ''))
-                self._add_collection_to_catalog(collection=collection, dest=parent_catalog)
-
-            return collection
-
-        if not reference and display_name:
-            reference = slugify(display_name)
-
-        if reference:
-            if parent_catalog.has_collection_reference(reference):
-                collection = parent_catalog.get_collection_by_reference(collection_reference=reference)
-                if display_name and collection.display_name != display_name:
-                    collection = self.create_store_collection(
-                        of_catalog=parent_catalog,
-                        display_name=display_name,
-                        reference=parent_catalog.next_collection_reference(base_reference=reference))
-            else:
-                collection = self.create_store_collection(of_catalog=parent_catalog, reference=reference,
-                                                          display_name=display_name if display_name else reference)
-                self._add_collection_to_catalog(collection=collection, dest=parent_catalog)
-
-            return collection
+        return collection
 
     def move_catalog_children(self,
                               source_reference: StoreCatalogReference,
@@ -645,24 +637,17 @@ class Store(EventMixin, Entity):
 
     # region ## StoreCollection Operations ##
 
-    def create_store_collection(self, of_catalog: StoreCatalogReference, display_name: str,
-                                reference: str) -> StoreCollection:
+    def create_store_collection(self, display_name: str, reference: str) -> StoreCollection:
         """
         Make a collection into the children catalog
-
-        :param of_catalog: reference of the catalog which will contain this collection
 
         :param display_name: display name of the new created
 
         :param reference: reference of the new created
         """
         try:
-            # check catalog availability
-            catalog = self._fetch_catalog_by_reference(catalog_reference=of_catalog)  # type:StoreCatalog
-            if not catalog:
-                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
-
-            collection = self._create_store_collection(catalog, display_name=display_name, reference=reference)
+            reference = slugify(reference)
+            collection = self._create_store_collection(display_name=display_name, reference=reference)
 
             return collection
         except Exception as exc:
@@ -682,11 +667,6 @@ class Store(EventMixin, Entity):
                 default=is_default_collection
             )
 
-            # if parent_catalog is input
-            parent_catalog = kwargs.get('parent_catalog')
-            if type(parent_catalog) is StoreCatalog:
-                self._add_collection_to_catalog(collection=collection, dest=parent_catalog)
-
             return collection
         except Exception as exc:
             raise exc
@@ -704,12 +684,21 @@ class Store(EventMixin, Entity):
         # collections to be copied will be mark as non default. Else, the default collection in the destination
         # catalog will be mark as non default. The default one will be copied.
         # Default is set to `True`
-        keep_default = kwargs.get('keep_default') if 'keep_default' in kwargs.keys() else True
-
         try:
+            new_reference_if_duplicated = kwargs.get('new_reference_if_duplicated')
+            if new_reference_if_duplicated is None:
+                new_reference_if_duplicated = False
+
+            if new_reference_if_duplicated:
+                if dest.has_collection_reference(reference=collection.reference):
+                    collection.reference = dest.next_collection_reference(base_reference=collection.reference)
+
             collection.store = self
             collection.catalog = dest
-            dest.add_collection(collection, keep_default=keep_default)
+
+            dest.add_collection(collection)
+
+            return True
         except Exception as exc:
             raise exc
 
@@ -944,13 +933,11 @@ class Store(EventMixin, Entity):
             # try to get catalog or make new one
             catalog = self._try_get_catalog_or_create(reference=catalog_reference,
                                                       display_name=catalog_display_name)
-            self._add_catalog_to_store(catalog=catalog)
 
             # try to get collection or make new one
             collection = self._try_get_collection_or_create(parent_catalog=catalog,
-                                                            reference=collection_reference,
-                                                            display_name=collection_display_name)
-            self._add_collection_to_catalog(collection=collection, dest=catalog)
+                                                            collection_reference=collection_reference,
+                                                            collection_display_name=collection_display_name)
 
             product_params['catalog'] = catalog
             product_params['collection'] = collection

@@ -23,6 +23,7 @@ class ExceptionMessages:
 
     CANNOT_MOVE_CATALOG_CONTENT_TO_ITSELF = 'Cannot move catalog content to itself'
 
+    STORE_COLLECTION_EXISTED = 'The catalog already contained the collection with same reference'
     INVALID_STORE_COLLECTION_REFERENCE_FORMAT = 'CollectionReference not in corrected format'
     STORE_CATALOG_MUST_BE_SPECIFIED = 'CatalogReference must be specified'
     STORE_COLLECTION_NOT_FOUND = 'Collection not found'
