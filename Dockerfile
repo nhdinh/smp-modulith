@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.8
 
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -16,6 +16,6 @@ COPY src/ ./
 RUN make dev
 
 ENV FLASK_APP='web_app.app:create_app'
-CMD ["/usr/local/bin/flask", "run", "--host=0.0.0.0", "--reload"]
+CMD ["flask", "run", "--host=0.0.0.0", "--reload"]
 ENTRYPOINT ["dockerize", "-wait", "tcp://database:5432"]
 

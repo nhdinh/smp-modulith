@@ -38,11 +38,11 @@ class ToggleStoreCatalogUC:
                     raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE)
 
                 # check catalog
-                if not store.has_catalog_reference(catalog_reference=input_dto.catalog_reference):
+                if not store.contains_catalog_reference(catalog_reference=input_dto.catalog_reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
                 # check if catalog is system type
-                catalog = store.get_catalog(search_term=input_dto.catalog_reference)
+                catalog = store.fetch_catalog_by_id_or_reference(search_term=input_dto.catalog_reference)
                 if catalog.system:
                     raise Exception(ExceptionMessages.SYSTEM_STORE_CATALOG_CANNOT_BE_DISABLED)
 

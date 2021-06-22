@@ -112,7 +112,7 @@ class StoreCatalog:
         return value
 
     @classmethod
-    def make_catalog(
+    def create_instance(
             cls,
             display_name: str,
             **kwargs) -> StoreCatalog:

@@ -40,14 +40,14 @@ class CreateStoreCatalogUC:
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
-                if store.has_catalog_reference(dto.reference):
+                if store.contains_catalog_reference(dto.reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
 
                 # validate inputs
                 reference = slugify(dto.reference) if dto.reference else slugify(dto.display_name)
 
                 # make catalog
-                catalog = store.make_children_catalog(
+                catalog = store.create_store_catalog(
                     reference=reference,
                     display_name=dto.display_name,
                 )

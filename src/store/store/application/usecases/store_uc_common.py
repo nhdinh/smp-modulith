@@ -94,7 +94,7 @@ def fetch_catalog_from_store_or_raise(by_catalog: str, store: Store) -> StoreCat
         if not store or getattr(store, 'store_id') is None:
             raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
-        catalog = store.get_catalog(search_term=by_catalog)
+        catalog = store.fetch_catalog_by_id_or_reference(search_term=by_catalog)
 
         if not catalog:
             raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)

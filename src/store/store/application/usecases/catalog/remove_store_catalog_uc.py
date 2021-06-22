@@ -41,7 +41,7 @@ class RemoveStoreCatalogUC:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 # delete catalog
-                store.delete_catalog(
+                store.delete_store_catalog(
                     catalog_reference=dto.catalog_reference,
                     remove_completely=remove_completely
                 )
