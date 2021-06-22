@@ -97,20 +97,6 @@ class StoreCatalog:
         """
         self.disabled = not self.disabled
 
-    def get_store_settings(self, setting_key: str, _default_value=None):
-        """
-        Get setting value from parent store
-
-        :param setting_key: key of the setting
-        :param _default_value: default value to return if there is nothing found.
-        :return:
-        """
-        value = self._store_settings.get(setting_key)
-        if not value:
-            value = _default_value
-
-        return value
-
     @classmethod
     def create_instance(
             cls,
@@ -258,3 +244,20 @@ class StoreCatalog:
         except Exception as exc:
             print("Error while finding a new name for collection")
             raise exc
+
+    def __eq__(self, other):
+        if type(other) is not StoreCatalog:
+            return False
+
+        is_equal = True
+        if other.reference != self.reference or \
+                other.display_name != self.display_image:
+            is_equal = False
+
+        if self.store and other.store and self.store.store_id != other.store.store_id:
+            is_equal = False
+
+        if self.collections and other.collections and self.collections != other.collections:
+            is_equal = False
+
+        return is_equal

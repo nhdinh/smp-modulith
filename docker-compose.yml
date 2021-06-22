@@ -81,6 +81,8 @@ services:
       DB_ECHO: 'true'
     depends_on:
       - redis
+    ports:
+      - "9181:9181"
 
   minio:
     image: minio/minio:RELEASE.2021-06-14T01-29-23Z
