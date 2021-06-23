@@ -1,128 +1,116 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from dataclasses import dataclass
-from typing import Set, Optional, List
+from typing import Optional, TYPE_CHECKING, Set, List
 
 from foundation import slugify
 from store.application.usecases.const import ExceptionMessages
-from store.domain.entities.store_product_brand import StoreProductBrandReference
+from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreProductReference, StoreProductId
 
+if TYPE_CHECKING:
+    from store.domain.entities.store import Store
+    from store.domain.entities.store_catalog import StoreCatalog
+    from store.domain.entities.store_collection import StoreCollection
 
-@dataclass(unsafe_hash=True)
+
 class StoreProduct:
     product_id: StoreProductId
-    reference: StoreProductReference
-    brand_reference: StoreProductBrandReference
-
-    display_name: str
-    image: str
+    title: str
 
     def __init__(
             self,
             product_id: StoreProductId,
             reference: StoreProductReference,
-            display_name: str,
-            store, catalog, collection,
-            **kwargs
+            title: str,
+            image: str,
+            store: 'Store',
+            brand: StoreProductBrand,
+            collection: 'StoreCollection',
+            catalog: 'StoreCatalog'
     ):
         self.product_id = product_id
-        self.reference = reference,
-        self.display_name = display_name
+        self.reference = reference
+        self.title = title
 
-        self.image = kwargs.get('image')
+        self._store = store  # type:Store
+        self.image = image
 
-        # set parent(s) data
-        self._store = store
-        self._catalog = catalog
-        self._collection = collection
+        self._brand = brand  # type:StoreProductBrand
 
-        self._brand = None
+        self._catalog = catalog  # type:StoreCatalog
+        self._collection = collection  # type:StoreCollection
+
         self._units = set()  # type:Set[StoreProductUnit]
         self._tags = set()  # type:Set[StoreProductTag]
 
+    @classmethod
+    def create_product(cls,
+                       reference: StoreProductReference,
+                       title: str,
+                       image: str,
+                       default_unit: str,
+                       store: 'Store',
+                       brand: StoreProductBrand,
+                       catalog: 'StoreCatalog',
+                       collection: 'StoreCollection',
+                       tags: List[str]) -> 'StoreProduct':
+        product_id = StoreProductId(uuid.uuid4())
+        reference = slugify(reference)
+
+        product = StoreProduct(
+            product_id=product_id,
+            reference=reference,
+            title=title,
+            image=image,
+            store=store,
+            brand=brand,
+            catalog=catalog,
+            collection=collection
+        )
+
+        # create default unit
+        if default_unit:
+            _default_unit = product.create_default_unit(default_name=default_unit)
+
+        # add tags
+        if tags:
+            for tag in tags:
+                product._tags.add(StoreProductTag(tag=tag))
+
+        return product
+
     @property
-    def collection(self):
-        return self._collection
+    def brand(self) -> 'StoreProductBrand':
+        return self._brand
 
-    @collection.setter
-    def collection(self, value):
-        self._collection = value
-
-    @property
-    def catalog(self):
-        return self._catalog
-
-    @catalog.setter
-    def catalog(self, value):
-        self._catalog = value
-
-    @property
-    def store(self):
-        return self._store
-
-    @store.setter
-    def store(self, value):
-        self._store = value
+    @brand.setter
+    def brand(self, value):
+        self._brand = value
 
     @property
     def units(self) -> Set[StoreProductUnit]:
         return self._units
 
     @property
+    def default_unit(self) -> StoreProductUnit:
+        return self.get_default_unit()
+
+    @property
     def tags(self) -> Set[StoreProductTag]:
         return self._tags
-
-    @tags.setter
-    def tags(self, value: List[StoreProductTag]):
-        self._tags = set(value)
-
-    @property
-    def default_unit(self) -> Optional[StoreProductUnit]:
-        if len(self._units) == 0:
-            return None
-
-        try:
-            return next(sp_unit for sp_unit in self._units if sp_unit.default)
-        except StopIteration:
-            return None
-
-    @default_unit.setter
-    def default_unit(self, value):
-        if type(value) is StoreProductUnit:
-            self._units.add(value)
-
-    @classmethod
-    def create_product(cls,
-                       reference: StoreProductReference,
-                       display_name: str,
-                       store, catalog, collection):
-        product_id = StoreProductId(uuid.uuid4())
-        reference = slugify(reference)
-
-        return StoreProduct(
-            product_id=product_id,
-            reference=reference,
-            display_name=display_name,
-            store=store,
-            catalog=catalog,
-            collection=collection
-        )
-
-    @property
-    def brand(self):
-        return self._brand
-
-    @brand.setter
-    def brand(self, value):
-        setattr(self, '_brand', value)
 
     def get_unit(self, unit: str) -> Optional[StoreProductUnit]:
         try:
             return next(product_unit for product_unit in self._units if product_unit.unit == unit)
+        except StopIteration:
+            return None
+
+    def get_default_unit(self) -> Optional[StoreProductUnit]:
+        try:
+            return next(product_unit for product_unit in self._units if product_unit.default)
         except StopIteration:
             return None
 
@@ -156,6 +144,58 @@ class StoreProduct:
                 raise Exception(ExceptionMessages.CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT)
         except Exception as exc:
             raise exc
+
+    def create_unit(self, unit_name: str, conversion_factor: float, base_unit: str = None) -> StoreProductUnit:
+        try:
+            # check if there is any unit with that name has been existed
+            unit = next(unit for unit in self._units if unit.unit == unit_name)
+            if unit:
+                raise Exception(ExceptionMessages.PRODUCT_UNIT_EXISTED)
+        except StopIteration:
+            pass
+
+        try:
+            # indicate if the unit to be created is default unit or not
+            if base_unit:
+                is_default = False
+            else:
+                is_default = True
+
+            # search for the unit to be base_unit
+            if base_unit:
+                _base_unit = next(unit for unit in self._units if unit.unit == base_unit)
+            else:
+                _base_unit = None
+
+            # make unit
+            unit = StoreProductUnit(unit=unit_name, conversion_factor=conversion_factor, default=is_default,
+                                    disabled=False, from_unit=_base_unit)
+            self._units.add(unit)
+            return unit
+        except StopIteration:
+            raise Exception(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
+
+    def create_default_unit(self, default_name: str) -> StoreProductUnit:
+        return self.create_unit(unit_name=default_name, conversion_factor=0, base_unit=None)
+
+    def _is_unit_dependency(self, unit: StoreProductUnit):
+        try:
+            unit = next(u for u in self._units if u.base_unit == unit)
+            if unit:
+                return True
+        except StopIteration:
+            return False
+
+    def remove_unit(self, unit_name: str):
+        unit = self.get_unit(unit=unit_name)
+        if not unit:
+            raise Exception(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+        elif unit.default and len(self._units) > 1:
+            raise Exception(ExceptionMessages.CANNOT_DELETE_DEFAULT_UNIT)
+        elif self._is_unit_dependency(unit):
+            raise Exception(ExceptionMessages.CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT)
+        else:
+            unit.deleted = True
 
     def __repr__(self):
         return f'<StoreProduct ref={self.reference}>'

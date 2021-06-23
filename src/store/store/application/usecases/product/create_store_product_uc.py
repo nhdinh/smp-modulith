@@ -30,7 +30,7 @@ class CreatingStoreProductRequest:
     current_user: str
 
     # product data (mandatory)
-    display_name: str
+    title: str
 
     # product data (options)
     reference: Opt[StoreProductReference] = None
@@ -43,18 +43,15 @@ class CreatingStoreProductRequest:
     # tags: Opt[List[str]] = fields.List(fields.Str(required=False), required=False)
 
     # brands (optional)
-    brand_display_name: Opt[str] = None
-    brand_reference: Opt[str] = None
+    brand: Opt[str] = None
 
     # seller (optional)
     seller_phone: Opt[str] = None
     seller_contact_name: Opt[str] = None
 
     # catalog & collection (optional)
-    catalog_reference: Opt[StoreCatalogReference] = None
-    catalog_display_name: Opt[str] = None
-    collection_reference: Opt[StoreCollectionReference] = None
-    collection_display_name: Opt[str] = None
+    catalog: Opt[str] = None
+    collection: Opt[str] = None
 
     # unit & first stocking (optional)
     default_unit: Opt[str] = None
@@ -91,7 +88,7 @@ class CreateStoreProductUC:
                 product_data = dict()
                 product_data_fields = [
                     # product data (required)
-                    'display_name',
+                    'title',
 
                     # product data (optional)
                     'reference',
@@ -103,16 +100,14 @@ class CreateStoreProductUC:
                     'tags',
 
                     # brand
-                    'brand_display_name',
-                    'brand_reference',
+                    'brand',
 
                     # seller
                     'seller_phone',
                     'seller_contact_name',
 
                     # catalog
-                    'catalog_display_name',
-                    'catalog_reference',
+                    'catalog',
 
                     # collection
                     'collection_display_name',
@@ -129,9 +124,23 @@ class CreateStoreProductUC:
 
                 for data_field in product_data_fields:
                     if getattr(dto, data_field, None) is not None:
-                        product_data[data_field] = getattr(dto, data_field)
+                        data = getattr(dto, data_field)
 
-                product = store.make_product(**product_data)
+                        # process array data
+                        if data_field == 'unit_conversions':  # unit_conversions
+                            unit_conversions = []
+                            for unit_conversion in data:  # type:CreatingStoreProductUnitConversionRequest
+                                unit_conversions.append({
+                                    'unit': unit_conversion.unit,
+                                    'base_unit': unit_conversion.base_unit,
+                                    'conversion_factor': unit_conversion.conversion_factor,
+                                })
+
+                            data = unit_conversions
+
+                        product_data[data_field] = data
+
+                product = store.create_product(**product_data)
 
                 # make response
                 response_dto = CreatingStoreProductResponse(
@@ -145,3 +154,6 @@ class CreateStoreProductUC:
                 uow.commit()
             except Exception as exc:
                 raise exc
+            finally:
+                # uow.rollback()
+                pass

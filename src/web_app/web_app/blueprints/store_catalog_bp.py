@@ -594,7 +594,7 @@ def create_store_product_without_collection(create_store_product_uc: CreateStore
     POST :5000/store-catalog/product
     Create new product free style
 
-    :param create_store_product_uc: the usecase in charge for creating store product
+    :param create_store_product_uc: the use case in charge for creating store product
     :param presenter: the output formatter
     :return:
     """

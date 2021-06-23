@@ -190,12 +190,12 @@ def fetch_store_product_query_factory(store_id: StoreId):
     query = select([
         StoreProduct,
         StoreCatalog.reference.label('catalog_reference'),
-        StoreCatalog.display_name.label('catalog_display_name'),
+        StoreCatalog.title.label('catalog_title'),
 
         StoreCollection.reference.label('collection_reference'),
-        StoreCollection.display_name.label('collection_display_name'),
+        StoreCollection.title.label('collection_title'),
 
-        StoreProductBrand.display_name.label('brand_display_name'),
+        StoreProductBrand.name.label('brand_display_name'),
 
         StoreProductUnit
     ]) \

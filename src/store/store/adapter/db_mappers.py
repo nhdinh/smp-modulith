@@ -4,12 +4,11 @@ from sqlalchemy.orm import mapper, relationship, backref
 
 from identity.domain.entities import User
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
-    store_managers_table, store_catalog_table, store_collection_table, store_product_table, \
+    store_managers_table, store_catalog_table, store_product_table, \
     store_product_unit_table, store_brand_table, store_product_tag_table
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
@@ -37,7 +36,7 @@ def start_mappers():
         }
     )
 
-    owner = mapper(
+    mapper(
         StoreOwner, store_owner_table, properties={
             'hashed_password': store_owner_table.c.password
         })
@@ -53,13 +52,9 @@ def start_mappers():
             ),
         })
 
-    mapper(StoreProductBrand, store_brand_table, properties={
-        'store_id': store_brand_table.c.store_id,
-        '_store': relationship(Store),
-        '_products': relationship(StoreProduct),
-    })
+    mapper(StoreProductBrand, store_brand_table)
 
-    mapper(StoreProductTag, store_product_tag_table, properties={
+    store_product_tag_mapper = mapper(StoreProductTag, store_product_tag_table, properties={
         '_product': relationship(StoreProduct),
     })
 
@@ -68,8 +63,7 @@ def start_mappers():
             '_store': relationship(Store),
 
             '_brand': relationship(
-                StoreProductBrand,
-                back_populates='_products',
+                StoreProductBrand
             ),
 
             '_units': relationship(
@@ -80,58 +74,55 @@ def start_mappers():
             ),
 
             '_tags': relationship(
-                StoreProductTag,
+                store_product_tag_mapper,
+                # secondary=store_product_tag_table,
                 collection_class=set,
+                # primaryjoin=(store_product_table.c.product_id == store_product_tag_table.c.product_id)
             )
         })
 
+    # mapper(
+    #     StoreCollection, store_collection_table, properties={
+    #         '_store_id': store_collection_table.c.store_id,
+    #
+    #         '_products': relationship(
+    #             StoreProduct,
+    #             collection_class=set,
+    #             cascade='all, delete-orphan',
+    #             backref=backref('_collection', cascade='all', single_parent=True)
+    #         ),
+    #     })
+    #
+    mapper(StoreCatalog, store_catalog_table,
+           properties={
+               #     '_collections': relationship(
+               #         StoreCollection,
+               #         collection_class=set,
+               #         cascade='all, delete-orphan',
+               #         backref=backref('_catalog', cascade="all", single_parent=True),
+               #     ),
+               #
+               '_products': relationship(
+                   StoreProduct,
+                   collection_class=set,
+                   backref=backref('_catalog', cascade='all', single_parent=True),
+               )
+           }
+           )
+
     mapper(
-        StoreCollection, store_collection_table, properties={
-            '_store_id': store_collection_table.c.store_id,
-
-            '_products': relationship(
-                StoreProduct,
-                collection_class=set,
-                cascade='all, delete-orphan',
-                backref=backref('_collection', cascade='all', single_parent=True)
-            ),
-        })
-
-    mapper(StoreCatalog, store_catalog_table, properties={
-        '_collections': relationship(
-            StoreCollection,
-            collection_class=set,
-            cascade='all, delete-orphan',
-            backref=backref('_catalog', cascade="all", single_parent=True),
-        ),
-
-        '_products': relationship(
-            StoreProduct,
-            collection_class=set,
-            cascade='all, delete-orphan',
-            backref=backref('_catalog', cascade='all', single_parent=True),
-        )
-    })
-
-    store_mapper = mapper(
         Store, store_table,
         version_id_col=store_table.c.version,
         version_id_generator=None,
         properties={
-            '_owner_id': store_table.c.owner,
-            'owner_email': store_table.c.owner_email,
-
             '_settings': relationship(
                 Setting,
                 collection_class=set,
                 backref=backref('_store')
             ),
 
-            '_owner': relationship(
+            '_store_owner': relationship(
                 StoreOwner,
-                # foreign_keys=[store_table.c.owner],
-                # remote_side=[store_owner_table.c.id],
-                # viewonly=True,
                 backref=backref('_store'),
             ),
 
@@ -144,16 +135,15 @@ def start_mappers():
             '_catalogs': relationship(
                 StoreCatalog,
                 collection_class=set,
-                cascade='all, delete-orphan',
                 backref=backref('_store', cascade="all", single_parent=True),
             ),
 
-            '_collections': relationship(
-                StoreCollection,
-                collection_class=set,
-                backref=backref('_store'),
-                # viewonly=True,
-            ),
+            # '_collections': relationship(
+            #     StoreCollection,
+            #     collection_class=set,
+            #     backref=backref('_store'),
+            #     # viewonly=True,
+            # ),
 
             '_products': relationship(
                 StoreProduct,
@@ -165,6 +155,5 @@ def start_mappers():
             '_brands': relationship(
                 StoreProductBrand,
                 collection_class=set,
-                back_populates='_store',
             )
         })

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
 import uuid
 from datetime import datetime
 
@@ -11,7 +10,6 @@ from db_infrastructure import metadata, GUID
 from identity.adapters.identity_db import user_table
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = sa.Table(
@@ -48,8 +46,8 @@ store_table = sa.Table(
     metadata,
     sa.Column('store_id', GUID, primary_key=True),
     sa.Column('name', sa.String(100)),
-    sa.Column('owner', sa.ForeignKey(store_owner_table.c.id, ondelete='SET NULL', onupdate='CASCADE')),
-    sa.Column('owner_email', sa.String(255), comment='For easy linking'),
+    sa.Column('_owner_id', sa.ForeignKey(store_owner_table.c.id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('owner_email', sa.String(255), nullable=False, comment='For easy linking'),
     sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
     sa.Column('version', GUID, nullable=False, default=uuid.uuid4),
     sa.Column('version', sa.Integer, nullable=False, default=0),
@@ -87,17 +85,16 @@ store_address_table = sa.Table(
 store_catalog_table = sa.Table(
     'store_catalog',
     metadata,
-    sa.Column('catalog_id', GUID, nullable=False, unique=True),
+    sa.Column('catalog_id', GUID, primary_key=True, default=uuid.uuid4()),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('reference', sa.String(100), nullable=False),
-    sa.Column('display_name', sa.String(255), nullable=False),
-    sa.Column('display_image', sa.String(255)),
-    sa.Column('system', sa.Boolean, default=False),
+    sa.Column('reference', sa.String(100), nullable=False, unique=True),
+    sa.Column('title', sa.String(255), nullable=False),
+    sa.Column('image', sa.String(255)),
+    sa.Column('default', sa.Boolean, default=False),
     sa.Column('disabled', sa.Boolean, default=False),
+    sa.Column('deleted', sa.Boolean, default=False),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
-
-    sa.PrimaryKeyConstraint('store_id', 'reference', name='store_catalog_pk')
 )
 
 store_collection_table = sa.Table(
@@ -120,59 +117,35 @@ store_collection_table = sa.Table(
 store_brand_table = sa.Table(
     'store_brand',
     metadata,
-    sa.Column('reference', sa.String(100)),
+    # sa.Column('reference', sa.String(100)),
+    sa.Column('brand_id', GUID, primary_key=True, default=uuid.uuid4()),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('display_name', sa.String(255), nullable=False),
-
-    sa.PrimaryKeyConstraint('reference', 'store_id', name='store_brand_pk')
+    sa.Column('name', sa.String(255), nullable=False),
+    sa.Column('logo', sa.String(255), nullable=True, default=''),
+    sa.Column('created_at', sa.DateTime, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
-
-# store_product_brands_table = sa.Table(
-#     'store_product_brands',
-#     metadata,
-#     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
-#     sa.Column('store_id', GUID, nullable=False),
-#     sa.Column('brand_reference', sa.String(100), nullable=False),
-#
-#     sa.ForeignKeyConstraint(('store_id', 'brand_reference'),
-#                             [store_brand_table.c.store_id, store_brand_table.c.reference])
-# )
-
 
 # endregion
 
 store_product_table = sa.Table(
     'store_product',
     metadata,
-    sa.Column('product_id', GUID, unique=True, nullable=False),
-    sa.Column('collection_id',
-              sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('product_id', GUID, primary_key=True),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False),
-    sa.Column('display_name', sa.String(255), nullable=False),
+    sa.Column('title', sa.String(255), nullable=False),
     sa.Column('image', sa.String(1000)),
-    sa.Column('brand_reference', sa.String(100)),
+    sa.Column('brand_id', sa.ForeignKey(store_brand_table.c.brand_id), nullable=True),
+    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id), nullable=True),
+    sa.Column('deleted', sa.Boolean, default=0),
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
-    sa.PrimaryKeyConstraint('store_id', 'catalog_id', 'collection_id', 'reference',
-                            name='store_catalog_collection_product_pk'),
-    sa.ForeignKeyConstraint(('store_id', 'brand_reference'), ['store_brand.store_id', 'store_brand.reference'],
-                            name='store_product_brands_fk')
+    # sa.PrimaryKeyConstraint('product_id', 'store_id', name='store_product_pk'),
+    # sa.ForeignKeyConstraint(('store_id', 'brand_id'), ['store_brand.store_id', 'store_brand.brand_id'],
+    #                         name='store_product_brands_fk')
 )
-
-# store_unit_table = sa.Table(
-#     'store_unit',
-#     metadata,
-#     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
-#     sa.Column('unit', sa.String(100), nullable=False),
-#     sa.Column('base_unit', sa.String(100), nullable=True),
-#     sa.Column('conversion_factor', sa.Float, nullable=True),
-#
-#     sa.PrimaryKeyConstraint(['product_id', 'unit']),
-#     sa.ForeignKeyConstraint(('base_unit', 'product_id'), ['store_unit.unit', 'store_unit.product_id'])
-# )
 
 store_product_unit_table = sa.Table(
     'store_product_unit',
@@ -186,6 +159,7 @@ store_product_unit_table = sa.Table(
 
     sa.Column('default', sa.Boolean, server_default='0'),
     sa.Column('conversion_factor', sa.Numeric, nullable=True, server_default='1'),
+    sa.Column('deleted', sa.Boolean, server_default='0'),
 
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
@@ -210,6 +184,7 @@ store_unit_cache_table = sa.Table(
 store_product_tag_table = sa.Table(
     'store_product_tag',
     metadata,
+    # sa.Column('id', GUID, primary_key=True, default=uuid.uuid4()),
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
     sa.Column('tag', sa.String(100)),
 
@@ -262,21 +237,25 @@ def store_registration_load(store_registration, _):
 @event.listens_for(Store, 'load')
 def store_load(store, connection):
     store.domain_events = []
-    store._cached = {
-        'catalogs': [],
-        'collections': [],
-        'products': []
-    }
+    # store._cached = {
+    #     'catalogs': [],
+    #     'collections': [],
+    #     'products': []
+    # }
 
-    store._cached['catalogs'] = {c.catalog_id: c for c in store.catalogs}
-    store._cached['catalogs_2'] = {c.reference: c for c in store.catalogs}
+    # store._store_owner = connection.session.execute(
+    #     sa.select([StoreOwner]).where(StoreOwner.id == store._owner_id)
+    # ).first()
 
-    # products
-    store._cached['products'] = [p.reference for p in store._products]
-    store._cached['collections'] = [c.reference for c in store._collections]
-    store._cached['catalogs'] = [c.reference for c in store._catalogs]
-
-    store.SIZE = sys.getsizeof(store)
+    # store._cached['catalogs'] = {c.catalog_id: c for c in store.catalogs}
+    # store._cached['catalogs_2'] = {c.reference: c for c in store.catalogs}
+    #
+    # # products
+    # store._cached['products'] = [p.reference for p in store._products]
+    # store._cached['collections'] = [c.reference for c in store._collections]
+    # store._cached['catalogs'] = [c.reference for c in store._catalogs]
+    #
+    # store.SIZE = sys.getsizeof(store)
 
 
 @event.listens_for(StoreCatalog, 'load')

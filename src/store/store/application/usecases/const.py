@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ExceptionMessages:
+    FAILED_TO_CREATE_STORE_NO_OWNER = 'Store creating failed. No owner.'
     REGISTRATION_HAS_BEEN_EXPIRED = 'Store registration confirmation link has been expired'
     REGISTRATION_HAS_BEEN_CONFIRMED = 'Store registration has been confirmed'
     REGISTRATION_NOT_FOUND = 'No registration found'
@@ -31,7 +32,12 @@ class ExceptionMessages:
     DUPLICATED_COLLECTION_REFERENCE_WHEN_COPYING = 'Destination catalog already has collection with this reference'
     DEFAULT_STORE_COLLECTION_CANNOT_BE_DELETED = 'Cannot delete default collection'
 
+
+    STORE_PRODUCT_EXISTED = 'Store has contains this product already'
     STORE_PRODUCT_NOT_FOUND = 'Product not found'
     PRODUCT_UNIT_NOT_FOUND = 'Product unit not found'
-    CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT = 'This product unit cannot be delete due to it is a dependency to another'
+    PRODUCT_UNIT_EXISTED = 'Product unit has been existed'
+    PRODUCT_BASE_UNIT_NOT_FOUND = 'Product unit to use as base not found'
+    CANNOT_DELETE_DEFAULT_UNIT = 'Cannot delete default unit'
+    CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT = 'This product unit cannot be delete due to another unit is being depends on'
     REGISTRATION_RESEND_TOO_MUCH = 'Too much request, try again later'
