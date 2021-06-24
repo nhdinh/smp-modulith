@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-
-import re
-import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Set
 
-from foundation import slugify
-from store.application.usecases.const import ExceptionMessages
-
+from foundation import short_id
 from store.domain.entities.value_objects import StoreCatalogReference
 
 
@@ -20,3 +14,6 @@ class StoreCatalog:
     display_image: str = ''
     disabled: bool = False
     default: bool = False
+
+    def __str__(self):
+        return f'<StoreCatalog #{short_id(self.catalog_id)}>'

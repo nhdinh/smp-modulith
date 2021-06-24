@@ -47,6 +47,10 @@ def slugify(text: str) -> str:
     return slug1fy.slugify(text.strip(), separator='_')
 
 
+def short_id(text: str) -> str:
+    return text[-6:]
+
+
 def uuid_validate(text: str) -> Optional[UUID]:
     """
     Try to validate a string as an UUID

@@ -78,7 +78,7 @@ store_managers_table = sa.Table(
 store_address_table = sa.Table(
     'store_addresses',
     metadata,
-    sa.Column('address_id', GUID, primary_key=True),
+    sa.Column('address_id', GUID, primary_key=True, default=uuid.uuid4()),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
 )
 
@@ -100,17 +100,18 @@ store_catalog_table = sa.Table(
 store_collection_table = sa.Table(
     'store_collection',
     metadata,
-    sa.Column('collection_id', GUID, nullable=False, unique=True),
+    sa.Column('collection_id', GUID, primary_key=True, default=uuid.uuid4()),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False),
-    sa.Column('display_name', sa.String(255), nullable=False),
+    sa.Column('title', sa.String(255), nullable=False),
     sa.Column('default', sa.Boolean, default=False),
     sa.Column('disabled', sa.Boolean, default=False),
+    sa.Column('deleted', sa.Boolean, default=False),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
-    sa.PrimaryKeyConstraint('store_id', 'catalog_id', 'reference', name='store_catalog_collection_pk')
+    # sa.PrimaryKeyConstraint('store_id', 'catalog_id', 'reference', name='store_catalog_collection_pk')
 )
 
 # region ## Store Data Value ##
@@ -145,6 +146,16 @@ store_product_table = sa.Table(
     # sa.PrimaryKeyConstraint('product_id', 'store_id', name='store_product_pk'),
     # sa.ForeignKeyConstraint(('store_id', 'brand_id'), ['store_brand.store_id', 'store_brand.brand_id'],
     #                         name='store_product_brands_fk')
+)
+
+store_product_collection_table = sa.Table(
+    'store_product_collection',
+    metadata,
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('collection_id',
+              sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
+
+    sa.PrimaryKeyConstraint('product_id', 'collection_id', name='product_collection_pk'),
 )
 
 store_product_unit_table = sa.Table(

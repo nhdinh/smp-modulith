@@ -28,7 +28,7 @@ class StoreProduct:
             image: str,
             store: 'Store',
             brand: StoreProductBrand,
-            collection: 'StoreCollection',
+            collections: Set['StoreCollection'],
             catalog: 'StoreCatalog'
     ):
         self.product_id = product_id
@@ -41,7 +41,7 @@ class StoreProduct:
         self._brand = brand  # type:StoreProductBrand
 
         self._catalog = catalog  # type:StoreCatalog
-        self._collection = collection  # type:StoreCollection
+        self._collections = collections  # type:Set[StoreCollection]
 
         self._units = set()  # type:Set[StoreProductUnit]
         self._tags = set()  # type:Set[StoreProductTag]
@@ -55,7 +55,7 @@ class StoreProduct:
                        store: 'Store',
                        brand: StoreProductBrand,
                        catalog: 'StoreCatalog',
-                       collection: 'StoreCollection',
+                       collections: List['StoreCollection'],
                        tags: List[str]) -> 'StoreProduct':
         product_id = StoreProductId(uuid.uuid4())
         reference = slugify(reference)
@@ -68,7 +68,7 @@ class StoreProduct:
             store=store,
             brand=brand,
             catalog=catalog,
-            collection=collection
+            collections=set(collections)
         )
 
         # create default unit
@@ -80,7 +80,19 @@ class StoreProduct:
             for tag in tags:
                 product._tags.add(StoreProductTag(tag=tag))
 
+        # add collections
+        if collections:
+            pass
+
         return product
+
+    @property
+    def parent_catalog(self) -> 'StoreCatalog':
+        return self._catalog
+
+    @property
+    def collections(self) -> Set['StoreCollection']:
+        return self._collections
 
     @property
     def brand(self) -> 'StoreProductBrand':

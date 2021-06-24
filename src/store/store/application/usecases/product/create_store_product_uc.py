@@ -51,7 +51,7 @@ class CreatingStoreProductRequest:
 
     # catalog & collection (optional)
     catalog: Opt[str] = None
-    collection: Opt[str] = None
+    collections: Opt[List[str]] = field(default_factory=list)
 
     # unit & first stocking (optional)
     default_unit: Opt[str] = None
@@ -110,8 +110,7 @@ class CreateStoreProductUC:
                     'catalog',
 
                     # collection
-                    'collection_display_name',
-                    'collection_reference',
+                    'collections',
 
                     # unit & first stocking
                     'default_unit',

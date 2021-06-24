@@ -39,7 +39,7 @@ class StoreProductUnitResponseDto:
 class StoreCollectionResponseDto:
     collection_id: str
     reference: str
-    display_name: str
+    title: str
     disabled: bool
     default: bool
 
@@ -47,7 +47,7 @@ class StoreCollectionResponseDto:
         return {
             'collection_id': self.collection_id,
             'collection_reference': self.reference,
-            'collection_display_name': self.display_name,
+            'collection_title': self.title,
             'disabled': self.disabled,
             'default': self.default,
         }
@@ -58,8 +58,8 @@ class StoreCatalogResponseDto:
     catalog_id: str
     store_id: str
     reference: str
-    display_name: str
-    system: bool
+    title: str
+    default: bool
     disabled: bool
     collections: List[StoreCollectionResponseDto]
 
@@ -68,8 +68,8 @@ class StoreCatalogResponseDto:
             'catalog_id': str(self.catalog_id),
             'store_id': str(self.store_id),
             'catalog_reference': self.reference,
-            'catalog_display_name': self.display_name,
-            'system': self.system,
+            'catalog_title': self.title,
+            'default': self.default,
             'disabled': self.disabled,
             'collection': [c.serialize() for c in self.collections]
         }

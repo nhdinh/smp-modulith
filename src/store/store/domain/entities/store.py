@@ -8,11 +8,13 @@ from foundation.events import EventMixin
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
 from store.domain.entities.store_catalog import StoreCatalog
+from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
-from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId
+from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId, \
+    StoreCollectionReference, StoreProductReference
 from store.domain.events.store_created_event import StoreCreatedEvent
 
 if TYPE_CHECKING:
@@ -51,6 +53,18 @@ class Store(EventMixin):
         self._products = set()  # type: Set[StoreProduct]
 
     # region ## Properties ##
+    @property
+    def catalogs(self) -> Set[StoreCatalog]:
+        return self._catalogs
+
+    @property
+    def products(self) -> Set[StoreProduct]:
+        return self._products
+
+    @property
+    def brands(self) -> Set[StoreProductBrand]:
+        return self._brands
+
     @property
     def settings(self) -> Set[Setting]:
         return set() if self._settings is None else self._settings
@@ -129,15 +143,22 @@ class Store(EventMixin):
         if catalog_str:
             catalog = self._catalog_factory(title=catalog_str)
         else:
-            catalog = self._default_catalog()
+            catalog = self._default_catalog_factory()
 
         # process input data: StoreProductUnit (which is default)
         default_unit_str = kwargs.get('default_unit')
 
+        # process input data: StoreCollections
+        collections = []
+        collection_str_list = kwargs.get('collections')
+        if collection_str_list:
+            collection_str_list = collection_str_list if type(collection_str_list) is list else [collection_str_list]
+            collections = [self._collection_factory(title=col, parent_catalog=catalog) for col in collection_str_list]
+
         # process input data: Tags
         tags = kwargs.get('tags')
         if tags:
-            self.append_tags_stacks(tags)
+            self.append_tags_stack(tags)
 
         # make product
         store_product = StoreProduct.create_product(
@@ -148,7 +169,7 @@ class Store(EventMixin):
             store=self,
             brand=brand,
             catalog=catalog,
-            collection=None,
+            collections=collections,
             tags=tags
         )
 
@@ -170,7 +191,7 @@ class Store(EventMixin):
 
         self._products.add(product)
 
-    def _is_product_reference_exists(self, product_reference: str):
+    def _is_product_reference_exists(self, product_reference: StoreProductReference):
         try:
             product = next(p for p in self._products if p.reference == product_reference)
             if product:
@@ -198,6 +219,46 @@ class Store(EventMixin):
             self._brands.add(brand)
             return brand
 
+    def _is_collection_reference_exists(self, collection_reference: StoreCollectionReference,
+                                        parent_catalog: StoreCatalog):
+        try:
+            collection = next(
+                c for c in self._collections if c.reference == collection_reference and c.catalog == parent_catalog)
+            if collection:
+                return True
+        except StopIteration:
+            return False
+
+    def _collection_factory(self, title: str, parent_catalog: StoreCatalog) -> StoreCollection:
+        try:
+            collection = next(coll for coll in self._collections if
+                              coll.title.lower() == title.strip().lower() and coll.catalog == parent_catalog)
+            return collection
+        except StopIteration:
+            collection = self._create_collection(title=title, parent_catalog=parent_catalog)
+            self._collections.add(collection)
+            return collection
+
+    def _create_collection(self, title: str, parent_catalog: StoreCatalog, **kwargs) -> StoreCollection:
+        reference_str = kwargs.get('reference')
+        if reference_str:
+            reference = slugify(reference_str)
+        else:
+            reference = slugify(title)
+
+        is_default = kwargs.get('default')
+        if is_default is None:
+            is_default = False
+
+        if self._is_collection_reference_exists(collection_reference=reference, parent_catalog=parent_catalog):
+            reference = self._generate_new_collection_reference(base_on=reference)
+
+        # make collection
+        collection = StoreCollection(reference=reference, title=title, default=is_default)
+        collection._catalog = parent_catalog
+
+        return collection
+
     def _catalog_factory(self, title: str) -> StoreCatalog:
         try:
             catalog = next(c for c in self._catalogs if c.title.lower() == title.strip().lower())
@@ -207,7 +268,12 @@ class Store(EventMixin):
             self._catalogs.add(catalog)
             return catalog
 
-    def _default_catalog(self):
+    def _default_catalog_factory(self):
+        """
+        Get or create a default catalog of the Store
+
+        :return: an instance of the catalog
+        """
         try:
             catalog = next(c for c in self._catalogs if c.default)
             return catalog
@@ -217,6 +283,13 @@ class Store(EventMixin):
             return catalog
 
     def _create_catalog(self, title: str, **kwargs) -> StoreCatalog:
+        """
+        Create a `StoreCatalog` instance
+
+        :param title: title of the catalog
+        :param kwargs: may contains `reference`, `default`
+        :return: an instance of the `StoreCatalog`
+        """
         reference_str = kwargs.get('reference')
         if reference_str:
             reference = slugify(reference_str)
@@ -238,6 +311,11 @@ class Store(EventMixin):
         return catalog
 
     def _create_default_catalog(self) -> StoreCatalog:
+        """
+        Create a default `StoreCatalog` instance
+
+        :return: an instance of the `StoreCatalog`
+        """
         catalog_reference = self._get_setting('default_catalog_reference', 'unassigned_catalog')
         catalog_title = self._get_setting('default_catalog_title', 'Catalog')
         is_default = True
@@ -245,6 +323,12 @@ class Store(EventMixin):
         return self._create_catalog(reference=catalog_reference, title=catalog_title, default=is_default)
 
     def _generate_new_catalog_reference(self, base_on: str) -> str:
+        """
+        Generate a new unique catalog reference base on the input string
+
+        :param base_on: string (prefix) of the reference
+        :return: str
+        """
         return self.__generate_new_reference(base_on)
 
     def _is_catalog_reference_exists(self, catalog_reference: str) -> bool:
@@ -257,7 +341,7 @@ class Store(EventMixin):
         else:
             return False
 
-    def append_tags_stacks(self, tags: List[StoreProductTag]):
+    def append_tags_stack(self, tags: List[StoreProductTag]):
         pass
 
     # region ## Internal class method ##

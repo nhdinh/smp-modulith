@@ -15,8 +15,8 @@ def _row_to_catalog_dto(row: RowProxy, collections: List[RowProxy]) -> StoreCata
         catalog_id=row.catalog_id,
         store_id=row.store_id,
         reference=row.reference,
-        display_name=row.display_name,
-        system=row.system,
+        title=row.title,
+        default=row.default,
         disabled=row.disabled,
         collections=[
             _row_to_collection_dto(collection_row) for collection_row in collections
@@ -28,7 +28,7 @@ def _row_to_collection_dto(row: RowProxy) -> StoreCollectionResponseDto:
     return StoreCollectionResponseDto(
         collection_id=row.collection_id,
         reference=row.reference,
-        display_name=row.display_name,
+        title=row.title,
         disabled=row.disabled,
         default=row.default,
     )
