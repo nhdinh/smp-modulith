@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+from uuid import UUID
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponse, \
@@ -25,10 +26,13 @@ class SystemizeStoreCatalogUC:
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
-                store.turn_on_system_catalog(catalog_reference=dto.catalog_reference)
+                store.turn_on_default_catalog(catalog_reference=dto.catalog_reference)
 
                 response_dto = UpdatingStoreCatalogResponse(status=True)
                 self._ob.present(response_dto=response_dto)
+
+                # increase version
+                store.version += 1
 
                 # commit
                 uow.commit()

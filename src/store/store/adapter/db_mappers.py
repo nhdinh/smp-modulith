@@ -106,13 +106,13 @@ def start_mappers():
                '_collections': relationship(
                    StoreCollection,
                    collection_class=set,
-                   backref=backref('_catalog', cascade="all", single_parent=True),
+                   backref=backref('_catalog', cascade="all"),
                ),
 
                '_products': relationship(
                    StoreProduct,
                    collection_class=set,
-                   backref=backref('_catalog', cascade='all', single_parent=True),
+                   backref=backref('_catalog', cascade='all'),
                )
            })
 

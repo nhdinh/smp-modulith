@@ -6,8 +6,7 @@ from flask import Response, make_response, jsonify
 from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductResponseBoundary, \
     UpdatingStoreProductResponse
 
-from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
-    CreatingStoreCatalogResponse
+from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary
 from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogResponse, \
     RemovingStoreCatalogResponseBoundary
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
@@ -47,7 +46,7 @@ class GenericStoreResponsePresenter(GenericStoreResponseBoundary):
 class CreatingStoreCatalogPresenter(CreatingStoreCatalogResponseBoundary):
     response: Response
 
-    def present(self, dto: CreatingStoreCatalogResponse) -> None:
+    def present(self, dto: GenericStoreActionResponse) -> None:
         self.response = make_response(jsonify(dto.__dict__))
 
 

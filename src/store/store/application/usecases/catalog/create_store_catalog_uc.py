@@ -7,7 +7,7 @@ from typing import Optional
 from foundation import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise, GenericStoreActionResponse
 from store.domain.entities.value_objects import StoreCatalogReference, StoreCatalogId
 
 
@@ -15,18 +15,13 @@ from store.domain.entities.value_objects import StoreCatalogReference, StoreCata
 class CreatingStoreCatalogRequest:
     current_user: str
     reference: Optional[StoreCatalogReference]
-    display_name: str
+    title: str
     enable_default_collection: bool = True
-
-
-@dataclass
-class CreatingStoreCatalogResponse:
-    catalog_id: StoreCatalogId
 
 
 class CreatingStoreCatalogResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, dto: CreatingStoreCatalogResponse):
+    def present(self, dto: GenericStoreActionResponse):
         raise NotImplementedError
 
 
@@ -40,23 +35,25 @@ class CreateStoreCatalogUC:
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
-                if store.contains_catalog_reference(dto.reference):
+                if store.is_catalog_reference_exists(catalog_reference=dto.reference):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
 
                 # validate inputs
-                reference = slugify(dto.reference) if dto.reference else slugify(dto.display_name)
+                reference = slugify(dto.reference) if dto.reference else slugify(dto.title)
 
                 # make catalog
-                catalog = store.create_store_catalog(
+                catalog = store.create_catalog(
                     reference=reference,
-                    display_name=dto.display_name,
+                    title=dto.title,
                 )
 
+                store.catalogs.add(catalog)
+
                 # make response
-                response_dto = CreatingStoreCatalogResponse(
-                    catalog_id=catalog.catalog_id
-                )
+                response_dto = GenericStoreActionResponse(status=True)
                 self._ob.present(response_dto)
+
+                store.version += 1
 
                 uow.commit()
             except Exception as exc:

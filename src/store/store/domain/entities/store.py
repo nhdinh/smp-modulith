@@ -229,6 +229,9 @@ class Store(EventMixin):
         except StopIteration:
             return False
 
+    def _generate_new_collection_reference(self, base_on: str) -> str:
+        return self.__generate_new_reference(base_on=base_on)
+
     def _collection_factory(self, title: str, parent_catalog: StoreCatalog) -> StoreCollection:
         try:
             collection = next(coll for coll in self._collections if
@@ -264,7 +267,7 @@ class Store(EventMixin):
             catalog = next(c for c in self._catalogs if c.title.lower() == title.strip().lower())
             return catalog
         except StopIteration:
-            catalog = self._create_catalog(title=title)
+            catalog = self.create_catalog(title=title)
             self._catalogs.add(catalog)
             return catalog
 
@@ -282,7 +285,7 @@ class Store(EventMixin):
             self._catalogs.add(catalog)
             return catalog
 
-    def _create_catalog(self, title: str, **kwargs) -> StoreCatalog:
+    def create_catalog(self, title: str, **kwargs) -> StoreCatalog:
         """
         Create a `StoreCatalog` instance
 
@@ -300,7 +303,7 @@ class Store(EventMixin):
         if is_default is None:
             is_default = False
 
-        if self._is_catalog_reference_exists(catalog_reference=reference):
+        if self.is_catalog_reference_exists(catalog_reference=reference):
             reference = self._generate_new_catalog_reference(base_on=reference)
 
         # make catalog
@@ -320,7 +323,15 @@ class Store(EventMixin):
         catalog_title = self._get_setting('default_catalog_title', 'Catalog')
         is_default = True
 
-        return self._create_catalog(reference=catalog_reference, title=catalog_title, default=is_default)
+        return self.create_catalog(reference=catalog_reference, title=catalog_title, default=is_default)
+
+    def turn_on_default_catalog(self, catalog_reference: StoreCatalogReference) -> bool:
+        try:
+            catalog = next(c for c in self.catalogs if c.reference == catalog_reference)
+            catalog.default = True
+            return True
+        except StopIteration:
+            return False
 
     def _generate_new_catalog_reference(self, base_on: str) -> str:
         """
@@ -331,7 +342,7 @@ class Store(EventMixin):
         """
         return self.__generate_new_reference(base_on)
 
-    def _is_catalog_reference_exists(self, catalog_reference: str) -> bool:
+    def is_catalog_reference_exists(self, catalog_reference: str) -> bool:
         try:
             c = next(c for c in self._catalogs if c.reference == catalog_reference)
             if c:

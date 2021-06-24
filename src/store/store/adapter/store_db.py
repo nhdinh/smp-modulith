@@ -78,14 +78,14 @@ store_managers_table = sa.Table(
 store_address_table = sa.Table(
     'store_addresses',
     metadata,
-    sa.Column('address_id', GUID, primary_key=True, default=uuid.uuid4()),
+    sa.Column('address_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
 )
 
 store_catalog_table = sa.Table(
     'store_catalog',
     metadata,
-    sa.Column('catalog_id', GUID, primary_key=True, default=uuid.uuid4()),
+    sa.Column('catalog_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False, unique=True),
     sa.Column('title', sa.String(255), nullable=False),
@@ -100,7 +100,7 @@ store_catalog_table = sa.Table(
 store_collection_table = sa.Table(
     'store_collection',
     metadata,
-    sa.Column('collection_id', GUID, primary_key=True, default=uuid.uuid4()),
+    sa.Column('collection_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False),
@@ -119,7 +119,7 @@ store_brand_table = sa.Table(
     'store_brand',
     metadata,
     # sa.Column('reference', sa.String(100)),
-    sa.Column('brand_id', GUID, primary_key=True, default=uuid.uuid4()),
+    sa.Column('brand_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('name', sa.String(255), nullable=False),
     sa.Column('logo', sa.String(255), nullable=True, default=''),
@@ -195,7 +195,7 @@ store_unit_cache_table = sa.Table(
 store_product_tag_table = sa.Table(
     'store_product_tag',
     metadata,
-    # sa.Column('id', GUID, primary_key=True, default=uuid.uuid4()),
+    # sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
     sa.Column('tag', sa.String(100)),
 
