@@ -7,6 +7,7 @@ __pycache__
 .vscode/
 ve36/
 db.sqlite3
+*.egg-info
 *.egg-info/
 .eggs/
 .venv/
