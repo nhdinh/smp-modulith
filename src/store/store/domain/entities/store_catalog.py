@@ -15,5 +15,9 @@ class StoreCatalog:
     disabled: bool = False
     default: bool = False
 
+    @property
+    def store(self) -> 'Store':
+        return getattr(self, '_store')
+
     def __str__(self):
         return f'<StoreCatalog #{short_id(self.catalog_id)}>'

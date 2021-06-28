@@ -3,7 +3,7 @@
 import abc
 from typing import Optional
 
-from repository import AbstractRepository
+from foundation.repository import AbstractRepository
 from store.domain.entities.store import Store
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct

@@ -8,13 +8,15 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
-from fs import FileSystem
+from foundation.fs import FileSystem
 from store.adapter import store_db
 from store.adapter.queries.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
     SqlFetchStoreProductsFromCollectionQuery, SqlFetchStoreCollectionsQuery, SqlFetchStoreCatalogsQuery, \
-    SqlFetchStoreProductQuery, SqlFetchStoreProductByIdQuery
+    SqlFetchStoreProductQuery, SqlFetchStoreProductByIdQuery, SqlFetchStoreProductsQuery, \
+    SqlFetchStoreProductsByCatalogQuery
 from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
-    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery
+    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery, FetchStoreProductsQuery, \
+    FetchStoreProductsByCatalogQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
@@ -230,3 +232,11 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def fetch_product_by_id_query(self, conn: Connection) -> FetchStoreProductByIdQuery:
         return SqlFetchStoreProductByIdQuery(conn)
+
+    @injector.provider
+    def fetch_products_in_catalog(self, conn: Connection) -> FetchStoreProductsByCatalogQuery:
+        return SqlFetchStoreProductsByCatalogQuery(conn)
+
+    @injector.provider
+    def fetch_products_in_store(self, conn: Connection) -> FetchStoreProductsQuery:
+        return SqlFetchStoreProductsQuery(conn)

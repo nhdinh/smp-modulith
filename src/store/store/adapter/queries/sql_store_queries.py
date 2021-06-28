@@ -6,13 +6,13 @@ from sqlalchemy import select, and_
 from db_infrastructure import SqlQuery
 from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_products_in_collection, sql_get_catalog_id_by_reference, sql_count_collections_in_catalog, \
-    sql_count_catalogs_in_store
+    sql_count_catalogs_in_store, sql_count_products_in_store
 from store.adapter.queries.query_helpers import _row_to_store_settings_dto, _row_to_store_info_dto, \
     _row_to_product_short_dto, \
     _row_to_catalog_dto, _row_to_collection_dto, _row_to_product_dto
 from store.application.queries.store_queries import FetchStoreProductsFromCollectionQuery, StoreProductShortResponseDto, \
     FetchStoreCollectionsQuery, FetchStoreCatalogsQuery, StoreCatalogResponseDto, FetchStoreProductQuery, \
-    StoreProductResponseDto, FetchStoreProductByIdQuery
+    StoreProductResponseDto, FetchStoreProductByIdQuery, FetchStoreProductsQuery, FetchStoreProductsByCatalogQuery
 from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery, StoreInfoResponseDto
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
@@ -25,7 +25,7 @@ from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
-    StoreProductId, StoreId
+    StoreProductId, StoreId, StoreCatalogId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
 
@@ -68,7 +68,12 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
             dto: AuthorizedPaginationInputDto
     ) -> PaginationOutputDto[StoreProductShortResponseDto]:
         try:
-            current_page = dto.page if dto.page else 1
+            try:
+                current_page = int(dto.page) if int(dto.page) > 0 else 1
+                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+            except:
+                current_page = 1
+                page_size = 10
 
             # get store_id and collection_id
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
@@ -81,9 +86,9 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
 
             fetch_products_query = select([
                 StoreProduct,
-                StoreCollection.display_name.label('collection_display_name'),
-                StoreCatalog.display_name.label('catalog_display_name'),
-                StoreProductBrand.display_name.label('brand_display_name'),
+                StoreCollection.title.label('collection_display_name'),
+                StoreCatalog.title.label('catalog_display_name'),
+                StoreProductBrand.title.label('brand_display_name'),
             ]) \
                 .join(StoreCollection, StoreProduct.collection_id == StoreCollection.collection_id) \
                 .join(StoreCatalog, StoreProduct.catalog_id == StoreCatalog.catalog_id) \
@@ -94,13 +99,13 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
                             StoreCatalog.reference == catalog_reference,
                             Store.store_id == store_id
                             )) \
-                .limit(dto.page_size).offset((current_page - 1) * dto.page_size)
+                .limit(page_size).offset((current_page - 1) * page_size)
 
             products = self._conn.execute(fetch_products_query).all()
 
             return paginate_response_factory(
                 current_page=current_page,
-                page_size=dto.page_size,
+                page_size=page_size,
                 total_items=product_in_collection_count,
                 items=[
                     _row_to_product_short_dto(row) for row in products
@@ -112,7 +117,12 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
 
 class SqlFetchStoreCatalogsQuery(FetchStoreCatalogsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
-        current_page = dto.page if dto.page > 0 else 1
+        try:
+            current_page = int(dto.page) if int(dto.page) > 0 else 1
+            page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+        except:
+            current_page = 1
+            page_size = 10
 
         store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
 
@@ -142,14 +152,13 @@ class SqlFetchStoreCatalogsQuery(FetchStoreCatalogsQuery, SqlQuery):
 
             # get all collection with catalog_id in the list of catalog_indices
             collection_query = select(StoreCollection).join(StoreCatalog).join(Store).where(
-                StoreCatalog.catalog_id.in_(list(catalog_indices))) \
-                .where(Store.store_id == store_id)
+                StoreCatalog.catalog_id.in_(catalog_indices)).where(Store.store_id == store_id)
 
             collections = self._conn.execute(collection_query).all()
 
             return paginate_response_factory(
                 current_page=dto.page,
-                page_size=dto.page_size,
+                page_size=page_size,
                 total_items=catalog_count,
                 items=[
                     _row_to_catalog_dto(row, collections=[c for c in collections if c.catalog_id == row.catalog_id])
@@ -162,7 +171,12 @@ class SqlFetchStoreCatalogsQuery(FetchStoreCatalogsQuery, SqlQuery):
 class SqlFetchStoreCollectionsQuery(FetchStoreCollectionsQuery, SqlQuery):
     def query(self, catalog_reference: StoreCatalogReference, dto: AuthorizedPaginationInputDto):
         try:
-            current_page = dto.page if dto.page else 1
+            try:
+                current_page = int(dto.page) if int(dto.page) > 0 else 1
+                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+            except:
+                current_page = 1
+                page_size = 10
 
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             catalog_id = sql_get_catalog_id_by_reference(catalog_reference=catalog_reference, store_id=store_id,
@@ -176,7 +190,7 @@ class SqlFetchStoreCollectionsQuery(FetchStoreCollectionsQuery, SqlQuery):
             collections = self._conn.execute(collection_query).all()
             return paginate_response_factory(
                 current_page=current_page,
-                page_size=dto.page_size,
+                page_size=page_size,
                 total_items=collection_count,
                 items=[
                     _row_to_collection_dto(row) for row in collections
@@ -192,18 +206,19 @@ def fetch_store_product_query_factory(store_id: StoreId):
         StoreCatalog.reference.label('catalog_reference'),
         StoreCatalog.title.label('catalog_title'),
 
-        StoreCollection.reference.label('collection_reference'),
-        StoreCollection.title.label('collection_title'),
+        # StoreCollection.reference.label('collection_reference'),
+        # StoreCollection.title.label('collection_title'),
 
-        StoreProductBrand.name.label('brand_display_name'),
+        StoreProductBrand.name.label('brand_name'),
 
-        StoreProductUnit
+        # StoreProductUnit
     ]) \
-        .join(StoreCollection, StoreProduct.collection_id == StoreCollection.collection_id) \
-        .join(StoreCatalog, StoreProduct.catalog_id == StoreCatalog.catalog_id) \
-        .join(Store, StoreProduct.store_id == StoreCatalog.store_id) \
-        .join(StoreProductBrand, onclause=(StoreProduct.brand_reference == StoreProductBrand.reference), isouter=True) \
-        .join(StoreProductUnit, isouter=True) \
+        .select_from(StoreProduct) \
+        .select_from(StoreCatalog) \
+        .join(StoreCatalog, isouter=True) \
+        .select_from(StoreProductBrand) \
+        .join(StoreProductBrand, isouter=True) \
+        .join(Store, isouter=True) \
         .where(Store.store_id == store_id)
 
     return query
@@ -252,5 +267,76 @@ class SqlFetchStoreProductByIdQuery(FetchStoreProductByIdQuery, SqlQuery):
                 .where(StoreProduct.product_id == product_id)
             tags = self._conn.execute(fetch_tags_query).all()
             return _row_to_product_dto(product, units=units, tags=tags)
+        except Exception as exc:
+            raise exc
+
+
+class SqlFetchStoreProductsByCatalogQuery(FetchStoreProductsByCatalogQuery, SqlQuery):
+    def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
+        StoreProductShortResponseDto]:
+        try:
+            try:
+                current_page = int(dto.page) if int(dto.page) > 0 else 1
+                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+            except:
+                current_page = 1
+                page_size = 10
+
+            store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+
+            # get product counts
+            product_counts = sql_count_products_in_store(store_id=store_id, conn=self._conn)
+
+            # build product query
+            query = fetch_store_product_query_factory(store_id=store_id)
+            query = query.where(StoreCatalog.catalog_id == catalog_id)
+            query = query.limit(page_size).offset((current_page - 1) * page_size)
+
+            # query products
+            products = self._conn.execute(query).all()
+
+            return paginate_response_factory(
+                current_page=current_page,
+                page_size=page_size,
+                total_items=product_counts,
+                items=[
+                    _row_to_product_short_dto(row) for row in products
+                ]
+            )
+
+        except Exception as exc:
+            raise exc
+
+
+class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductShortResponseDto]:
+        try:
+            try:
+                current_page = int(dto.page) if int(dto.page) > 0 else 1
+                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+            except:
+                current_page = 1
+                page_size = 10
+
+            store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+
+            # get product counts
+            product_counts = sql_count_products_in_store(store_id=store_id, conn=self._conn)
+
+            # build product query
+            query = fetch_store_product_query_factory(store_id=store_id)
+            query = query.limit(page_size).offset((current_page - 1) * page_size)
+
+            # query products
+            products = self._conn.execute(query).all()
+
+            return paginate_response_factory(
+                current_page=current_page,
+                page_size=page_size,
+                total_items=product_counts,
+                items=[
+                    _row_to_product_short_dto(row) for row in products
+                ]
+            )
         except Exception as exc:
             raise exc

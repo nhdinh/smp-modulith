@@ -8,7 +8,7 @@ from sqlalchemy.engine import Connection
 from foundation.events import AsyncHandler, AsyncEventHandlerProvider
 from identity.config import IdentityModuleConfig
 from identity.domain.events.user_registration_confirmed_event import UserRegistrationConfirmedEvent
-from identity_handler_facade import IdentityHandlerFacade
+from identity.identity_handler_facade import IdentityHandlerFacade
 
 
 class IdentityModule(injector.Module):

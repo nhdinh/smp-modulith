@@ -4,11 +4,13 @@ import uuid
 from typing import Optional, TYPE_CHECKING, Set, List
 
 from foundation import slugify
+from foundation.entity import Entity
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreProductReference, StoreProductId
+from store.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
 if TYPE_CHECKING:
     from store.domain.entities.store import Store
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
     from store.domain.entities.store_collection import StoreCollection
 
 
-class StoreProduct:
+class StoreProduct(Entity):
     product_id: StoreProductId
     title: str
 
@@ -25,15 +27,22 @@ class StoreProduct:
             product_id: StoreProductId,
             reference: StoreProductReference,
             title: str,
+            sku: str,
             image: str,
             store: 'Store',
             brand: StoreProductBrand,
             collections: Set['StoreCollection'],
-            catalog: 'StoreCatalog'
+            catalog: 'StoreCatalog',
+            default_unit: str,
+            restock_threshold: int = -1,
+            maxstock_threshold: int = -1,
     ):
+        self.check_rule(ThresholdsRequireUnitSetupRule(restock_threshold, maxstock_threshold, default_unit))
+
         self.product_id = product_id
         self.reference = reference
         self.title = title
+        self.sku = sku
 
         self._store = store  # type:Store
         self.image = image
@@ -46,17 +55,30 @@ class StoreProduct:
         self._units = set()  # type:Set[StoreProductUnit]
         self._tags = set()  # type:Set[StoreProductTag]
 
+        # create default unit
+        _default_unit = self.create_default_unit(default_name=default_unit)
+        self._units.add(_default_unit)
+
+        # thresholds
+        self.restock_threshold = restock_threshold
+        self.maxstock_threshold = maxstock_threshold
+
     @classmethod
-    def create_product(cls,
-                       reference: StoreProductReference,
-                       title: str,
-                       image: str,
-                       default_unit: str,
-                       store: 'Store',
-                       brand: StoreProductBrand,
-                       catalog: 'StoreCatalog',
-                       collections: List['StoreCollection'],
-                       tags: List[str]) -> 'StoreProduct':
+    def create_product(
+            cls,
+            reference: StoreProductReference,
+            title: str,
+            sku: str,
+            image: str,
+            default_unit: str,
+            restock_threshold: int,
+            maxstock_threshold: int,
+            store: 'Store',
+            brand: StoreProductBrand,
+            catalog: 'StoreCatalog',
+            collections: List['StoreCollection'],
+            tags: List[str]
+    ) -> 'StoreProduct':
         product_id = StoreProductId(uuid.uuid4())
         reference = slugify(reference)
 
@@ -64,16 +86,16 @@ class StoreProduct:
             product_id=product_id,
             reference=reference,
             title=title,
+            sku=sku,
             image=image,
             store=store,
             brand=brand,
             catalog=catalog,
-            collections=set(collections)
+            collections=set(collections),
+            default_unit=default_unit,
+            restock_threshold=restock_threshold,
+            maxstock_threshold=maxstock_threshold,
         )
-
-        # create default unit
-        if default_unit:
-            _default_unit = product.create_default_unit(default_name=default_unit)
 
         # add tags
         if tags:

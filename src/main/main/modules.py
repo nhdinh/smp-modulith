@@ -1,7 +1,7 @@
 import threading
 from typing import Type
+
 from minio import Minio
-from minio.error import S3Error
 import injector
 from injector import Provider, T
 from redis import Redis
@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 
 from customer_relationship import CustomerRelationshipConfig
 from foundation.events import EventBus, InjectorEventBus, RunAsyncHandler
+from foundation.fs import FileSystem
 from foundation.locks import Lock, LockFactory
-from fs import FileSystem
 from main.async_handler_task import async_handler_generic_task
 from main.redis import RedisLock
 from payments import PaymentsConfig

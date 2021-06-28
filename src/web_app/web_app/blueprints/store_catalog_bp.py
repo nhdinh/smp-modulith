@@ -17,7 +17,7 @@ from store.application.usecases.catalog.systemize_store_catalog_uc import System
 
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
-    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery
+    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery, FetchStoreProductsQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
@@ -490,6 +490,21 @@ def remove_store_collection(catalog_reference: str, collection_reference: str) -
 # endregion
 
 # region ## StoreProduct Operation Endpoints ##
+
+@store_catalog_blueprint.route('/products', methods=['GET'])
+@jwt_required()
+def fetch_store_products(fetch_store_products_query: FetchStoreProductsQuery):
+    try:
+        dto = get_dto(request, AuthorizedPaginationInputDto, context={
+            'current_user': get_jwt_identity()
+        })
+        response = fetch_store_products_query.query(dto=dto)
+
+        return make_response(jsonify(response)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
 @store_catalog_blueprint.route(

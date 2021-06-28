@@ -5,10 +5,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, OrderedDict
 
+from db_infrastructure import GUID
 from marshmallow import Schema
+from uuid import UUID
 
 from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
-    StoreProductId
+    StoreProductId, StoreCatalogId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 
@@ -37,7 +39,7 @@ class StoreProductUnitResponseDto:
 
 @dataclass
 class StoreCollectionResponseDto:
-    collection_id: str
+    collection_id: GUID
     reference: str
     title: str
     disabled: bool
@@ -55,7 +57,7 @@ class StoreCollectionResponseDto:
 
 @dataclass
 class StoreCatalogResponseDto:
-    catalog_id: str
+    catalog_id: GUID
     store_id: str
     reference: str
     title: str
@@ -77,24 +79,24 @@ class StoreCatalogResponseDto:
 
 @dataclass
 class StoreProductShortResponseDto:
-    product_id: str
+    product_id: GUID
     reference: str
-    display_name: str
+    title: str
 
     image: str
 
     brand: str
     catalog: str
-    collection: str
+    catalog_id: GUID
     created_at: datetime
 
     def serialize(self):
         return {
             'product_id': self.product_id,
-            'display_name': self.display_name,
+            'title': self.title,
             'image': self.image if self.image else '',
             'catalog': self.catalog,
-            'collection': self.collection,
+            'catalog_id': self.catalog_id,
             'brand': self.brand,
             'created_at': self.created_at
         }
@@ -102,7 +104,7 @@ class StoreProductShortResponseDto:
 
 @dataclass
 class StoreProductResponseDto:
-    product_id: str
+    product_id: GUID
     reference: str
     display_name: str
 
@@ -175,4 +177,17 @@ class FetchStoreProductQuery(abc.ABC):
 class FetchStoreProductByIdQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, owner_email: str, product_id: StoreProductId) -> StoreProductResponseDto:
+        pass
+
+
+class FetchStoreProductsByCatalogQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
+        StoreProductShortResponseDto]:
+        pass
+
+
+class FetchStoreProductsQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductShortResponseDto]:
         pass

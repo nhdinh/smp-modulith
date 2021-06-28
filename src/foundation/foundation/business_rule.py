@@ -22,7 +22,7 @@ class BusinessRuleValidationError(Exception):
 class BusinessRuleBase(abc.ABC):
     def __init__(self, message: str = None):
         if message is None:
-            raise Exception("Rule must have self-explaination message.")
+            raise Exception("Rule must have self-explanation message.")
         self._message = message
 
     @abc.abstractmethod

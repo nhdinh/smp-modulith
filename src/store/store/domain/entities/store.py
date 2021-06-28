@@ -111,7 +111,11 @@ class Store(EventMixin):
     # endregion
 
     # region ## Products Management ##
-    def create_product(self, title: str, **kwargs) -> StoreProduct:
+    def create_product(self,
+                       title: str,
+                       sku: str,
+                       default_unit: str,
+                       **kwargs) -> StoreProduct:
         # check if any product with this title exists
         try:
             product_with_such_title = next(p for p in self._products if p.title.lower() == title.strip().lower())
@@ -145,15 +149,26 @@ class Store(EventMixin):
         else:
             catalog = self._default_catalog_factory()
 
-        # process input data: StoreProductUnit (which is default)
-        default_unit_str = kwargs.get('default_unit')
-
         # process input data: StoreCollections
         collections = []
         collection_str_list = kwargs.get('collections')
         if collection_str_list:
             collection_str_list = collection_str_list if type(collection_str_list) is list else [collection_str_list]
             collections = [self._collection_factory(title=col, parent_catalog=catalog) for col in collection_str_list]
+
+        # threshold
+        restock_threshold, maxstock_threshold = 0, 0
+        restock_thrh_str = kwargs.get('restock_threshold')
+        maxstock_thrh_str = kwargs.get('maxstock_threshold')
+        try:
+            restock_threshold = int(restock_thrh_str)
+        except:
+            restock_threshold = -1
+
+        try:
+            maxstock_threshold = int(maxstock_thrh_str)
+        except:
+            maxstock_threshold = -1
 
         # process input data: Tags
         tags = kwargs.get('tags')
@@ -164,8 +179,11 @@ class Store(EventMixin):
         store_product = StoreProduct.create_product(
             reference=reference,
             title=title,
+            sku=sku,
             image=image,
-            default_unit=default_unit_str,
+            default_unit=default_unit,
+            restock_threshold=restock_threshold,
+            maxstock_threshold=maxstock_threshold,
             store=self,
             brand=brand,
             catalog=catalog,

@@ -38,11 +38,11 @@ def _row_to_product_short_dto(product_proxy: RowProxy) -> StoreProductShortRespo
     return StoreProductShortResponseDto(
         product_id=product_proxy.product_id,
         reference=product_proxy.reference,
-        display_name=product_proxy.display_name,
+        title=product_proxy.title,
         image=product_proxy.image,
-        catalog=product_proxy.catalog_display_name,
-        brand=product_proxy.brand_display_name,
-        collection=product_proxy.collection_display_name,
+        catalog=product_proxy.catalog_title,
+        catalog_id=product_proxy.catalog_id,
+        brand=product_proxy.brand_name,
         created_at=product_proxy.created_at,
     )
 

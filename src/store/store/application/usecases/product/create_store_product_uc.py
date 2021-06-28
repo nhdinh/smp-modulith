@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional as Opt, List
 
 from marshmallow import fields
+from sqlalchemy.exc import IntegrityError
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
@@ -31,11 +32,12 @@ class CreatingStoreProductRequest:
 
     # product data (mandatory)
     title: str
+    sku: str
+    default_unit: str
 
     # product data (options)
     reference: Opt[StoreProductReference] = None
     image: Opt[str] = None
-    sku: Opt[str] = None
     barcode: Opt[str] = None
 
     # tags (optional)
@@ -51,11 +53,14 @@ class CreatingStoreProductRequest:
 
     # catalog & collection (optional)
     catalog: Opt[str] = None
-    collections: Opt[List[str]] = field(default_factory=list)
+    collections: Opt[List[str]] = field(default_factory=list),
+
+    # threshold(s)
+    restock_threshold: Opt[int] = 0
+    maxstock_threshold: Opt[int] = 0
 
     # unit & first stocking (optional)
-    default_unit: Opt[str] = None
-    first_inventory_stocking: Opt[int] = None
+    first_inventory_stocking: Opt[int] = 0
 
     # conversion units (optional)
     unit_conversions: Opt[List[CreatingStoreProductUnitConversionRequest]] = field(default_factory=list)
@@ -114,11 +119,13 @@ class CreateStoreProductUC:
 
                     # unit & first stocking
                     'default_unit',
-                    'first_inventory_stocking',
 
                     # conversion units
                     'unit_conversions',
-                    'first_inventory_stocking_for_unit_conversions',
+
+                    # thresholds
+                    'restock_threshold',
+                    'maxstock_threshold',
                 ]
 
                 for data_field in product_data_fields:
@@ -151,8 +158,7 @@ class CreateStoreProductUC:
                 # increase aggregate version
                 store.version += 1
                 uow.commit()
+            except IntegrityError as exc:
+                raise exc
             except Exception as exc:
                 raise exc
-            finally:
-                # uow.rollback()
-                pass

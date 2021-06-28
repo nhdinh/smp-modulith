@@ -9,7 +9,7 @@ from typing import Optional
 from minio import Minio
 from werkzeug.datastructures import FileStorage
 
-from fs import FileSystem
+from foundation.fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise

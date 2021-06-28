@@ -5,7 +5,7 @@ from typing import List, Union
 
 from identity.domain.entities import Role, User
 from identity.domain.value_objects import UserId, UserEmail
-from repository import AbstractRepository
+from foundation.repository import AbstractRepository
 
 
 class AbstractIdentityRepository(AbstractRepository):

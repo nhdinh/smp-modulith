@@ -110,3 +110,10 @@ def sql_count_products_in_collection(
     products_count = conn.scalar(q)
 
     return products_count
+
+
+def sql_count_products_in_store(store_id: StoreId, conn: Connection) -> int:
+    q = select([func.count(distinct(StoreProduct.product_id))]). \
+        join(Store).where(
+        Store.store_id == store_id)
+    return conn.scalar(q)
