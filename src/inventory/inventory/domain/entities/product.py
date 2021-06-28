@@ -5,13 +5,13 @@ from uuid import UUID
 
 from foundation.events import EventMixin
 
-ProductId = NewType('ProductId', tp=UUID)
+InventoryProductId = NewType('InventoryProductId', tp=UUID)
 
 
 class Product(EventMixin):
     def __init__(
             self,
-            product_id: ProductId,
+            product_id: InventoryProductId,
             sku: str,
     ):
         super(Product, self).__init__()
