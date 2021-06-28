@@ -3,7 +3,7 @@
 import re
 from typing import Set, List, Any, Optional, Union, Dict, TYPE_CHECKING
 
-from foundation import slugify, uuid_validate
+from foundation.common_helpers import slugify, uuid_validate
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.usecases.const import ExceptionMessages

@@ -18,6 +18,8 @@ setup(
         "payments",
         "processes",
         "product_catalog",
+        "store",
+        "inventory",
         "web_app_models",
     ],
 )

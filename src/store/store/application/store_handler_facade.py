@@ -50,14 +50,6 @@ class StoreHandlerFacade:
         self._conn.execute(query)
 
 
-# class StoreCreatedEventHandler:
-#     @injector.inject
-#     def __init__(self, facace: StoreHandlerFacade):
-#         self._facade = facace
-#
-#     def __call__(self, event: StoreCreatedEvent) -> None:
-#         self._facade.update_store_cache(event.store_id)
-
 
 class StoreCatalogCreatedEventHandler:
     @injector.inject

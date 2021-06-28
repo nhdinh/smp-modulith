@@ -59,9 +59,6 @@ class CreatingStoreProductRequest:
     restock_threshold: Opt[int] = 0
     maxstock_threshold: Opt[int] = 0
 
-    # unit & first stocking (optional)
-    first_inventory_stocking: Opt[int] = 0
-
     # conversion units (optional)
     unit_conversions: Opt[List[CreatingStoreProductUnitConversionRequest]] = field(default_factory=list)
     first_inventory_stocking_for_unit_conversions: Opt[List[CreatingStoreProductFirstStockingRequest]] = field(
@@ -122,6 +119,7 @@ class CreateStoreProductUC:
 
                     # conversion units
                     'unit_conversions',
+                    'first_inventory_stocking_for_unit_conversions',
 
                     # thresholds
                     'restock_threshold',
@@ -132,7 +130,7 @@ class CreateStoreProductUC:
                     if getattr(dto, data_field, None) is not None:
                         data = getattr(dto, data_field)
 
-                        # process array data
+                        # process units array data
                         if data_field == 'unit_conversions':  # unit_conversions
                             unit_conversions = []
                             for unit_conversion in data:  # type:CreatingStoreProductUnitConversionRequest
@@ -144,7 +142,18 @@ class CreateStoreProductUC:
 
                             data = unit_conversions
 
-                        product_data[data_field] = data
+                        # process stocking data
+                        elif data_field == 'first_inventory_stocking_for_unit_conversions':
+                            stockings = []
+                            for stocking in data:  # type:CreatingStoreProductFirstStockingRequest
+                                stockings.append({
+                                    'unit': stocking.unit,
+                                    'stocking': stocking.stocking,
+                                })
+                            data = stockings
+
+                    # add processed data back to product_data
+                    product_data[data_field] = data
 
                 product = store.create_product(**product_data)
 

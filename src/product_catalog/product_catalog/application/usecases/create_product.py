@@ -6,7 +6,7 @@ from typing import Optional, List
 
 from sqlalchemy.orm import Session
 
-from foundation import slugify
+from foundation.common_helpers import slugify
 from product_catalog import CatalogUnitOfWork
 from product_catalog.domain.entities.brand import Brand
 from product_catalog.domain.entities.catalog import Catalog

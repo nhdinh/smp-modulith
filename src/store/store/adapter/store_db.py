@@ -208,6 +208,7 @@ store_product_tag_table = sa.Table(
     sa.Column('tag', sa.String(100)),
 
     sa.PrimaryKeyConstraint('product_id', 'tag', name='store_product_tag_pk'),
+    sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
 )
 
 store_tags_cache_table = sa.Table(

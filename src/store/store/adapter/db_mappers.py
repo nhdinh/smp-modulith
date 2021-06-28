@@ -45,19 +45,19 @@ def start_mappers():
 
     mapper(
         StoreProductUnit, store_product_unit_table, properties={
-            '_product_id': store_product_unit_table.c.product_id,
+            # '_product_id': store_product_unit_table.c.product_id,
 
             'from_unit': relationship(
                 StoreProductUnit,
                 foreign_keys=[store_product_unit_table.c.product_id, store_product_unit_table.c.base_unit],
-                remote_side=[store_product_unit_table.c.product_id, store_product_unit_table.c.unit]
+                remote_side=[store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
             ),
         })
 
     mapper(StoreProductBrand, store_brand_table)
 
     store_product_tag_mapper = mapper(StoreProductTag, store_product_tag_table, properties={
-        '_product': relationship(StoreProduct),
+        # '_product': relationship(StoreProduct),
     })
 
     mapper(
@@ -80,9 +80,9 @@ def start_mappers():
 
             '_units': relationship(
                 StoreProductUnit,
-                backref=backref('_product', cascade='all', single_parent=True),
+                # backref=backref('_product', cascade='all', single_parent=True),
                 collection_class=set,
-                overlaps="_product, product_id",
+                # overlaps="_product, product_id",
             ),
 
             '_tags': relationship(

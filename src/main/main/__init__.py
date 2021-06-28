@@ -22,6 +22,7 @@ from product_catalog.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 from store import StoreInfrastructureModule, StoreModule
+from inventory import InventoryModule, InventoryInfrastructureModule
 
 __all__ = ["bootstrap_app"]
 
@@ -92,6 +93,8 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             ProductCatalogInfrastructureModule(),
             StoreModule(),
             StoreInfrastructureModule(),
+            InventoryModule(),
+            InventoryInfrastructureModule(),
             Payments(),
             Processes(),
         ],

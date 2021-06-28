@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import email_validator
 
-from foundation import uuid_validate
+from foundation.common_helpers import uuid_validate
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store import Store

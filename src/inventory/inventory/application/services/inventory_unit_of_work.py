@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from foundation.uow import AbstractUnitOfWork
+from inventory.application.inventory_repository import SqlAlchemyInventoryRepository
+
+from foundation.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 
 
-class InventoryUnitOfWork(AbstractUnitOfWork):
+class InventoryUnitOfWork(SqlAlchemyUnitOfWork):
     def __init__(self, sessionfactory, event_bus):
         super(InventoryUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
 

@@ -3,7 +3,7 @@
 import uuid
 from typing import Set, List, Union, TYPE_CHECKING, Any
 
-from foundation import slugify
+from foundation.common_helpers import slugify
 from foundation.events import EventMixin
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
@@ -16,6 +16,7 @@ from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId, \
     StoreCollectionReference, StoreProductReference
 from store.domain.events.store_created_event import StoreCreatedEvent
+from store.domain.events.store_product_created_event import StoreProductCreatedEvent
 
 if TYPE_CHECKING:
     pass
@@ -200,6 +201,20 @@ class Store(EventMixin):
 
         # add to catalog
         self._append_product(store_product)
+
+        # build the array of stocking quantity
+        units = [u.unit for u in store_product.units]
+        first_stockings_input = kwargs.get('first_inventory_stocking_for_unit_conversions')
+        first_stockings_input = {item['unit']: item['stocking'] for item in first_stockings_input}
+
+        # raise event
+        self._record_event(StoreProductCreatedEvent(
+            store_id=self.store_id,
+            product_id=store_product.product_id,
+            default_unit=store_product.default_unit.unit,
+            units=units,
+            first_stocks=[first_stockings_input.get(u, 0) for u in units]
+        ))
 
         return store_product
 

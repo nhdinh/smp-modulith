@@ -3,7 +3,7 @@
 import uuid
 from typing import Optional, TYPE_CHECKING, Set, List
 
-from foundation import slugify
+from foundation.common_helpers import slugify
 from foundation.entity import Entity
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store_product_brand import StoreProductBrand

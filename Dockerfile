@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.8-buster
 
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -10,6 +10,7 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 
 WORKDIR /usr/src/app
 COPY src/requirements.txt src/requirements-dev.txt ./
+RUN python -m pip install --upgrade pip
 RUN pip install -r requirements.txt -r requirements-dev.txt
 
 COPY src/ ./

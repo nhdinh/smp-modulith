@@ -3,7 +3,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 
-from foundation import short_id
+from foundation.common_helpers import short_id
 from store.domain.entities.value_objects import StoreCatalogReference
 
 

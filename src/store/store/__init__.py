@@ -58,10 +58,6 @@ from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, S
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 
-__all__ = [
-    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedEvent'
-]
-
 
 class StoreModule(injector.Module):
     @injector.provider
@@ -240,3 +236,9 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def fetch_products_in_store(self, conn: Connection) -> FetchStoreProductsQuery:
         return SqlFetchStoreProductsQuery(conn)
+
+
+__all__ = [
+    StoreModule, StoreInfrastructureModule,
+    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedEvent'
+]
