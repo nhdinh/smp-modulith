@@ -50,5 +50,5 @@ inventory_product_balance_table = sa.Table(
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
     sa.ForeignKeyConstraint(('product_id', 'unit'), ['store_product_unit.product_id', 'store_product_unit.unit'],
-                            name='inventory_balance_productid_unit_pk', ondelete='SET NULL')
+                            name='inventory_balance_product_unit_pk', ondelete='SET NULL')
 )

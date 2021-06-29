@@ -22,7 +22,7 @@ class InitializingFirstStockResponse:
 
 
 class InitializingFirstStockResponseBoundary(abc.ABC):
-    @abc.abcstractmethod
+    @abc.abstractmethod
     def present(self, response_dto: InitializingFirstStockResponse) -> None:
         raise NotImplementedError
 

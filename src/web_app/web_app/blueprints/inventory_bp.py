@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import flask_injector
 import injector
-from flask import Blueprint, Response, request, current_app
+from flask import Blueprint, Response, request, current_app, make_response, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from inventory.application.usecases.approve_purchase_order_uc import ApprovingPurchaseOrderResponseBoundary, \
@@ -15,6 +16,7 @@ from inventory.application.usecases.initialize_first_stock_uc import Initializin
     InitializeFirstStockUC, InitializingFirstStockRequest
 from inventory.application.usecases.update_draft_purchase_order_uc import UpdateDraftPurchaseOrderUC, \
     UpdatingDraftPurchaseOrderResponseBoundary, UpdatingDraftPurchaseOrderRequest
+from web_app.presenters.inventory_presenters import CreatingDraftPurchaseOrderPresenter
 from web_app.serialization.dto import get_dto
 
 INVENTORY_BLUEPRINT_NAME = 'inventory_blueprint'
@@ -22,7 +24,10 @@ inventory_blueprint = Blueprint(INVENTORY_BLUEPRINT_NAME, __name__)
 
 
 class InventoryAPI(injector.Module):
-    ...
+    @injector.provider
+    @flask_injector.request
+    def creating_draft_purchase_order_boundary(self) -> CreatingDraftPurchaseOrderResponseBoundary:
+        return CreatingDraftPurchaseOrderPresenter()
 
 
 @inventory_blueprint.route('/first_stock', methods=['PUT'])
