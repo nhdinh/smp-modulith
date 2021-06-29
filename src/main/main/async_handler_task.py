@@ -1,4 +1,7 @@
+from flask import current_app
 from sqlalchemy.engine import Connection
+
+from foundation.logger import logger
 
 
 def async_handler_generic_task(cls, *args, **kwargs):  # type: ignore
@@ -18,5 +21,7 @@ def async_handler_generic_task(cls, *args, **kwargs):  # type: ignore
         with connection.begin():
             instance = app.injector.create_object(cls)
             instance(*args, **kwargs)
+    except Exception as exc:
+        logger.exception(exc)
     finally:
         scope.exit()

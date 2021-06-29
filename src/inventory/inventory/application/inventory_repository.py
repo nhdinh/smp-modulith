@@ -13,4 +13,5 @@ class AbstractInventoryRepository(AbstractRepository):
 
 
 class SqlAlchemyInventoryRepository(AbstractInventoryRepository):
-    ...
+    def _save(self, model: Union[EventMixin, Entity]) -> None:
+        self._sess.add(model)

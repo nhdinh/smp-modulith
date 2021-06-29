@@ -204,7 +204,7 @@ store_product_tag_table = sa.Table(
     'store_product_tag',
     metadata,
     # sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('tag', sa.String(100)),
 
     sa.PrimaryKeyConstraint('product_id', 'tag', name='store_product_tag_pk'),

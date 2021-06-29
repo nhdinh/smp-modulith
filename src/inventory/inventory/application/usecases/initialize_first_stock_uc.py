@@ -3,6 +3,8 @@
 import abc
 from dataclasses import dataclass
 
+from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
+
 from inventory.domain.entities.product import InventoryProductId
 
 

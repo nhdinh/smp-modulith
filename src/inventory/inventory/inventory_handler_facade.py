@@ -6,6 +6,7 @@ from sqlalchemy.engine import Connection
 from typing import List
 
 from foundation.logger import logger
+from inventory.adapter.inventory_db import inventory_product_balance_table
 from store.domain.entities.value_objects import StoreId, StoreProductId
 from store.domain.events.store_product_created_event import StoreProductCreatedEvent
 
@@ -16,14 +17,17 @@ class InventoryHandlerFacade:
 
     def update_inventory_first_stock(self, store_id: StoreId, product_id: StoreProductId, default_unit: str,
                                      units: List[str], first_stocks: List[int]):
-        # query = insert(inventory_stock_balance_table).values(**{
-        #     'store_id': store_id,
-        #     'product_id': product_id,
-        # })
+        values_to_insert = []
+        for cnt in range(0, len(units)):
+            if first_stocks[cnt] != 0:
+                values_to_insert.append({
+                    'product_id': product_id,
+                    'unit': units[cnt],
+                    'stocking_quantity': first_stocks[cnt]
+                })
 
-        # TODO: update data into first stock database
-        for stock in first_stocks:
-            logger.info(f"TODO: add {stock} number into first stock database of {product_id}")
+        query = insert(inventory_product_balance_table).values(values_to_insert)
+        self._conn.execute(query)
 
 
 class StoreProductCreatedEventHandler:

@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.1'
 
 services:
   app:
@@ -29,6 +29,7 @@ services:
       MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
     depends_on:
       - database
+      - rq_worker
       - redis
       - nginx
 
@@ -57,10 +58,7 @@ services:
 
   rq_worker:
     image: modulith_app
-    working_dir: /usr/src/worker
     command: [ "/usr/local/bin/rq", "worker", "-u", "redis://redis:6379" ]
-    volumes:
-      - ./src:/usr/src/worker
     environment:
       FLASK_ENV: 'development'
       DEBUG: 1
@@ -76,10 +74,12 @@ services:
       DB_DSN: postgresql://postgres:clone@database:5432/smp_db
       REDIS_HOST: redis
       DB_ECHO: 'true'
+      MINIO_HOST: minio:9000
+      MINIO_ACCESS_KEY: Q3AM3UQ867
+      MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
     depends_on:
       - smtp_server
       - redis
-      - app
 
   minio:
     image: minio/minio

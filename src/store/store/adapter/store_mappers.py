@@ -55,10 +55,8 @@ def start_mappers():
         })
 
     mapper(StoreProductBrand, store_brand_table)
-
-    store_product_tag_mapper = mapper(StoreProductTag, store_product_tag_table, properties={
-        # '_product': relationship(StoreProduct),
-    })
+    mapper(StoreProductTag, store_product_tag_table)
+    mapper(StoreCollection, store_collection_table)
 
     mapper(
         StoreProduct, store_product_table, properties={
@@ -86,19 +84,9 @@ def start_mappers():
             ),
 
             '_tags': relationship(
-                store_product_tag_mapper,
+                StoreProductTag,
                 collection_class=set,
             )
-        })
-
-    mapper(
-        StoreCollection, store_collection_table, properties={
-            # '_products': relationship(
-            #     StoreProduct,
-            #     collection_class=set,
-            #     cascade='all, delete-orphan',
-            #     backref=backref('_collection', cascade='all', single_parent=True)
-            # ),
         })
 
     mapper(StoreCatalog, store_catalog_table,
