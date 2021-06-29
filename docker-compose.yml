@@ -1,8 +1,11 @@
-version: '3.1'
+version: '3.4'
 
 services:
   app:
-    build: .
+    image: modulith_app
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ./src/:/usr/src/app
     ports:
@@ -26,15 +29,8 @@ services:
       MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
     depends_on:
       - database
-      - smtp_server
       - redis
-      - worker
       - nginx
-  #    healthcheck:
-  #      test: [ "CMD", "curl", "-f", "http://localhost:5000/health/live" ]
-  #      interval: 30s
-  #      timeout: 20s
-  #      retries: 3
 
   database:
     image: postgres:12
@@ -54,20 +50,21 @@ services:
 
   redis:
     image: redis:5
-    volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
+#    volumes:
+#      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
 
-  worker:
-    image: app
-    command: rq worker -u "redis://redis:6379"
+  rq_worker:
+    image: modulith_app
+    working_dir: /usr/src/worker
+    command: [ "/usr/local/bin/rq", "worker", "-u", "redis://redis:6379" ]
     volumes:
-      - ./src:/usr/src/app
+      - ./src:/usr/src/worker
     environment:
       FLASK_ENV: 'development'
-      DEBUG: 'true'
-      FLASK_DEBUG: 'true'
+      DEBUG: 1
+      FLASK_DEBUG: 1
       PAYMENTS_LOGIN: empty
       PAYMENTS_PASSWORD: empty
       EMAIL_HOST: smtp_server
@@ -80,12 +77,12 @@ services:
       REDIS_HOST: redis
       DB_ECHO: 'true'
     depends_on:
+      - smtp_server
       - redis
-    ports:
-      - "9181:9181"
+      - app
 
   minio:
-    image: minio/minio:RELEASE.2021-06-14T01-29-23Z
+    image: minio/minio
     hostname: minio
     volumes:
       - ../data:/data
@@ -94,7 +91,6 @@ services:
     environment:
       MINIO_ROOT_USER: Q3AM3UQ867
       MINIO_ROOT_PASSWORD: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
-    #    command: server http://minio/data
     command: minio server /data
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
@@ -103,7 +99,7 @@ services:
       retries: 3
 
   nginx:
-    image: nginx:1.19.2-alpine
+    image: nginx
     hostname: nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro

@@ -96,7 +96,7 @@ store_catalog_table = sa.Table(
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
-    UniqueConstraint('store_id', 'reference', name='store_id_reference_ux'),
+    UniqueConstraint('store_id', 'reference', name='store_catalog_store_id_reference_ux'),
 )
 
 store_collection_table = sa.Table(
@@ -150,8 +150,8 @@ store_product_table = sa.Table(
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
-    UniqueConstraint('store_id', 'reference', name='store_id_reference_ux'),
-    UniqueConstraint('store_id', 'sku', name='store_id_sku_ux'),
+    sa.UniqueConstraint('store_id', 'reference', name='store_product_store_id_reference_ux'),
+    sa.UniqueConstraint('store_id', 'sku', name='store_product_store_id_sku_ux'),
 
     # CheckConstraint('')
 )
