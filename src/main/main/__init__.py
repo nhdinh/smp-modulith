@@ -5,7 +5,7 @@ import dotenv
 import injector
 from sqlalchemy.engine import Engine, create_engine
 
-import foundation.database_setup
+import foundation.database_setup as foundation_database_setup
 from inventory.adapter import inventory_mappers
 from store.adapter import store_mappers
 
@@ -118,8 +118,8 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     # TODO: do something here to map the data table to model class
     try:
-        foundation.database_setup.start_mappers()
-    except:
+        foundation_database_setup.start_mappers()
+    except Exception as exc:
         raise exc
 
     try:
