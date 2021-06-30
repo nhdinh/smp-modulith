@@ -6,8 +6,9 @@ from typing import List
 from sqlalchemy.engine.row import RowProxy
 
 from store.application.queries.store_queries import StoreCatalogResponseDto, StoreCollectionResponseDto, \
-    StoreProductShortResponseDto, StoreProductResponseDto, StoreProductUnitResponseDto, StoreProductTagResponseDto
-from store.application.store_queries import StoreSettingResponseDto, StoreInfoResponseDto
+    StoreProductShortResponseDto, StoreProductResponseDto, StoreProductUnitResponseDto, StoreProductTagResponseDto, \
+    StoreWarehouseResponseDto
+from store.application.queries.store_queries import StoreSettingResponseDto, StoreInfoResponseDto
 
 
 def _row_to_catalog_dto(row: RowProxy, collections: List[RowProxy]) -> StoreCatalogResponseDto:
@@ -94,4 +95,13 @@ def _row_to_product_dto(
 
         units=[_row_to_unit_dto(unit_row) for unit_row in units] if units else [],
         tags=[_row_to_tag_dto(tag_row) for tag_row in tags] if tags else []
+    )
+
+
+def _row_to_warehouse_dto(row: RowProxy) -> StoreWarehouseResponseDto:
+    return StoreWarehouseResponseDto(
+        warehouse_id=row.warehouse_id,
+        warehouse_name=row.warehouse_name,
+        default=row.default,
+        disabled=row.disabled,
     )

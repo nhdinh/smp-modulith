@@ -13,15 +13,15 @@ from store.adapter import store_db
 from store.adapter.queries.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
     SqlFetchStoreProductsFromCollectionQuery, SqlFetchStoreCollectionsQuery, SqlFetchStoreCatalogsQuery, \
     SqlFetchStoreProductQuery, SqlFetchStoreProductByIdQuery, SqlFetchStoreProductsQuery, \
-    SqlFetchStoreProductsByCatalogQuery
+    SqlFetchStoreProductsByCatalogQuery, SqlFetchStoreWarehouseQuery
 from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
     FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery, FetchStoreProductsQuery, \
-    FetchStoreProductsByCatalogQuery
+    FetchStoreProductsByCatalogQuery, FetchStoreWarehouseQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
     StoreCollectionCreatedEventHandler, StoreCatalogDeletedEventHandler
-from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
+from store.application.queries.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC
@@ -38,6 +38,8 @@ from store.application.usecases.collection.make_store_collection_default_uc impo
 from store.application.usecases.collection.toggle_store_collection_uc import ToggleStoreCollectionUC
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC
+from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponseBoundary, \
+    CreateStoreWarehouseUC
 from store.application.usecases.initialize.confirm_store_registration_uc import \
     ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
@@ -84,6 +86,11 @@ class StoreModule(injector.Module):
     def update_store_settings_uc(self, boundary: UpdatingStoreSettingsResponseBoundary,
                                  uow: StoreUnitOfWork) -> UpdateStoreSettingsUC:
         return UpdateStoreSettingsUC(boundary, uow)
+
+    @injector.provider
+    def create_store_warehouse_uc(self, boundary: CreatingStoreWarehouseResponseBoundary,
+                                  uow: StoreUnitOfWork) -> CreateStoreWarehouseUC:
+        return CreateStoreWarehouseUC(boundary, uow)
 
     @injector.provider
     def invalidate_store_catalog_cache_uc(self, boundary: GenericStoreResponseBoundary,
@@ -204,6 +211,10 @@ class StoreInfrastructureModule(injector.Module):
     @injector.provider
     def fetch_store_settings_query(self, conn: Connection) -> FetchStoreSettingsQuery:
         return SqlFetchStoreSettingsQuery(conn)
+
+    @injector.provider
+    def fetch_store_warehouses_query(self, conn: Connection) -> FetchStoreWarehouseQuery:
+        return SqlFetchStoreWarehouseQuery(conn)
 
     @injector.provider
     def count_store_owner_by_email_query(self, conn: Connection) -> CountStoreOwnerByEmailQuery:

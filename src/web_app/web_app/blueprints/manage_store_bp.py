@@ -8,6 +8,8 @@ from factory.base import logger
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
+    CreatingStoreWarehouseResponseBoundary, CreatingStoreWarehouseRequest
 from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
     ResendingRegistrationConfirmationRequest, ResendRegistrationConfirmationUC, \
     ResendingRegistrationConfirmationResponseBoundary
@@ -15,7 +17,7 @@ from store.application.usecases.manage.upload_image_uc import UploadingImageRequ
     UploadImageUC
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.store_queries import FetchStoreSettingsQuery
+from store.application.queries.store_queries import FetchStoreSettingsQuery, FetchStoreWarehouseQuery
 from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
     SelectingStorePlanRequest
 from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
@@ -28,7 +30,7 @@ from store.application.usecases.manage.update_store_settings_uc import UpdatingS
     UpdatingStoreSettingsRequest, UpdateStoreSettingsUC
 from web_app.presenters.manage_store_presenters import RegisteringStorePresenter, ConfirmingStoreRegistrationPresenter, \
     SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
-    ResendingRegistrationResponsePresenter
+    ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter
 from web_app.serialization.dto import get_dto
 
 store_blueprint = Blueprint('store_blueprint', __name__)
@@ -64,6 +66,11 @@ class StoreAPI(injector.Module):
     @flask_injector.request
     def update_store_settings_boundary(self) -> UpdatingStoreSettingsResponseBoundary:
         return UpdatingStoreSettingsPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def create_store_warehouse_boundary(self) -> CreatingStoreWarehouseResponseBoundary:
+        return CreatingStoreWarehousePresenter()
 
     @injector.provider
     @flask_injector.request
@@ -153,7 +160,6 @@ def confirm_store_package(choose_store_plan_uc: SelectStorePlanUC,
 
 @store_blueprint.route('/settings', methods=['GET'])
 @jwt_required()
-
 def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
     try:
         store_owner = get_jwt_identity()
@@ -215,6 +221,38 @@ def upload_image(upload_image_uc: UploadImageUC, presenter: UploadingImageRespon
         uploaded_file = request.files['file']
 
         upload_image_uc.execute(uploaded_file, dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_blueprint.route('/warehouse', methods=['GET'])
+@jwt_required()
+def fetch_store_warehouses(query: FetchStoreWarehouseQuery) -> Response:
+    try:
+        warehouse_owner = get_jwt_identity()
+
+        warehouses = query.query(warehouse_owner=warehouse_owner)
+        return make_response(jsonify(warehouses)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_blueprint.route('/warehouse', methods=['POST'])
+@jwt_required()
+def create_new_warehouse(create_store_warehouse_uc: CreateStoreWarehouseUC,
+                         presenter: CreatingStoreWarehouseResponseBoundary) -> Response:
+    try:
+        dto = get_dto(request, CreatingStoreWarehouseRequest, context={
+            'current_user': get_jwt_identity()
+        })
+        create_store_warehouse_uc.execute(dto)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore

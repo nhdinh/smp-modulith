@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import List
 
 from sqlalchemy import select, and_
 
@@ -9,11 +10,13 @@ from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_catalogs_in_store, sql_count_products_in_store
 from store.adapter.queries.query_helpers import _row_to_store_settings_dto, _row_to_store_info_dto, \
     _row_to_product_short_dto, \
-    _row_to_catalog_dto, _row_to_collection_dto, _row_to_product_dto
+    _row_to_catalog_dto, _row_to_collection_dto, _row_to_product_dto, _row_to_warehouse_dto
 from store.application.queries.store_queries import FetchStoreProductsFromCollectionQuery, StoreProductShortResponseDto, \
     FetchStoreCollectionsQuery, FetchStoreCatalogsQuery, StoreCatalogResponseDto, FetchStoreProductQuery, \
-    StoreProductResponseDto, FetchStoreProductByIdQuery, FetchStoreProductsQuery, FetchStoreProductsByCatalogQuery
-from store.application.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery, StoreInfoResponseDto
+    StoreProductResponseDto, FetchStoreProductByIdQuery, FetchStoreProductsQuery, FetchStoreProductsByCatalogQuery, \
+    FetchStoreWarehouseQuery, StoreWarehouseResponseDto
+from store.application.queries.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery, \
+    StoreInfoResponseDto
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
@@ -24,6 +27,7 @@ from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
+from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
     StoreProductId, StoreId, StoreCatalogId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
@@ -340,3 +344,12 @@ class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
             )
         except Exception as exc:
             raise exc
+
+
+class SqlFetchStoreWarehouseQuery(FetchStoreWarehouseQuery, SqlQuery):
+    def query(self, warehouse_owner: StoreOwner) -> List[StoreWarehouseResponseDto]:
+        store_id = sql_get_store_id_by_owner(store_owner=warehouse_owner, conn=self._conn)
+        query = select(StoreWarehouse).join(Store).where(Store.store_id == store_id)
+
+        warehouses = self._conn.execute(query)
+        return [_row_to_warehouse_dto(row) for row in warehouses]

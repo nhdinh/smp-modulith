@@ -61,6 +61,8 @@ store_warehouse_table = sa.Table(
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, onupdate='CASCADE', ondelete='CASCADE')),
     sa.Column('warehouse_owner', sa.String(255), nullable=False, comment='For easy linking'),
     sa.Column('warehouse_name', sa.String(255), nullable=False),
+    sa.Column('default', sa.Boolean, default='0'),
+    sa.Column('disabled', sa.Boolean, default='0'),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),

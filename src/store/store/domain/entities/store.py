@@ -399,4 +399,20 @@ class Store(EventMixin):
 
     def __eq__(self, other) -> bool:
         return isinstance(other, Store) and self.store_id == other.store_id
+
     # endregion
+    def create_warehouse(self, warehouse_name: str):
+        """
+        Create a new warehouse for this store
+
+        :param warehouse_name: name of the warehouse
+        :return: instance of the warehouse
+        """
+        return StoreWarehouse(
+            warehouse_id=uuid.uuid4(),
+            store_id=self.store_id,
+            warehouse_owner=self.owner_email,
+            warehouse_name=warehouse_name,
+            default=False,
+            disabled=False
+        )

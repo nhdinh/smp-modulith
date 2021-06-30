@@ -14,6 +14,7 @@ from store.domain.entities.registration_status import RegistrationStatus, Regist
     RegistrationConfirmed
 from store.domain.entities.store import Store
 from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.entities.value_objects import RegistrationId, StoreId
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationResendEvent
 from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
@@ -149,12 +150,13 @@ class StoreRegistration(EventMixin, Entity):
             store_owner=owner
         )
 
-    def create_default_warehouse(self, store_id: StoreId, owner: StoreOwner) -> store_warehouse:
-        return store_warehouse.create_warehouse_from_registration(
+    def create_default_warehouse(self, store_id: StoreId, owner: StoreOwner) -> StoreWarehouse:
+        return StoreWarehouse(
             warehouse_id=self.registration_id,
             store_id=store_id,
             warehouse_owner=owner.email,
-            warehouse_name=self.store_name
+            warehouse_name=self.store_name,
+            default=True
         )
 
     @staticmethod
