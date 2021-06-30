@@ -1,22 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import abc
 from datetime import datetime
 
+from typing import List
+
+from foundation.value_objects.address import LocationAddressId
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.inventory_uc_common import fetch_warehouse_by_owner_or_raise
 from inventory.domain.entities.purchase_order import PurchaseOrderReference, DraftPurchaseOrder
+from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
 from inventory.domain.entities.warehouse import Warehouse
+from store.domain.entities.value_objects import StoreProductId
+
+
+@dataclass
+class PurchaseOrderItemRequest:
+    product_id: StoreProductId
+    unit: str
+    stock_quantity: int
+    purchase_price: float
+    description: str
 
 
 @dataclass
 class CreatingDraftPurchaseOrderRequest:
-    reference: PurchaseOrderReference
-
     current_user: str
-    created_at: datetime
+
+    creator: str
+    delivery_address: LocationAddressId
+
+    items: List[PurchaseOrderItemRequest] = field(default_factory=list)
+    note: str = ''
+
+    created_at: datetime = datetime.now()
 
 
 @dataclass

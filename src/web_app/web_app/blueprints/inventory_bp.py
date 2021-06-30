@@ -30,9 +30,10 @@ class InventoryAPI(injector.Module):
     def creating_draft_purchase_order_boundary(self) -> CreatingDraftPurchaseOrderResponseBoundary:
         return CreatingDraftPurchaseOrderPresenter()
 
+
 @inventory_blueprint.route('/', methods=['GET'])
 @jwt_required()
-def fetch_products_balance(fetch_all_products_balance_query: FetchAllProductsBalanceQuery)->Response:
+def fetch_products_balance(fetch_all_products_balance_query: FetchAllProductsBalanceQuery) -> Response:
     try:
         current_user = get_jwt_identity()
         dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})

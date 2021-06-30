@@ -13,6 +13,7 @@ from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
+from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId, \
     StoreCollectionReference, StoreProductReference
 from store.domain.events.store_created_event import StoreCreatedEvent
@@ -61,6 +62,10 @@ class Store(EventMixin):
     @property
     def products(self) -> Set[StoreProduct]:
         return self._products
+
+    @property
+    def warehouses(self) -> Set[StoreWarehouse]:
+        return self._warehouses
 
     @property
     def brands(self) -> Set[StoreProductBrand]:

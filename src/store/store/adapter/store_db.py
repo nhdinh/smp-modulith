@@ -49,7 +49,18 @@ store_table = sa.Table(
     sa.Column('_owner_id', sa.ForeignKey(store_owner_table.c.id, ondelete='SET NULL', onupdate='CASCADE')),
     sa.Column('owner_email', sa.String(255), nullable=False, comment='For easy linking'),
     sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
-    sa.Column('version', GUID, nullable=False, default=uuid.uuid4),
+    sa.Column('version', sa.Integer, nullable=False, default=0),
+    sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+)
+
+store_warehouse_table = sa.Table(
+    'warehouse',
+    metadata,
+    sa.Column('warehouse_id', GUID, primary_key=True),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, onupdate='CASCADE', ondelete='CASCADE')),
+    sa.Column('warehouse_owner', sa.String(255), nullable=False, comment='For easy linking'),
+    sa.Column('warehouse_name', sa.String(255), nullable=False),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),

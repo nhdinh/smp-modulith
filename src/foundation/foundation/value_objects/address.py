@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from typing import Set
+from typing import Set, NewType
+from uuid import UUID
+
+LocationAddressId = NewType('LocationAddressId', tp=UUID)
 
 
 @dataclass(unsafe_hash=True)

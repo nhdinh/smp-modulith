@@ -153,6 +153,7 @@ def confirm_store_package(choose_store_plan_uc: SelectStorePlanUC,
 
 @store_blueprint.route('/settings', methods=['GET'])
 @jwt_required()
+
 def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
     try:
         store_owner = get_jwt_identity()

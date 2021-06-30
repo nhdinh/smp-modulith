@@ -9,11 +9,12 @@ from datetime import datetime, timedelta
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.services.user_counter_services import UserCounters
+from store.domain.entities import store_warehouse
 from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation, \
     RegistrationConfirmed
 from store.domain.entities.store import Store
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.entities.value_objects import RegistrationId
+from store.domain.entities.value_objects import RegistrationId, StoreId
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationResendEvent
 from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
 from store.domain.rules.store_registration_must_have_valid_expiration_rule import \
@@ -118,7 +119,6 @@ class StoreRegistration(EventMixin, Entity):
 
         self.status = RegistrationConfirmed
         self.confirmed_at = datetime.today()
-        self.version += 1
 
         # self._record_event(StoreRegistrationConfirmedEvent(
         #     store_id=self.registration_id,
@@ -147,6 +147,14 @@ class StoreRegistration(EventMixin, Entity):
             store_id=self.registration_id,
             store_name=self.store_name,
             store_owner=owner
+        )
+
+    def create_default_warehouse(self, store_id: StoreId, owner: StoreOwner) -> store_warehouse:
+        return store_warehouse.create_warehouse_from_registration(
+            warehouse_id=self.registration_id,
+            store_id=store_id,
+            warehouse_owner=owner.email,
+            warehouse_name=self.store_name
         )
 
     @staticmethod

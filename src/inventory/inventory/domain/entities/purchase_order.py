@@ -41,8 +41,8 @@ class DraftPurchaseOrder(PurchaseOrder):
     pass
 
 
-class SubmitedPurchaseOrder(PurchaseOrder):
+class SubmittedPurchaseOrder(PurchaseOrder):
     def __init__(self, approved_at: datetime):
-        super(SubmitedPurchaseOrder, self).__init__()
+        super(SubmittedPurchaseOrder, self).__init__()
 
         self.approved_at = approved_at

@@ -50,6 +50,7 @@ class ConfirmStoreRegistrationUC:
                 # create the entity
                 owner = store_registration.create_store_owner()
                 store = store_registration.create_store(owner=owner)
+                store_registration.create_default_warehouse(owner=owner)
                 store_id = store_registration.confirm()
 
                 # persist into database
@@ -57,6 +58,8 @@ class ConfirmStoreRegistrationUC:
 
                 dto = ConfirmingStoreRegistrationResponse(store_id=store_id, status=True)
                 self._ob.present(dto)
+
+                self.version += 1
 
                 uow.commit()
             except Exception as exc:

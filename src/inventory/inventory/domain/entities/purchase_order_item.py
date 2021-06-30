@@ -12,3 +12,4 @@ class PurchaseOrderItem:
     unit: StoreProductUnit
     stock_quantity: int
     purchase_price: float
+    description: str

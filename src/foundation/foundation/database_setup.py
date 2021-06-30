@@ -32,10 +32,9 @@ location_city_division_table = sa.Table(
     metadata,
     sa.Column('division_id', GUID, primary_key=True),
     sa.Column('city', sa.ForeignKey(location_city_table.c.city_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('country', sa.ForeignKey(location_country_table.c.country_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('division_name', sa.String(100), nullable=False),
 
-    sa.UniqueConstraint('country', 'city', 'division_name', name='location_country_city_division_uix'),
+    sa.UniqueConstraint('city', 'division_name', name='location_city_division_uix'),
 )
 
 location_city_sub_division_table = sa.Table(
@@ -44,11 +43,9 @@ location_city_sub_division_table = sa.Table(
     sa.Column('sub_division_id', GUID, primary_key=True),
     sa.Column('division',
               sa.ForeignKey(location_city_division_table.c.division_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('city', sa.ForeignKey(location_city_table.c.city_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('country', sa.ForeignKey(location_country_table.c.country_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('sub_division_name', sa.String(100), nullable=False),
 
-    sa.UniqueConstraint('country', 'city', 'division', 'sub_division_name',
+    sa.UniqueConstraint('division', 'sub_division_name',
                         name='location_country_city_division_sub_division_uix'),
 )
 

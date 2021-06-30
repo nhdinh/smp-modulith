@@ -124,13 +124,13 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
 
     try:
         identity_db.start_mappers()
-    except:  # Exception as exc:
-        pass
+    except Exception as exc:
+        raise exc
 
     try:
         catalog_db.start_mappers()
-    except:  # Exception as exc:
-        pass
+    except Exception as exc:
+        raise exc
 
     try:
         store_mappers.start_mappers()
