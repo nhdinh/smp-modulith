@@ -5,6 +5,10 @@ import dotenv
 import injector
 from sqlalchemy.engine import Engine, create_engine
 
+import foundation.database_setup
+from inventory.adapter import inventory_mappers
+from store.adapter import store_mappers
+
 from auctions import Auctions
 from auctions_infrastructure import AuctionsInfrastructure
 from customer_relationship import CustomerRelationship
@@ -25,8 +29,6 @@ from store import StoreInfrastructureModule, StoreModule
 from inventory import InventoryModule, InventoryInfrastructureModule
 
 __all__ = ["bootstrap_app"]
-
-from store.adapter import start_mappers
 
 
 @dataclass
@@ -116,6 +118,11 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     # TODO: do something here to map the data table to model class
     try:
+        foundation.database_setup.start_mappers()
+    except:
+        raise exc
+
+    try:
         identity_db.start_mappers()
     except:  # Exception as exc:
         pass
@@ -126,7 +133,12 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
         pass
 
     try:
-        start_mappers()
+        store_mappers.start_mappers()
+    except Exception as exc:
+        raise exc
+
+    try:
+        inventory_mappers.start_mappers()
     except Exception as exc:
         raise exc
 

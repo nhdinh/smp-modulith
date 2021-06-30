@@ -27,6 +27,20 @@ from store.adapter import store_table
 #     extend_existing=True
 # )
 
+warehouse_table = sa.Table(
+    'warehouse',
+    metadata,
+    sa.Column('warehouse_id', GUID, primary_key=True),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, onupdate='CASCADE', ondelete='CASCADE')),
+    sa.Column('store_name', sa.String(255)),
+    sa.Column('name', sa.String(255)),
+    sa.Column('disabled', sa.Boolean, default='0'),
+    sa.Column('version', sa.Integer, default='0'),
+
+    sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+)
+
 inventory_purchase_order_table = sa.Table(
     'inventory_purchase_order',
     metadata,

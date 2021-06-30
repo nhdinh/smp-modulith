@@ -4,6 +4,8 @@ import injector
 from sqlalchemy.orm import sessionmaker
 from typing import Type
 
+from inventory.adapter.inventory_sql_queries import SqlFetchAllProductsBalanceQuery
+from inventory.application.inventory_queries import FetchAllProductsBalanceQuery
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from sqlalchemy.engine import Connection
 
@@ -57,6 +59,10 @@ class InventoryInfrastructureModule(injector.Module):
     def get_uow(self, conn: Connection, event_bus: EventBus) -> InventoryUnitOfWork:
         sessfactory = sessionmaker(bind=conn)
         return InventoryUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
+
+    @injector.provider
+    def fetch_all_products_balance_query(self, conn: Connection) -> FetchAllProductsBalanceQuery:
+        return SqlFetchAllProductsBalanceQuery(connection=conn)
 
 
 __all__ = [

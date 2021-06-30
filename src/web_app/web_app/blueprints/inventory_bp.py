@@ -5,6 +5,7 @@ import injector
 from flask import Blueprint, Response, request, current_app, make_response, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from inventory import FetchAllProductsBalanceQuery
 from inventory.application.usecases.approve_purchase_order_uc import ApprovingPurchaseOrderResponseBoundary, \
     ApprovingPurchaseOrderRequest, ApprovePurchaseOrderUC
 from inventory.application.usecases.create_draft_purchase_order_uc import CreateDraftPurchaseOrderUC, \
@@ -17,7 +18,7 @@ from inventory.application.usecases.initialize_first_stock_uc import Initializin
 from inventory.application.usecases.update_draft_purchase_order_uc import UpdateDraftPurchaseOrderUC, \
     UpdatingDraftPurchaseOrderResponseBoundary, UpdatingDraftPurchaseOrderRequest
 from web_app.presenters.inventory_presenters import CreatingDraftPurchaseOrderPresenter
-from web_app.serialization.dto import get_dto
+from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 INVENTORY_BLUEPRINT_NAME = 'inventory_blueprint'
 inventory_blueprint = Blueprint(INVENTORY_BLUEPRINT_NAME, __name__)
@@ -28,6 +29,19 @@ class InventoryAPI(injector.Module):
     @flask_injector.request
     def creating_draft_purchase_order_boundary(self) -> CreatingDraftPurchaseOrderResponseBoundary:
         return CreatingDraftPurchaseOrderPresenter()
+
+@inventory_blueprint.route('/', methods=['GET'])
+@jwt_required()
+def fetch_products_balance(fetch_all_products_balance_query: FetchAllProductsBalanceQuery)->Response:
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        response = fetch_all_products_balance_query.query(dto)
+        return make_response(jsonify(response)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
 @inventory_blueprint.route('/first_stock', methods=['PUT'])

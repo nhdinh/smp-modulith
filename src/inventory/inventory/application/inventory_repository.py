@@ -15,3 +15,6 @@ class AbstractInventoryRepository(AbstractRepository):
 class SqlAlchemyInventoryRepository(AbstractInventoryRepository):
     def _save(self, model: Union[EventMixin, Entity]) -> None:
         self._sess.add(model)
+
+    def fetch_warehouse_of_owner(self, owner: str):
+        pass

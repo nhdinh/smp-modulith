@@ -9,7 +9,7 @@ class InventoryUnitOfWork(SqlAlchemyUnitOfWork):
     def __init__(self, sessionfactory, event_bus):
         super(InventoryUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
 
-    def __enter__(self):
+    def __enter__(self) -> 'InventoryUnitOfWork':
         super(InventoryUnitOfWork, self).__enter__()
         self._inventory_repo = SqlAlchemyInventoryRepository(session=self._session)
 

@@ -5,7 +5,6 @@ from sqlalchemy import insert
 from sqlalchemy.engine import Connection
 from typing import List
 
-from foundation.logger import logger
 from inventory.adapter.inventory_db import inventory_product_balance_table
 from store.domain.entities.value_objects import StoreId, StoreProductId
 from store.domain.events.store_product_created_event import StoreProductCreatedEvent
@@ -15,8 +14,14 @@ class InventoryHandlerFacade:
     def __init__(self, connection: Connection):
         self._conn = connection
 
-    def update_inventory_first_stock(self, store_id: StoreId, product_id: StoreProductId, default_unit: str,
-                                     units: List[str], first_stocks: List[int]):
+    def update_inventory_first_stock(
+            self,
+            store_id: StoreId,
+            product_id: StoreProductId,
+            default_unit: str,
+            units: List[str],
+            first_stocks: List[int]
+    ) -> None:
         values_to_insert = []
         for cnt in range(0, len(units)):
             if first_stocks[cnt] != 0:

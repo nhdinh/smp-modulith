@@ -6,7 +6,9 @@ import abc
 from datetime import datetime
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
+from inventory.application.usecases.inventory_uc_common import fetch_warehouse_by_owner_or_raise
+from inventory.domain.entities.purchase_order import PurchaseOrderReference, DraftPurchaseOrder
+from inventory.domain.entities.warehouse import Warehouse
 
 
 @dataclass
@@ -19,7 +21,9 @@ class CreatingDraftPurchaseOrderRequest:
 
 @dataclass
 class CreatingDraftPurchaseOrderResponse:
-    message: str
+    reference: PurchaseOrderReference
+    created_by: str
+    created_at: datetime
 
 
 class CreatingDraftPurchaseOrderResponseBoundary(abc.ABC):
@@ -36,10 +40,15 @@ class CreateDraftPurchaseOrderUC:
     def execute(self, dto: CreatingDraftPurchaseOrderRequest):
         with self._uow as uow:
             try:
-                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                warehouse = fetch_warehouse_by_owner_or_raise(owner=dto.current_user, uow=uow)  # type: Warehouse
+
+                po_data = dto
+                draft_purchase_order = warehouse.create_draft_purchase_order(po_data)  # type:DraftPurchaseOrder
 
                 response_dto = CreatingDraftPurchaseOrderResponse(
-                    message='blah bloh'
+                    reference=draft_purchase_order.reference,
+                    created_by=draft_purchase_order.creator,
+                    created_at=draft_purchase_order.created_at
                 )
                 self._ob.present(response_dto=response_dto)
                 uow.commit()
