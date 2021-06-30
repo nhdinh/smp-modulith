@@ -50,9 +50,9 @@ location_address_table = sa.Table(
 
 
 def start_mappers():
-    orm.mapper(LocationAddress, location_address_table, properties={})
+    address_mapper = orm.mapper(LocationAddress, location_address_table, properties={})
 
 
-@event.listens_for(LocationAddress, 'after_configured')
-def location_address_after_configured(location_address, _):
+@event.listens_for(orm.mapper, 'after_configured')
+def location_address_after_configured():
     ...
