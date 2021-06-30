@@ -6,7 +6,8 @@ import sqlalchemy.orm as orm
 from sqlalchemy import event
 
 from db_infrastructure import metadata, GUID
-from foundation.value_objects.address import LocationAddress, LocationCountry, LocationCityDivision
+from foundation.value_objects.address import LocationAddress, LocationCountry, LocationCityDivision, \
+    LocationCitySubDivision
 
 location_country_table = sa.Table(
     'location_country',
@@ -66,7 +67,7 @@ location_address_table = sa.Table(
 
 
 def start_mappers():
-    orm.mapper(LocationCityDivision, location_city_sub_division_table, properties={})
+    orm.mapper(LocationCitySubDivision, location_city_sub_division_table, properties={})
     orm.mapper(LocationCityDivision, location_city_division_table, properties={})
     orm.mapper(LocationCountry, location_country_table, properties={})
     orm.mapper(LocationAddress, location_address_table, properties={})
