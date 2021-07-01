@@ -8,6 +8,7 @@ from foundation.events import EventMixin
 from foundation.value_objects.address import LocationAddress
 from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
 from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_supplier import StoreSupplier
 
 
 class Enum(tuple): __getattr__ = tuple.index
@@ -31,7 +32,7 @@ class PurchaseOrder(EventMixin):
             delivery_address: LocationAddress,
             note: str,
             purchase_order_items: List[PurchaseOrderItem],
-            supplier: Supplier,
+            supplier: StoreSupplier,
             due_date: datetime,
             creator: StoreOwner,
             version: int = 0,

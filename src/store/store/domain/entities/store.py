@@ -13,6 +13,7 @@ from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
+from store.domain.entities.store_supplier import StoreSupplier, SupplierContact
 from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId, \
     StoreCollectionReference, StoreProductReference
@@ -51,8 +52,9 @@ class Store(EventMixin):
         # children data
         self._warehouses = set()  # type: Set[StoreWarehouse]
         self._brands = set()  # type: Set[StoreProductBrand]
-        self._catalogs = set()  # type: Set
-        self._collections = set()  # type: Set
+        self._suppliers = set()  # type:Set[StoreSupplier]
+        self._catalogs = set()  # type: Set[StoreCatalog]
+        self._collections = set()  # type: Set[StoreCollection]
         self._products = set()  # type: Set[StoreProduct]
 
     # region ## Properties ##
@@ -67,6 +69,10 @@ class Store(EventMixin):
     @property
     def warehouses(self) -> Set[StoreWarehouse]:
         return self._warehouses
+
+    @property
+    def suppliers(self) -> Set[StoreSupplier]:
+        return self._suppliers
 
     @property
     def default_warehouse(self) -> Optional[StoreWarehouse]:
@@ -157,6 +163,21 @@ class Store(EventMixin):
         if brand_str:
             brand = self._brand_factory(name=brand_str)
 
+        # process input data: StoreSupplier
+        suppliers = []
+        purchase_price_list = []
+        supplier_list = kwargs.get('suppliers')
+        if supplier_list:
+            for input_supplier_str in supplier_list:
+                purchase_price_list += input_supplier_str['supplier_prices'] if type(
+                    input_supplier_str['supplier_prices']) is list else [input_supplier_str['supplier_prices']]
+
+                supplier = self._supplier_factory(supplier_name=input_supplier_str['supplier_name'],
+                                                  contact_name=input_supplier_str['contact_name'],
+                                                  contact_phone=input_supplier_str['contact_phone'])
+
+                suppliers.append(supplier)
+
         # process input data: StoreCatalog
         catalog_str = kwargs.get('catalog')
         if catalog_str:
@@ -172,18 +193,18 @@ class Store(EventMixin):
             collections = [self._collection_factory(title=col, parent_catalog=catalog) for col in collection_str_list]
 
         # threshold
-        restock_threshold, maxstock_threshold = 0, 0
-        restock_thrh_str = kwargs.get('restock_threshold')
-        maxstock_thrh_str = kwargs.get('maxstock_threshold')
+        restock_threshold, max_stock_threshold = 0, 0
+        restock_th_str = kwargs.get('restock_threshold')
+        max_stock_th_str = kwargs.get('maxstock_threshold')
         try:
-            restock_threshold = int(restock_thrh_str)
+            restock_threshold = int(restock_th_str)
         except:
             restock_threshold = -1
 
         try:
-            maxstock_threshold = int(maxstock_thrh_str)
+            max_stock_threshold = int(max_stock_th_str)
         except:
-            maxstock_threshold = -1
+            max_stock_threshold = -1
 
         # process input data: Tags
         tags = kwargs.get('tags')
@@ -198,11 +219,12 @@ class Store(EventMixin):
             image=image,
             default_unit=default_unit,
             restock_threshold=restock_threshold,
-            maxstock_threshold=maxstock_threshold,
+            maxstock_threshold=max_stock_threshold,
             store=self,
             brand=brand,
             catalog=catalog,
             collections=collections,
+            suppliers=suppliers,
             tags=tags
         )
 
@@ -212,6 +234,17 @@ class Store(EventMixin):
             store_product.create_unit(unit_name=unit_conversion['unit'],
                                       conversion_factor=unit_conversion['conversion_factor'],
                                       base_unit=unit_conversion['base_unit'])
+
+        # process input data: PurchasePrices
+        product_prices = []
+        for price in purchase_price_list:
+            store_product.create_purchase_price_by_supplier(
+                supplier=self._supplier_factory(supplier_name=price['supplier_name']),
+                unit=store_product.get_unit(price['unit']),
+                price=price['price'],
+                tax=price['tax'],
+                applied_from=price['applied_from'],
+            )
 
         # add to catalog
         self._append_product(store_product)
@@ -265,6 +298,23 @@ class Store(EventMixin):
             brand = StoreProductBrand(name=name)
             self._brands.add(brand)
             return brand
+
+    def _supplier_factory(self, supplier_name: str, contact_name: str = None, contact_phone: str = None):
+        try:
+            # contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone)
+            supplier = next(s for s in self._suppliers if s.supplier_name.lower() == supplier_name.strip().lower())
+            # if contact not in supplier.contacts:
+            #     supplier.contacts.add(contact)
+
+            return supplier
+        except StopIteration:
+            # contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone)
+            supplier = StoreSupplier(supplier_name=supplier_name,
+                                     contact_name=contact_name,
+                                     contact_phone=contact_phone)
+            # , contacts=set([contact]))
+            self._suppliers.add(supplier)
+            return supplier
 
     def _is_collection_reference_exists(self, collection_reference: StoreCollectionReference,
                                         parent_catalog: StoreCatalog):

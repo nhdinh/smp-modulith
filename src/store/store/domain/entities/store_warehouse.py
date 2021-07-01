@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from uuid import UUID
-
 from typing import NewType
+from uuid import UUID
 
 from store.domain.entities.value_objects import StoreId
 

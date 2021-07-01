@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import uuid
 from datetime import datetime
 
 from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, func, Numeric, \
@@ -48,15 +49,17 @@ brand_table = Table(
     Column('last_updated', DateTime, onupdate=datetime.now),
 )
 
-seller_table = Table(
-    'seller',
+supplier_table = Table(
+    'supplier',
     metadata,
-    Column('phone_number', String(255), primary_key=True),
-    Column('full_name', String(255)),
-    Column('disabled', Boolean, default=0, server_default='0'),
-    Column('created_at', DateTime, server_default=func.now()),
-    Column('last_updated', DateTime, onupdate=datetime.now),
-
+    Column('supplier_id', GUID, primary_key=True, default=uuid.uuid4()),
+    Column('supplier_name', String, nullable=False),
+    Column('contact_name', String, nullable=False),
+    Column('contact_phone', String, nullable=False),
+    Column('disabled', Boolean, default='0'),
+    Column('deleted', Boolean, default='0'),
+    Column('created_at', DateTime, default=func.now()),
+    Column('updated_at', DateTime, onupdate=func.now()),
 )
 
 product_table = Table(

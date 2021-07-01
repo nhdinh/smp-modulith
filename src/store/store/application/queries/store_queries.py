@@ -4,11 +4,11 @@ import abc
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List
+from uuid import UUID
+
 import marshmallow as ma
 
 from db_infrastructure import GUID
-from uuid import UUID
-
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
     StoreProductId, StoreCatalogId

@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Optional as Opt, List
 
-from marshmallow import fields
 from sqlalchemy.exc import IntegrityError
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.value_objects import StoreCatalogReference, StoreCollectionReference, StoreProductReference, \
+from store.domain.entities.value_objects import StoreProductReference, \
     StoreProductId
 
 
@@ -24,6 +24,22 @@ class CreatingStoreProductUnitConversionRequest:
 class CreatingStoreProductFirstStockingRequest:
     unit: str
     stocking: int
+
+
+@dataclass(frozen=True)
+class CreatingProductSupplierPriceRequest:
+    unit: str
+    price: float
+    tax: Opt[float]
+    applied_from: datetime = datetime.now()
+
+
+@dataclass(frozen=True)
+class CreatingStoreSupplierRequest:
+    supplier_name: str
+    contact_name: Opt[str]
+    contact_phone: Opt[str]
+    purchase_prices: Opt[List[CreatingProductSupplierPriceRequest]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -63,6 +79,8 @@ class CreatingStoreProductRequest:
     unit_conversions: Opt[List[CreatingStoreProductUnitConversionRequest]] = field(default_factory=list)
     first_inventory_stocking_for_unit_conversions: Opt[List[CreatingStoreProductFirstStockingRequest]] = field(
         default_factory=list)
+
+    suppliers: Opt[List[CreatingStoreSupplierRequest]] = field(default_factory=list)
 
 
 @dataclass
@@ -108,6 +126,9 @@ class CreateStoreProductUC:
                     'seller_phone',
                     'seller_contact_name',
 
+                    # suppliers
+                    'suppliers',
+
                     # catalog
                     'catalog',
 
@@ -151,6 +172,29 @@ class CreateStoreProductUC:
                                     'stocking': stocking.stocking,
                                 })
                             data = stockings
+
+                        # process suppliers data
+                        elif data_field == 'suppliers':
+                            suppliers = []
+                            for create_supplier_request in data:  # type:CreatingStoreSupplierRequest
+                                supplier_prices = []
+                                for create_price_request in create_supplier_request.purchase_prices:  # type:CreatingProductSupplierPriceRequest
+                                    supplier_prices.append({
+                                        'supplier_name': create_supplier_request.supplier_name,
+                                        'unit': create_price_request.unit,
+                                        'price': create_price_request.price,
+                                        'tax': create_price_request.tax,
+                                        'applied_from': create_price_request.applied_from
+                                    })
+
+                                suppliers.append({
+                                    'supplier_name': create_supplier_request.supplier_name,
+                                    'contact_name': create_supplier_request.contact_name,
+                                    'contact_phone': create_supplier_request.contact_phone,
+                                    'supplier_prices': supplier_prices
+                                })
+
+                            data = suppliers
 
                     # add processed data back to product_data
                     product_data[data_field] = data

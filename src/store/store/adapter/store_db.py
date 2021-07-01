@@ -4,13 +4,12 @@ import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
-from foundation.database_setup import location_address_table
 from sqlalchemy import event, UniqueConstraint
 
 from db_infrastructure import metadata, GUID
+from foundation.database_setup import location_address_table
 from identity.adapters.identity_db import user_table
 from store.domain.entities.store import Store
-from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = sa.Table(
@@ -144,15 +143,15 @@ store_brand_table = sa.Table(
 )
 
 store_supplier_table = sa.Table(
-    'supplier',
+    'store_supplier',
     metadata,
-    sa.Column('supplier_id', GUID, primary_key=True, default=uuid.uuid4()),
+    sa.Column('supplier_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('supplier_name', sa.String, nullable=False),
     sa.Column('contact_name', sa.String, nullable=False),
     sa.Column('contact_phone', sa.String, nullable=False),
-    sa.Column('disabled', sa.Boolean, default='0'),
-    sa.Column('deleted', sa.Boolean, default='0'),
+    sa.Column('disabled', sa.Boolean, server_default='0'),
+    sa.Column('deleted', sa.Boolean, server_default='0'),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
@@ -162,7 +161,7 @@ store_supplier_table = sa.Table(
 store_product_table = sa.Table(
     'store_product',
     metadata,
-    sa.Column('product_id', GUID, primary_key=True),
+    sa.Column('product_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('reference', sa.String(100), nullable=False),
     sa.Column('title', sa.String(255), nullable=False),
@@ -228,6 +227,29 @@ store_product_supplier_table = sa.Table(
     sa.Column('supplier_id', sa.ForeignKey(store_supplier_table.c.supplier_id, ondelete='CASCADE', onupdate='CASCADE')),
 
     sa.PrimaryKeyConstraint('product_id', 'supplier_id', name='product_supplier_pk')
+)
+
+store_supplier_product_price_table = sa.Table(
+    'store_supplier_product_price',
+    metadata,
+    sa.Column('product_price_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('product_id', GUID, nullable=False),
+    sa.Column('supplier_id', GUID, nullable=False),
+    sa.Column('unit', sa.String(50), nullable=False),
+    sa.Column('price', sa.Float, nullable=False),
+    sa.Column('tax', sa.Float),
+    sa.Column('applied_from', sa.DateTime, nullable=False, server_default=sa.func.now()),
+
+    sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+
+    sa.ForeignKeyConstraint(('product_id', 'supplier_id'),
+                            [store_product_supplier_table.c.product_id, store_product_supplier_table.c.supplier_id],
+                            name='store_supplier_product_fk'),
+    sa.ForeignKeyConstraint(('product_id', 'unit'),
+                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
+                            name='store_product_unit_fk'),
+    sa.UniqueConstraint('product_id', 'supplier_id', 'unit', 'applied_from', name='store_product_supplier_price_uix'),
 )
 
 store_unit_cache_table = sa.Table(

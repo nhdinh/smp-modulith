@@ -17,11 +17,10 @@ from store.adapter.queries.sql_store_queries import SqlFetchStoreSettingsQuery, 
 from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
     FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery, FetchStoreProductsQuery, \
     FetchStoreProductsByCatalogQuery, FetchStoreWarehouseQuery
+from store.application.queries.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
-from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogCreatedEventHandler, \
-    StoreCollectionCreatedEventHandler, StoreCatalogDeletedEventHandler
-from store.application.queries.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
+from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogDeletedEventHandler
 from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC
@@ -182,10 +181,10 @@ class StoreModule(injector.Module):
     def configure(self, binder: injector.Binder) -> None:
         # binder.multibind(AsyncHandler[StoreCreatedEvent], to=AsyncEventHandlerProvider(StoreCreatedEventHandler))
 
-        self.async_bind(binder, StoreCatalogCreatedEvent, StoreCatalogCreatedEventHandler)
+        # self.async_bind(binder, StoreCatalogCreatedEvent, StoreCatalogCreatedEventHandler)
         self.async_bind(binder, StoreCatalogDeletedEvent, StoreCatalogDeletedEventHandler)
 
-        self.async_bind(binder, StoreCollectionCreatedEvent, StoreCollectionCreatedEventHandler)
+        # self.async_bind(binder, StoreCollectionCreatedEvent, StoreCollectionCreatedEventHandler)
 
     # endregion
 

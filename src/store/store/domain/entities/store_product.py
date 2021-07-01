@@ -34,6 +34,7 @@ class StoreProduct(Entity):
             collections: Set['StoreCollection'],
             catalog: 'StoreCatalog',
             default_unit: str,
+            suppliers: Set['StoreSupplier'],
             restock_threshold: int = -1,
             maxstock_threshold: int = -1,
     ):
@@ -59,6 +60,9 @@ class StoreProduct(Entity):
         _default_unit = self.create_default_unit(default_name=default_unit)
         self._units.add(_default_unit)
 
+        # add suppliers and price
+        self._suppliers = suppliers
+
         # thresholds
         self.restock_threshold = restock_threshold
         self.maxstock_threshold = maxstock_threshold
@@ -77,6 +81,7 @@ class StoreProduct(Entity):
             brand: StoreProductBrand,
             catalog: 'StoreCatalog',
             collections: List['StoreCollection'],
+            suppliers: List['StoreSupplier'],
             tags: List[str]
     ) -> 'StoreProduct':
         product_id = StoreProductId(uuid.uuid4())
@@ -92,6 +97,7 @@ class StoreProduct(Entity):
             brand=brand,
             catalog=catalog,
             collections=set(collections),
+            suppliers=set(suppliers),
             default_unit=default_unit,
             restock_threshold=restock_threshold,
             maxstock_threshold=maxstock_threshold,
@@ -233,3 +239,6 @@ class StoreProduct(Entity):
 
     def __repr__(self):
         return f'<StoreProduct ref={self.reference}>'
+
+    def create_purchase_price_by_supplier(self, **kwargs):
+        pass

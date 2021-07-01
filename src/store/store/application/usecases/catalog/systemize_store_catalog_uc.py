@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from uuid import UUID
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponse, \

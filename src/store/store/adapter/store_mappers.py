@@ -6,7 +6,7 @@ from identity.domain.entities import User
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
     store_managers_table, store_catalog_table, store_product_table, \
     store_product_unit_table, store_brand_table, store_product_tag_table, store_collection_table, \
-    store_product_collection_table, store_warehouse_table, store_product_supplier_table
+    store_product_collection_table, store_warehouse_table, store_product_supplier_table, store_supplier_table
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
@@ -16,6 +16,7 @@ from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.store_warehouse import StoreWarehouse
 
@@ -72,7 +73,7 @@ def start_mappers():
             ),
 
             '_suppliers': relationship(
-                Supplier,
+                StoreSupplier,
                 secondary=store_product_supplier_table,
                 collection_class=set,
             ),
@@ -111,10 +112,9 @@ def start_mappers():
                )
            })
 
-    mapper(
-        StoreWarehouse, store_warehouse_table,
-        properties={}
-    )
+    mapper(StoreWarehouse, store_warehouse_table, properties={})
+
+    mapper(StoreSupplier, store_supplier_table, properties={})
 
     mapper(
         Store, store_table,
@@ -140,6 +140,11 @@ def start_mappers():
             '_managers': relationship(
                 User,
                 secondary=store_managers_table,
+                collection_class=set,
+            ),
+
+            '_suppliers': relationship(
+                StoreSupplier,
                 collection_class=set,
             ),
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from foundation.common_helpers import short_id
 from store.domain.entities.value_objects import StoreCollectionReference
 
 

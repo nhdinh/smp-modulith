@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.services.user_counter_services import UserCounters
-from store.domain.entities import store_warehouse
 from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation, \
     RegistrationConfirmed
 from store.domain.entities.store import Store
