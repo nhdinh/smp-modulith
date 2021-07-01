@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy.orm import mapper, relationship, backref
+from sqlalchemy import and_
+from sqlalchemy.orm import mapper, relationship, backref, foreign
 
 from identity.domain.entities import User
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
     store_managers_table, store_catalog_table, store_product_table, \
     store_product_unit_table, store_brand_table, store_product_tag_table, store_collection_table, \
-    store_product_collection_table, store_warehouse_table, store_product_supplier_table, store_supplier_table
+    store_product_collection_table, store_warehouse_table, store_product_supplier_table, store_supplier_table, \
+    store_supplier_product_price_table, prod_table, ProdClass, sup_table, un_table, SupClass, UnClass, PriClass, \
+    sup_un_table, pri_table, prod_sup_table
+from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
@@ -59,6 +63,7 @@ def start_mappers():
     mapper(StoreProductBrand, store_brand_table)
     mapper(StoreProductTag, store_product_tag_table)
     mapper(StoreCollection, store_collection_table)
+    mapper(ProductPurchasePrice, store_supplier_product_price_table)
 
     mapper(
         StoreProduct, store_product_table, properties={
@@ -77,6 +82,16 @@ def start_mappers():
                 secondary=store_product_supplier_table,
                 collection_class=set,
             ),
+
+            # '_purchase_prices': relationship(
+            #     ProductPurchasePrice,
+            #     collection_class=set,
+            #     primaryjoin=and_(
+            #         store_supplier_product_price_table.c.product_id == store_product_table.c.product_id,
+            #         store_supplier_product_price_table.c.supplier_id == store_product_supplier_table.c.supplier_id,
+            #         store_supplier_product_price_table.c.unit == StoreProductUnit.unit
+            #     ),
+            # ),
 
             '_collections': relationship(
                 StoreCollection,
@@ -172,3 +187,40 @@ def start_mappers():
                 collection_class=set,
             )
         })
+
+    try:
+        mapper(SupClass, sup_table)
+        mapper(UnClass, un_table)
+
+        mapper(PriClass, pri_table, properties={
+            'sup': relationship(
+                SupClass,
+                secondary=sup_un_table
+            ),
+
+            'un': relationship(
+                UnClass,
+                secondary=sup_un_table
+            )
+        })
+        mapper(ProdClass, prod_table, properties={
+            'sups': relationship(
+                SupClass,
+                collection_class=set,
+                secondary=prod_sup_table
+            ),
+
+            'uns': relationship(
+                UnClass,
+                collection_class=set,
+            ),
+
+            'pris': relationship(
+                PriClass,
+                collection_class=set,
+                primaryjoin=pri_table.c.prod_id == prod_table.c.id,
+                secondary=sup_un_table,
+            )
+        })
+    except Exception as exc:
+        raise exc

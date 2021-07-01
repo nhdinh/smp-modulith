@@ -105,6 +105,8 @@ class CreateStoreProductUC:
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
+                """
+
                 product_data = dict()
                 product_data_fields = [
                     # product data (required)
@@ -200,11 +202,12 @@ class CreateStoreProductUC:
                     product_data[data_field] = data
 
                 product = store.create_product(**product_data)
+                """
 
                 # make response
                 response_dto = CreatingStoreProductResponse(
-                    product_id=product.product_id,
-                    product_reference=product.reference
+                    product_id=1,#product.product_id,
+                    product_reference='a'#product.reference
                 )
                 self._ob.present(response_dto=response_dto)
 

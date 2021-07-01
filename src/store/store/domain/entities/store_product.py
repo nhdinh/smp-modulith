@@ -6,6 +6,7 @@ from typing import Optional, TYPE_CHECKING, Set, List
 from foundation.common_helpers import slugify
 from foundation.entity import Entity
 from store.application.usecases.const import ExceptionMessages
+from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
@@ -62,6 +63,7 @@ class StoreProduct(Entity):
 
         # add suppliers and price
         self._suppliers = suppliers
+        self._purchase_prices = set()  # type:Set[ProductPurchasePrice]
 
         # thresholds
         self.restock_threshold = restock_threshold
@@ -241,4 +243,12 @@ class StoreProduct(Entity):
         return f'<StoreProduct ref={self.reference}>'
 
     def create_purchase_price_by_supplier(self, **kwargs):
-        pass
+        supplier = kwargs.get('supplier')
+        unit = kwargs.get('unit')
+
+        if supplier in self._suppliers and unit in self._units:
+            purchase_price = ProductPurchasePrice(supplier=supplier.supplier_id, unit=unit.unit,
+                                                  price=kwargs.get('price'), tax=kwargs.get('tax'),
+                                                  applied_from=kwargs.get('applied_from'))
+
+            self._purchase_prices.add(purchase_price)

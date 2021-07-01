@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 
 import sqlalchemy as sa
@@ -270,7 +271,6 @@ store_product_tag_table = sa.Table(
     sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
 )
 
-
 # store_tags_cache_table = sa.Table(
 #     'store_tags_cache',
 #     metadata,
@@ -307,6 +307,66 @@ store_product_tag_table = sa.Table(
 #     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
 #     sa.Column('product_reference', sa.String(255))
 # )
+
+prod_table = sa.Table(
+    'xxx_prod', metadata,
+    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('prod_name', sa.String(100))
+)
+
+sup_table = sa.Table(
+    'xxx_sup', metadata,
+    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('sup_name', sa.String(100))
+)
+
+un_table = sa.Table(
+    'xxx_un', metadata,
+    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('prod_id', sa.ForeignKey(prod_table.c.id), nullable=False),
+    sa.Column('un_name', sa.String(100))
+)
+
+prod_sup_table = sa.Table(
+    'xxx_prod_sup', metadata,
+    sa.Column('prod_id', sa.ForeignKey(prod_table.c.id), nullable=False),
+    sa.Column('sup_id', sa.ForeignKey(sup_table.c.id), nullable=False),
+)
+
+sup_un_table = sa.Table(
+    'xxx_sup_un', metadata,
+    sa.Column('abc_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('sup_id', sa.ForeignKey(sup_table.c.id), nullable=False),
+    sa.Column('un_id', sa.ForeignKey(un_table.c.id), nullable=False),
+)
+
+pri_table = sa.Table(
+    'xxx_pri', metadata,
+    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('prod_id', sa.ForeignKey(prod_table.c.id), nullable=False),
+    sa.Column('abc_id', sa.ForeignKey(sup_un_table.c.abc_id), nullable=False),
+    sa.Column('value', sa.Integer)
+)
+
+
+@dataclass(unsafe_hash=True)
+class ProdClass:
+    prod_name: str
+
+
+@dataclass(unsafe_hash=True)
+class SupClass:
+    sup_name: str
+
+
+@dataclass(unsafe_hash=True)
+class UnClass:
+    un_name: str
+
+
+@dataclass(unsafe_hash=True)
+class PriClass:
+    value: int
 
 
 @event.listens_for(StoreRegistration, 'load')
