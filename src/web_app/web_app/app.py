@@ -17,7 +17,7 @@ from web_app.blueprints.auth_bp import auth_blueprint, AuthenticationAPI
 from web_app.blueprints.brand import brand_blueprint
 from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
 from web_app.blueprints.inventory_bp import inventory_blueprint, InventoryAPI
-from web_app.blueprints.manage_store_bp import store_blueprint, StoreAPI
+from web_app.blueprints.store_management_bp import store_management_blueprint, StoreAPI
 from web_app.blueprints.product_bp import product_blueprint, ProductAPI
 from web_app.blueprints.shipping import shipping_blueprint
 from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI, \
@@ -49,7 +49,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
     app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
     app.register_blueprint(brand_blueprint, url_prefix='/brand')
-    app.register_blueprint(store_blueprint, url_prefix='/manage-store')
+    app.register_blueprint(store_management_blueprint, url_prefix='/manage-store')
     app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
     app.register_blueprint(inventory_blueprint, url_prefix='/inventory')
     for _handler in store_catalog_blueprint_endpoint_callers:

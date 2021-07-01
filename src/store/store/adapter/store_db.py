@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
+from foundation.database_setup import location_address_table
 from sqlalchemy import event, UniqueConstraint
 
 from db_infrastructure import metadata, GUID
@@ -91,7 +92,7 @@ store_managers_table = sa.Table(
 store_address_table = sa.Table(
     'store_addresses',
     metadata,
-    sa.Column('address_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('address_id', sa.ForeignKey(location_address_table.c.address_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
 )
 
@@ -138,6 +139,20 @@ store_brand_table = sa.Table(
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('name', sa.String(255), nullable=False),
     sa.Column('logo', sa.String(255), nullable=True, default=''),
+    sa.Column('created_at', sa.DateTime, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+)
+
+store_supplier_table = sa.Table(
+    'supplier',
+    metadata,
+    sa.Column('supplier_id', GUID, primary_key=True, default=uuid.uuid4()),
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('supplier_name', sa.String, nullable=False),
+    sa.Column('contact_name', sa.String, nullable=False),
+    sa.Column('contact_phone', sa.String, nullable=False),
+    sa.Column('disabled', sa.Boolean, default='0'),
+    sa.Column('deleted', sa.Boolean, default='0'),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
@@ -206,6 +221,15 @@ store_product_unit_table = sa.Table(
     )
 )
 
+store_product_supplier_table = sa.Table(
+    'store_product_supplier',
+    metadata,
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('supplier_id', sa.ForeignKey(store_supplier_table.c.supplier_id, ondelete='CASCADE', onupdate='CASCADE')),
+
+    sa.PrimaryKeyConstraint('product_id', 'supplier_id', name='product_supplier_pk')
+)
+
 store_unit_cache_table = sa.Table(
     'store_units_cache',
     metadata,
@@ -224,30 +248,31 @@ store_product_tag_table = sa.Table(
     sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
 )
 
-store_tags_cache_table = sa.Table(
-    'store_tags_cache',
-    metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
-    sa.Column('tag', sa.String(100))
-)
 
-store_catalog_cache_table = sa.Table(
-    'store_catalogs_cache',
-    metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('catalog_reference', sa.String(100))
-)
-
-store_collection_cache_table = sa.Table(
-    'store_collection_cache',
-    metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('collection_id',
-              sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('collection_reference', sa.String(100))
-)
+# store_tags_cache_table = sa.Table(
+#     'store_tags_cache',
+#     metadata,
+#     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
+#     sa.Column('tag', sa.String(100))
+# )
+#
+# store_catalog_cache_table = sa.Table(
+#     'store_catalogs_cache',
+#     metadata,
+#     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+#     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
+#     sa.Column('catalog_reference', sa.String(100))
+# )
+#
+# store_collection_cache_table = sa.Table(
+#     'store_collection_cache',
+#     metadata,
+#     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+#     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
+#     sa.Column('collection_id',
+#               sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
+#     sa.Column('collection_reference', sa.String(100))
+# )
 
 
 # store_product_cache_table = sa.Table(
@@ -290,19 +315,19 @@ def store_load(store, connection):
     #
     # store.SIZE = sys.getsizeof(store)
 
-
-@event.listens_for(StoreCatalog, 'load')
-def ctalog_load(catalog, connection):
-    catalog._cached = {
-        'collections': [],
-        'products': [],
-    }
-
-    # fetch cache of collections into the store
-    q = sa.select([store_collection_cache_table.c.collection_reference]).where(
-        store_collection_cache_table.c.store_id == catalog.store_id).where(
-        store_collection_cache_table.c.catalog_id == catalog.catalog_id
-    )
-
-    fetched_collections = connection.session.execute(q).all()
-    catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]
+#
+# @event.listens_for(StoreCatalog, 'load')
+# def ctalog_load(catalog, connection):
+#     catalog._cached = {
+#         'collections': [],
+#         'products': [],
+#     }
+#
+#     # fetch cache of collections into the store
+#     q = sa.select([store_collection_cache_table.c.collection_reference]).where(
+#         store_collection_cache_table.c.store_id == catalog.store_id).where(
+#         store_collection_cache_table.c.catalog_id == catalog.catalog_id
+#     )
+#
+#     fetched_collections = connection.session.execute(q).all()
+#     catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]

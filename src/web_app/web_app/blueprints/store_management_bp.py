@@ -33,7 +33,8 @@ from web_app.presenters.manage_store_presenters import RegisteringStorePresenter
     ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter
 from web_app.serialization.dto import get_dto
 
-store_blueprint = Blueprint('store_blueprint', __name__)
+STORE_MANAGEMENT_BLUEPRINT_NAME = 'store_management_blueprint'
+store_management_blueprint = Blueprint(STORE_MANAGEMENT_BLUEPRINT_NAME, __name__)
 
 
 class StoreAPI(injector.Module):
@@ -78,7 +79,7 @@ class StoreAPI(injector.Module):
         return UploadingImagePresenter()
 
 
-@store_blueprint.route('/register', methods=['POST'])
+@store_management_blueprint.route('/register', methods=['POST'])
 def register_new_store(register_store_uc: RegisterStoreUC, presenter: RegisteringStoreResponseBoundary) -> Response:
     try:
         dto = get_dto(request, RegisteringStoreRequest, context={})
@@ -92,7 +93,7 @@ def register_new_store(register_store_uc: RegisterStoreUC, presenter: Registerin
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/resend-confirmation', methods=['POST'])
+@store_management_blueprint.route('/resend-confirmation', methods=['POST'])
 def resend_registration_confirmation(resend_registration_confirmation_uc: ResendRegistrationConfirmationUC,
                                      presenter: ResendingRegistrationConfirmationResponseBoundary) -> Response:
     try:
@@ -120,7 +121,7 @@ def confirm_store_registration(confirmation_token, confirm_store_registration_uc
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/confirm', methods=['POST'])
+@store_management_blueprint.route('/confirm', methods=['POST'])
 def confirm_store_registration_post(confirm_store_registration_uc: ConfirmStoreRegistrationUC,
                                     presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
     try:
@@ -132,7 +133,7 @@ def confirm_store_registration_post(confirm_store_registration_uc: ConfirmStoreR
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/confirm/<string:confirmation_token>', methods=['GET'])
+@store_management_blueprint.route('/confirm/<string:confirmation_token>', methods=['GET'])
 def confirm_store_registration_get(confirmation_token: str, confirm_store_registration_uc: ConfirmStoreRegistrationUC,
                                    presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
     try:
@@ -141,7 +142,7 @@ def confirm_store_registration_get(confirmation_token: str, confirm_store_regist
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/choose', methods=['POST'])
+@store_management_blueprint.route('/choose', methods=['POST'])
 @jwt_required()
 def confirm_store_package(choose_store_plan_uc: SelectStorePlanUC,
                           presenter: SelectingStorePlanResponseBoundary) -> Response:
@@ -158,7 +159,7 @@ def confirm_store_package(choose_store_plan_uc: SelectStorePlanUC,
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/settings', methods=['GET'])
+@store_management_blueprint.route('/settings', methods=['GET'])
 @jwt_required()
 def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
     try:
@@ -172,7 +173,7 @@ def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/settings', methods=['PATCH'])
+@store_management_blueprint.route('/settings', methods=['PATCH'])
 @jwt_required()
 def update_store_settings(update_store_settings_uc: UpdateStoreSettingsUC,
                           presenter: UpdatingStoreSettingsResponseBoundary):
@@ -190,26 +191,26 @@ def update_store_settings(update_store_settings_uc: UpdateStoreSettingsUC,
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/managers/', methods=['GET'])
+@store_management_blueprint.route('/managers/', methods=['GET'])
 @jwt_required()
 def fetch_store_managers() -> Response:
     return None
 
 
-@store_blueprint.route('/managers/add', methods=['POST'])
+@store_management_blueprint.route('/managers/add', methods=['POST'])
 @jwt_required()
 def add_store_manager(add_store_manager_uc: AddStoreManagerUC,
                       presenter: AddingStoreManagerResponseBoundary) -> Response:
     raise NotImplementedError
 
 
-@store_blueprint.route('/managers/<string:login>', methods=['PATCH'])
+@store_management_blueprint.route('/managers/<string:login>', methods=['PATCH'])
 @jwt_required()
 def patch_store_manager(login: str) -> Response:
     raise NotImplementedError
 
 
-@store_blueprint.route('/images', methods=['POST'])
+@store_management_blueprint.route('/images', methods=['POST'])
 @jwt_required()
 def upload_image(upload_image_uc: UploadImageUC, presenter: UploadingImageResponseBoundary) -> Response:
     try:
@@ -230,7 +231,7 @@ def upload_image(upload_image_uc: UploadImageUC, presenter: UploadingImageRespon
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/warehouse', methods=['GET'])
+@store_management_blueprint.route('/warehouse', methods=['GET'])
 @jwt_required()
 def fetch_store_warehouses(query: FetchStoreWarehouseQuery) -> Response:
     try:
@@ -244,7 +245,7 @@ def fetch_store_warehouses(query: FetchStoreWarehouseQuery) -> Response:
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-@store_blueprint.route('/warehouse', methods=['POST'])
+@store_management_blueprint.route('/warehouse', methods=['POST'])
 @jwt_required()
 def create_new_warehouse(create_store_warehouse_uc: CreateStoreWarehouseUC,
                          presenter: CreatingStoreWarehouseResponseBoundary) -> Response:

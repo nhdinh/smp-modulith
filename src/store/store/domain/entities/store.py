@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from typing import Set, List, Union, TYPE_CHECKING, Any
+from typing import Set, List, Union, TYPE_CHECKING, Any, Optional
 
 from foundation.common_helpers import slugify
 from foundation.events import EventMixin
@@ -49,6 +49,7 @@ class Store(EventMixin):
         self._managers = set()  # type: Set
 
         # children data
+        self._warehouses = set()  # type: Set[StoreWarehouse]
         self._brands = set()  # type: Set[StoreProductBrand]
         self._catalogs = set()  # type: Set
         self._collections = set()  # type: Set
@@ -66,6 +67,14 @@ class Store(EventMixin):
     @property
     def warehouses(self) -> Set[StoreWarehouse]:
         return self._warehouses
+
+    @property
+    def default_warehouse(self) -> Optional[StoreWarehouse]:
+        try:
+            default_warehouse = next(w for w in self._warehouses if w.default)
+            return default_warehouse
+        except StopIteration:
+            return None
 
     @property
     def brands(self) -> Set[StoreProductBrand]:
@@ -402,6 +411,9 @@ class Store(EventMixin):
 
     # endregion
     def create_warehouse(self, warehouse_name: str):
+        if len(self._warehouses) >= 1:
+            raise Exception('Sorry. This version of application only allow to create 01 warehouse per store.')
+
         """
         Create a new warehouse for this store
 

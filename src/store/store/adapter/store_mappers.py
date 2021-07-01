@@ -6,7 +6,7 @@ from identity.domain.entities import User
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
     store_managers_table, store_catalog_table, store_product_table, \
     store_product_unit_table, store_brand_table, store_product_tag_table, store_collection_table, \
-    store_product_collection_table, store_warehouse_table
+    store_product_collection_table, store_warehouse_table, store_product_supplier_table
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
@@ -69,6 +69,12 @@ def start_mappers():
 
             '_brand': relationship(
                 StoreProductBrand
+            ),
+
+            '_suppliers': relationship(
+                Supplier,
+                secondary=store_product_supplier_table,
+                collection_class=set,
             ),
 
             '_collections': relationship(

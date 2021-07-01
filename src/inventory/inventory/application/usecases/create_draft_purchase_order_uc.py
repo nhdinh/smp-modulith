@@ -31,9 +31,10 @@ class CreatingDraftPurchaseOrderRequest:
 
     creator: str
     delivery_address: LocationAddressId
-
+    note: str
+    due_date: datetime
+    status: str
     items: List[PurchaseOrderItemRequest] = field(default_factory=list)
-    note: str = ''
 
     created_at: datetime = datetime.now()
 
