@@ -179,7 +179,7 @@ class CreateStoreProductUC:
                             suppliers = []
                             for create_supplier_request in data:  # type:CreatingStoreSupplierRequest
                                 supplier_prices = []
-                                for create_price_request in create_supplier_request.purchase_prices:  # type:CreatingProductSupplierPriceRequest
+                                for create_price_request in create_supplier_request.purchase_prices:  # type:CreatingProductPriceRequest
                                     supplier_prices.append({
                                         'supplier_name': create_supplier_request.supplier_name,
                                         'unit': create_price_request.unit,

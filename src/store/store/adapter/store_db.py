@@ -15,7 +15,7 @@ from store.domain.entities.store_registration import StoreRegistration
 store_registration_table = sa.Table(
     'store_registration',
     metadata,
-    sa.Column('store_registration_id', GUID, primary_key=True),
+    sa.Column('store_registration_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('name', sa.String(100)),
     sa.Column('owner_email', sa.String(255), unique=True, nullable=False),
     sa.Column('owner_password', sa.String(255), nullable=False),

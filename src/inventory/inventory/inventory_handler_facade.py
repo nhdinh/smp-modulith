@@ -6,7 +6,7 @@ import injector
 from sqlalchemy import insert
 from sqlalchemy.engine import Connection
 
-from inventory.adapter.inventory_db import inventory_product_balance_table
+# from inventory.adapter.inventory_db import inventory_product_balance_table
 from store.domain.entities.store import StoreId
 from store.domain.entities.store_product import StoreProductId
 from store.domain.events.store_product_created_event import StoreProductCreatedEvent
@@ -43,10 +43,11 @@ class StoreProductCreatedEventHandler:
         self._f = facade
 
     def __call__(self, event: StoreProductCreatedEvent) -> None:
-        self._f.update_inventory_first_stock(
-            event.store_id,
-            event.product_id,
-            event.default_unit,
-            event.units,
-            event.first_stocks
-        )
+        pass
+        # self._f.update_inventory_first_stock(
+        #     event.store_id,
+        #     event.product_id,
+        #     event.default_unit,
+        #     event.units,
+        #     event.first_stocks
+        # )
