@@ -5,6 +5,7 @@ from typing import Set, List, Union, TYPE_CHECKING, Any, Optional
 
 from foundation.common_helpers import slugify
 from foundation.events import EventMixin
+from foundation.value_objects.factories import get_money
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
 from store.domain.entities.store_catalog import StoreCatalog
@@ -241,9 +242,10 @@ class Store(EventMixin):
             store_product.create_purchase_price_by_supplier(
                 supplier=self._supplier_factory(supplier_name=price['supplier_name']),
                 unit=store_product.get_unit(price['unit']),
-                price=price['price'],
+                price=get_money(amount=price['price'],
+                                currency_str=price['currency'] if 'currency' in price.keys() else 'VND'),
                 tax=price['tax'],
-                applied_from=price['applied_from'],
+                effective_from=price['effective_from'],
             )
 
         # add to catalog

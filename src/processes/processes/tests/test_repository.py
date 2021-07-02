@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy.engine import Connection, Engine
 
 from db_infrastructure import Base
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 from processes.paying_for_won_item import PayingForWonItemData
 from processes.paying_for_won_item.saga import State
 from processes.repository import ProcessManagerDataRepo, process_manager_data_table
@@ -49,7 +49,7 @@ def repo(connection: Connection) -> ProcessManagerDataRepo:
                 UUID("d1526bb4-cee4-4b63-9029-802abc0f7593"),
                 State.PAYMENT_STARTED,
                 EXAMPLE_DATETIME,
-                get_dollars("15.99"),
+                get_money("15.99"),
                 "Irrelevant",
                 1,
                 2,

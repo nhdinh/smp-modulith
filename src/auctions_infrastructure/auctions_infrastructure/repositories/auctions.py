@@ -9,7 +9,7 @@ from auctions.domain.entities import Auction, Bid
 from auctions.domain.value_objects import AuctionId
 from auctions_infrastructure import auctions, bids
 from foundation.events import EventBus
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 
 
 class SqlAlchemyAuctionsRepo(AuctionsRepository):
@@ -26,11 +26,11 @@ class SqlAlchemyAuctionsRepo(AuctionsRepository):
         return self._row_to_entity(row, bid_rows)
 
     def _row_to_entity(self, auction_proxy: RowProxy, bids_proxies: List[RowProxy]) -> Auction:
-        auction_bids = [Bid(bid.id, bid.bidder_id, get_dollars(bid.amount)) for bid in bids_proxies]
+        auction_bids = [Bid(bid.id, bid.bidder_id, get_money(bid.amount)) for bid in bids_proxies]
         return Auction(
             auction_proxy.id,
             auction_proxy.title,
-            get_dollars(auction_proxy.starting_price),
+            get_money(auction_proxy.starting_price),
             auction_bids,
             auction_proxy.ends_at.replace(tzinfo=pytz.UTC),
             auction_proxy.ended,

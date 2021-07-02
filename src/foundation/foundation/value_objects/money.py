@@ -3,12 +3,15 @@ from decimal import Decimal, DecimalException
 from functools import total_ordering
 from typing import Any, Type
 
-from foundation.value_objects.currency import Currency
+from foundation.value_objects.currency import _get_registered_currency_or_default, Currency
 
 
 @total_ordering
 class Money:
     def __init__(self, currency: Type[Currency], amount: Any) -> None:
+        if type(currency) is str:
+            currency = _get_registered_currency_or_default(currency)
+
         if not inspect.isclass(currency) or not issubclass(currency, Currency):
             raise ValueError(f"{currency} is not a subclass of Currency!")
         try:

@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from typing import Optional, TYPE_CHECKING, Set, List
+from datetime import datetime
+from typing import Optional, TYPE_CHECKING, Set, List, Tuple
 
 from foundation.common_helpers import slugify
 from foundation.entity import Entity
+from foundation.value_objects import Money, Currency
+from foundation.value_objects.currency import VND
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
+from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.value_objects import StoreProductReference, StoreProductId
 from store.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
@@ -133,6 +137,10 @@ class StoreProduct(Entity):
         self._brand = value
 
     @property
+    def suppliers(self) -> Set['StoreSupplier']:
+        return self._suppliers
+
+    @property
     def units(self) -> Set[StoreProductUnit]:
         return self._units
 
@@ -245,10 +253,25 @@ class StoreProduct(Entity):
     def create_purchase_price_by_supplier(self, **kwargs):
         supplier = kwargs.get('supplier')
         unit = kwargs.get('unit')
+        price = kwargs.get('price')
+        currency = kwargs.get('currency') if 'currency' in kwargs else VND
+        price = Money(currency=currency, amount=price)
 
         if supplier in self._suppliers and unit in self._units:
-            purchase_price = ProductPurchasePrice(supplier=supplier.supplier_id, unit=unit.unit,
-                                                  price=kwargs.get('price'), tax=kwargs.get('tax'),
-                                                  applied_from=kwargs.get('applied_from'))
+            purchase_price = ProductPurchasePrice(
+                supplier=supplier,
+                product_unit=unit,
+                price=price,
+                tax=kwargs.get('tax'),
+                effective_from=kwargs.get('applied_from')
+            )
 
             self._purchase_prices.add(purchase_price)
+
+    def get_price(self, by_supplier: StoreSupplier, by_unit: StoreProductUnit) -> Optional[
+        Tuple[Money, float, datetime]]:
+        try:
+            price = next(p for p in self._purchase_prices if p.product_unit == by_unit and p.supplier == by_supplier)
+            return price.price, price.tax, price.effective_from
+        except StopIteration:
+            return None

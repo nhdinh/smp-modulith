@@ -26,7 +26,7 @@ class PaymentDto:
 
     @classmethod
     def from_row(cls, row: Any) -> "PaymentDto":
-        return PaymentDto(UUID(row.uuid), factories.get_dollars(row.amount / 100), row.description, row.status)
+        return PaymentDto(UUID(row.uuid), factories.get_money(row.amount / 100), row.description, row.status)
 
 
 def start_new_payment(payment_uuid: UUID, customer_id: int, amount: Money, description: str, conn: Connection) -> None:

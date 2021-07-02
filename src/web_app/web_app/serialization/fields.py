@@ -4,7 +4,7 @@ from uuid import UUID
 
 from marshmallow import exceptions, fields
 
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 
 
 class Dollars(fields.Field):
@@ -13,7 +13,7 @@ class Dollars(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):  # type: ignore
         try:
-            return get_dollars(value)
+            return get_money(value)
         except ValueError as exc:
             raise exceptions.ValidationError(str(exc))
 

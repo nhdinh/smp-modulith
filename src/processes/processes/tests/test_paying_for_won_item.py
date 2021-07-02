@@ -8,7 +8,7 @@ import pytest
 
 from auctions import AuctionEnded
 from customer_relationship import CustomerRelationshipFacade
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 from payments import PaymentCaptured, PaymentsFacade
 from processes.paying_for_won_item import PayingForWonItem
 from processes.paying_for_won_item.saga import PayingForWonItemData, State
@@ -49,7 +49,7 @@ def test_should_start_new_payment_upon_auction_ended(
     mocked_uuid4: uuid.UUID,
     pm_data: PayingForWonItemData,
 ) -> None:
-    event = AuctionEnded(auction_id=1, winner_id=2, winning_bid=get_dollars("99.99"), auction_title="irrelevant")
+    event = AuctionEnded(auction_id=1, winner_id=2, winning_bid=get_money("99.99"), auction_title="irrelevant")
     process_manager.handle(event, pm_data)
 
     payments_facade_mock.start_new_payment.assert_called_once_with(
@@ -69,7 +69,7 @@ def test_should_start_new_payment_upon_auction_ended(
 @pytest.fixture()
 def pm_data_waiting_for_payment(mocked_uuid4: uuid.UUID) -> PayingForWonItemData:
     return PayingForWonItemData(
-        mocked_uuid4, State.PAYMENT_STARTED, datetime.now() + timedelta(days=3), get_dollars("15.99"), "Irrelevant"
+        mocked_uuid4, State.PAYMENT_STARTED, datetime.now() + timedelta(days=3), get_money("15.99"), "Irrelevant"
     )
 
 

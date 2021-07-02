@@ -8,7 +8,7 @@ from uuid import UUID
 from typing_extensions import Protocol
 
 from foundation.value_objects import Money
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 
 T = TypeVar("T")
 
@@ -39,7 +39,7 @@ deserializers = {
     int: int,
     str: str,
     datetime: _deserialize_dt,
-    Money: lambda dict_repr: get_dollars(dict_repr["amount"]),
+    Money: lambda dict_repr: get_money(dict_repr["amount"]),
     UUID: UUID,
 }
 

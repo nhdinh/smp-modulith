@@ -7,6 +7,7 @@ from typing import Optional as Opt, List
 
 from sqlalchemy.exc import IntegrityError
 
+from foundation.value_objects import Money, Currency
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 from store.domain.entities.value_objects import StoreProductReference, \
@@ -27,9 +28,10 @@ class CreatingStoreProductFirstStockingRequest:
 
 
 @dataclass(frozen=True)
-class CreatingProductSupplierPriceRequest:
+class CreatingProductPriceRequest:
     unit: str
     price: float
+    currency: Opt[str]
     tax: Opt[float]
     applied_from: datetime = datetime.now()
 
@@ -39,7 +41,7 @@ class CreatingStoreSupplierRequest:
     supplier_name: str
     contact_name: Opt[str]
     contact_phone: Opt[str]
-    purchase_prices: Opt[List[CreatingProductSupplierPriceRequest]] = field(default_factory=list)
+    purchase_prices: Opt[List[CreatingProductPriceRequest]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -106,7 +108,6 @@ class CreateStoreProductUC:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 """
-
                 product_data = dict()
                 product_data_fields = [
                     # product data (required)
@@ -206,8 +207,8 @@ class CreateStoreProductUC:
 
                 # make response
                 response_dto = CreatingStoreProductResponse(
-                    product_id=1,#product.product_id,
-                    product_reference='a'#product.reference
+                    product_id=1,  # product.product_id,
+                    product_reference='a'  # product.reference
                 )
                 self._ob.present(response_dto=response_dto)
 

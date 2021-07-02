@@ -7,7 +7,7 @@ from sqlalchemy.engine.row import RowProxy
 from auctions.application.queries import AuctionDto, GetActiveAuctionsQuery, GetSingleAuctionQuery
 from auctions_infrastructure import auctions
 from db_infrastructure import SqlQuery
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 
 
 class SqlGetActiveAuctionsQuery(GetActiveAuctionsQuery, SqlQuery):
@@ -27,7 +27,7 @@ def _row_to_dto(auction_proxy: RowProxy) -> AuctionDto:
     return AuctionDto(
         id=auction_proxy.id,
         title=auction_proxy.title,
-        current_price=get_dollars(auction_proxy.current_price),
-        starting_price=get_dollars(auction_proxy.starting_price),
+        current_price=get_money(auction_proxy.current_price),
+        starting_price=get_money(auction_proxy.starting_price),
         ends_at=auction_proxy.ends_at,
     )

@@ -5,24 +5,18 @@ import dotenv
 import injector
 from sqlalchemy.engine import Engine, create_engine
 
-import foundation.database_setup as foundation_database_setup
-from inventory.adapter import inventory_mappers
-from store.adapter import store_mappers
-
 from auctions import Auctions
 from auctions_infrastructure import AuctionsInfrastructure
 from customer_relationship import CustomerRelationship
 from db_infrastructure import metadata
 from foundation import FoundationModule
 from identity import IdentityModule
-from identity.adapters import identity_db
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService, FileSystemProvider
 from payments import Payments
 from processes import Processes
 from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureModule
-from product_catalog.adapter import catalog_db
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 from store import StoreInfrastructureModule, StoreModule
@@ -118,26 +112,31 @@ def _setup_orm_events(dependency_injector: injector.Injector) -> None:
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     # TODO: do something here to map the data table to model class
     try:
+        import foundation.database_setup as foundation_database_setup
         foundation_database_setup.start_mappers()
     except Exception as exc:
         raise exc
 
     try:
+        from identity.adapters import identity_db
         identity_db.start_mappers()
     except Exception as exc:
         raise exc
 
     try:
+        from product_catalog.adapter import catalog_db
         catalog_db.start_mappers()
     except Exception as exc:
         raise exc
 
     try:
+        from store.adapter import store_mappers
         store_mappers.start_mappers()
     except Exception as exc:
         raise exc
 
     try:
+        from inventory.adapter import inventory_mappers
         inventory_mappers.start_mappers()
     except Exception as exc:
         raise exc

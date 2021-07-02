@@ -4,7 +4,7 @@ import pytest
 from flask.testing import FlaskClient
 
 from auctions import BeginningAuction, BeginningAuctionInputDto
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 from main.modules import RequestScope
 
 
@@ -14,7 +14,7 @@ class BeginningAuctionInputDtoFactory(factory.Factory):
 
     auction_id = factory.Sequence(lambda n: n)
     title = factory.Faker("name")
-    starting_price = get_dollars("0.99")
+    starting_price = get_money("0.99")
     ends_at = factory.Faker("future_datetime", end_date="+7d")
 
 

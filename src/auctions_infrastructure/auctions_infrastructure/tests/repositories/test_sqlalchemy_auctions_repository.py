@@ -12,7 +12,7 @@ from auctions_infrastructure import auctions, bids
 from auctions_infrastructure.repositories import SqlAlchemyAuctionsRepo
 from db_infrastructure import Base
 from foundation.events import Event, EventBus
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 
 
 @pytest.fixture(scope="session")
@@ -94,10 +94,10 @@ def test_gets_existing_auction(
 
     assert auction.id == auction_model_with_a_bid.id
     assert auction.title == auction_model_with_a_bid.title
-    assert auction.starting_price == get_dollars(auction_model_with_a_bid.starting_price)
-    assert auction.current_price == get_dollars(bid_model.amount)
+    assert auction.starting_price == get_money(auction_model_with_a_bid.starting_price)
+    assert auction.current_price == get_money(bid_model.amount)
     assert auction.ends_at == ends_at
-    assert set(auction.bids) == {Bid(bid_model.id, bid_model.bidder_id, get_dollars(bid_model.amount))}
+    assert set(auction.bids) == {Bid(bid_model.id, bid_model.bidder_id, get_money(bid_model.amount))}
 
 
 @pytest.mark.usefixtures("transaction")
@@ -109,14 +109,14 @@ def test_saves_auction_changes(
     ends_at: datetime,
     event_bus_mock: Mock,
 ) -> None:
-    new_bid_price = get_dollars(bid_model.amount * 2)
+    new_bid_price = get_money(bid_model.amount * 2)
     auction = Auction(
         id=auction_model_with_a_bid.id,
         title=auction_model_with_a_bid.title,
-        starting_price=get_dollars(auction_model_with_a_bid.starting_price),
+        starting_price=get_money(auction_model_with_a_bid.starting_price),
         ends_at=ends_at,
         bids=[
-            Bid(bid_model.id, bid_model.bidder_id, get_dollars(bid_model.amount)),
+            Bid(bid_model.id, bid_model.bidder_id, get_money(bid_model.amount)),
             Bid(None, another_bidder_id, new_bid_price),
         ],
         ended=True,
@@ -137,9 +137,9 @@ def test_removes_withdrawn_bids(
     auction = Auction(
         id=auction_model_with_a_bid.id,
         title=auction_model_with_a_bid.title,
-        starting_price=get_dollars(auction_model_with_a_bid.starting_price),
+        starting_price=get_money(auction_model_with_a_bid.starting_price),
         ends_at=ends_at,
-        bids=[Bid(bid_model.id, bid_model.bidder_id, get_dollars(bid_model.amount))],
+        bids=[Bid(bid_model.id, bid_model.bidder_id, get_money(bid_model.amount))],
         ended=False,
     )
     auction.withdraw_bids([bid_model.id])
@@ -155,7 +155,7 @@ def test_AuctionsRepo_UponSavingAuction_PostsPendingEventsViaEventBus(
 ) -> None:
     repo = SqlAlchemyAuctionsRepo(connection, event_bus_mock)
     auction = repo.get(auction_model_with_a_bid.id)
-    auction.place_bid(another_bidder_id, auction.current_price + get_dollars("1.00"))
+    auction.place_bid(another_bidder_id, auction.current_price + get_money("1.00"))
 
     repo.save(auction)
 
@@ -181,7 +181,7 @@ def test_AuctionsRepo_UponSavingAuction_ClearsPendingEvents(
 ) -> None:
     repo = SqlAlchemyAuctionsRepo(connection, event_bus_mock)
     auction = repo.get(auction_model_with_a_bid.id)
-    auction.place_bid(another_bidder_id, auction.current_price + get_dollars("1.00"))
+    auction.place_bid(another_bidder_id, auction.current_price + get_money("1.00"))
 
     repo.save(auction)
 

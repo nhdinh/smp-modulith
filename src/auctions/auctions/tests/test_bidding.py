@@ -16,7 +16,7 @@ from auctions.domain.value_objects import AuctionId
 from auctions.tests.factories import AuctionFactory
 from auctions.tests.in_memory_repo import InMemoryAuctionsRepo
 from foundation.events import EventBus
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 
 
 class PlacingBidOutputBoundaryFake(PlacingBidOutputBoundary):
@@ -73,46 +73,46 @@ def beginning_auction_uc(auctions_repo: AuctionsRepository) -> BeginningAuction:
 def test_Auction_FirstBidHigherThanIntialPrice_IsWinning(
     place_bid_uc: PlacingBid, output_boundary: PlacingBidOutputBoundaryFake, auction_id: AuctionId
 ) -> None:
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("100")))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("100")))
 
-    expected_dto = PlacingBidOutputDto(is_winner=True, current_price=get_dollars("100"))
+    expected_dto = PlacingBidOutputDto(is_winner=True, current_price=get_money("100"))
     assert output_boundary.dto == expected_dto
 
 
 def test_Auction_BidLowerThanCurrentPrice_IsLosing(
     place_bid_uc: PlacingBid, output_boundary: PlacingBidOutputBoundaryFake, auction_id: AuctionId
 ) -> None:
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("5")))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("5")))
 
-    assert output_boundary.dto == PlacingBidOutputDto(is_winner=False, current_price=get_dollars("10"))
+    assert output_boundary.dto == PlacingBidOutputDto(is_winner=False, current_price=get_money("10"))
 
 
 def test_Auction_Overbid_IsWinning(
     place_bid_uc: PlacingBid, output_boundary: PlacingBidOutputBoundaryFake, auction_id: AuctionId
 ) -> None:
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("100")))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("100")))
 
-    place_bid_uc.execute(PlacingBidInputDto(2, auction_id, get_dollars("120")))
+    place_bid_uc.execute(PlacingBidInputDto(2, auction_id, get_money("120")))
 
-    assert output_boundary.dto == PlacingBidOutputDto(is_winner=True, current_price=get_dollars("120"))
+    assert output_boundary.dto == PlacingBidOutputDto(is_winner=True, current_price=get_money("120"))
 
 
 def test_Auction_OverbidByWinner_IsWinning(
     place_bid_uc: PlacingBid, output_boundary: PlacingBidOutputBoundaryFake, auction_id: AuctionId
 ) -> None:
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("100")))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("100")))
 
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("120")))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("120")))
 
-    assert output_boundary.dto == PlacingBidOutputDto(is_winner=True, current_price=get_dollars("120"))
+    assert output_boundary.dto == PlacingBidOutputDto(is_winner=True, current_price=get_money("120"))
 
 
 def test_Auction_FirstBid_EmitsEvent(
     place_bid_uc: PlacingBid, event_bus: Mock, auction_id: AuctionId, auction_title: str
 ) -> None:
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("100")))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("100")))
 
-    event_bus.post.assert_called_once_with(WinningBidPlaced(auction_id, 1, get_dollars("100"), auction_title))
+    event_bus.post.assert_called_once_with(WinningBidPlaced(auction_id, 1, get_money("100"), auction_title))
 
 
 # Uzyty w przykladzie to inicjalizowania modulu
@@ -121,16 +121,16 @@ def test_Auction_OverbidFromOtherBidder_EmitsEvents(
 ) -> None:
     auction_id = 1
     tomorrow = datetime.now(tz=pytz.UTC) + timedelta(days=1)
-    beginning_auction_uc.execute(BeginningAuctionInputDto(auction_id, "Foo", get_dollars("1.00"), tomorrow))
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("2.0")))
+    beginning_auction_uc.execute(BeginningAuctionInputDto(auction_id, "Foo", get_money("1.00"), tomorrow))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("2.0")))
 
     event_bus.post.reset_mock()
-    place_bid_uc.execute(PlacingBidInputDto(2, auction_id, get_dollars("3.0")))
+    place_bid_uc.execute(PlacingBidInputDto(2, auction_id, get_money("3.0")))
 
     event_bus.post.assert_has_calls(
         [
-            call(WinningBidPlaced(auction_id, 2, get_dollars("3.0"), "Foo")),
-            call(BidderHasBeenOverbid(auction_id, 1, get_dollars("3.0"), "Foo")),
+            call(WinningBidPlaced(auction_id, 2, get_money("3.0"), "Foo")),
+            call(BidderHasBeenOverbid(auction_id, 1, get_money("3.0"), "Foo")),
         ],
         any_order=True,
     )
@@ -140,15 +140,15 @@ def test_Auction_OverbidFromOtherBidder_EmitsEvents(
 def test_Auction_OverbidFromOtherBidder_EmitsEvent(
     place_bid_uc: PlacingBid, event_bus: Mock, auction_id: AuctionId, auction_title: str
 ) -> None:
-    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_dollars("100")))
+    place_bid_uc.execute(PlacingBidInputDto(1, auction_id, get_money("100")))
     event_bus.post.reset_mock()
 
-    place_bid_uc.execute(PlacingBidInputDto(2, auction_id, get_dollars("120")))
+    place_bid_uc.execute(PlacingBidInputDto(2, auction_id, get_money("120")))
 
     event_bus.post.assert_has_calls(
         [
-            call(WinningBidPlaced(auction_id, 2, get_dollars("120"), auction_title)),
-            call(BidderHasBeenOverbid(auction_id, 1, get_dollars("120"), auction_title)),
+            call(WinningBidPlaced(auction_id, 2, get_money("120"), auction_title)),
+            call(BidderHasBeenOverbid(auction_id, 1, get_money("120"), auction_title)),
         ],
         any_order=True,
     )
@@ -158,12 +158,12 @@ def test_Auction_OverbidFromOtherBidder_EmitsEvent(
 def test_Auction_OverbidFromWinner_EmitsWinningBidEventOnly(
     place_bid_uc: PlacingBid, event_bus: Mock, auction_id: AuctionId, auction_title: str
 ) -> None:
-    place_bid_uc.execute(PlacingBidInputDto(3, auction_id, get_dollars("100")))
+    place_bid_uc.execute(PlacingBidInputDto(3, auction_id, get_money("100")))
     event_bus.post.reset_mock()
 
-    place_bid_uc.execute(PlacingBidInputDto(3, auction_id, get_dollars("120")))
+    place_bid_uc.execute(PlacingBidInputDto(3, auction_id, get_money("120")))
 
-    event_bus.post.assert_called_once_with(WinningBidPlaced(auction_id, 3, get_dollars("120"), auction_title))
+    event_bus.post.assert_called_once_with(WinningBidPlaced(auction_id, 3, get_money("120"), auction_title))
 
 
 def test_PlacingBid_BiddingOnEndedAuction_RaisesException(
@@ -172,8 +172,8 @@ def test_PlacingBid_BiddingOnEndedAuction_RaisesException(
     yesterday = datetime.now(tz=pytz.UTC) - timedelta(days=1)
     with freeze_time(yesterday):
         beginning_auction_uc.execute(
-            BeginningAuctionInputDto(1, "Bar", get_dollars("1.00"), yesterday + timedelta(hours=1))
+            BeginningAuctionInputDto(1, "Bar", get_money("1.00"), yesterday + timedelta(hours=1))
         )
 
     with pytest.raises(BidOnEndedAuction):
-        place_bid_uc.execute(PlacingBidInputDto(1, 1, get_dollars("2.00")))
+        place_bid_uc.execute(PlacingBidInputDto(1, 1, get_money("2.00")))

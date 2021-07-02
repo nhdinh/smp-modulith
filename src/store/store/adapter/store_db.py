@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from dataclasses import dataclass
 from datetime import datetime
 
 import sqlalchemy as sa
@@ -180,8 +179,6 @@ store_product_table = sa.Table(
 
     sa.UniqueConstraint('store_id', 'reference', name='store_product_store_id_reference_ux'),
     sa.UniqueConstraint('store_id', 'sku', name='store_product_store_id_sku_ux'),
-
-    # CheckConstraint('')
 )
 
 store_product_collection_table = sa.Table(
@@ -213,12 +210,13 @@ store_product_unit_table = sa.Table(
 
     sa.PrimaryKeyConstraint('product_id', 'unit', name='store_product_unit_pk'),
     sa.ForeignKeyConstraint(
-        # ('base_product_id', 'base_unit'),
         ('product_id', 'base_unit'),
         ['store_product_unit.product_id', 'store_product_unit.unit'],
         name='store_product_unit_fk',
         ondelete='SET NULL'
-    )
+    ),
+
+    sa.UniqueConstraint('product_id', 'unit', name='store_product_unit_uix')
 )
 
 store_product_supplier_table = sa.Table(
@@ -234,23 +232,22 @@ store_supplier_product_price_table = sa.Table(
     'store_supplier_product_price',
     metadata,
     sa.Column('product_price_id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('product_id', GUID, nullable=False),
-    sa.Column('supplier_id', GUID, nullable=False),
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id), nullable=False),
+    sa.Column('supplier_id', sa.ForeignKey(store_supplier_table.c.supplier_id), nullable=False),
+    # sa.Column('unit', sa.ForeignKey(store_product_unit_table.c.unit), nullable=False),
     sa.Column('unit', sa.String(50), nullable=False),
-    sa.Column('price', sa.Float, nullable=False),
-    sa.Column('tax', sa.Float),
-    sa.Column('applied_from', sa.DateTime, nullable=False, server_default=sa.func.now()),
+    sa.Column('price', sa.Numeric, nullable=False),
+    sa.Column('currency', sa.String(10), nullable=False),
+    sa.Column('tax', sa.Numeric),
+    sa.Column('effective_from', sa.DateTime, nullable=False, server_default=sa.func.now()),
 
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 
-    sa.ForeignKeyConstraint(('product_id', 'supplier_id'),
-                            [store_product_supplier_table.c.product_id, store_product_supplier_table.c.supplier_id],
-                            name='store_supplier_product_fk'),
     sa.ForeignKeyConstraint(('product_id', 'unit'),
                             [store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
                             name='store_product_unit_fk'),
-    sa.UniqueConstraint('product_id', 'supplier_id', 'unit', 'applied_from', name='store_product_supplier_price_uix'),
+    sa.UniqueConstraint('product_id', 'supplier_id', 'unit', 'effective_from', name='store_product_supplier_price_uix'),
 )
 
 store_unit_cache_table = sa.Table(
@@ -270,6 +267,7 @@ store_product_tag_table = sa.Table(
     sa.PrimaryKeyConstraint('product_id', 'tag', name='store_product_tag_pk'),
     sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
 )
+
 
 # store_tags_cache_table = sa.Table(
 #     'store_tags_cache',
@@ -307,66 +305,6 @@ store_product_tag_table = sa.Table(
 #     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
 #     sa.Column('product_reference', sa.String(255))
 # )
-
-prod_table = sa.Table(
-    'xxx_prod', metadata,
-    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('prod_name', sa.String(100))
-)
-
-sup_table = sa.Table(
-    'xxx_sup', metadata,
-    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('sup_name', sa.String(100))
-)
-
-un_table = sa.Table(
-    'xxx_un', metadata,
-    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('prod_id', sa.ForeignKey(prod_table.c.id), nullable=False),
-    sa.Column('un_name', sa.String(100))
-)
-
-prod_sup_table = sa.Table(
-    'xxx_prod_sup', metadata,
-    sa.Column('prod_id', sa.ForeignKey(prod_table.c.id), nullable=False),
-    sa.Column('sup_id', sa.ForeignKey(sup_table.c.id), nullable=False),
-)
-
-sup_un_table = sa.Table(
-    'xxx_sup_un', metadata,
-    sa.Column('abc_id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('sup_id', sa.ForeignKey(sup_table.c.id), nullable=False),
-    sa.Column('un_id', sa.ForeignKey(un_table.c.id), nullable=False),
-)
-
-pri_table = sa.Table(
-    'xxx_pri', metadata,
-    sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('prod_id', sa.ForeignKey(prod_table.c.id), nullable=False),
-    sa.Column('abc_id', sa.ForeignKey(sup_un_table.c.abc_id), nullable=False),
-    sa.Column('value', sa.Integer)
-)
-
-
-@dataclass(unsafe_hash=True)
-class ProdClass:
-    prod_name: str
-
-
-@dataclass(unsafe_hash=True)
-class SupClass:
-    sup_name: str
-
-
-@dataclass(unsafe_hash=True)
-class UnClass:
-    un_name: str
-
-
-@dataclass(unsafe_hash=True)
-class PriClass:
-    value: int
 
 
 @event.listens_for(StoreRegistration, 'load')

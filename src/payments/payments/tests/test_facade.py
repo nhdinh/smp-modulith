@@ -9,7 +9,7 @@ from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import Base
 from foundation.events import EventBus
-from foundation.value_objects.factories import get_dollars
+from foundation.value_objects.factories import get_money
 from payments.api import ApiConsumer
 from payments.api.exceptions import PaymentFailedError
 from payments.config import PaymentsConfig
@@ -69,7 +69,7 @@ def test_adding_new_payment_is_reflected_on_pending_payments_list(
     assert facade.get_pending_payments(customer_id) == []
 
     payment_uuid = uuid.uuid4()
-    amount = get_dollars("15.00")
+    amount = get_money("15.00")
     description = "Example"
     # with patch.object(event_bus, "post") as post_mock:
     facade.start_new_payment(payment_uuid, customer_id, amount, description)
@@ -113,7 +113,7 @@ def test_successful_charge_updates_status(
     with patch.object(ApiConsumer, "charge", return_value=charge_id) as charge_mock:
         facade.charge(uuid.UUID(inserted_payment["uuid"]), inserted_payment["customer_id"], "token")
 
-    charge_mock.assert_called_once_with(get_dollars(inserted_payment["amount"] / 100), "token")
+    charge_mock.assert_called_once_with(get_money(inserted_payment["amount"] / 100), "token")
     payment_row = get_payment(connection, inserted_payment["uuid"])
     assert payment_row.status == PaymentStatus.CHARGED.value
     assert payment_row.charge_id == charge_id
@@ -129,7 +129,7 @@ def test_unsuccessful_charge(
     with patch.object(ApiConsumer, "charge", side_effect=PaymentFailedError) as charge_mock:
         facade.charge(payment_uuid, inserted_payment["customer_id"], "token")
 
-    charge_mock.assert_called_once_with(get_dollars(inserted_payment["amount"] / 100), "token")
+    charge_mock.assert_called_once_with(get_money(inserted_payment["amount"] / 100), "token")
     assert get_payment(connection, inserted_payment["uuid"]).status == PaymentStatus.FAILED.value
     event_bus.post.assert_called_once_with(PaymentFailed(payment_uuid, inserted_payment["customer_id"]))
 
