@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from typing import List
 
 from foundation.value_objects.address import LocationAddressId
@@ -29,7 +29,7 @@ class CreatingDraftPurchaseOrderRequest:
     creator: str
     delivery_address: LocationAddressId
     note: str
-    due_date: datetime
+    due_date: date
     status: str
     items: List[PurchaseOrderItemRequest] = field(default_factory=list)
 

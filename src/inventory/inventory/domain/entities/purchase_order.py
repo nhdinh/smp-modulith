@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from enum import Enum
 from typing import NewType, List
 from uuid import UUID
 
@@ -11,14 +12,15 @@ from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_supplier import StoreSupplier
 
 
-class Enum(tuple): __getattr__ = tuple.index
+class PurchaseOrderStatus(Enum):
+    DRAFT = 'DRAFT'
+    APPROVED = 'APPROVED'
+    DECLINED = 'DECLINED'
+    PROCESSING = 'PROCESSING'
+    COMPLETED = 'COMPLETED'
+    COMPLETED_PARTLY = 'COMPLETED_PARTLY'
+    FAILED = 'FAILED'
 
-
-PurchaseOrderState = Enum([
-    'Draft',
-    'Approved', 'Declined',
-    'Processing', 'Completed', 'CompletedPartly', 'Failed'
-])
 
 PurchaseOrderId = NewType('PurchaseOrderId', tp=UUID)
 PurchaseOrderReference = NewType('PurchaseOrderReference', tp=str)
@@ -52,7 +54,7 @@ class PurchaseOrder(EventMixin):
         self.creator = creator
         self.approved_by = None
 
-        self.status = PurchaseOrderState.Draft
+        self.status = PurchaseOrderStatus.DRAFT
 
         self.is_draft = True
         self.version: int = version

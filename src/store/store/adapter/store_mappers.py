@@ -55,6 +55,7 @@ def start_mappers():
                 StoreProductUnit,
                 foreign_keys=[store_product_unit_table.c.product_id, store_product_unit_table.c.base_unit],
                 remote_side=[store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
+                overlaps="product, _units"
             ),
         })
 
@@ -71,6 +72,7 @@ def start_mappers():
 
                'product_unit': relationship(
                    StoreProductUnit,
+                   overlaps="product, _purchase_prices"
                )
            })
 
@@ -96,6 +98,7 @@ def start_mappers():
             '_purchase_prices': relationship(
                 ProductPurchasePrice,
                 collection_class=set,
+                # overlaps="_units, product"
             ),
 
             '_collections': relationship(
@@ -109,6 +112,7 @@ def start_mappers():
                 # backref=backref('_product', cascade='all', single_parent=True),
                 collection_class=set,
                 # overlaps="_product, product_id",
+                # overlaps="_purchase_prices, product"
             ),
 
             '_tags': relationship(

@@ -13,7 +13,7 @@ def start_mappers():
     mapper(Warehouse, store_warehouse_table, properties={
         '_store': relationship(
             Store,
-            backref=None
+            viewonly=True
         )
     })
 

@@ -6,6 +6,7 @@ from datetime import datetime
 import sqlalchemy as sa
 
 from db_infrastructure import metadata, GUID
+from inventory.domain.entities.purchase_order import PurchaseOrderStatus
 from store.adapter.store_db import store_product_table, store_product_unit_table, store_supplier_table
 
 # inventory_product_table = sa.Table(
@@ -48,13 +49,12 @@ from store.adapter.store_db import store_product_table, store_product_unit_table
 
 
 draft_purchase_order_table = sa.Table(
-    'inventory_draft_purchase_order1',
+    'inventory_draft_purchase_order',
     metadata,
     sa.Column('purchase_order_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('supplier_id', GUID,
               sa.ForeignKey(store_supplier_table.c.supplier_id, onupdate='SET NULL', ondelete='SET NULL')),
-    sa.Column('status', sa.String(100), nullable=False, default='new_registration'),
-    sa.Column('disabled', sa.Boolean, default='0'),
+    sa.Column('status', sa.Enum(PurchaseOrderStatus), nullable=False, default='DRAFT'),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
@@ -63,16 +63,19 @@ draft_purchase_order_table = sa.Table(
 draft_purchase_order_items_table = sa.Table(
     'inventory_draft_purchase_order_item',
     metadata,
-    sa.Column('purchase_order_id', GUID),
-    sa.Column('product_id', GUID),
-    sa.Column('unit', sa.String(100), nullable=False),
+    sa.Column('purchase_order_id',
+              sa.ForeignKey(draft_purchase_order_table.c.purchase_order_id, onupdate='CASCADE', ondelete='CASCADE')),
+    sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
+    sa.Column('unit', sa.String(50), nullable=False),
     sa.Column('quantity', sa.Numeric, default=1, nullable=False),
     sa.Column('description', sa.String(255)),
 
-    sa.ForeignKeyConstraint(('purchase_order_id', 'product_id'),
-                            [draft_purchase_order_table.c.purchase_order_id, store_product_table.c.product_id],
+    sa.UniqueConstraint('purchase_order_id', 'product_id', 'unit', name='draft_purchase_order_product_unit_uix'),
+    sa.ForeignKeyConstraint(('product_id', 'unit'),
+                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
                             name='draft_purchase_order_product_fk')
 )
+
 inventory_product_balance_table = sa.Table(
     'inventory_balance',
     metadata,

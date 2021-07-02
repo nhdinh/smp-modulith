@@ -150,5 +150,8 @@ def _create_db_schema(engine: Engine) -> None:
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
     from inventory.adapter.inventory_db import draft_purchase_order_table, inventory_product_balance_table  # noqa
 
+
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)
+
+    pass
