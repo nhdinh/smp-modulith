@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 
 from store.adapter.store_db import store_catalog_table, \
     store_collection_table
-from store.domain.entities.value_objects import StoreCatalogId
+from store.domain.entities.store_catalog import StoreCatalogId
 from store.domain.events.store_catalog_events import StoreCatalogDeletedEvent
 
 

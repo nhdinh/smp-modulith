@@ -8,14 +8,9 @@ import flask_injector
 import injector
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from store.application.usecases.product.create_store_product_uc import CreateStoreProductUC, \
-    CreatingStoreProductResponseBoundary, CreatingStoreProductRequest
-
-from foundation.logger import logger
-from store.application.usecases.catalog.systemize_store_catalog_uc import SystemizeStoreCatalogUC, \
-    SystemizingStoreCatalogRequest
 
 from foundation.business_rule import BusinessRuleValidationError
+from foundation.logger import logger
 from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
     FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery, FetchStoreProductsQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
@@ -23,6 +18,8 @@ from store.application.usecases.catalog.create_store_catalog_uc import CreatingS
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
 from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogRequest, \
     RemoveStoreCatalogUC, RemovingStoreCatalogResponseBoundary
+from store.application.usecases.catalog.systemize_store_catalog_uc import SystemizeStoreCatalogUC, \
+    SystemizingStoreCatalogRequest
 from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
@@ -37,6 +34,8 @@ from store.application.usecases.collection.update_store_collection_uc import Upd
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
+from store.application.usecases.product.create_store_product_uc import CreateStoreProductUC, \
+    CreatingStoreProductResponseBoundary, CreatingStoreProductRequest
 from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductRequest, \
     UpdateStoreProductUC, UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary

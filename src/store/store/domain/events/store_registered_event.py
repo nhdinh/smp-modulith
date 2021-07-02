@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from foundation.events import Event
-from store.domain.entities.value_objects import StoreId, StoreOwnerId
+from store.domain.entities.store import StoreId
+from store.domain.entities.store_owner import StoreOwnerId
 
 
 @dataclass(frozen=True)

@@ -1,29 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from typing import Set, List, Union, TYPE_CHECKING, Any, Optional
+from typing import Set, List, Union, TYPE_CHECKING, Any, Optional, NewType
+from uuid import UUID
 
 from foundation.common_helpers import slugify
 from foundation.events import EventMixin
 from foundation.value_objects.factories import get_money
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
-from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
+from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogId, StoreCatalogReference
+from store.domain.entities.store_collection import StoreCollection, StoreCollectionReference
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.entities.store_product import StoreProduct
+from store.domain.entities.store_product import StoreProduct, StoreProductReference
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
-from store.domain.entities.store_supplier import StoreSupplier, SupplierContact
+from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_warehouse import StoreWarehouse
-from store.domain.entities.value_objects import StoreId, StoreCatalogReference, StoreCatalogId, \
-    StoreCollectionReference, StoreProductReference
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_product_created_event import StoreProductCreatedEvent
 
 if TYPE_CHECKING:
     pass
 
+StoreId = NewType('StoreId', tp=UUID)
 StoreCatalogIdOrReference = Union[StoreCatalogId, StoreCatalogReference]
 
 
@@ -91,12 +91,26 @@ class Store(EventMixin):
     def settings(self) -> Set[Setting]:
         return set() if self._settings is None else self._settings
 
-    def _get_setting(self, key: str, default_value: Any = None):
+    def get_setting(self, key: str, default_value: Any = None):
         try:
             setting = next(s for s in self._settings if s.key == key)
             return setting.value
         except StopIteration:
             return default_value
+
+    def has_setting(self, key: str):
+        return self.get_setting(key=key, default_value=None) is not None
+
+    def update_setting(self, key: str, value: str):
+        try:
+            setting = next(s for s in self._settings if s.key == key)
+
+            # check type
+
+            # set value
+            setting.value = value
+        except StopIteration:
+            raise Exception('Update store setting failed')
 
     @property
     def _default_settings(self) -> Set[Setting]:
@@ -106,6 +120,7 @@ class Store(EventMixin):
         _settings.add(Setting('default_catalog_display_name', 'Chưa phân loại', 'str'))
         _settings.add(Setting('default_collection_reference', 'unassigned_collection', 'str'))
         _settings.add(Setting('default_collection_display_name', 'Chưa phân loại', 'str'))
+        _settings.add(Setting('default_currency', 'VND', 'str'))
 
         return _settings
 
@@ -196,7 +211,7 @@ class Store(EventMixin):
         # threshold
         restock_threshold, max_stock_threshold = 0, 0
         restock_th_str = kwargs.get('restock_threshold')
-        max_stock_th_str = kwargs.get('maxstock_threshold')
+        max_stock_th_str = kwargs.get('max_stock_threshold')
         try:
             restock_threshold = int(restock_th_str)
         except:
@@ -220,7 +235,7 @@ class Store(EventMixin):
             image=image,
             default_unit=default_unit,
             restock_threshold=restock_threshold,
-            maxstock_threshold=max_stock_threshold,
+            max_stock_threshold=max_stock_threshold,
             store=self,
             brand=brand,
             catalog=catalog,
@@ -237,13 +252,13 @@ class Store(EventMixin):
                                       base_unit=unit_conversion['base_unit'])
 
         # process input data: PurchasePrices
-        product_prices = []
+        default_currency = self.get_setting('default_currency', 'VND')
         for price in purchase_price_list:
             store_product.create_purchase_price_by_supplier(
                 supplier=self._supplier_factory(supplier_name=price['supplier_name']),
                 unit=store_product.get_unit(price['unit']),
                 price=get_money(amount=price['price'],
-                                currency_str=price['currency'] if 'currency' in price.keys() else 'VND'),
+                                currency_str=price['currency'] if 'currency' in price.keys() else default_currency),
                 tax=price['tax'],
                 effective_from=price['effective_from'],
             )
@@ -418,8 +433,8 @@ class Store(EventMixin):
 
         :return: an instance of the `StoreCatalog`
         """
-        catalog_reference = self._get_setting('default_catalog_reference', 'unassigned_catalog')
-        catalog_title = self._get_setting('default_catalog_title', 'Catalog')
+        catalog_reference = self.get_setting('default_catalog_reference', 'unassigned_catalog')
+        catalog_title = self.get_setting('default_catalog_title', 'Catalog')
         is_default = True
 
         return self.create_catalog(reference=catalog_reference, title=catalog_title, default=is_default)
@@ -480,3 +495,11 @@ class Store(EventMixin):
             default=False,
             disabled=False
         )
+
+    def contains_catalog_reference(self, catalog_reference: StoreCatalogReference):
+        try:
+            catalog = next(c for c in self.catalogs if c.reference == catalog_reference)
+            if catalog:
+                return True
+        except StopIteration:
+            return False

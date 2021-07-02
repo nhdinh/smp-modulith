@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import insert, delete
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary, \
-    GenericStoreActionResponse
-from store.domain.entities.store import Store
+from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 
 
 class InvalidateStoreCatalogCacheUC:

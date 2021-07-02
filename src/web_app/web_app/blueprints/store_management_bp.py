@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from http import HTTPStatus
 
 import flask_injector
 import injector
@@ -8,26 +7,25 @@ from factory.base import logger
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
-    CreatingStoreWarehouseResponseBoundary, CreatingStoreWarehouseRequest
-from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
-    ResendingRegistrationConfirmationRequest, ResendRegistrationConfirmationUC, \
-    ResendingRegistrationConfirmationResponseBoundary
-from store.application.usecases.manage.upload_image_uc import UploadingImageRequest, UploadingImageResponseBoundary, \
-    UploadImageUC
-
 from foundation.business_rule import BusinessRuleValidationError
 from store.application.queries.store_queries import FetchStoreSettingsQuery, FetchStoreWarehouseQuery
-from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
-    SelectingStorePlanRequest
+from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
+    CreatingStoreWarehouseResponseBoundary, CreatingStoreWarehouseRequest
 from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest
 from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
     RegisteringStoreRequest
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
     AddStoreManagerUC
+from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
+    ResendingRegistrationConfirmationRequest, ResendRegistrationConfirmationUC, \
+    ResendingRegistrationConfirmationResponseBoundary
 from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
     UpdatingStoreSettingsRequest, UpdateStoreSettingsUC
+from store.application.usecases.manage.upload_image_uc import UploadingImageRequest, UploadingImageResponseBoundary, \
+    UploadImageUC
+from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
+    SelectingStorePlanRequest
 from web_app.presenters.manage_store_presenters import RegisteringStorePresenter, ConfirmingStoreRegistrationPresenter, \
     SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
     ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter

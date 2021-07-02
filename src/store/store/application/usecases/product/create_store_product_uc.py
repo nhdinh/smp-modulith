@@ -2,16 +2,15 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date
 from typing import Optional as Opt, List
 
+from dateutil.utils import today
 from sqlalchemy.exc import IntegrityError
 
-from foundation.value_objects import Money, Currency
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.value_objects import StoreProductReference, \
-    StoreProductId
+from store.domain.entities.store_product import StoreProductId, StoreProductReference
 
 
 @dataclass(frozen=True)
@@ -33,7 +32,7 @@ class CreatingProductPriceRequest:
     price: float
     currency: Opt[str]
     tax: Opt[float]
-    applied_from: datetime = datetime.now()
+    effective_from: date = today()
 
 
 @dataclass(frozen=True)
@@ -75,7 +74,7 @@ class CreatingStoreProductRequest:
 
     # threshold(s)
     restock_threshold: Opt[int] = 0
-    maxstock_threshold: Opt[int] = 0
+    max_stock_threshold: Opt[int] = 0
 
     # conversion units (optional)
     unit_conversions: Opt[List[CreatingStoreProductUnitConversionRequest]] = field(default_factory=list)
@@ -107,7 +106,6 @@ class CreateStoreProductUC:
             try:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
-                """
                 product_data = dict()
                 product_data_fields = [
                     # product data (required)
@@ -147,7 +145,7 @@ class CreateStoreProductUC:
 
                     # thresholds
                     'restock_threshold',
-                    'maxstock_threshold',
+                    'max_stock_threshold',
                 ]
 
                 for data_field in product_data_fields:
@@ -186,8 +184,9 @@ class CreateStoreProductUC:
                                         'supplier_name': create_supplier_request.supplier_name,
                                         'unit': create_price_request.unit,
                                         'price': create_price_request.price,
+                                        'currency': create_price_request.currency,
                                         'tax': create_price_request.tax,
-                                        'applied_from': create_price_request.applied_from
+                                        'effective_from': create_price_request.effective_from
                                     })
 
                                 suppliers.append({
@@ -203,12 +202,11 @@ class CreateStoreProductUC:
                     product_data[data_field] = data
 
                 product = store.create_product(**product_data)
-                """
 
                 # make response
                 response_dto = CreatingStoreProductResponse(
-                    product_id=1,  # product.product_id,
-                    product_reference='a'  # product.reference
+                    product_id=product.product_id,
+                    product_reference=product.reference
                 )
                 self._ob.present(response_dto=response_dto)
 

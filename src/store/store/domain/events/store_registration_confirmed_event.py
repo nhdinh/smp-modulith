@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from store.domain.entities.value_objects import StoreId
+from store.domain.entities.store import StoreId
 
 
 @dataclass(frozen=True)

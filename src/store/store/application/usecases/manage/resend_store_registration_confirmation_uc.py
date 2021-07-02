@@ -6,8 +6,7 @@ from datetime import datetime, timedelta
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-from store.domain.entities.registration_status import RegistrationWaitingForConfirmation
-from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.store_registration import StoreRegistration, RegistrationWaitingForConfirmation
 
 ALLOWABLE_RESEND_DURATION = timedelta(minutes=0)
 

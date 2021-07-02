@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from datetime import datetime
-
+from datetime import date
 from typing import Optional
 
-from foundation.value_objects import Money, Currency
+from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-from store.domain.entities.store_supplier import StoreSupplierId, StoreSupplier
+from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_unit import StoreProductUnit
-from store.domain.entities.value_objects import StoreProductId
 
 
 @dataclass(unsafe_hash=True)
 class ProductPurchasePrice:
     def __init__(self, supplier: StoreSupplier, product_unit: StoreProductUnit, price: Money, tax: Optional[float],
-                 effective_from: datetime):
+                 effective_from: date):
         self.supplier = supplier
         self.product_unit = product_unit
         self._price = price.amount
@@ -31,3 +29,12 @@ class ProductPurchasePrice:
     def price(self, value: Money):
         self._price = value.amount
         self.currency = value.currency
+
+    def __eq__(self, other):
+        if not isinstance(other, ProductPurchasePrice):
+            raise TypeError
+
+        return self.supplier == other.supplier and self.product_unit == other.product_unit and self.price == other.price and self.tax == other.tax and self.effective_from == other.effective_from
+
+    def __str__(self):
+        return f"<PurchasePrice {self.price} supplier={self.supplier.supplier_name}> unit={self.product_unit.unit}>"

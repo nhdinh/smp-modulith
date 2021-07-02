@@ -4,12 +4,16 @@ import abc
 from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
+from store.domain.entities.store import Store
 
 
 @dataclass
 class UpdatingStoreSettingsRequest:
-    # addresses: []
-    some_key: str
+    current_user: str
+
+    key: str
+    value: str
 
 
 @dataclass
@@ -34,6 +38,20 @@ class UpdateStoreSettingsUC:
     def execute(self, input_dto: UpdatingStoreSettingsRequest) -> None:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                pass
+                store = fetch_store_by_owner_or_raise(store_owner=input_dto.current_user, uow=uow)  # type:Store
+
+                if store.has_setting(key=input_dto.key):
+                    store.update_setting(key=input_dto.key, value=input_dto.value)
+                else:
+                    raise Exception('Setting name not found.')
+
+                response = UpdatingStoreSettingsResponse(
+                    store_id=store.store_id,
+                    status=True
+                )
+                self._output_boundary.present(response)
+
+                store.version += 1
+                uow.commit()
             except Exception as exc:
                 raise exc

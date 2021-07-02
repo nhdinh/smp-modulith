@@ -13,6 +13,7 @@ from foundation import FoundationModule
 from identity import IdentityModule
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
+from inventory import InventoryModule, InventoryInfrastructureModule
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService, FileSystemProvider
 from payments import Payments
 from processes import Processes
@@ -20,7 +21,6 @@ from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureMo
 from shipping import Shipping
 from shipping_infrastructure import ShippingInfrastructure
 from store import StoreInfrastructureModule, StoreModule
-from inventory import InventoryModule, InventoryInfrastructureModule
 
 __all__ = ["bootstrap_app"]
 
@@ -148,8 +148,6 @@ def _create_db_schema(engine: Engine) -> None:
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
-    from store.adapter.store_db import store_table, store_registration_table, store_catalog_table, \
-        store_collection_table, store_settings_table, store_product_table  # noqa
     from inventory.adapter.inventory_db import inventory_product_balance_table  # noqa
 
     # TODO: Use migrations for that

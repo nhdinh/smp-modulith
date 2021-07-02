@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import List
+
 import injector
 from sqlalchemy import insert
 from sqlalchemy.engine import Connection
-from typing import List
 
 from inventory.adapter.inventory_db import inventory_product_balance_table
-from store.domain.entities.value_objects import StoreId, StoreProductId
+from store.domain.entities.store import StoreId
+from store.domain.entities.store_product import StoreProductId
 from store.domain.events.store_product_created_event import StoreProductCreatedEvent
 
 

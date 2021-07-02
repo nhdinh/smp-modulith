@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy.orm import mapper, relationship
 
 # from inventory.adapter.inventory_db import warehouse_table
-from store.domain.entities.store import Store
 
 
 def start_mappers():

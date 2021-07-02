@@ -25,6 +25,6 @@ REGISTERED_CURRENCIES = [
 def _get_registered_currency_or_default(currency: str) -> Type[Currency]:
     _REG_CURRENCIES = {c.iso_code: c for c in REGISTERED_CURRENCIES}  # type:Dict
     if not currency or currency.strip().upper() not in _REG_CURRENCIES.keys():
-        return VND
+        raise TypeError(f"The Currency {currency} is not supported.")
     else:
         return _REG_CURRENCIES[currency.strip().upper()]

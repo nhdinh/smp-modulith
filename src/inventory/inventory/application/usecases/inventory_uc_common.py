@@ -3,8 +3,8 @@
 import email_validator
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
-from inventory.domain.entities.warehouse import Warehouse
 from inventory.application.usecases.const import ExceptionMessages
+from inventory.domain.entities.warehouse import Warehouse
 
 
 def is_warehouse_disabled(warehouse: Warehouse):

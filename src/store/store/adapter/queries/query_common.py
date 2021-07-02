@@ -6,13 +6,11 @@ import email_validator
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
 
-from store.domain.entities.store import Store
-from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
+from store.domain.entities.store import Store, StoreId
+from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogReference, StoreCatalogId
+from store.domain.entities.store_collection import StoreCollection, StoreCollectionId, StoreCollectionReference
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCatalogReference, \
-    StoreCollectionReference, StoreCollectionId
 
 
 def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: bool = True) -> Optional[StoreId]:

@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import injector
-from sqlalchemy.orm import sessionmaker
 from typing import Type
 
+import injector
+from sqlalchemy.engine import Connection
+from sqlalchemy.orm import sessionmaker
+
+from foundation.events import EventBus, AsyncEventHandlerProvider, AsyncHandler
 from inventory.adapter.inventory_sql_queries import SqlFetchAllProductsBalanceQuery
 from inventory.application.inventory_queries import FetchAllProductsBalanceQuery
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
-from sqlalchemy.engine import Connection
-
-from foundation.events import EventBus, AsyncEventHandlerProvider, AsyncHandler
 from inventory.application.usecases.approve_purchase_order_uc import ApprovePurchaseOrderUC, \
     ApprovingPurchaseOrderResponseBoundary
 from inventory.application.usecases.create_draft_purchase_order_uc import CreatingDraftPurchaseOrderResponseBoundary, \

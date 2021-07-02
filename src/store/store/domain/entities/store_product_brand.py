@@ -12,3 +12,9 @@ from dataclasses import dataclass
 class StoreProductBrand:
     name: str
     logo: str = None
+
+    def __eq__(self, other):
+        if not other or not isinstance(other, StoreProductBrand):
+            raise TypeError
+
+        return self.name == other.name

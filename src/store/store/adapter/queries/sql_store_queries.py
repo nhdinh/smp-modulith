@@ -19,17 +19,15 @@ from store.application.queries.store_queries import FetchStoreSettingsQuery, Cou
     StoreInfoResponseDto
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
-from store.domain.entities.store import Store
-from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
+from store.domain.entities.store import Store, StoreId
+from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogReference, StoreCatalogId
+from store.domain.entities.store_collection import StoreCollection, StoreCollectionReference
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.entities.store_product import StoreProduct
+from store.domain.entities.store_product import StoreProduct, StoreProductId, StoreProductReference
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.store_warehouse import StoreWarehouse
-from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
-    StoreProductId, StoreId, StoreCatalogId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
 
@@ -81,6 +79,8 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
 
             # get store_id and collection_id
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
             # count products in collection
             product_in_collection_count = sql_count_products_in_collection(collection_reference=collection_reference,
@@ -122,23 +122,25 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
 class SqlFetchStoreCatalogsQuery(FetchStoreCatalogsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
         try:
-            current_page = int(dto.page) if int(dto.page) > 0 else 1
-            page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-        except:
-            current_page = 1
-            page_size = 10
+            try:
+                current_page = int(dto.page) if int(dto.page) > 0 else 1
+                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+            except:
+                current_page = 1
+                page_size = 10
 
-        store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+            store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
-        # count number of catalogs of this store
-        catalog_count = sql_count_catalogs_in_store(store_id=store_id, conn=self._conn)
+            # count number of catalogs of this store
+            catalog_count = sql_count_catalogs_in_store(store_id=store_id, conn=self._conn)
 
-        # get all catalogs limit by page and offset
-        get_all_catalogs_query = select(StoreCatalog).join(Store) \
-            .where(Store.store_id == store_id) \
-            .limit(dto.page_size).offset((current_page - 1) * dto.page_size)
+            # get all catalogs limit by page and offset
+            get_all_catalogs_query = select(StoreCatalog).join(Store) \
+                .where(Store.store_id == store_id) \
+                .limit(dto.page_size).offset((current_page - 1) * dto.page_size)
 
-        try:
             catalogs = self._conn.execute(get_all_catalogs_query).all()
             if not catalogs:
                 # return None
@@ -183,8 +185,15 @@ class SqlFetchStoreCollectionsQuery(FetchStoreCollectionsQuery, SqlQuery):
                 page_size = 10
 
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+
             catalog_id = sql_get_catalog_id_by_reference(catalog_reference=catalog_reference, store_id=store_id,
                                                          conn=self._conn)
+
+            if not catalog_id:
+                raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+
             collection_count = sql_count_collections_in_catalog(store_id=store_id, catalog_id=catalog_id,
                                                                 conn=self._conn)
 
@@ -237,6 +246,8 @@ class SqlFetchStoreProductQuery(FetchStoreProductQuery, SqlQuery):
               ) -> StoreProductResponseDto:
         try:
             store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
             query = fetch_store_product_query_factory(store_id=store_id)
             query = query.where(
@@ -256,6 +267,9 @@ class SqlFetchStoreProductByIdQuery(FetchStoreProductByIdQuery, SqlQuery):
               product_id: StoreProductId):
         try:
             store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+
             query = fetch_store_product_query_factory(store_id=store_id)
             query = query.where(StoreProduct.product_id == product_id)
 
@@ -287,6 +301,8 @@ class SqlFetchStoreProductsByCatalogQuery(FetchStoreProductsByCatalogQuery, SqlQ
                 page_size = 10
 
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
             # get product counts
             product_counts = sql_count_products_in_store(store_id=store_id, conn=self._conn)
@@ -323,6 +339,8 @@ class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
                 page_size = 10
 
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
             # get product counts
             product_counts = sql_count_products_in_store(store_id=store_id, conn=self._conn)
@@ -349,6 +367,9 @@ class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
 class SqlFetchStoreWarehouseQuery(FetchStoreWarehouseQuery, SqlQuery):
     def query(self, warehouse_owner: StoreOwner) -> List[StoreWarehouseResponseDto]:
         store_id = sql_get_store_id_by_owner(store_owner=warehouse_owner, conn=self._conn)
+        if not store_id:
+            raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+
         query = select(StoreWarehouse).join(Store).where(Store.store_id == store_id)
 
         warehouses = self._conn.execute(query)

@@ -2,19 +2,21 @@
 # -*- coding: utf-8 -*-
 import uuid
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING, Set, List, Tuple
+from decimal import Decimal
+from typing import Optional, TYPE_CHECKING, Set, List, Tuple, NewType
+from uuid import UUID
 
 from foundation.common_helpers import slugify
 from foundation.entity import Entity
-from foundation.value_objects import Money, Currency
-from foundation.value_objects.currency import VND
+from foundation.events import EventMixin
+from foundation.value_objects import Money
+from foundation.value_objects.factories import get_money
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_unit import StoreProductUnit
-from store.domain.entities.value_objects import StoreProductReference, StoreProductId
 from store.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
 if TYPE_CHECKING:
@@ -23,7 +25,11 @@ if TYPE_CHECKING:
     from store.domain.entities.store_collection import StoreCollection
 
 
-class StoreProduct(Entity):
+StoreProductId = NewType('StoreProductId', tp=UUID)
+StoreProductReference = NewType('StoreProductReference', tp=str)
+
+
+class StoreProduct(EventMixin, Entity):
     product_id: StoreProductId
     title: str
 
@@ -41,9 +47,11 @@ class StoreProduct(Entity):
             default_unit: str,
             suppliers: Set['StoreSupplier'],
             restock_threshold: int = -1,
-            maxstock_threshold: int = -1,
+            max_stock_threshold: int = -1,
     ):
-        self.check_rule(ThresholdsRequireUnitSetupRule(restock_threshold, maxstock_threshold, default_unit))
+        super(StoreProduct, self).__init__()
+
+        self.check_rule(ThresholdsRequireUnitSetupRule(restock_threshold, max_stock_threshold, default_unit))
 
         self.product_id = product_id
         self.reference = reference
@@ -71,7 +79,7 @@ class StoreProduct(Entity):
 
         # thresholds
         self.restock_threshold = restock_threshold
-        self.maxstock_threshold = maxstock_threshold
+        self.max_stock_threshold = max_stock_threshold
 
     @classmethod
     def create_product(
@@ -82,7 +90,7 @@ class StoreProduct(Entity):
             image: str,
             default_unit: str,
             restock_threshold: int,
-            maxstock_threshold: int,
+            max_stock_threshold: int,
             store: 'Store',
             brand: StoreProductBrand,
             catalog: 'StoreCatalog',
@@ -106,7 +114,7 @@ class StoreProduct(Entity):
             suppliers=set(suppliers),
             default_unit=default_unit,
             restock_threshold=restock_threshold,
-            maxstock_threshold=maxstock_threshold,
+            max_stock_threshold=max_stock_threshold,
         )
 
         # add tags
@@ -253,9 +261,17 @@ class StoreProduct(Entity):
     def create_purchase_price_by_supplier(self, **kwargs):
         supplier = kwargs.get('supplier')
         unit = kwargs.get('unit')
+
         price = kwargs.get('price')
-        currency = kwargs.get('currency') if 'currency' in kwargs else VND
-        price = Money(currency=currency, amount=price)
+
+        if not isinstance(price, Money):
+            try:
+                price = Decimal(price).normalize()
+
+                currency = kwargs.get('currency')
+                price = get_money(amount=price, currency_str=currency)
+            except:
+                raise TypeError()
 
         if supplier in self._suppliers and unit in self._units:
             purchase_price = ProductPurchasePrice(
@@ -263,15 +279,18 @@ class StoreProduct(Entity):
                 product_unit=unit,
                 price=price,
                 tax=kwargs.get('tax'),
-                effective_from=kwargs.get('applied_from')
+                effective_from=kwargs.get('effective_from')
             )
 
             self._purchase_prices.add(purchase_price)
 
-    def get_price(self, by_supplier: StoreSupplier, by_unit: StoreProductUnit) -> Optional[
-        Tuple[Money, float, datetime]]:
+    def get_price(
+            self, by_supplier: StoreSupplier, by_unit: StoreProductUnit
+    ) -> Optional[Tuple[Money, float, datetime]]:
         try:
             price = next(p for p in self._purchase_prices if p.product_unit == by_unit and p.supplier == by_supplier)
-            return price.price, price.tax, price.effective_from
+
+            return tuple(price.price, price.tax, price.effective_from)
         except StopIteration:
             return None
+

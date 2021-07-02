@@ -1,9 +1,9 @@
 import threading
 from typing import Type
 
-from minio import Minio
 import injector
 from injector import Provider, T
+from minio import Minio
 from redis import Redis
 from rq import Queue
 from sqlalchemy import event as sqlalchemy_event

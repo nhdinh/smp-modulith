@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from dataclasses import dataclass, field
-
 import abc
+from dataclasses import dataclass, field
 from datetime import datetime
-
 from typing import List
 
 from foundation.value_objects.address import LocationAddressId
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.inventory_uc_common import fetch_warehouse_by_owner_or_raise
 from inventory.domain.entities.purchase_order import PurchaseOrderReference, DraftPurchaseOrder
-from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
 from inventory.domain.entities.warehouse import Warehouse
-from store.domain.entities.value_objects import StoreProductId
+from store.domain.entities.store_product import StoreProductId
 
 
 @dataclass

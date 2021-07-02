@@ -3,7 +3,6 @@
 
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
-from sqlalchemy import event
 
 from db_infrastructure import metadata, GUID
 from foundation.value_objects.address import LocationAddress, LocationCountry, LocationCityDivision, \

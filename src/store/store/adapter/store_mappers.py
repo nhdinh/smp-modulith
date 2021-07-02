@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import and_
-from sqlalchemy.orm import mapper, relationship, backref, foreign
+from sqlalchemy.orm import mapper, relationship, backref
 
 from identity.domain.entities import User
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
@@ -72,9 +71,6 @@ def start_mappers():
 
                'product_unit': relationship(
                    StoreProductUnit,
-                   # primaryjoin=and_(
-                   #     store_supplier_product_price_table.c.product_id == store_product_unit_table.c.product_id,
-                   #     store_supplier_product_price_table.c.unit == store_product_unit_table.c.unit),
                )
            })
 
@@ -175,7 +171,7 @@ def start_mappers():
             '_catalogs': relationship(
                 StoreCatalog,
                 collection_class=set,
-                backref=backref('_store')  # , cascade="all", single_parent=True),
+                backref=backref('_store')
             ),
 
             '_collections': relationship(

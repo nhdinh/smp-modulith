@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 from typing import TYPE_CHECKING
 
-from store.domain.entities.registration_status import RegistrationWaitingForConfirmation
-
 if TYPE_CHECKING:
-    from store.domain.entities.store_registration import StoreRegistration
+    from store.domain.entities.store_registration import StoreRegistration, RegistrationWaitingForConfirmation
 
 from foundation.business_rule import BusinessRuleBase
 

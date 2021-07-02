@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlalchemy as sa
+
 from db_infrastructure import metadata, GUID
 from store.adapter import store_table
 

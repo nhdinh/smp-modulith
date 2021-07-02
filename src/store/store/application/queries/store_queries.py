@@ -9,9 +9,10 @@ from uuid import UUID
 import marshmallow as ma
 
 from db_infrastructure import GUID
+from store.domain.entities.store_catalog import StoreCatalogReference, StoreCatalogId
+from store.domain.entities.store_collection import StoreCollectionReference
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.entities.value_objects import StoreCollectionReference, StoreCatalogReference, StoreProductReference, \
-    StoreProductId, StoreCatalogId
+from store.domain.entities.store_product import StoreProductId, StoreProductReference
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 

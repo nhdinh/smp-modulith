@@ -24,3 +24,9 @@ class Setting:
     @property
     def store(self):
         return getattr(self, '_store')
+
+    def __eq__(self, other):
+        if not isinstance(other, Setting):
+            raise TypeError
+
+        return self.key == other.key and self.value == other.value

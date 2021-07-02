@@ -17,3 +17,9 @@ class StoreProductUnit:
 
     if from_unit:
         base_unit = from_unit.unit
+
+    def __eq__(self, other):
+        if not other or not isinstance(other, StoreProductUnit):
+            raise TypeError
+
+        return self.unit == other.unit and self.conversion_factor == other.conversion_factor and self.from_unit == other.from_unit

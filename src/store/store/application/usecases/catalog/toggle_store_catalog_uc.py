@@ -8,7 +8,7 @@ from store.application.usecases.catalog.update_store_catalog_uc import UpdatingS
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import validate_store_ownership
 from store.domain.entities.store import Store
-from store.domain.entities.value_objects import StoreCatalogReference
+from store.domain.entities.store_catalog import StoreCatalogReference
 
 
 @dataclass

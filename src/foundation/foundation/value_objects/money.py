@@ -1,7 +1,7 @@
 import inspect
 from decimal import Decimal, DecimalException
 from functools import total_ordering
-from typing import Any, Type
+from typing import Any, Type, Union
 
 from foundation.value_objects.currency import _get_registered_currency_or_default, Currency
 
@@ -61,6 +61,24 @@ class Money:
         if not isinstance(other, Money) or not self.currency == other.currency:
             raise TypeError
         return Money(self.currency, self.amount - other.amount)
+
+    def __mul__(self, other: Union[int, float]):
+        if not isinstance(other, int) and not isinstance(other, float):
+            raise TypeError
+
+        return Money(self.currency, self.amount * other)
+
+    def __divmod__(self, other: Union[int, float]):
+        if not isinstance(other, int) and not isinstance(other, float):
+            raise TypeError
+
+        return Money(self.currency, divmod(self.amount, other))
+
+    def __mod__(self, other: Union[int, float]):
+        if not isinstance(other, int) and not isinstance(other, float):
+            raise TypeError
+
+        return Money(self.currency, self.amount / other)
 
     def __repr__(self) -> str:
         return f"Money({self._currency.__name__}, {repr(self._amount)})"

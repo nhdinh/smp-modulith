@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from dataclasses import dataclass
-
 import abc
+from dataclasses import dataclass
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 

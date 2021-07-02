@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from foundation.uow import SqlAlchemyUnitOfWork
 from inventory.application.inventory_repository import SqlAlchemyInventoryRepository
-
-from foundation.uow import AbstractUnitOfWork, SqlAlchemyUnitOfWork
 
 
 class InventoryUnitOfWork(SqlAlchemyUnitOfWork):

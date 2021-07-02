@@ -4,21 +4,19 @@ from flask import Response, make_response, jsonify
 
 from store import ResendingRegistrationConfirmationResponseBoundary, CreatingStoreWarehouseResponseBoundary
 from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse
-from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
-    ResendingRegistrationConfirmationResponse
-from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
-    UpdatingStoreSettingsResponse
-
-from store.application.usecases.select_store_plan_uc import SelectingStorePlanResponseBoundary, \
-    SelectingStorePlanResponse
 from store.application.usecases.initialize.confirm_store_registration_uc import \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationResponse
-
 from store.application.usecases.initialize.register_store_uc import RegisteringStoreResponseBoundary, \
     RegisteringStoreResponse
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponse, \
     AddingStoreManagerResponseBoundary
+from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
+    ResendingRegistrationConfirmationResponse
+from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
+    UpdatingStoreSettingsResponse
 from store.application.usecases.manage.upload_image_uc import UploadingImageResponseBoundary, UploadingImageResponse
+from store.application.usecases.select_store_plan_uc import SelectingStorePlanResponseBoundary, \
+    SelectingStorePlanResponse
 
 
 class RegisteringStorePresenter(RegisteringStoreResponseBoundary):

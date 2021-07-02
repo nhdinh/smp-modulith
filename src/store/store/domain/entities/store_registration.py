@@ -5,16 +5,14 @@ from __future__ import annotations
 import secrets
 import uuid
 from datetime import datetime, timedelta
+from typing import NewType
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.services.user_counter_services import UserCounters
-from store.domain.entities.registration_status import RegistrationStatus, RegistrationWaitingForConfirmation, \
-    RegistrationConfirmed
-from store.domain.entities.store import Store
+from store.domain.entities.store import Store, StoreId
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_warehouse import StoreWarehouse
-from store.domain.entities.value_objects import RegistrationId, StoreId
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationResendEvent
 from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
 from store.domain.rules.store_registration_must_have_valid_expiration_rule import \
@@ -23,6 +21,13 @@ from store.domain.rules.store_registration_must_have_valid_token_rule import Sto
 from store.domain.rules.user_email_must_be_unique_rule import UserEmailMustBeUniqueRule
 from store.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
 from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
+
+RegistrationId = NewType("RegistrationId", tp=uuid.UUID)
+RegistrationStatus = NewType('RegistrationStatus', tp=str)
+
+RegistrationConfirmed = RegistrationStatus('Confirmed')
+RegistrationExpired = RegistrationStatus('Expired')
+RegistrationWaitingForConfirmation = RegistrationStatus('WaitingForConfirmation')
 
 
 class StoreRegistration(EventMixin, Entity):

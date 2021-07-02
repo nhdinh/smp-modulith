@@ -3,8 +3,6 @@
 import abc
 
 from flask import Response, make_response, jsonify
-from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductResponseBoundary, \
-    UpdatingStoreProductResponse
 
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary
 from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogResponse, \
@@ -19,6 +17,8 @@ from store.application.usecases.initialize.initialize_store_with_plan_uc import 
     InitializingStoreWithPlanResponseBoundary
 from store.application.usecases.product.create_store_product_uc import CreatingStoreProductResponseBoundary, \
     CreatingStoreProductRequest
+from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductResponseBoundary, \
+    UpdatingStoreProductResponse
 from store.application.usecases.store_uc_common import GenericStoreActionResponse, GenericStoreResponseBoundary
 
 

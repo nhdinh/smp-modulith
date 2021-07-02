@@ -1,4 +1,3 @@
-from flask import current_app
 from sqlalchemy.engine import Connection
 
 from foundation.logger import logger
