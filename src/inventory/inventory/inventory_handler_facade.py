@@ -6,6 +6,7 @@ import injector
 from sqlalchemy import insert
 from sqlalchemy.engine import Connection
 
+from inventory.adapter.inventory_db import inventory_product_balance_table
 # from inventory.adapter.inventory_db import inventory_product_balance_table
 from store.domain.entities.store import StoreId
 from store.domain.entities.store_product import StoreProductId

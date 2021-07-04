@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import flask_injector
 import injector
-from factory.base import logger
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 
 from foundation.business_rule import BusinessRuleValidationError
+from foundation.logger import logger
 from identity.application.queries.identity import GetAllUsersQuery, GetSingleUserQuery
 from identity.application.usecases.change_password_uc import ChangingPasswordResponseBoundary, ChangePasswordUC, \
     ResettingPasswordRequest, ChangingPasswordResponse, ChangingPasswordRequest

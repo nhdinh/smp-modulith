@@ -10,6 +10,7 @@ from typing import NewType
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from store.application.services.user_counter_services import UserCounters
+from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.store import Store, StoreId
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_warehouse import StoreWarehouse
@@ -23,11 +24,6 @@ from store.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeVali
 from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
 
 RegistrationId = NewType("RegistrationId", tp=uuid.UUID)
-RegistrationStatus = NewType('RegistrationStatus', tp=str)
-
-RegistrationConfirmed = RegistrationStatus('Confirmed')
-RegistrationExpired = RegistrationStatus('Expired')
-RegistrationWaitingForConfirmation = RegistrationStatus('WaitingForConfirmation')
 
 
 class StoreRegistration(EventMixin, Entity):
@@ -52,6 +48,7 @@ class StoreRegistration(EventMixin, Entity):
         self.check_rule(UserMobileMustBeValidRule(owner_mobile))
         self.check_rule(UserEmailMustBeUniqueRule(owner_email, user_counter_services))
 
+        # TODO: need refactoring
         self.registration_id = registration_id
         self._store_registration_id = registration_id
         self._owner_id = registration_id
@@ -105,7 +102,7 @@ class StoreRegistration(EventMixin, Entity):
             owner_password=owner_password,
             owner_mobile=owner_mobile,
             confirmation_token=StoreRegistration._create_confirmation_token(),
-            status=RegistrationWaitingForConfirmation,
+            status=RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION,
             version=1,
             last_resend=datetime.now(),
             user_counter_services=user_counter_services,
@@ -122,7 +119,7 @@ class StoreRegistration(EventMixin, Entity):
         self.check_rule(StoreRegistrationMustHaveValidTokenRule(registration=self))
         self.check_rule(StoreRegistrationMustHaveValidExpirationRule(registration=self))
 
-        self.status = RegistrationConfirmed
+        self.status = RegistrationStatus.REGISTRATION_CONFIRMED
         self.confirmed_at = datetime.today()
 
         # self._record_event(StoreRegistrationConfirmedEvent(

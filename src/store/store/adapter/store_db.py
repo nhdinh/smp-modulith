@@ -10,7 +10,9 @@ from db_infrastructure import metadata, GUID
 from foundation.database_setup import location_address_table
 from identity.adapters.identity_db import user_table
 from store.domain.entities.store import Store
+from store.domain.entities.store_address import StoreAddressType
 from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.registration_status import RegistrationStatus
 
 store_registration_table = sa.Table(
     'store_registration',
@@ -22,7 +24,8 @@ store_registration_table = sa.Table(
     sa.Column('owner_mobile', sa.String(255), unique=True),
     sa.Column('confirmation_token', sa.String(200), nullable=False),
     sa.Column('confirmed_at', sa.DateTime),
-    sa.Column('status', sa.String(100), nullable=False, default='new_registration'),
+    sa.Column('status', sa.Enum(RegistrationStatus), nullable=False,
+              default=RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION),
     sa.Column('version', sa.Integer, default='0'),
     sa.Column('last_resend', sa.DateTime),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
@@ -88,11 +91,23 @@ store_managers_table = sa.Table(
     sa.Column('store_role_id', sa.String(100), default='store_manager'),
 )
 
-store_address_table = sa.Table(
+store_addresses_table = sa.Table(
     'store_addresses',
     metadata,
-    sa.Column('address_id', sa.ForeignKey(location_address_table.c.address_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('store_address_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('address_id',
+              sa.ForeignKey(location_address_table.c.address_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('recipient', sa.String(100), nullable=False),
+    sa.Column('phone', sa.String(100)),
+    sa.Column('address_type', sa.Enum(StoreAddressType), nullable=False, default=StoreAddressType.STORE_ADDRESS),
+    sa.Column('_street_address', sa.String(255)),
+    sa.Column('_postal_code', sa.String(255)),
+    sa.Column('_sub_division_name', sa.String(255)),
+    sa.Column('_division_name', sa.String(255)),
+    sa.Column('_city_name', sa.String(255)),
+    sa.Column('_country_name', sa.String(255)),
+    sa.Column('_iso_code', sa.String(255)),
 )
 
 store_catalog_table = sa.Table(
@@ -353,3 +368,4 @@ def store_load(store, connection):
 #
 #     fetched_collections = connection.session.execute(q).all()
 #     catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]
+

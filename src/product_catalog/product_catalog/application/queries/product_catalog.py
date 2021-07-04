@@ -55,31 +55,31 @@ class ProductDto:
         }
 
 
-class FetchAllCatalogsQuery(abc.ABC):
+class ListCatalogsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, select_active_only: bool = True) -> List[CatalogDto]:
         pass
 
 
-class FetchCatalogQuery(abc.ABC):
+class GetCatalogQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, param: str) -> Optional[CatalogDto]:
         pass
 
 
-class FetchAllProductsQuery(abc.ABC):
+class ListProductsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, page: int, page_size: int) -> PaginationOutputDto[ProductDto]:
         pass
 
 
-class FetchProductQuery(abc.ABC):
+class GetProductQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, product_query: str) -> Optional[ProductDto]:
         pass
 
 
-class FetchAllBrandsQuery(abc.ABC):
+class ListProductBrandsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self) -> List[BrandDto]:
         pass

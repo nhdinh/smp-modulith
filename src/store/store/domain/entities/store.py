@@ -6,16 +6,18 @@ from uuid import UUID
 
 from foundation.common_helpers import slugify
 from foundation.events import EventMixin
+from foundation.value_objects.address import LocationAddress
 from foundation.value_objects.factories import get_money
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
+from store.domain.entities.store_address import StoreAddress, StoreAddressType, StoreAddressId
 from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogId, StoreCatalogReference
 from store.domain.entities.store_collection import StoreCollection, StoreCollectionReference
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct, StoreProductReference
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
-from store.domain.entities.store_supplier import StoreSupplier
+from store.domain.entities.store_supplier import StoreSupplier, StoreSupplierId
 from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_product_created_event import StoreProductCreatedEvent
@@ -51,6 +53,7 @@ class Store(EventMixin):
         self._managers = set()  # type: Set
 
         # children data
+        self._addresses = set()  # type:Set[StoreAddress]
         self._warehouses = set()  # type: Set[StoreWarehouse]
         self._brands = set()  # type: Set[StoreProductBrand]
         self._suppliers = set()  # type:Set[StoreSupplier]
@@ -60,16 +63,24 @@ class Store(EventMixin):
 
     # region ## Properties ##
     @property
+    def settings(self) -> Set[Setting]:
+        return set() if self._settings is None else self._settings
+
+    @property
+    def warehouses(self) -> Set[StoreWarehouse]:
+        return self._warehouses
+
+    @property
+    def addresses(self) -> Set[StoreAddress]:
+        return self._addresses
+
+    @property
     def catalogs(self) -> Set[StoreCatalog]:
         return self._catalogs
 
     @property
     def products(self) -> Set[StoreProduct]:
         return self._products
-
-    @property
-    def warehouses(self) -> Set[StoreWarehouse]:
-        return self._warehouses
 
     @property
     def suppliers(self) -> Set[StoreSupplier]:
@@ -86,10 +97,6 @@ class Store(EventMixin):
     @property
     def brands(self) -> Set[StoreProductBrand]:
         return self._brands
-
-    @property
-    def settings(self) -> Set[Setting]:
-        return set() if self._settings is None else self._settings
 
     def get_setting(self, key: str, default_value: Any = None):
         try:
@@ -258,7 +265,8 @@ class Store(EventMixin):
                 supplier=self._supplier_factory(supplier_name=price['supplier_name']),
                 unit=store_product.get_unit(price['unit']),
                 price=get_money(amount=price['price'],
-                                currency_str=price['currency'] if 'currency' in price.keys() else default_currency),
+                                currency_str=price['currency'] if 'currency' in price.keys() and price[
+                                    'currency'] is not None else default_currency),
                 tax=price['tax'],
                 effective_from=price['effective_from'],
             )
@@ -503,3 +511,45 @@ class Store(EventMixin):
                 return True
         except StopIteration:
             return False
+
+    def add_address(self, recipient: str, phone: str, address: LocationAddress):
+        try:
+            store_address = StoreAddress(
+                recipient=recipient,
+                phone=phone,
+                address_type=StoreAddressType.STORE_ADDRESS,
+                location_address=address,
+            )
+
+            # set cache attributes, use ORM event when persistence is better
+            setattr(store_address, '_street_address', address.street_address)
+            setattr(store_address, '_sub_division_name', address.sub_division.sub_division_name)
+            setattr(store_address, '_division_name', address.division.division_name)
+            setattr(store_address, '_city_name', address.city.city_name)
+            setattr(store_address, '_country_name', address.country.country_name)
+            setattr(store_address, '_iso_code', address.country.iso_code)
+            setattr(store_address, '_postal_code', address.postal_code)
+
+            self.addresses.add(store_address)
+        except Exception as exc:
+            raise exc
+
+    def get_address(self, address_id: StoreAddressId):
+        try:
+            address = next(a for a in self._addresses if a.store_address_id == address_id)
+            return address
+        except StopIteration:
+            return None
+
+    def get_supplier(self, supplier_id_or_name: Union[StoreSupplierId, str]):
+        try:
+            if isinstance(supplier_id_or_name, UUID):
+                supplier = next(s for s in self._suppliers if s.supplier_id == supplier_id_or_name)
+                return supplier
+            elif isinstance(supplier_id_or_name, str):
+                supplier = next(s for s in self._suppliers if s.supplier_name == supplier_id_or_name)
+                return supplier
+            else:
+                raise TypeError
+        except StopIteration:
+            return None

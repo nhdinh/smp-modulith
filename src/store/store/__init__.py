@@ -10,14 +10,15 @@ from sqlalchemy.orm import sessionmaker
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from foundation.fs import FileSystem
 from store.adapter import store_db
-from store.adapter.queries.sql_store_queries import SqlFetchStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
-    SqlFetchStoreProductsFromCollectionQuery, SqlFetchStoreCollectionsQuery, SqlFetchStoreCatalogsQuery, \
-    SqlFetchStoreProductQuery, SqlFetchStoreProductByIdQuery, SqlFetchStoreProductsQuery, \
-    SqlFetchStoreProductsByCatalogQuery, SqlFetchStoreWarehouseQuery
-from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
-    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery, FetchStoreProductsQuery, \
-    FetchStoreProductsByCatalogQuery, FetchStoreWarehouseQuery
-from store.application.queries.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery
+from store.adapter.queries.sql_store_queries import SqlListStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
+    SqlListProductsFromCollectionQuery, SqlListStoreCollectionsQuery, SqlListStoreCatalogsQuery, \
+    SqlListProductsQuery, SqlGetProductByIdQuery, SqlListStoreProductsQuery, \
+    SqlListStoreProductsByCatalogQuery, SqlListStoreWarehousesQuery, SqlListStoreAddressesQuery, \
+    SqlListStoreSuppliersQuery
+from store.application.queries.store_queries import ListStoreCatalogsQuery, ListStoreCollectionsQuery, \
+    ListProductsFromCollectionQuery, ListProductsQuery, GetProductByIdQuery, ListStoreProductsQuery, \
+    ListStoreProductsByCatalogQuery, ListStoreWarehousesQuery, ListStoreAddressesQuery, ListStoreSuppliersQuery
+from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogDeletedEventHandler
@@ -44,6 +45,8 @@ from store.application.usecases.initialize.confirm_store_registration_uc import 
     ConfirmStoreRegistrationUC
 from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
 from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
+from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponseBoundary, \
+    CreateStoreAddressUC
 from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
     ResendingRegistrationConfirmationResponseBoundary, ResendRegistrationConfirmationUC
 from store.application.usecases.manage.update_store_settings_uc import UpdateStoreSettingsUC, \
@@ -80,6 +83,11 @@ class StoreModule(injector.Module):
     def add_store_manager_uc(self, boundary: AddingStoreManagerResponseBoundary,
                              uow: StoreUnitOfWork) -> AddStoreManagerUC:
         return AddStoreManagerUC(boundary, uow)
+
+    @injector.provider
+    def create_store_address_uc(self, boundary: CreatingStoreAddressResponseBoundary,
+                                uow: StoreUnitOfWork) -> CreateStoreAddressUC:
+        return CreateStoreAddressUC(boundary, uow)
 
     @injector.provider
     def update_store_settings_uc(self, boundary: UpdatingStoreSettingsResponseBoundary,
@@ -208,44 +216,52 @@ class StoreInfrastructureModule(injector.Module):
         return UserCounters(conn=conn)
 
     @injector.provider
-    def fetch_store_settings_query(self, conn: Connection) -> FetchStoreSettingsQuery:
-        return SqlFetchStoreSettingsQuery(conn)
+    def fetch_store_settings_query(self, conn: Connection) -> ListStoreSettingsQuery:
+        return SqlListStoreSettingsQuery(conn)
 
     @injector.provider
-    def fetch_store_warehouses_query(self, conn: Connection) -> FetchStoreWarehouseQuery:
-        return SqlFetchStoreWarehouseQuery(conn)
+    def fetch_store_address_query(self, conn: Connection) -> ListStoreAddressesQuery:
+        return SqlListStoreAddressesQuery(conn)
+
+    @injector.provider
+    def fetch_store_warehouses_query(self, conn: Connection) -> ListStoreWarehousesQuery:
+        return SqlListStoreWarehousesQuery(conn)
 
     @injector.provider
     def count_store_owner_by_email_query(self, conn: Connection) -> CountStoreOwnerByEmailQuery:
         return SqlCountStoreOwnerByEmailQuery(conn)
 
     @injector.provider
-    def fetch_store_catalogs_query(self, conn: Connection) -> FetchStoreCatalogsQuery:
-        return SqlFetchStoreCatalogsQuery(conn)
+    def fetch_store_catalogs_query(self, conn: Connection) -> ListStoreCatalogsQuery:
+        return SqlListStoreCatalogsQuery(conn)
 
     @injector.provider
-    def fetch_store_collections_query(self, conn: Connection) -> FetchStoreCollectionsQuery:
-        return SqlFetchStoreCollectionsQuery(conn)
+    def fetch_store_collections_query(self, conn: Connection) -> ListStoreCollectionsQuery:
+        return SqlListStoreCollectionsQuery(conn)
 
     @injector.provider
-    def fetch_products_from_collection_query(self, conn: Connection) -> FetchStoreProductsFromCollectionQuery:
-        return SqlFetchStoreProductsFromCollectionQuery(conn)
+    def fetch_products_from_collection_query(self, conn: Connection) -> ListProductsFromCollectionQuery:
+        return SqlListProductsFromCollectionQuery(conn)
 
     @injector.provider
-    def fetch_product_query(self, conn: Connection) -> FetchStoreProductQuery:
-        return SqlFetchStoreProductQuery(conn)
+    def list_product_query(self, conn: Connection) -> ListProductsQuery:
+        return SqlListProductsQuery(conn)
 
     @injector.provider
-    def fetch_product_by_id_query(self, conn: Connection) -> FetchStoreProductByIdQuery:
-        return SqlFetchStoreProductByIdQuery(conn)
+    def get_product_by_id_query(self, conn: Connection) -> GetProductByIdQuery:
+        return SqlGetProductByIdQuery(conn)
 
     @injector.provider
-    def fetch_products_in_catalog(self, conn: Connection) -> FetchStoreProductsByCatalogQuery:
-        return SqlFetchStoreProductsByCatalogQuery(conn)
+    def list_products_in_catalog(self, conn: Connection) -> ListStoreProductsByCatalogQuery:
+        return SqlListStoreProductsByCatalogQuery(conn)
 
     @injector.provider
-    def fetch_products_in_store(self, conn: Connection) -> FetchStoreProductsQuery:
-        return SqlFetchStoreProductsQuery(conn)
+    def list_products_in_store(self, conn: Connection) -> ListStoreProductsQuery:
+        return SqlListStoreProductsQuery(conn)
+
+    @injector.provider
+    def list_suppliers_in_store(self, conn: Connection) -> ListStoreSuppliersQuery:
+        return SqlListStoreSuppliersQuery(conn)
 
 
 __all__ = [

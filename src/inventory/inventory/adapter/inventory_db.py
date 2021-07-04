@@ -6,8 +6,9 @@ from datetime import datetime
 import sqlalchemy as sa
 
 from db_infrastructure import metadata, GUID
-from inventory.domain.entities.purchase_order import PurchaseOrderStatus
-from store.adapter.store_db import store_product_table, store_product_unit_table, store_supplier_table
+from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
+from store.adapter.store_db import store_product_table, store_product_unit_table, store_supplier_table, \
+    store_addresses_table, store_warehouse_table
 
 # inventory_product_table = sa.Table(
 #     'store_product',
@@ -49,38 +50,46 @@ from store.adapter.store_db import store_product_table, store_product_unit_table
 
 
 draft_purchase_order_table = sa.Table(
-    'inventory_draft_purchase_order',
+    'draft_purchase_order',
     metadata,
     sa.Column('purchase_order_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('warehouse_id', GUID,
+              sa.ForeignKey(store_warehouse_table.c.warehouse_id, onupdate='SET NULL', ondelete='SET NULL')),
     sa.Column('supplier_id', GUID,
               sa.ForeignKey(store_supplier_table.c.supplier_id, onupdate='SET NULL', ondelete='SET NULL')),
-    sa.Column('status', sa.Enum(PurchaseOrderStatus), nullable=False, default='DRAFT'),
+    sa.Column('store_address_id', GUID,
+              sa.ForeignKey(store_addresses_table.c.store_address_id, onupdate='SET NULL', ondelete='SET NULL')),
+    sa.Column('note', sa.String),
+    sa.Column('due_date', sa.Date),
+    sa.Column('creator', sa.String(255), nullable=False),
+    sa.Column('status', sa.Enum(PurchaseOrderStatus), nullable=False, default=PurchaseOrderStatus.DRAFT),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
-draft_purchase_order_items_table = sa.Table(
-    'inventory_draft_purchase_order_item',
+draft_purchase_order_item_table = sa.Table(
+    'draft_purchase_order_item',
     metadata,
+    sa.Column('purchase_order_item_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('purchase_order_id',
               sa.ForeignKey(draft_purchase_order_table.c.purchase_order_id, onupdate='CASCADE', ondelete='CASCADE')),
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
-    sa.Column('unit', sa.String(50), nullable=False),
+    sa.Column('unit_unit', sa.String(50), nullable=False),
     sa.Column('quantity', sa.Numeric, default=1, nullable=False),
     sa.Column('description', sa.String(255)),
 
-    sa.UniqueConstraint('purchase_order_id', 'product_id', 'unit', name='draft_purchase_order_product_unit_uix'),
-    sa.ForeignKeyConstraint(('product_id', 'unit'),
+    sa.UniqueConstraint('purchase_order_id', 'product_id', 'unit_unit', name='draft_purchase_order_product_unit_uix'),
+    sa.ForeignKeyConstraint(('product_id', 'unit_unit'),
                             [store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
-                            name='draft_purchase_order_product_fk')
+                            name='draft_purchase_order_product_fk', ondelete='SET NULL')
 )
 
 inventory_product_balance_table = sa.Table(
     'inventory_balance',
     metadata,
     sa.Column('product_id', GUID),
-    sa.Column('unit', sa.String(100)),
+    sa.Column('unit', sa.String(50), nullable=False),
 
     sa.Column('stocking_quantity', sa.Integer, default='0'),
 

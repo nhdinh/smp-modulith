@@ -8,7 +8,7 @@ from flask_jwt_extended import jwt_required
 from flask_login import current_user
 
 from foundation.business_rule import BusinessRuleValidationError
-from product_catalog.application.queries.product_catalog import FetchAllCatalogsQuery, FetchCatalogQuery
+from product_catalog.application.queries.product_catalog import ListCatalogsQuery, GetCatalogQuery
 from product_catalog.application.usecases.create_catalog import CreatingCatalogResponseBoundary, \
     CreatingCatalogResponse, \
     CreatingCatalogRequest, CreateCatalogUC
@@ -41,7 +41,7 @@ class CatalogAPI(injector.Module):
 
 @catalog_blueprint.route('/')
 @jwt_required()
-def fetch_all_active_catalogs(query: FetchAllCatalogsQuery) -> Response:
+def fetch_all_active_catalogs(query: ListCatalogsQuery) -> Response:
     try:
         catalogs = query.query()
         return make_response(jsonify(catalogs)), 200  # type:ignore
@@ -53,7 +53,7 @@ def fetch_all_active_catalogs(query: FetchAllCatalogsQuery) -> Response:
 
 @catalog_blueprint.route('/all')
 @jwt_required()
-def fetch_all_catalogs(query: FetchAllCatalogsQuery) -> Response:
+def fetch_all_catalogs(query: ListCatalogsQuery) -> Response:
     try:
         catalogs = query.query(select_active_only=False)
         return make_response(jsonify(catalogs)), 200  # type:ignore
@@ -65,7 +65,7 @@ def fetch_all_catalogs(query: FetchAllCatalogsQuery) -> Response:
 
 @catalog_blueprint.route("/<string:catalog_query>", methods=['GET'])
 @jwt_required()
-def get_single_catalog(catalog_query: str, query: FetchCatalogQuery) -> Response:
+def get_single_catalog(catalog_query: str, query: GetCatalogQuery) -> Response:
     return make_response(jsonify(query.query(param=catalog_query)))
 
 

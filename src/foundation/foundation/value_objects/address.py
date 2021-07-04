@@ -8,42 +8,113 @@ from uuid import UUID
 LocationAddressId = NewType('LocationAddressId', tp=UUID)
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class LocationCitySubDivision:
     sub_division_name: str
-    city_division: 'LocationCityDivision'
-    city: 'LocaltionCity'
-    country: 'LocationCountry'
+
+    @property
+    def city_division(self) -> 'LocationCityDivision':
+        return self._city_division
+
+    def __eq__(self, other):
+        if not other or not isinstance(other, LocationCitySubDivision):
+            raise TypeError
+
+        return self.sub_division_name == other.sub_division_name and self.city_division == other.city_division
+
+    def __str__(self):
+        return f"<LocationCitySubDivision '{self.sub_division_name}, {self.city_division.division_name}, {self.city_division.city.city_name}, {self.city_division.city.country.country_name}'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __hash__(self):
+        return hash(self.sub_division_id)
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class LocationCityDivision:
     division_name: str
-    city: 'LocationCity'
-    country: 'LocationCountry'
+    sub_divisions: Set[LocationCitySubDivision] = frozenset()
+
+    @property
+    def city(self) -> 'LocationCity':
+        return self._city
+
+    def __eq__(self, other):
+        if not other or not isinstance(other, LocationCityDivision):
+            raise TypeError
+
+        return self.division_name == other.division_name and self._city == other._city
+
+    def __str__(self):
+        return f"<LocationCityDivision '{self.division_name}, {self._city.city_name}, {self._city.country.country_name}'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __hash__(self):
+        return hash(self.division_id)
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class LocationCity:
     city_name: str
-    provinces: Set[LocationCityDivision]
-    country: 'LocationCountry'
+    divisions: Set[LocationCityDivision] = frozenset()
+
+    @property
+    def country(self) -> 'LocationCountry':
+        return self._country
+
+    def __eq__(self, other):
+        if not other or not isinstance(other, LocationCity):
+            raise TypeError
+
+        return self.city_name == other.city_name and self._country == other._country
+
+    def __str__(self):
+        return f"<LocationCity '{self.city_name}, {self._country.country_name}'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __hash__(self):
+        return hash(self.city_id)
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class LocationCountry:
-    cities: Set[LocationCity]
     country_name: str
     iso_code: str
+    cities: Set[LocationCity] = frozenset()
+
+    def __eq__(self, other):
+        if not other or not isinstance(other, LocationCountry):
+            raise TypeError
+
+        return self.country_name == other.country_name or self.iso_code == other.iso_code
+
+    def __str__(self):
+        return f"<LocationCountry #{self.iso_code} '{self.country_name}'>"
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __hash__(self):
+        return hash(self.country_id)
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class LocationAddress:
-    address: str
+    street_address: str
+    postal_code: str
     sub_division: LocationCitySubDivision
-    division: LocationCityDivision
-    city: LocationCity
-    country: LocationCountry
+    division: LocationCityDivision = None
+    city: LocationCity = None
+    country: LocationCountry = None
 
     def __str__(self) -> str:
         return f"{self.address}, {self.sub_division}, {self.division}, {self.city}, {self.country}"
+
+    def __hash__(self):
+        return hash(self.address_id)

@@ -20,6 +20,6 @@ class StoreProductUnit:
 
     def __eq__(self, other):
         if not other or not isinstance(other, StoreProductUnit):
-            raise TypeError
+            raise TypeError('Cannot compare StoreProductUnit with another data type')
 
         return self.unit == other.unit and self.conversion_factor == other.conversion_factor and self.from_unit == other.from_unit

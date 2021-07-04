@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-from store.domain.entities.store_registration import StoreRegistration, RegistrationWaitingForConfirmation
+from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.registration_status import RegistrationStatus
 
 ALLOWABLE_RESEND_DURATION = timedelta(minutes=0)
 
@@ -41,13 +42,13 @@ class ResendRegistrationConfirmationUC:
                 if not registration:
                     raise Exception(ExceptionMessages.REGISTRATION_NOT_FOUND)
 
-                if registration.status != RegistrationWaitingForConfirmation:
+                if registration.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION:
                     raise Exception(ExceptionMessages.REGISTRATION_HAS_BEEN_CONFIRMED)
 
                 if registration.last_resend is not None and datetime.now() - registration.last_resend < ALLOWABLE_RESEND_DURATION:
                     raise Exception(ExceptionMessages.REGISTRATION_RESEND_TOO_MUCH)
 
-                if registration.status == RegistrationWaitingForConfirmation and registration.expired:
+                if registration.status == RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION and registration.expired:
                     raise Exception(ExceptionMessages.REGISTRATION_HAS_BEEN_EXPIRED)
 
                 registration.resend_confirmation_link()

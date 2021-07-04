@@ -1,6 +1,6 @@
 import decimal
 import json
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 from functools import singledispatchmethod
 from uuid import UUID
@@ -9,6 +9,7 @@ from auctions import AuctionDto
 from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
 from product_catalog.application.queries.product_catalog import CatalogDto, CollectionDto, BrandDto
+from store.domain.entities.store_address import StoreAddressType
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -80,6 +81,10 @@ class JSONEncoder(json.JSONEncoder):
     def serialize_datetime(self, obj: datetime) -> str:
         return obj.isoformat()
 
+    @default.register(date)  # noqa: F811
+    def serialize_date(self, obj:date)->str:
+        return obj.isoformat()
+
     @default.register(UUID)  # noqa: F811
     def serialize_uuid(self, obj: UUID) -> str:
         return str(obj)
@@ -87,3 +92,7 @@ class JSONEncoder(json.JSONEncoder):
     @default.register(Decimal)  # noqa: F811
     def serialize_decimal(self, obj: Decimal) -> str:
         return json.dumps(obj, cls=DecimalEncoder).replace("\"`", '').replace("`\"", '')
+
+    @default.register(StoreAddressType)
+    def serialize_store_address_type(self, obj: StoreAddressType) -> str:
+        return str(obj.value)

@@ -3,12 +3,14 @@
 
 import flask_injector
 import injector
-from factory.base import logger
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
-from store.application.queries.store_queries import FetchStoreSettingsQuery, FetchStoreWarehouseQuery
+from foundation.logger import logger
+from store import CreateStoreAddressUC, CreatingStoreAddressResponseBoundary
+from store.application.queries.store_queries import ListStoreSettingsQuery, ListStoreWarehousesQuery, \
+    ListStoreAddressesQuery
 from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
     CreatingStoreWarehouseResponseBoundary, CreatingStoreWarehouseRequest
 from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
@@ -17,6 +19,7 @@ from store.application.usecases.initialize.register_store_uc import RegisterStor
     RegisteringStoreRequest
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
     AddStoreManagerUC
+from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressRequest
 from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
     ResendingRegistrationConfirmationRequest, ResendRegistrationConfirmationUC, \
     ResendingRegistrationConfirmationResponseBoundary
@@ -26,9 +29,10 @@ from store.application.usecases.manage.upload_image_uc import UploadingImageRequ
     UploadImageUC
 from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
     SelectingStorePlanRequest
-from web_app.presenters.manage_store_presenters import RegisteringStorePresenter, ConfirmingStoreRegistrationPresenter, \
+from web_app.presenters.store_management_presenters import RegisteringStorePresenter, \
+    ConfirmingStoreRegistrationPresenter, \
     SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
-    ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter
+    ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter, CreatingStoreAddressPresenter
 from web_app.serialization.dto import get_dto
 
 STORE_MANAGEMENT_BLUEPRINT_NAME = 'store_management_blueprint'
@@ -75,6 +79,11 @@ class StoreAPI(injector.Module):
     @flask_injector.request
     def upload_image_boundary(self) -> UploadingImageResponseBoundary:
         return UploadingImagePresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def create_store_address_boundary(self) -> CreatingStoreAddressResponseBoundary:
+        return CreatingStoreAddressPresenter()
 
 
 @store_management_blueprint.route('/register', methods=['POST'])
@@ -159,7 +168,7 @@ def confirm_store_package(choose_store_plan_uc: SelectStorePlanUC,
 
 @store_management_blueprint.route('/settings', methods=['GET'])
 @jwt_required()
-def fetch_store_settings(query: FetchStoreSettingsQuery) -> Response:
+def fetch_store_settings(query: ListStoreSettingsQuery) -> Response:
     try:
         store_owner = get_jwt_identity()
 
@@ -231,7 +240,7 @@ def upload_image(upload_image_uc: UploadImageUC, presenter: UploadingImageRespon
 
 @store_management_blueprint.route('/warehouse', methods=['GET'])
 @jwt_required()
-def fetch_store_warehouses(query: FetchStoreWarehouseQuery) -> Response:
+def fetch_store_warehouses(query: ListStoreWarehousesQuery) -> Response:
     try:
         warehouse_owner = get_jwt_identity()
 
@@ -252,6 +261,37 @@ def create_new_warehouse(create_store_warehouse_uc: CreateStoreWarehouseUC,
             'current_user': get_jwt_identity()
         })
         create_store_warehouse_uc.execute(dto)
+        return presenter.response, 201  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_management_blueprint.route('/addresses', methods=['GET'])
+@jwt_required()
+def fetch_all_addresses(query: ListStoreAddressesQuery) -> Response:
+    try:
+        store_owner = get_jwt_identity()
+
+        settings = query.query(store_owner=store_owner)
+        return make_response(jsonify(settings)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_management_blueprint.route('/addresses', methods=['POST'])
+@jwt_required()
+def create_new_address(create_store_address_uc: CreateStoreAddressUC,
+                       presenter: CreatingStoreAddressResponseBoundary) -> Response:
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, CreatingStoreAddressRequest, context={'current_user': current_user})
+        create_store_address_uc.execute(dto)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore

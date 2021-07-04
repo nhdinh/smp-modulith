@@ -7,7 +7,7 @@ from flask import Response, Blueprint, jsonify, make_response, request, current_
 from flask_jwt_extended import jwt_required
 
 from foundation.business_rule import BusinessRuleValidationError
-from product_catalog.application.queries.product_catalog import FetchAllProductsQuery, FetchProductQuery
+from product_catalog.application.queries.product_catalog import ListProductsQuery, GetProductQuery
 from product_catalog.application.usecases.create_product import CreatingProductResponse, CreatingProductRequest, \
     CreateProductUC, CreatingProductResponseBoundary
 from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC, \
@@ -31,7 +31,7 @@ class ProductAPI(injector.Module):
 
 @product_blueprint.route('/', methods=['GET'])
 @jwt_required()
-def list_all_products(query: FetchAllProductsQuery) -> Response:
+def list_all_products(query: ListProductsQuery) -> Response:
     try:
         page = request.args.get('page', 1, type=int)
         page_size = request.args.get('page_size', 10, type=int)
@@ -44,7 +44,7 @@ def list_all_products(query: FetchAllProductsQuery) -> Response:
 
 @product_blueprint.route('/<string:product_query>', methods=['GET'])
 @jwt_required()
-def fetch_product(product_query: str, query: FetchProductQuery) -> Response:
+def fetch_product(product_query: str, query: GetProductQuery) -> Response:
     try:
         product = query.query(product_query=product_query)
         return make_response(jsonify(product)), 200  # type:ignore

@@ -5,7 +5,8 @@ from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.domain.entities.store import StoreId
-from store.domain.entities.store_registration import StoreRegistration, RegistrationWaitingForConfirmation
+from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.registration_status import RegistrationStatus
 
 
 @dataclass
@@ -41,9 +42,9 @@ class ConfirmStoreRegistrationUC:
                     token=confirmation_token
                 )  # type: StoreRegistration
                 if not store_registration:
-                    raise Exception('Registration not found')
+                    raise Exception('Registration not existed')
 
-                if store_registration.status != RegistrationWaitingForConfirmation:
+                if store_registration.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION:
                     raise Exception('Invalid registration')
 
                 # create the entity

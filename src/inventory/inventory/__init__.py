@@ -7,13 +7,15 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus, AsyncEventHandlerProvider, AsyncHandler
-from inventory.adapter.inventory_sql_queries import SqlFetchAllProductsBalanceQuery
-from inventory.application.inventory_queries import FetchAllProductsBalanceQuery
+from inventory.adapter.inventory_sql_queries import SqlListProductsBalanceQuery, SqlListDraftPurchaseOrdersQuery
+from inventory.application.inventory_queries import ListProductsBalanceQuery, ListDraftPurchaseOrdersQuery
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.approve_purchase_order_uc import ApprovePurchaseOrderUC, \
     ApprovingPurchaseOrderResponseBoundary
 from inventory.application.usecases.create_draft_purchase_order_uc import CreatingDraftPurchaseOrderResponseBoundary, \
     CreateDraftPurchaseOrderUC
+from inventory.application.usecases.remove_draft_purchase_order_item_uc import RemoveDraftPurchaseOrderItemUC, \
+    RemovingDraftPurchaseOrderItemResponseBoundary
 from inventory.application.usecases.update_draft_purchase_order_uc import UpdatingDraftPurchaseOrderResponseBoundary, \
     UpdateDraftPurchaseOrderUC
 from inventory.inventory_handler_facade import InventoryHandlerFacade, StoreProductCreatedEventHandler
@@ -42,6 +44,11 @@ class InventoryModule(injector.Module):
         return ApprovePurchaseOrderUC(boundary, uow)
 
     @injector.provider
+    def remove_draft_purchase_order_item_uc(self, boundary: RemovingDraftPurchaseOrderItemResponseBoundary,
+                                            uow: InventoryUnitOfWork) -> RemoveDraftPurchaseOrderItemUC:
+        return RemoveDraftPurchaseOrderItemUC(boundary, uow)
+
+    @injector.provider
     def facade(self, connection: Connection) -> InventoryHandlerFacade:
         return InventoryHandlerFacade(connection=connection)
 
@@ -61,8 +68,12 @@ class InventoryInfrastructureModule(injector.Module):
         return InventoryUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
 
     @injector.provider
-    def fetch_all_products_balance_query(self, conn: Connection) -> FetchAllProductsBalanceQuery:
-        return SqlFetchAllProductsBalanceQuery(connection=conn)
+    def fetch_all_products_balance_query(self, conn: Connection) -> ListProductsBalanceQuery:
+        return SqlListProductsBalanceQuery(connection=conn)
+
+    @injector.provider
+    def list_draft_purchase_orders_query(self, conn: Connection) -> ListDraftPurchaseOrdersQuery:
+        return SqlListDraftPurchaseOrdersQuery(connection=conn)
 
 
 __all__ = [

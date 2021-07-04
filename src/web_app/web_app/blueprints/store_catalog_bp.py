@@ -11,8 +11,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
-from store.application.queries.store_queries import FetchStoreCatalogsQuery, FetchStoreCollectionsQuery, \
-    FetchStoreProductsFromCollectionQuery, FetchStoreProductQuery, FetchStoreProductByIdQuery, FetchStoreProductsQuery
+from store.application.queries.store_queries import ListStoreCatalogsQuery, ListStoreCollectionsQuery, \
+    ListProductsFromCollectionQuery, ListProductsQuery, GetProductByIdQuery, ListStoreProductsQuery, \
+    ListStoreSuppliersQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
@@ -133,7 +134,7 @@ store_catalog_blueprint_endpoint_callers.append(init_store_from_plan)
 
 @store_catalog_blueprint.route('/', methods=['GET'])
 @jwt_required()
-def fetch_store_catalogs(fetch_all_store_catalogs_query: FetchStoreCatalogsQuery) -> Response:
+def fetch_store_catalogs(fetch_all_store_catalogs_query: ListStoreCatalogsQuery) -> Response:
     """
     GET :5000/store-catalog/
     Fetch catalogs from store
@@ -203,7 +204,7 @@ def rebuild_store_catalog_cache(invalidate_store_catalog_cache_uc: InvalidateSto
 @jwt_required()
 def fetch_store_collections(
         catalog_reference: str,
-        fetch_all_store_collections_query: FetchStoreCollectionsQuery
+        fetch_all_store_collections_query: ListStoreCollectionsQuery
 ) -> Response:
     """
     GET :5000/store-catalog/catalog/<catalog_reference>
@@ -492,7 +493,7 @@ def remove_store_collection(catalog_reference: str, collection_reference: str) -
 
 @store_catalog_blueprint.route('/products', methods=['GET'])
 @jwt_required()
-def fetch_store_products(fetch_store_products_query: FetchStoreProductsQuery):
+def fetch_store_products(fetch_store_products_query: ListStoreProductsQuery):
     try:
         dto = get_dto(request, AuthorizedPaginationInputDto, context={
             'current_user': get_jwt_identity()
@@ -514,7 +515,7 @@ def fetch_store_products(fetch_store_products_query: FetchStoreProductsQuery):
 def fetch_store_products_from_collection(
         collection_reference: str,
         catalog_reference: str,
-        fetch_store_products_from_collection_query: FetchStoreProductsFromCollectionQuery
+        fetch_store_products_from_collection_query: ListProductsFromCollectionQuery
 ) -> Response:
     """
     GET :5000/store-catalog/catalog/<catalog_reference>/collection/<collection_reference>
@@ -546,7 +547,7 @@ def fetch_store_products_from_collection(
 
 @store_catalog_blueprint.route('/products/<string:product_id>', methods=['GET'])
 @jwt_required()
-def fetch_store_product_by_id(product_id: str, fetch_store_product_by_id_query: FetchStoreProductByIdQuery) -> Response:
+def fetch_store_product_by_id(product_id: str, fetch_store_product_by_id_query: GetProductByIdQuery) -> Response:
     try:
         current_user = get_jwt_identity()
         response = fetch_store_product_by_id_query.query(owner_email=current_user, product_id=product_id)
@@ -566,7 +567,7 @@ def fetch_store_product(
         product_reference: str,
         collection_reference: str,
         catalog_reference: str,
-        fetch_store_product_query: FetchStoreProductQuery
+        fetch_store_product_query: ListProductsQuery
 ) -> Response:
     """
     GET :5000/store-catalog/store-catalog/catalog/<catalog_reference>/collection/<collection_reference>/product/<product_reference>
@@ -706,6 +707,25 @@ def remove_store_product(product_id: str):
     :param product_id:
     """
     raise NotImplementedError
+
+
+# endregion
+
+# region ## MISC ##
+
+
+@store_catalog_blueprint.route('/suppliers', methods=['GET'])
+@jwt_required()
+def list_store_suppliers(list_store_suppliers_query: ListStoreSuppliersQuery) -> Response:
+    try:
+        current_user = get_jwt_identity()
+        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        response = list_store_suppliers_query.query(dto)
+        return make_response(jsonify(response)), 200  # type:ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
 # endregion

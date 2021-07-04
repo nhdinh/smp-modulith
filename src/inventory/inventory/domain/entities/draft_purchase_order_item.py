@@ -7,9 +7,8 @@ from store.domain.entities.store_unit import StoreProductUnit
 
 
 @dataclass(unsafe_hash=True)
-class PurchaseOrderItem:
+class DraftPurchaseOrderItem:
     product: StoreProduct
     unit: StoreProductUnit
-    stock_quantity: int
-    purchase_price: float
+    quantity: int
     description: str

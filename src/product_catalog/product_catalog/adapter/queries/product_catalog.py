@@ -9,13 +9,13 @@ from db_infrastructure import SqlQuery
 from db_infrastructure.base import paginate
 from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
     brand_table
-from product_catalog.application.queries.product_catalog import FetchAllProductsQuery, ProductDto, FetchProductQuery, \
-    CollectionDto, BrandDto, FetchAllBrandsQuery
-from product_catalog.application.queries.product_catalog import FetchCatalogQuery, CatalogDto, FetchAllCatalogsQuery
+from product_catalog.application.queries.product_catalog import ListProductsQuery, ProductDto, GetProductQuery, \
+    CollectionDto, BrandDto, ListProductBrandsQuery
+from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, ListCatalogsQuery
 from web_app.serialization.dto import PaginationOutputDto, paginate_response_factory
 
 
-class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
+class SqlListCatalogsQuery(ListCatalogsQuery, SqlQuery):
     def query(self, select_active_only: bool = True) -> List[CatalogDto]:
         # make query
         query_table = catalog_table.join(collection_table, onclause=(
@@ -56,7 +56,7 @@ class SqlFetchAllCatalogsQuery(FetchAllCatalogsQuery, SqlQuery):
         return list(ret.values())
 
 
-class SqlFetchCatalogQuery(FetchCatalogQuery, SqlQuery):
+class SqlGetCatalogQuery(GetCatalogQuery, SqlQuery):
     def query(self, param: str) -> Optional[CatalogDto]:
         try:
             return next(
@@ -69,7 +69,7 @@ class SqlFetchCatalogQuery(FetchCatalogQuery, SqlQuery):
             raise exc
 
 
-class SqlFetchProductQuery(FetchProductQuery, SqlQuery):
+class SqlGetProductQuery(GetProductQuery, SqlQuery):
     def query(self, product_query: str) -> Optional[ProductDto]:
         try:
             query = joined_product_table_query()
@@ -83,7 +83,7 @@ class SqlFetchProductQuery(FetchProductQuery, SqlQuery):
             raise exc
 
 
-class SqlFetchAllProductsQuery(FetchAllProductsQuery, SqlQuery):
+class SqlListProductsQuery(ListProductsQuery, SqlQuery):
     def query(self, page: int, page_size: int) -> PaginationOutputDto[ProductDto]:
         total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
 
@@ -99,7 +99,7 @@ class SqlFetchAllProductsQuery(FetchAllProductsQuery, SqlQuery):
         )
 
 
-class SqlFetchAllBrandsQuery(FetchAllBrandsQuery, SqlQuery):
+class SqlListProductBrandsQuery(ListProductBrandsQuery, SqlQuery):
     def query(self) -> List[BrandDto]:
         return [_row_to_brand_dto(r) for r in self._conn.execute(brand_table.select())]
 

@@ -4,8 +4,14 @@ import abc
 from dataclasses import dataclass
 
 import email_validator
+from typing import Set
+
+from sqlalchemy import select
+from sqlalchemy.engine import Connection
 
 from foundation.common_helpers import uuid_validate
+from foundation.uow import SqlAlchemyUnitOfWork
+from foundation.value_objects.address import LocationCountry, LocationCitySubDivision
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.store import Store
@@ -86,7 +92,7 @@ def fetch_catalog_from_store_or_raise(by_catalog: str, store: Store) -> StoreCat
     :param by_catalog: reference or catalog_id, the catalog which is want to fetch, in str
     :param store: instance of `Store`
 
-    :return: instance of `StoreCatalog` or raise Exception if not found
+    :return: instance of `StoreCatalog` or raise Exception if not existed
     """
     try:
         # validate store
@@ -132,5 +138,23 @@ def fetch_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWor
             raise Exception(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
 
         return product
+    except Exception as exc:
+        raise exc
+
+
+def countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
+    try:
+        query = select(LocationCountry)
+        country_rows = uow._session.execute(query).all()
+        return set(country_rows)
+    except Exception as exc:
+        raise exc
+
+
+def get_location(sub_division_id: str, uow: SqlAlchemyUnitOfWork) -> LocationCitySubDivision:
+    try:
+        location = uow.session.query(LocationCitySubDivision).filter(
+            LocationCitySubDivision.sub_division_id == sub_division_id).first()
+        return location
     except Exception as exc:
         raise exc

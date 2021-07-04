@@ -3,8 +3,10 @@
 from typing import Optional
 
 import email_validator
+
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
+from store.domain.entities.store_supplier import StoreSupplier
 
 from store.domain.entities.store import Store, StoreId
 from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogReference, StoreCatalogId
@@ -17,9 +19,9 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
     try:
         email_validator.validate_email(store_owner)
 
-        q = select([Store.store_id]).where(Store.owner_email == store_owner)
+        q = select([Store.store_id]).where(Store.owner_email == store_owner)  # type:ignore
         if active_only:
-            q = q.where(Store.disabled == False)
+            q = q.where(Store.disabled == False)  # type:ignore
         store_id = conn.scalar(q)
 
         # problem with the cache email from the `Store` table, we need to fetch the store by user_id
@@ -27,8 +29,9 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
             q = select(Store.store_id) \
                 .join(StoreOwner) \
                 .where(StoreOwner.email == store_owner)
+
             if active_only:
-                q = q.where(Store.disabled == False)
+                q = q.where(Store.disabled == False)  # type:ignore
             store_id = conn.scalar(q)
 
         return store_id
@@ -114,4 +117,9 @@ def sql_count_products_in_store(store_id: StoreId, conn: Connection) -> int:
     q = select([func.count(distinct(StoreProduct.product_id))]). \
         join(Store).where(
         Store.store_id == store_id)
+    return conn.scalar(q)
+
+
+def sql_count_suppliers_in_store(store_id: StoreId, conn: Connection) -> int:
+    q = select([func.count(distinct(StoreSupplier.supplier_id))]).join(Store).where(Store.store_id == store_id)
     return conn.scalar(q)

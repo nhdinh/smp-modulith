@@ -3,23 +3,29 @@
 from typing import List
 
 from sqlalchemy import select, and_
+from store.domain.entities.store_supplier import StoreSupplier
 
 from db_infrastructure import SqlQuery
+from foundation.value_objects.address import LocationAddress, LocationCountry, LocationCity, LocationCitySubDivision, \
+    LocationCityDivision
 from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_products_in_collection, sql_get_catalog_id_by_reference, sql_count_collections_in_catalog, \
-    sql_count_catalogs_in_store, sql_count_products_in_store
+    sql_count_catalogs_in_store, sql_count_products_in_store, sql_count_suppliers_in_store
 from store.adapter.queries.query_helpers import _row_to_store_settings_dto, _row_to_store_info_dto, \
     _row_to_product_short_dto, \
-    _row_to_catalog_dto, _row_to_collection_dto, _row_to_product_dto, _row_to_warehouse_dto
-from store.application.queries.store_queries import FetchStoreProductsFromCollectionQuery, StoreProductShortResponseDto, \
-    FetchStoreCollectionsQuery, FetchStoreCatalogsQuery, StoreCatalogResponseDto, FetchStoreProductQuery, \
-    StoreProductResponseDto, FetchStoreProductByIdQuery, FetchStoreProductsQuery, FetchStoreProductsByCatalogQuery, \
-    FetchStoreWarehouseQuery, StoreWarehouseResponseDto
-from store.application.queries.store_queries import FetchStoreSettingsQuery, CountStoreOwnerByEmailQuery, \
+    _row_to_catalog_dto, _row_to_collection_dto, _row_to_product_dto, _row_to_warehouse_dto, _row_to_address_dto, \
+    _row_to_supplier_dto
+from store.application.queries.store_queries import ListProductsFromCollectionQuery, StoreProductShortResponseDto, \
+    ListStoreCollectionsQuery, ListStoreCatalogsQuery, StoreCatalogResponseDto, ListProductsQuery, \
+    StoreProductResponseDto, GetProductByIdQuery, ListStoreProductsQuery, ListStoreProductsByCatalogQuery, \
+    ListStoreWarehousesQuery, StoreWarehouseResponseDto, ListStoreAddressesQuery, StoreAddressResponseDto, \
+    ListStoreSuppliersQuery, StoreSupplierResponseDto
+from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery, \
     StoreInfoResponseDto
 from store.application.usecases.const import ExceptionMessages
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store, StoreId
+from store.domain.entities.store_address import StoreAddress
 from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogReference, StoreCatalogId
 from store.domain.entities.store_collection import StoreCollection, StoreCollectionReference
 from store.domain.entities.store_owner import StoreOwner
@@ -31,7 +37,7 @@ from store.domain.entities.store_warehouse import StoreWarehouse
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
 
-class SqlFetchStoreSettingsQuery(FetchStoreSettingsQuery, SqlQuery):
+class SqlListStoreSettingsQuery(ListStoreSettingsQuery, SqlQuery):
     def query(self, store_of: str) -> StoreInfoResponseDto:
         store_query = select(Store) \
             .join(StoreOwner).where(StoreOwner.email == store_of)
@@ -62,7 +68,7 @@ class SqlCountStoreOwnerByEmailQuery(CountStoreOwnerByEmailQuery, SqlQuery):
         raise NotImplementedError
 
 
-class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQuery, SqlQuery):
+class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQuery):
     def query(
             self,
             collection_reference: StoreCollectionReference,
@@ -119,7 +125,7 @@ class SqlFetchStoreProductsFromCollectionQuery(FetchStoreProductsFromCollectionQ
             raise exc
 
 
-class SqlFetchStoreCatalogsQuery(FetchStoreCatalogsQuery, SqlQuery):
+class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
         try:
             try:
@@ -174,7 +180,7 @@ class SqlFetchStoreCatalogsQuery(FetchStoreCatalogsQuery, SqlQuery):
             raise exc
 
 
-class SqlFetchStoreCollectionsQuery(FetchStoreCollectionsQuery, SqlQuery):
+class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
     def query(self, catalog_reference: StoreCatalogReference, dto: AuthorizedPaginationInputDto):
         try:
             try:
@@ -237,7 +243,7 @@ def fetch_store_product_query_factory(store_id: StoreId):
     return query
 
 
-class SqlFetchStoreProductQuery(FetchStoreProductQuery, SqlQuery):
+class SqlListProductsQuery(ListProductsQuery, SqlQuery):
     def query(self,
               owner_email: str,
               catalog_reference: StoreCatalogReference,
@@ -261,7 +267,7 @@ class SqlFetchStoreProductQuery(FetchStoreProductQuery, SqlQuery):
             raise exc
 
 
-class SqlFetchStoreProductByIdQuery(FetchStoreProductByIdQuery, SqlQuery):
+class SqlGetProductByIdQuery(GetProductByIdQuery, SqlQuery):
     def query(self,
               owner_email: str,
               product_id: StoreProductId):
@@ -289,7 +295,7 @@ class SqlFetchStoreProductByIdQuery(FetchStoreProductByIdQuery, SqlQuery):
             raise exc
 
 
-class SqlFetchStoreProductsByCatalogQuery(FetchStoreProductsByCatalogQuery, SqlQuery):
+class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQuery):
     def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
         StoreProductShortResponseDto]:
         try:
@@ -328,7 +334,7 @@ class SqlFetchStoreProductsByCatalogQuery(FetchStoreProductsByCatalogQuery, SqlQ
             raise exc
 
 
-class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
+class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductShortResponseDto]:
         try:
             try:
@@ -343,7 +349,7 @@ class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
                 raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
             # get product counts
-            product_counts = sql_count_products_in_store(store_id=store_id, conn=self._conn)
+            total_product_cnt = sql_count_products_in_store(store_id=store_id, conn=self._conn)
 
             # build product query
             query = fetch_store_product_query_factory(store_id=store_id)
@@ -355,7 +361,7 @@ class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
             return paginate_response_factory(
                 current_page=current_page,
                 page_size=page_size,
-                total_items=product_counts,
+                total_items=total_product_cnt,
                 items=[
                     _row_to_product_short_dto(row) for row in products
                 ]
@@ -364,13 +370,77 @@ class SqlFetchStoreProductsQuery(FetchStoreProductsQuery, SqlQuery):
             raise exc
 
 
-class SqlFetchStoreWarehouseQuery(FetchStoreWarehouseQuery, SqlQuery):
-    def query(self, warehouse_owner: StoreOwner) -> List[StoreWarehouseResponseDto]:
+class SqlListStoreWarehousesQuery(ListStoreWarehousesQuery, SqlQuery):
+    def query(self, warehouse_owner: str) -> List[StoreWarehouseResponseDto]:
         store_id = sql_get_store_id_by_owner(store_owner=warehouse_owner, conn=self._conn)
         if not store_id:
             raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
-        query = select(StoreWarehouse).join(Store).where(Store.store_id == store_id)
+        query = select(StoreWarehouse).join(Store).where(Store.store_id == store_id)  # type:ignore
 
         warehouses = self._conn.execute(query)
         return [_row_to_warehouse_dto(row) for row in warehouses]
+
+
+class SqlListStoreAddressesQuery(ListStoreAddressesQuery, SqlQuery):
+    def query(self, store_owner: str) -> List[StoreAddressResponseDto]:
+        store_id = sql_get_store_id_by_owner(store_owner=store_owner, conn=self._conn)
+        if not store_id:
+            raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+
+        # full query with join
+        # query = select([
+        #     StoreAddress,
+        #     LocationAddress.street_address, LocationAddress.postal_code,
+        #     LocationCitySubDivision.sub_division_name,
+        #     LocationCityDivision.division_name,
+        #     LocationCity.city_name,
+        #     LocationCountry.country_name, LocationCountry.iso_code
+        # ]).join(LocationAddress, StoreAddress.location_address) \
+        #     .join(LocationCitySubDivision) \
+        #     .join(LocationCityDivision) \
+        #     .join(LocationCity) \
+        #     .join(LocationCountry) \
+        #     .join(Store, StoreAddress._store).where(Store.store_id == store_id)
+
+        query = select(StoreAddress).join(Store, StoreAddress._store).where(Store.store_id == store_id)
+
+        addresses = self._conn.execute(query).all()
+
+        return [_row_to_address_dto(row) for row in addresses]
+
+
+class SqlListStoreSuppliersQuery(ListStoreSuppliersQuery, SqlQuery):
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreSupplierResponseDto]:
+        try:
+            try:
+                current_page = int(dto.page) if int(dto.page) > 0 else 1
+                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+            except:
+                current_page = 1
+                page_size = 10
+
+            store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
+            if not store_id:
+                raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+
+            # get supplier counts
+            total_supplier_cnt = sql_count_suppliers_in_store(store_id=store_id, conn=self._conn)
+
+            # build supplier query
+            query = select(StoreSupplier).join(Store).where(Store.store_id == store_id)
+            query = query.limit(page_size).offset((current_page - 1) * page_size)
+
+            # query products
+            suppliers = self._conn.execute(query).all()
+
+            return paginate_response_factory(
+                current_page=current_page,
+                page_size=page_size,
+                total_items=total_supplier_cnt,
+                items=[
+                    _row_to_supplier_dto(row) for row in suppliers
+                ]
+            )
+        except Exception as exc:
+            raise exc

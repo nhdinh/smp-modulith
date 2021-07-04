@@ -134,6 +134,10 @@ marshmallow==3.10.0
     #   flask-apispec
     #   marshmallow-dataclass
     #   webargs
+marshmallow_enum
+    # via -r ./web_app/requirements.txt
+typeguard
+    # via -r ./web_app/requirements.txt
 minio==7.0.4
     # via -r ./main/requirements.txt
 mistune==0.8.4

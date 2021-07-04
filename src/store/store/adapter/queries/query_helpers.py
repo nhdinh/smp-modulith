@@ -7,7 +7,7 @@ from sqlalchemy.engine.row import RowProxy
 
 from store.application.queries.store_queries import StoreCatalogResponseDto, StoreCollectionResponseDto, \
     StoreProductShortResponseDto, StoreProductResponseDto, StoreProductUnitResponseDto, StoreProductTagResponseDto, \
-    StoreWarehouseResponseDto
+    StoreWarehouseResponseDto, StoreAddressResponseDto, StoreSupplierResponseDto
 from store.application.queries.store_queries import StoreSettingResponseDto, StoreInfoResponseDto
 
 
@@ -104,4 +104,31 @@ def _row_to_warehouse_dto(row: RowProxy) -> StoreWarehouseResponseDto:
         warehouse_name=row.warehouse_name,
         default=row.default,
         disabled=row.disabled,
+    )
+
+
+def _row_to_address_dto(row: RowProxy) -> StoreAddressResponseDto:
+    return StoreAddressResponseDto(
+        store_address_id=row.store_address_id,
+        full_address=f"{row._street_address}, {row._sub_division_name}, {row._division_name}, {row._city_name}, {row._country_name}",
+        street_address=row._street_address,
+        sub_division_name=row._sub_division_name,
+        division_name=row._division_name,
+        city_name=row._city_name,
+        country_name=row._country_name,
+        iso_code=row._iso_code,
+        address_type=row.address_type,
+        recipient=row.recipient,
+        phone=row.phone,
+        postal_code=row._postal_code,
+    )
+
+
+def _row_to_supplier_dto(row: RowProxy) -> StoreSupplierResponseDto:
+    return StoreSupplierResponseDto(
+        supplier_id=row.supplier_id,
+        supplier_name=row.supplier_name,
+        contact_name=row.contact_name,
+        contact_phone=row.contact_phone,
+        disabled=row.disabled
     )

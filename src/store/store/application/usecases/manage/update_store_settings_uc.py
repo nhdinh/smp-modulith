@@ -43,7 +43,7 @@ class UpdateStoreSettingsUC:
                 if store.has_setting(key=input_dto.key):
                     store.update_setting(key=input_dto.key, value=input_dto.value)
                 else:
-                    raise Exception('Setting name not found.')
+                    raise Exception('Setting name not existed.')
 
                 response = UpdatingStoreSettingsResponse(
                     store_id=store.store_id,

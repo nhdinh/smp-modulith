@@ -3,7 +3,7 @@
 import injector
 from flask import Blueprint, jsonify, make_response, Response, current_app
 
-from product_catalog.application.queries.product_catalog import FetchAllBrandsQuery
+from product_catalog.application.queries.product_catalog import ListProductBrandsQuery
 
 brand_blueprint = Blueprint('brand_blueprint', __name__)
 
@@ -13,7 +13,7 @@ class BrandAPI(injector.Module):
 
 
 @brand_blueprint.route('/')
-def fetch_all_brands(query: FetchAllBrandsQuery) -> Response:
+def fetch_all_brands(query: ListProductBrandsQuery) -> Response:
     try:
         brands = query.query()
         return make_response(jsonify(brands)), 200  # type:ignore

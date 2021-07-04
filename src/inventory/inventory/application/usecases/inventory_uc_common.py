@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import TYPE_CHECKING
+
 import email_validator
+
+if TYPE_CHECKING:
+    from inventory.domain.entities.warehouse import Warehouse
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.const import ExceptionMessages
-from inventory.domain.entities.warehouse import Warehouse
 
 
-def is_warehouse_disabled(warehouse: Warehouse):
+def is_warehouse_disabled(warehouse):
     return warehouse.disabled
 
 
-def fetch_warehouse_by_owner_or_raise(owner: str, uow: InventoryUnitOfWork, active_only: bool = True) -> Warehouse:
+def fetch_warehouse_by_owner_or_raise(owner: str, uow: InventoryUnitOfWork, active_only: bool = True) -> 'Warehouse':
     try:
         email_validator.validate_email(owner)
 

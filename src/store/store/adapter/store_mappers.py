@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy.orm import mapper, relationship, backref
 
+from foundation.value_objects.address import LocationAddress
 from identity.domain.entities import User
 from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
     store_managers_table, store_catalog_table, store_product_table, \
     store_product_unit_table, store_brand_table, store_product_tag_table, store_collection_table, \
     store_product_collection_table, store_warehouse_table, store_product_supplier_table, store_supplier_table, \
-    store_supplier_product_price_table
+    store_supplier_product_price_table, store_addresses_table
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
+from store.domain.entities.store_address import StoreAddress
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
@@ -140,6 +142,12 @@ def start_mappers():
 
     mapper(StoreSupplier, store_supplier_table, properties={})
 
+    mapper(StoreAddress, store_addresses_table, properties={
+        'location_address': relationship(
+            LocationAddress
+        )
+    })
+
     mapper(
         Store, store_table,
         version_id_col=store_table.c.version,
@@ -149,6 +157,12 @@ def start_mappers():
                 Setting,
                 collection_class=set,
                 backref=backref('_store')
+            ),
+
+            '_addresses': relationship(
+                StoreAddress,
+                collection_class=set,
+                backref=backref('_store'),
             ),
 
             '_store_owner': relationship(
