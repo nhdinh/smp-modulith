@@ -22,9 +22,6 @@ from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_product_created_event import StoreProductCreatedEvent
 
-if TYPE_CHECKING:
-    pass
-
 StoreId = NewType('StoreId', tp=UUID)
 StoreCatalogIdOrReference = Union[StoreCatalogId, StoreCatalogReference]
 
