@@ -219,7 +219,7 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
             raise exc
 
 
-def fetch_store_product_query_factory(store_id: StoreId):
+def list_store_product_query_factory(store_id: StoreId):
     query = select([
         StoreProduct,
         StoreCatalog.reference.label('catalog_reference'),
@@ -232,12 +232,9 @@ def fetch_store_product_query_factory(store_id: StoreId):
 
         # StoreProductUnit
     ]) \
-        .select_from(StoreProduct) \
-        .select_from(StoreCatalog) \
-        .join(StoreCatalog, isouter=True) \
-        .select_from(StoreProductBrand) \
-        .join(StoreProductBrand, isouter=True) \
-        .join(Store, isouter=True) \
+        .join(StoreCatalog) \
+        .join(StoreProductBrand, isouter=False) \
+        .join(Store) \
         .where(Store.store_id == store_id)
 
     return query
@@ -255,7 +252,7 @@ class SqlListProductsQuery(ListProductsQuery, SqlQuery):
             if not store_id:
                 raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
-            query = fetch_store_product_query_factory(store_id=store_id)
+            query = list_store_product_query_factory(store_id=store_id)
             query = query.where(
                 and_(StoreCatalog.reference == catalog_reference,
                      StoreCollection.reference == collection_reference,
@@ -276,7 +273,7 @@ class SqlGetProductByIdQuery(GetProductByIdQuery, SqlQuery):
             if not store_id:
                 raise Exception(ExceptionMessages.STORE_NOT_FOUND)
 
-            query = fetch_store_product_query_factory(store_id=store_id)
+            query = list_store_product_query_factory(store_id=store_id)
             query = query.where(StoreProduct.product_id == product_id)
 
             product = self._conn.execute(query).first()
@@ -314,7 +311,7 @@ class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQue
             product_counts = sql_count_products_in_store(store_id=store_id, conn=self._conn)
 
             # build product query
-            query = fetch_store_product_query_factory(store_id=store_id)
+            query = list_store_product_query_factory(store_id=store_id)
             query = query.where(StoreCatalog.catalog_id == catalog_id)
             query = query.limit(page_size).offset((current_page - 1) * page_size)
 
@@ -352,7 +349,7 @@ class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
             total_product_cnt = sql_count_products_in_store(store_id=store_id, conn=self._conn)
 
             # build product query
-            query = fetch_store_product_query_factory(store_id=store_id)
+            query = list_store_product_query_factory(store_id=store_id)
             query = query.limit(page_size).offset((current_page - 1) * page_size)
 
             # query products

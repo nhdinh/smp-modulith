@@ -48,10 +48,12 @@ def start_mappers():
     mapper(DraftPurchaseOrderItem, draft_purchase_order_item_table, properties={
         'product': relationship(
             StoreProduct,
+            overlaps='unit, product_id'
         ),
 
         'unit': relationship(
-            StoreProductUnit
+            StoreProductUnit,
+            overlaps='product, product_id'
         )
     })
 

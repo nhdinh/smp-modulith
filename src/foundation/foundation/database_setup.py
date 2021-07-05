@@ -55,9 +55,6 @@ location_address_table = sa.Table(
     sa.Column('address_id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('street_address', sa.String(255)),
     sa.Column('sub_division_id', sa.ForeignKey(location_city_sub_division_table.c.sub_division_id)),
-    # sa.Column('division', sa.ForeignKey(location_city_division_table.c.division_id)),
-    # sa.Column('city', sa.ForeignKey(location_city_table.c.city_id)),
-    # sa.Column('country', sa.ForeignKey(location_country_table.c.country_id)),
     sa.Column('postal_code', sa.String(100))
 
 )
@@ -76,9 +73,6 @@ def start_mappers():
             LocationCityDivision,
             backref=orm.backref('_city'),
         ),
-        # '_country': orm.relationship(
-        #     LocationCountry
-        # )
     })
 
     orm.mapper(LocationCityDivision, location_city_division_table, properties={
@@ -86,16 +80,9 @@ def start_mappers():
             LocationCitySubDivision,
             backref=orm.backref('_city_division'),
         ),
-        # '_city': orm.relationship(
-        #     LocationCity
-        # )
     })
 
-    orm.mapper(LocationCitySubDivision, location_city_sub_division_table, properties={
-        # '_city_division': orm.relationship(
-        #     LocationCityDivision
-        # )
-    })
+    orm.mapper(LocationCitySubDivision, location_city_sub_division_table, properties={})
 
     orm.mapper(LocationAddress, location_address_table, properties={
         'sub_division': orm.relationship(LocationCitySubDivision)

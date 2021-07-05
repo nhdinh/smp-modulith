@@ -149,6 +149,9 @@ class CreateStoreProductUC:
                 ]
 
                 for data_field in product_data_fields:
+                    data = None
+
+                    # get data from dto
                     if getattr(dto, data_field, None) is not None:
                         data = getattr(dto, data_field)
 
