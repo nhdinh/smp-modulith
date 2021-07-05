@@ -6,8 +6,6 @@ from sqlalchemy import select, and_
 from store.domain.entities.store_supplier import StoreSupplier
 
 from db_infrastructure import SqlQuery
-from foundation.value_objects.address import LocationAddress, LocationCountry, LocationCity, LocationCitySubDivision, \
-    LocationCityDivision
 from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_products_in_collection, sql_get_catalog_id_by_reference, sql_count_collections_in_catalog, \
     sql_count_catalogs_in_store, sql_count_products_in_store, sql_count_suppliers_in_store
@@ -222,20 +220,21 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
 def list_store_product_query_factory(store_id: StoreId):
     query = select([
         StoreProduct,
-        StoreCatalog.reference.label('catalog_reference'),
-        StoreCatalog.title.label('catalog_title'),
+        # StoreCatalog.reference.label('catalog_reference'),
+        # StoreCatalog.title.label('catalog_title'),
 
         # StoreCollection.reference.label('collection_reference'),
         # StoreCollection.title.label('collection_title'),
 
+        # StoreProductBrand.name.label('brand_name'),
+        StoreCatalog.title.label('catalog_title'),
         StoreProductBrand.name.label('brand_name'),
 
         # StoreProductUnit
     ]) \
-        .join(StoreCatalog) \
-        .join(StoreProductBrand, isouter=False) \
-        .join(Store) \
-        .where(Store.store_id == store_id)
+        .join(StoreCatalog, StoreProduct._catalog) \
+        .join(StoreProductBrand, StoreProduct._brand, isouter=True) \
+        .join(Store, StoreCatalog._store).where(Store.store_id == store_id)
 
     return query
 

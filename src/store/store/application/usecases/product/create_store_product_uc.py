@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
+import random
+import string
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Optional as Opt, List
@@ -202,7 +204,12 @@ class CreateStoreProductUC:
                             data = suppliers
 
                     # add processed data back to product_data
-                    product_data[data_field] = data
+                    if data is not None:
+                        product_data[data_field] = data
+
+                # TODO: Remove after test
+                product_data['title'] += ''.join(random.sample(string.ascii_lowercase, 8))
+                product_data['sku'] += ''.join(random.sample(string.ascii_uppercase, 3))
 
                 product = store.create_product(**product_data)
 
