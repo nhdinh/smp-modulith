@@ -16,7 +16,7 @@ class InvalidateStoreCatalogCacheUC:
         #         store = uow.stores.fetch_store_of_owner(dto.current_user)  # type:Store
         #
         #         if not store:
-        #             raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+        #             raise ExceptionOfNotFound(ExceptionMessages.STORE_NOT_FOUND)
         #
         #         # remove all old cache data
         #         q = delete(store_catalog_cache_table).where(store_catalog_cache_table.c.store_id == store.store_id)

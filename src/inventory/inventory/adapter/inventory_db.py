@@ -81,7 +81,7 @@ draft_purchase_order_item_table = sa.Table(
 
     sa.UniqueConstraint('purchase_order_id', 'product_id', 'unit_unit', name='draft_purchase_order_product_unit_uix'),
     sa.ForeignKeyConstraint(('product_id', 'unit_unit'),
-                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
+                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
                             name='draft_purchase_order_product_fk', ondelete='SET NULL')
 )
 
@@ -97,6 +97,6 @@ inventory_product_balance_table = sa.Table(
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
     sa.ForeignKeyConstraint(('product_id', 'unit'),
-                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
+                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
                             name='inventory_balance_product_unit_pk', ondelete='SET NULL')
 )

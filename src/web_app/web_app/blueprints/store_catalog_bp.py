@@ -32,6 +32,7 @@ from store.application.usecases.collection.toggle_store_collection_uc import Tog
     ToggleStoreCollectionUC
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
+from store.application.usecases.const import ExceptionOfFindingThingInBlackHole
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
@@ -512,16 +513,16 @@ def fetch_store_products(fetch_store_products_query: ListStoreProductsQuery):
     methods=['GET']
 )
 @jwt_required()
-def fetch_store_products_from_collection(
+def list_store_products_by_collection(
         collection_reference: str,
         catalog_reference: str,
-        fetch_store_products_from_collection_query: ListProductsFromCollectionQuery
+        list_store_products_by_collection_query: ListProductsFromCollectionQuery
 ) -> Response:
     """
     GET :5000/store-catalog/catalog/<catalog_reference>/collection/<collection_reference>
     Fetch products in catalog/ collection
 
-    :param fetch_store_products_from_collection_query:
+    :param list_store_products_by_collection_query:
     :param catalog_reference:
     :param collection_reference:
     """
@@ -532,7 +533,7 @@ def fetch_store_products_from_collection(
             'collection_reference': collection_reference,
             'catalog_reference': catalog_reference
         })
-        response = fetch_store_products_from_collection_query.query(
+        response = list_store_products_by_collection_query.query(
             collection_reference=collection_reference,
             catalog_reference=catalog_reference,
             dto=dto
@@ -547,11 +548,13 @@ def fetch_store_products_from_collection(
 
 @store_catalog_blueprint.route('/products/<string:product_id>', methods=['GET'])
 @jwt_required()
-def fetch_store_product_by_id(product_id: str, fetch_store_product_by_id_query: GetProductByIdQuery) -> Response:
+def get_store_product_by_id(product_id: str, get_store_product_by_id_query: GetProductByIdQuery) -> Response:
     try:
         current_user = get_jwt_identity()
-        response = fetch_store_product_by_id_query.query(owner_email=current_user, product_id=product_id)
+        response = get_store_product_by_id_query.query(owner_email=current_user, product_id=product_id)
         return make_response(jsonify(response)), 200  # type:ignore
+    except ExceptionOfFindingThingInBlackHole as exc:
+        return make_response(jsonify({'message': exc.args})), 404  # type:ignore
     except Exception as exc:
         if current_app.debug:
             logger.exception(exc)
@@ -563,23 +566,23 @@ def fetch_store_product_by_id(product_id: str, fetch_store_product_by_id_query: 
     methods=['GET']
 )
 @jwt_required()
-def fetch_store_product(
+def list_store_products(
         product_reference: str,
         collection_reference: str,
         catalog_reference: str,
-        fetch_store_product_query: ListProductsQuery
+        list_store_products_query: ListProductsQuery
 ) -> Response:
     """
     GET :5000/store-catalog/store-catalog/catalog/<catalog_reference>/collection/<collection_reference>/product/<product_reference>
     :param product_reference:
     :param collection_reference:
     :param catalog_reference:
-    :param fetch_store_product_query:
+    :param list_store_products_query:
     :return:
     """
     try:
         current_user = get_jwt_identity()
-        response = fetch_store_product_query.query(owner_email=current_user,
+        response = list_store_products_query.query(owner_email=current_user,
                                                    catalog_reference=catalog_reference,
                                                    collection_reference=collection_reference,
                                                    product_reference=product_reference)

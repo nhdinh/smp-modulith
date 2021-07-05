@@ -37,4 +37,4 @@ class ProductPurchasePrice:
         return self.supplier == other.supplier and self.product_unit == other.product_unit and self.price == other.price and self.tax == other.tax and self.effective_from == other.effective_from
 
     def __str__(self):
-        return f"<PurchasePrice {self.price} supplier={self.supplier.supplier_name}> unit={self.product_unit.unit}>"
+        return f"<PurchasePrice {self.price} supplier={self.supplier.supplier_name}> unit={self.product_unit.unit_name}>"

@@ -20,7 +20,7 @@ from store.domain.entities.store_product import StoreProductId
 @dataclass
 class PurchaseOrderItemRequest:
     product_id: StoreProductId
-    unit: str
+    unit_name: str
     quantity: int
     description: str
 
@@ -74,7 +74,7 @@ class CreateDraftPurchaseOrderUC:
                     for item in dto.items:
                         po_item_data = dict()
                         po_item_data['product_id'] = item.product_id
-                        po_item_data['unit'] = item.unit
+                        po_item_data['unit'] = item.unit_name
                         po_item_data['quantity'] = item.quantity
                         po_item_data['description'] = item.description
 

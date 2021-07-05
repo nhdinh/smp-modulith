@@ -6,7 +6,7 @@ from typing import Optional as Opt
 
 from foundation.fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages
+from store.application.usecases.const import ExceptionMessages, ExceptionOfFindingThingInBlackHole
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise, fetch_product_by_id_or_raise
 from store.domain.entities.store_product import StoreProductId
 
@@ -44,7 +44,7 @@ class UpdateStoreProductUC:
                 product = fetch_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
 
                 if product.collection.catalog.store != store:
-                    raise Exception(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+                    raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
 
                 update_data = {}
 

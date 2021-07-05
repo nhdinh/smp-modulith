@@ -51,13 +51,11 @@ def start_mappers():
 
     mapper(
         StoreProductUnit, store_product_unit_table, properties={
-            # '_product_id': store_product_unit_table.c.product_id,
-
-            'from_unit': relationship(
+            '_referenced_unit': relationship(
                 StoreProductUnit,
-                foreign_keys=[store_product_unit_table.c.product_id, store_product_unit_table.c.base_unit],
-                remote_side=[store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
-                overlaps="product, _units"
+                foreign_keys=[store_product_unit_table.c.product_id, store_product_unit_table.c.referenced_unit_name],
+                remote_side=[store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
+                backref=backref('_inherited_units')
             ),
         })
 
@@ -94,7 +92,7 @@ def start_mappers():
                 StoreSupplier,
                 secondary=store_product_supplier_table,
                 collection_class=set,
-                # TODO: add backref here if we need to change product from the view of Supplier
+                backref=backref('_products'),
             ),
 
             '_purchase_prices': relationship(
@@ -107,6 +105,7 @@ def start_mappers():
                 StoreCollection,
                 secondary=store_product_collection_table,
                 collection_class=set,
+                backref=backref('_products')
             ),
 
             '_units': relationship(

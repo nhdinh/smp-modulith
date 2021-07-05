@@ -13,7 +13,7 @@ from foundation.common_helpers import uuid_validate
 from foundation.uow import SqlAlchemyUnitOfWork
 from foundation.value_objects.address import LocationCountry, LocationCitySubDivision
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages
+from store.application.usecases.const import ExceptionMessages, ExceptionOfFindingThingInBlackHole
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection, StoreCollectionId
@@ -72,7 +72,7 @@ def fetch_store_by_owner_or_raise(store_owner: str, uow: StoreUnitOfWork, active
 
         store = uow.stores.fetch_store_of_owner(owner=store_owner)
         if not store:
-            raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_NOT_FOUND)
 
         if active_only and is_store_disabled(store):
             raise Exception(ExceptionMessages.STORE_NOT_AVAILABLE)
@@ -97,12 +97,12 @@ def fetch_catalog_from_store_or_raise(by_catalog: str, store: Store) -> StoreCat
     try:
         # validate store
         if not store or getattr(store, 'store_id') is None:
-            raise Exception(ExceptionMessages.STORE_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_NOT_FOUND)
 
         catalog = store.fetch_catalog_by_id_or_reference(search_term=by_catalog)
 
         if not catalog:
-            raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
         return catalog
     except Exception as exc:
@@ -113,7 +113,7 @@ def fetch_collection_from_catalog_or_raise(by_collection: str, catalog: StoreCat
     try:
         # validate catalog
         if not catalog or type(catalog) is not StoreCatalog or getattr(catalog, 'catalog_id') is None:
-            raise Exception(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
         collection = None
         uuid = uuid_validate(by_collection)
@@ -123,7 +123,7 @@ def fetch_collection_from_catalog_or_raise(by_collection: str, catalog: StoreCat
             collection = catalog.get_collection_by_reference(collection_reference=by_collection)
 
         if not collection:
-            raise Exception(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
         return collection
     except Exception as exc:
@@ -135,7 +135,7 @@ def fetch_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWor
         # validate product_id
         product = uow.stores.fetch_product_by_id(product_id=product_id)
         if not product:
-            raise Exception(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
 
         return product
     except Exception as exc:

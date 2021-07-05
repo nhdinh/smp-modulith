@@ -210,28 +210,27 @@ store_product_unit_table = sa.Table(
     'store_product_unit',
     metadata,
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('unit', sa.String(50)),
-    sa.Column('disabled', sa.Boolean, default=False, server_default='0'),
+    sa.Column('unit_name', sa.String(50)),
 
-    # sa.Column('base_product_id', nullable=True, default=None),
-    sa.Column('base_unit', nullable=True, default=None),
+    sa.UniqueConstraint('product_id', 'unit_name', name='store_product_unit_uix'),
+    sa.PrimaryKeyConstraint('product_id', 'unit_name', name='store_product_unit_pk'),
 
-    sa.Column('default', sa.Boolean, server_default='0'),
+    sa.Column('referenced_unit_name', nullable=True, default=None),
     sa.Column('conversion_factor', sa.Numeric, nullable=True, server_default='1'),
+
+    sa.Column('default', sa.Boolean, default=False, server_default='0'),
+    sa.Column('disabled', sa.Boolean, default=False, server_default='0'),
     sa.Column('deleted', sa.Boolean, server_default='0'),
 
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 
-    sa.PrimaryKeyConstraint('product_id', 'unit', name='store_product_unit_pk'),
     sa.ForeignKeyConstraint(
-        ('product_id', 'base_unit'),
-        ['store_product_unit.product_id', 'store_product_unit.unit'],
+        ('product_id', 'referenced_unit_name'),
+        ['store_product_unit.product_id', 'store_product_unit.unit_name'],
         name='store_product_unit_fk',
         ondelete='SET NULL'
     ),
-
-    sa.UniqueConstraint('product_id', 'unit', name='store_product_unit_uix')
 )
 
 store_product_supplier_table = sa.Table(
@@ -251,7 +250,7 @@ store_supplier_product_price_table = sa.Table(
               nullable=False),
     sa.Column('supplier_id', sa.ForeignKey(store_supplier_table.c.supplier_id, onupdate='CASCADE', ondelete='CASCADE'),
               nullable=False),
-    # sa.Column('unit', sa.ForeignKey(store_product_unit_table.c.unit), nullable=False),
+
     sa.Column('unit', sa.String(50), nullable=False),
     sa.Column('price', sa.Numeric, nullable=False),
     sa.Column('currency', sa.String(10), nullable=False),
@@ -262,7 +261,7 @@ store_supplier_product_price_table = sa.Table(
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 
     sa.ForeignKeyConstraint(('product_id', 'unit'),
-                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit],
+                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
                             name='store_product_unit_fk'),
     sa.UniqueConstraint('product_id', 'supplier_id', 'unit', 'effective_from', name='store_product_supplier_price_uix'),
 )
@@ -368,4 +367,3 @@ def store_load(store, connection):
 #
 #     fetched_collections = connection.session.execute(q).all()
 #     catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]
-

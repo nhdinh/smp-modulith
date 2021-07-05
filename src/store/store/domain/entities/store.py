@@ -275,7 +275,7 @@ class Store(EventMixin):
         self._append_product(store_product)
 
         # build the array of stocking quantity
-        units = [u.unit for u in store_product.units]
+        units = [u.unit_name for u in store_product.units]
         first_stockings_input = kwargs.get('first_inventory_stocking_for_unit_conversions')
         first_stockings_input = {item['unit']: item['stocking'] for item in first_stockings_input}
 
@@ -283,7 +283,7 @@ class Store(EventMixin):
         self._record_event(StoreProductCreatedEvent(
             store_id=self.store_id,
             product_id=store_product.product_id,
-            default_unit=store_product.default_unit.unit,
+            default_unit=store_product.default_unit.unit_name,
             units=units,
             first_stocks=[first_stockings_input.get(u, 0) for u in units]
         ))

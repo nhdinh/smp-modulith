@@ -6,7 +6,7 @@ from datetime import date
 
 from typing import List
 
-from store.application.queries.store_queries import StoreAddressResponseDto, StoreSupplierResponseDto
+from store.application.queries.response_dtos import StoreAddressResponseDto, StoreSupplierResponseDto
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto
 
 

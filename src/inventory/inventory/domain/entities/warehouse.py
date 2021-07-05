@@ -5,6 +5,7 @@ from datetime import date
 from typing import NewType, Set, Union, List, Optional
 from uuid import UUID
 
+from store.application.usecases.const import ExceptionOfFindingThingInBlackHole
 from store.domain.entities.store_address import StoreAddressId
 from store.domain.entities.store_product import StoreProduct, StoreProductId
 from store.domain.entities.store_supplier import StoreSupplierId
@@ -64,11 +65,11 @@ class Warehouse(EventMixin):
         new_guid = uuid.uuid4()
         supplier = self.store.get_supplier(supplier_id_or_name)
         if not supplier:
-            raise Exception(ExceptionMessages.SUPPLIER_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.SUPPLIER_NOT_FOUND)
 
         delivery_address = self.store.get_address(delivery_address)
         if not delivery_address:
-            raise Exception(ExceptionMessages.ADDRESS_NOT_FOUND)
+            raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.ADDRESS_NOT_FOUND)
 
         draft = DraftPurchaseOrder(
             purchase_order_id=new_guid,
@@ -85,15 +86,15 @@ class Warehouse(EventMixin):
             for item in items:
                 loaded_product = self._get_product_from_store(product_id=item['product_id'])  # type:StoreProduct
                 if loaded_product is None:
-                    raise Exception(ExceptionMessages.PRODUCT_NOT_FOUND)
+                    raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.PRODUCT_NOT_FOUND)
                 elif supplier not in loaded_product.suppliers:
                     raise Exception(ExceptionMessages.PRODUCT_NOT_BELONGED_TO_SELECTED_SUPPLIER)
 
                 try:
                     loaded_unit = next(
-                        u for u in loaded_product.units if u.unit == item['unit'])  # type:StoreProductUnit
+                        u for u in loaded_product.units if u.unit_name == item['unit'])  # type:StoreProductUnit
                 except StopIteration:
-                    raise Exception(ExceptionMessages.UNIT_NOT_FOUND)
+                    raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.UNIT_NOT_FOUND)
 
                 if item['quantity'] <= 0:
                     raise ValueError(item['quantity'])
