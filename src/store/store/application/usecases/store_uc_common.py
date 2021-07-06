@@ -130,10 +130,11 @@ def fetch_collection_from_catalog_or_raise(by_collection: str, catalog: StoreCat
         raise exc
 
 
-def fetch_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWork) -> StoreProduct:
+def get_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWork) -> StoreProduct:
     try:
         # validate product_id
-        product = uow.stores.fetch_product_by_id(product_id=product_id)
+        product = uow.stores.get_product_by_id(product_id=product_id)
+
         if not product:
             raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
 

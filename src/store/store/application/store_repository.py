@@ -42,5 +42,5 @@ class SqlAlchemyStoreRepository(AbstractStoreRepository):
         """
         return self._sess.query(Store).join(StoreOwner).filter(StoreOwner.email == owner).first()
 
-    def fetch_product_by_id(self, product_id: StoreProductId):
+    def get_product_by_id(self, product_id: StoreProductId):
         return self._sess.query(StoreProduct).filter(StoreProduct.product_id == product_id).first()
