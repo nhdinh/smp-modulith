@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import injector
-from sqlalchemy import delete, select, insert
+from sqlalchemy import delete, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Connection
 from typing import Union
 
@@ -66,6 +67,9 @@ class StoreHandlerFacade:
             query = get_product_query_factory(product_id=product_id)
             product_data = self._conn.execute(query).first()
 
+            if not product_data:
+                return
+
             catalog_json = _row_to_catalog_dto(product_data, collections=[])
             brand_json = _row_to_brand_dto(product_data)
 
@@ -74,17 +78,18 @@ class StoreHandlerFacade:
             collections_json = [_row_to_collection_dto(r) for r in collections_data]
 
             # insert data
-            insert_q = insert(store_product_data_cache_table).values(**{
+            data = {
                 'product_cache_id': product_id,
                 'catalog_json': catalog_json,
                 'collections_json': collections_json,
                 'brand_json': brand_json
-            })
+            }
+            stmt = insert(store_product_data_cache_table).values(**data)
 
             # or update if duplicated
-            on_duplicate_key_stmt = insert_q.on_duplicate_key_update(
-                data=insert_q.values.data,
-                status='U'
+            on_duplicate_key_stmt = stmt.on_conflict_do_update(
+                constraint=store_product_data_cache_table.primary_key,
+                set_=data
             )
 
             self._conn.execute(on_duplicate_key_stmt)

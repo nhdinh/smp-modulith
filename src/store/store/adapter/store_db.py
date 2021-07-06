@@ -208,6 +208,8 @@ store_product_data_cache_table = sa.Table(
 
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+
+    sa.PrimaryKeyConstraint('product_cache_id', name='product_cache_pk'),
 )
 
 store_product_collection_table = sa.Table(
