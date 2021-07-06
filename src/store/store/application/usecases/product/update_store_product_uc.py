@@ -17,7 +17,11 @@ class UpdatingStoreProductRequest:
     product_id: StoreProductId
 
     title: Opt[str]
+    sku: Opt[str]
+    barcode: Opt[str]
     image: Opt[str]
+
+    brand: Opt[str]
 
 
 @dataclass
@@ -43,7 +47,7 @@ class UpdateStoreProductUC:
                 store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
                 product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
 
-                if product._store != store:
+                if not product.is_belong_to_store(store):
                     raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
 
                 update_data = {}
@@ -51,10 +55,15 @@ class UpdateStoreProductUC:
                 if dto.title is not None:
                     update_data['title'] = dto.title
 
-                store.update_product(product=product, update=update_data)
+                if dto.brand is not None:
+                    update_data['brand'] = dto.brand
+
+                store.update_product(product=product, **update_data)
 
                 response_dto = UpdatingStoreProductResponse(status=True)
                 self._ob.present(response_dto=response_dto)
+
+                store.version += 1
 
                 uow.commit()
             except Exception as exc:

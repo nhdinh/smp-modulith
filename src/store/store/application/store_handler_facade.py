@@ -57,7 +57,7 @@ class StoreHandlerFacade:
         query = delete(store_collection_table).where(store_collection_table.c.catalog_id is None)
         self._conn.execute(query)
 
-    def update_store_product_cache(self, product_id: StoreProductId):
+    def update_store_product_cache(self, product_id: StoreProductId, is_updated=False, updated_keys=[]):
         """
         Update the product info into cache
 
@@ -135,4 +135,7 @@ class StoreProductCreatedOrUpdatedEventHandler:
         self._facade = facade
 
     def __call__(self, event: Union[StoreProductCreatedEvent, StoreProductUpdatedEvent]) -> None:
-        self._facade.update_store_product_cache(event.product_id)
+        if isinstance(event, StoreProductCreatedEvent):
+            self._facade.update_store_product_cache(event.product_id)
+        elif isinstance(event, StoreProductUpdatedEvent):
+            self._facade.update_store_product_cache(event.product_id, is_updated=True, updated_keys=event.updated_keys)

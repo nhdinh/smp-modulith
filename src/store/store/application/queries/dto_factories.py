@@ -4,7 +4,7 @@ from typing import List
 
 from sqlalchemy.engine.row import RowProxy
 
-from store.application.queries.response_dtos import StoreCollectionResponseDto, StoreProductShortResponseDto, \
+from store.application.queries.response_dtos import StoreCollectionResponseDto, StoreProductResponseCompactedDto, \
     StoreSettingResponseDto, StoreInfoResponseDto, StoreProductUnitResponseDto, StoreCatalogResponseDto, \
     StoreProductBrandResponseDto, StoreProductTagResponseDto, StoreProductResponseDto, StoreWarehouseResponseDto, \
     StoreAddressResponseDto, StoreSupplierResponseDto, StoreCatalogResponseCompactedDto
@@ -19,15 +19,14 @@ def _row_to_collection_dto(row: RowProxy) -> StoreCollectionResponseDto:
     )
 
 
-def _row_to_product_short_dto(product_proxy: RowProxy) -> StoreProductShortResponseDto:
-    return StoreProductShortResponseDto(
+def _row_to_product_compacted_dto(product_proxy: RowProxy) -> StoreProductResponseCompactedDto:
+    return StoreProductResponseCompactedDto(
         product_id=product_proxy.product_id,
         reference=product_proxy.reference,
         title=product_proxy.title,
         image=product_proxy.image,
-        catalog=product_proxy.catalog_title,
-        catalog_id=product_proxy.catalog_id,
-        brand=product_proxy.brand_name,
+        catalog=_row_to_catalog_compacted_dto(product_proxy),
+        brand=_row_to_brand_dto(product_proxy),
         created_at=product_proxy.created_at,
     )
 
@@ -60,9 +59,9 @@ def _row_to_unit_dto(row: RowProxy) -> StoreProductUnitResponseDto:
 def _row_to_catalog_dto(row: RowProxy, collections: List[RowProxy]) -> StoreCatalogResponseDto:
     return StoreCatalogResponseDto(
         catalog_id=row.catalog_id,
-        store_id=row.store_id,
-        reference=row.reference,
-        title=row.title,
+        catalog_reference=row.catalog_reference,
+        catalog_title=row.catalog_title,
+        catalog_image=row.catalog_image,
         is_default_catalog=row.is_default_catalog,
         is_catalog_disabled=row.is_catalog_disabled,
         collections=[

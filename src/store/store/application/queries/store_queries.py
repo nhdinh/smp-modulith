@@ -4,7 +4,7 @@ import abc
 from typing import List
 
 from store.application.queries.response_dtos import StoreCollectionResponseDto, \
-    StoreCatalogResponseDto, StoreProductShortResponseDto, StoreProductResponseDto, StoreInfoResponseDto, \
+    StoreCatalogResponseDto, StoreProductResponseCompactedDto, StoreProductResponseDto, StoreInfoResponseDto, \
     StoreWarehouseResponseDto, StoreAddressResponseDto, StoreSupplierResponseDto
 from store.domain.entities.store_catalog import StoreCatalogReference, StoreCatalogId
 from store.domain.entities.store_collection import StoreCollectionReference
@@ -35,7 +35,7 @@ class ListProductsFromCollectionQuery(abc.ABC):
             collection_reference: StoreCollectionReference,
             catalog_reference: StoreCatalogReference,
             dto: AuthorizedPaginationInputDto
-    ) -> PaginationOutputDto[StoreProductShortResponseDto]:
+    ) -> PaginationOutputDto[StoreProductResponseCompactedDto]:
         pass
 
 
@@ -57,13 +57,13 @@ class GetProductByIdQuery(abc.ABC):
 class ListStoreProductsByCatalogQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
-        StoreProductShortResponseDto]:
+        StoreProductResponseCompactedDto]:
         pass
 
 
 class ListStoreProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductShortResponseDto]:
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductResponseCompactedDto]:
         pass
 
 

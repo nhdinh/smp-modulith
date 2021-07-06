@@ -6,6 +6,9 @@ import email_validator
 
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
+from store.adapter.store_db import store_owner_table, store_table, store_catalog_table, store_collection_table
+from store.domain.entities import store_collection
+
 from store.domain.entities.store_supplier import StoreSupplier
 
 from store.domain.entities.store import Store, StoreId
@@ -19,19 +22,19 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
     try:
         email_validator.validate_email(store_owner)
 
-        q = select([Store.store_id]).where(Store.owner_email == store_owner)  # type:ignore
+        q = select([store_table.c.store_id]).where(store_table.c.owner_email == store_owner)  # type:ignore
         if active_only:
-            q = q.where(Store.disabled == False)  # type:ignore
+            q = q.where(store_table.c.disabled == False)  # type:ignore
         store_id = conn.scalar(q)
 
         # problem with the cache email from the `Store` table, we need to fetch the store by user_id
         if not store_id:
-            q = select(Store.store_id) \
-                .join(StoreOwner) \
-                .where(StoreOwner.email == store_owner)
+            q = select(store_table.c.store_id) \
+                .join(store_owner_table, store_table.c._owner_id == store_owner_table.c.id) \
+                .where(store_owner_table.c.email == store_owner)
 
             if active_only:
-                q = q.where(Store.disabled == False)  # type:ignore
+                q = q.where(store_table.c.disabled == False)  # type:ignore
             store_id = conn.scalar(q)
 
         return store_id
@@ -41,8 +44,8 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
 
 def sql_get_catalog_id_by_reference(catalog_reference: str, store_id: StoreId, conn: Connection) -> Optional[
     StoreCatalogId]:
-    q = select([StoreCatalog]).join(Store) \
-        .where(and_(StoreCatalog.reference == catalog_reference, Store.store_id == store_id))
+    q = select(store_catalog_table.c.catalog_id) \
+        .where(and_(store_catalog_table.c.reference == catalog_reference, store_catalog_table.c.store_id == store_id))
     catalog_id = conn.scalar(q)
 
     return catalog_id
@@ -50,9 +53,11 @@ def sql_get_catalog_id_by_reference(catalog_reference: str, store_id: StoreId, c
 
 def sql_get_collection_id_by_reference(collection_reference: str, catalog_reference: str, store_id: StoreId,
                                        conn: Connection) -> Optional[StoreCollectionId]:
-    q = select([StoreCollection.collection_id]).join(StoreCatalog).join(Store) \
-        .where(StoreCollection.reference == collection_reference) \
-        .where(Store.store_id == store_id)
+    q = select(store_collection_table.c.collection_id) \
+        .join(store_catalog_table, store_collection_table.c.catalog_id == store_catalog_table.c.catalog_id) \
+        .where(and_(store_collection_table.c.reference == collection_reference,
+                    store_catalog_table.c.reference == catalog_reference, store_catalog_table.c.store_id == store_id))
+
     collection_id = conn.scalar(q)
 
     return collection_id
@@ -60,8 +65,8 @@ def sql_get_collection_id_by_reference(collection_reference: str, catalog_refere
 
 def sql_count_catalogs_in_store(store_id: StoreId, conn: Connection, active_only: bool = False) -> int:
     catalog_count = conn.scalar(
-        select([func.count(distinct(StoreCatalog.catalog_id))]).join(Store) \
-            .where(Store.store_id == store_id)
+        select(func.count(distinct(store_catalog_table.c.catalog_id))) \
+            .where(store_catalog_table.c.store_id == store_id)
     )
 
     return catalog_count

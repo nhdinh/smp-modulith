@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from store.domain.entities.store_catalog import StoreCatalog
     from store.domain.entities.store_collection import StoreCollection
 
-
 StoreProductId = NewType('StoreProductId', tp=UUID)
 StoreProductReference = NewType('StoreProductReference', tp=str)
 
@@ -160,6 +159,9 @@ class StoreProduct(EventMixin, Entity):
     def tags(self) -> Set[StoreProductTag]:
         return self._tags
 
+    def is_belong_to_store(self, store: 'Store') -> bool:
+        return self._store is store
+
     def get_unit(self, unit: str) -> Optional[StoreProductUnit]:
         try:
             return next(product_unit for product_unit in self._units if product_unit.unit_name == unit)
@@ -293,4 +295,3 @@ class StoreProduct(EventMixin, Entity):
             return tuple(price.price, price.tax, price.effective_from)
         except StopIteration:
             return None
-

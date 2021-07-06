@@ -3,15 +3,17 @@
 from typing import List
 
 from sqlalchemy import select, and_
+from store.adapter.store_db import store_catalog_table, store_collection_table
 
-from store.adapter.queries.query_factories import list_store_product_query_factory, get_product_query_factory
+from store.adapter.queries.query_factories import list_store_product_query_factory, get_product_query_factory, \
+    store_catalog_query_factory
 from store.domain.entities.store_supplier import StoreSupplier
 
 from db_infrastructure import SqlQuery
 from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_products_in_collection, sql_get_catalog_id_by_reference, sql_count_collections_in_catalog, \
     sql_count_catalogs_in_store, sql_count_products_in_store, sql_count_suppliers_in_store
-from store.application.queries.dto_factories import _row_to_collection_dto, _row_to_product_short_dto, \
+from store.application.queries.dto_factories import _row_to_collection_dto, _row_to_product_compacted_dto, \
     _row_to_store_settings_dto, _row_to_store_info_dto, _row_to_catalog_dto, _row_to_product_dto, _row_to_warehouse_dto, \
     _row_to_address_dto, _row_to_supplier_dto
 from store.application.queries.store_queries import ListProductsFromCollectionQuery, ListStoreCollectionsQuery, \
@@ -19,7 +21,7 @@ from store.application.queries.store_queries import ListProductsFromCollectionQu
     ListProductsQuery, \
     GetProductByIdQuery, ListStoreProductsQuery, ListStoreProductsByCatalogQuery, \
     ListStoreWarehousesQuery, ListStoreAddressesQuery, ListStoreSuppliersQuery
-from store.application.queries.response_dtos import StoreCatalogResponseDto, StoreProductShortResponseDto, \
+from store.application.queries.response_dtos import StoreCatalogResponseDto, StoreProductResponseCompactedDto, \
     StoreProductResponseDto, StoreInfoResponseDto, StoreWarehouseResponseDto, StoreAddressResponseDto, \
     StoreSupplierResponseDto
 from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery
@@ -75,7 +77,7 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
             collection_reference: StoreCollectionReference,
             catalog_reference: StoreCatalogReference,
             dto: AuthorizedPaginationInputDto
-    ) -> PaginationOutputDto[StoreProductShortResponseDto]:
+    ) -> PaginationOutputDto[StoreProductResponseCompactedDto]:
         try:
             try:
                 current_page = int(dto.page) if int(dto.page) > 0 else 1
@@ -119,7 +121,7 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
                 page_size=page_size,
                 total_items=product_in_collection_count,
                 items=[
-                    _row_to_product_short_dto(row) for row in products
+                    _row_to_product_compacted_dto(row) for row in products
                 ]
             )
         except Exception as exc:
@@ -142,15 +144,7 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
 
             # count number of catalogs of this store
             catalog_count = sql_count_catalogs_in_store(store_id=store_id, conn=self._conn)
-
-            # get all catalogs limit by page and offset
-            get_all_catalogs_query = select(StoreCatalog).join(Store) \
-                .where(Store.store_id == store_id) \
-                .limit(dto.page_size).offset((current_page - 1) * dto.page_size)
-
-            catalogs = self._conn.execute(get_all_catalogs_query).all()
-            if not catalogs:
-                # return None
+            if not catalog_count:
                 return paginate_response_factory(
                     current_page=dto.page,
                     page_size=dto.page_size,
@@ -158,14 +152,25 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
                     items=[]
                 )
 
+            # get all catalogs limit by page and offset
+            fetch_catalogs_query = store_catalog_query_factory(store_id=store_id) \
+                .order_by(store_catalog_table.c.created_at) \
+                .limit(dto.page_size).offset((current_page - 1) * dto.page_size)
+
+            catalogs = self._conn.execute(fetch_catalogs_query).all()
+
             # else, continue to load collection
             catalog_indices = set()
             for catalog in catalogs:
                 catalog_indices.add(catalog.catalog_id)
 
             # get all collection with catalog_id in the list of catalog_indices
-            collection_query = select(StoreCollection).join(StoreCatalog).join(Store).where(
-                StoreCatalog.catalog_id.in_(catalog_indices)).where(Store.store_id == store_id)
+            collection_query = select([
+                store_collection_table,
+                store_collection_table.c.disabled.label('is_collection_disabled')
+            ]).join(store_catalog_table, store_catalog_table.c.catalog_id == store_collection_table.c.catalog_id) \
+                .where(and_(store_catalog_table.c.catalog_id.in_(catalog_indices),
+                            store_catalog_table.c.store_id == store_id))
 
             collections = self._conn.execute(collection_query).all()
 
@@ -220,30 +225,6 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
             raise exc
 
 
-class SqlListProductsQuery(ListProductsQuery, SqlQuery):
-    def query(self,
-              owner_email: str,
-              catalog_reference: StoreCatalogReference,
-              collection_reference: StoreCollectionReference,
-              product_reference: StoreProductReference
-              ) -> StoreProductResponseDto:
-        try:
-            store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
-            if not store_id:
-                raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_NOT_FOUND)
-
-            query = list_store_product_query_factory(store_id=store_id)
-            query = query.where(
-                and_(StoreCatalog.reference == catalog_reference,
-                     StoreCollection.reference == collection_reference,
-                     StoreProduct.reference == product_reference))
-
-            product = self._conn.execute(query).first()
-            return product
-        except Exception as exc:
-            raise exc
-
-
 class SqlGetProductByIdQuery(GetProductByIdQuery, SqlQuery):
     def query(self,
               owner_email: str,
@@ -281,7 +262,7 @@ class SqlGetProductByIdQuery(GetProductByIdQuery, SqlQuery):
 
 class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQuery):
     def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
-        StoreProductShortResponseDto]:
+        StoreProductResponseCompactedDto]:
         try:
             try:
                 current_page = int(dto.page) if int(dto.page) > 0 else 1
@@ -310,7 +291,7 @@ class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQue
                 page_size=page_size,
                 total_items=product_counts,
                 items=[
-                    _row_to_product_short_dto(row) for row in products
+                    _row_to_product_compacted_dto(row) for row in products
                 ]
             )
 
@@ -318,8 +299,32 @@ class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQue
             raise exc
 
 
+class SqlListProductsQuery(ListProductsQuery, SqlQuery):
+    def query(self,
+              owner_email: str,
+              catalog_reference: StoreCatalogReference,
+              collection_reference: StoreCollectionReference,
+              product_reference: StoreProductReference
+              ) -> StoreProductResponseDto:
+        try:
+            store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
+            if not store_id:
+                raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_NOT_FOUND)
+
+            query = list_store_product_query_factory(store_id=store_id)
+            query = query.where(
+                and_(StoreCatalog.reference == catalog_reference,
+                     StoreCollection.reference == collection_reference,
+                     StoreProduct.reference == product_reference))
+
+            product = self._conn.execute(query).first()
+            return product
+        except Exception as exc:
+            raise exc
+
+
 class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductShortResponseDto]:
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductResponseCompactedDto]:
         try:
             try:
                 current_page = int(dto.page) if int(dto.page) > 0 else 1
@@ -347,7 +352,7 @@ class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
                 page_size=page_size,
                 total_items=total_product_cnt,
                 items=[
-                    _row_to_product_short_dto(row) for row in products
+                    _row_to_product_compacted_dto(row) for row in products
                 ]
             )
         except Exception as exc:

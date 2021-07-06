@@ -226,9 +226,6 @@ class CreateStoreProductUC:
 
                 # increase aggregate version
                 store.version += 1
-
-                handler = StoreHandlerFacade(connection=uow.session.connection())
-                handler.update_store_product_cache(product_id=product.product_id)
                 uow.commit()
             except IntegrityError as exc:
                 raise exc

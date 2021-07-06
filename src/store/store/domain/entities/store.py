@@ -20,7 +20,7 @@ from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_supplier import StoreSupplier, StoreSupplierId
 from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.events.store_created_event import StoreCreatedEvent
-from store.domain.events.store_product_events import StoreProductCreatedEvent
+from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
 
 StoreId = NewType('StoreId', tp=UUID)
 StoreCatalogIdOrReference = Union[StoreCatalogId, StoreCatalogReference]
@@ -550,3 +550,18 @@ class Store(EventMixin):
                 raise TypeError
         except StopIteration:
             return None
+
+    def update_product(self, product: StoreProduct, **kwarg):
+        items_being_updated = []
+
+        brand_str = kwarg.get('brand')
+        if brand_str:
+            brand = self._brand_factory(name=brand_str)
+            items_being_updated.append('brand')
+
+            product.brand = brand
+
+        self._record_event(StoreProductUpdatedEvent(
+            product_id=product.product_id,
+            updated_keys=items_being_updated
+        ))

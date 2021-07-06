@@ -53,28 +53,6 @@ class StoreCollectionResponseDto:
 
 
 @dataclass
-class StoreCatalogResponseDto:
-    catalog_id: GUID
-    store_id: str
-    reference: str
-    title: str
-    is_default_catalog: bool
-    is_catalog_disabled: bool
-    collections: List[StoreCollectionResponseDto]
-
-    def serialize(self):
-        return {
-            'catalog_id': str(self.catalog_id),
-            'store_id': str(self.store_id),
-            'catalog_reference': self.reference,
-            'catalog_title': self.title,
-            'default': self.default,
-            'disabled': self.disabled,
-            'collection': [c.serialize() for c in self.collections]
-        }
-
-
-@dataclass
 class StoreCatalogResponseCompactedDto:
     catalog_id: GUID
     catalog_reference: str
@@ -87,47 +65,33 @@ class StoreCatalogResponseCompactedDto:
 
 
 @dataclass
-class StoreProductShortResponseDto:
-    product_id: GUID
-    reference: str
-    title: str
-
-    image: str
-
-    brand: str
-    catalog: str
-    catalog_id: GUID
-    created_at: datetime
-
-    def serialize(self):
-        return {
-            'product_id': self.product_id,
-            'title': self.title,
-            'image': self.image if self.image else '',
-            'catalog': self.catalog,
-            'catalog_id': self.catalog_id,
-            'brand': self.brand,
-            'created_at': self.created_at
-        }
+class StoreCatalogResponseDto(StoreCatalogResponseCompactedDto):
+    is_default_catalog: bool
+    collections: List[StoreCollectionResponseDto]
 
 
 @dataclass
-class StoreProductResponseDto:
+class StoreProductResponseCompactedDto:
     product_id: GUID
     reference: str
     title: str
+    image: str
 
     brand: StoreProductBrandResponseDto
     catalog: StoreCatalogResponseCompactedDto
     created_at: datetime
+
+    def serialize(self):
+        return self.__dict__
+
+
+@dataclass
+class StoreProductResponseDto(StoreProductResponseCompactedDto):
     updated_at: datetime
 
     units: List[StoreProductUnitResponseDto]
     tags: List[StoreProductTagResponseDto]
     collections: List[StoreCollectionResponseDto]
-
-    def serialize(self):
-        return self.__dict__
 
 
 @dataclass

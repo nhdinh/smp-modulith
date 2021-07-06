@@ -9,7 +9,6 @@ from store.domain.entities.store_product import StoreProductId
 
 @dataclass
 class StoreProductCreatedEvent(Event):
-    store_id: 'StoreId'
     product_id: StoreProductId
     restock_threshold = -1
     maxstock_threshold = -1
@@ -21,5 +20,5 @@ class StoreProductCreatedEvent(Event):
 
 @dataclass
 class StoreProductUpdatedEvent(Event):
-    store_id: 'StoreId'
     product_id: StoreProductId
+    updated_keys: List[str] = list

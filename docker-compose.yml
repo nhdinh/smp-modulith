@@ -31,6 +31,7 @@ services:
       - database
       - redis
       - nginx
+      - rq_worker
 
   database:
     image: postgres:12
@@ -72,7 +73,7 @@ services:
       EMAIL_FROM_ADDRESS: admin@smp.io
       DB_DSN: postgresql://postgres:clone@database:5432/smp_db
       REDIS_HOST: redis
-      DB_ECHO: 'true'
+      DB_ECHO: 'false'
       MINIO_HOST: minio:9000
       MINIO_ACCESS_KEY: Q3AM3UQ867
       MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
