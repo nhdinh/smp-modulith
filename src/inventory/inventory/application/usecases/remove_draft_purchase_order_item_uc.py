@@ -9,7 +9,7 @@ from inventory.domain.entities.warehouse import Warehouse
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.domain.entities.purchase_order import DraftPurchaseOrderId
-from store.application.usecases.const import ExceptionOfFindingThingInBlackHole
+from store.application.usecases.const import ExceptionWhileFindingThingInBlackHole
 from store.domain.entities.store_product import StoreProductId
 
 
@@ -46,7 +46,7 @@ class RemoveDraftPurchaseOrderItemUC:
                     draft_purchase_order = next(
                         po for po in warehouse.draft_purchase_orders if po.purchase_order_id == dto.purchase_order_id)
                 except StopIteration:
-                    raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.DRAFT_PURCHASE_ORDER_NOT_FOUND)
+                    raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.DRAFT_PURCHASE_ORDER_NOT_FOUND)
 
                 # get item to remove
                 try:
@@ -65,6 +65,6 @@ class RemoveDraftPurchaseOrderItemUC:
 
                         uow.commit()
                 except StopIteration:
-                    raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.DRAFT_PURCHASE_ORDER_ITEM_NOT_FOUND)
+                    raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.DRAFT_PURCHASE_ORDER_ITEM_NOT_FOUND)
             except Exception as exc:
                 raise exc

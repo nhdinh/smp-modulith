@@ -6,7 +6,7 @@ from datetime import datetime
 import sqlalchemy as sa
 from sqlalchemy import event, UniqueConstraint
 
-from db_infrastructure import metadata, GUID
+from db_infrastructure import metadata, GUID, JsonType
 from foundation.database_setup import location_address_table
 from identity.adapters.identity_db import user_table
 from store.domain.entities.store import Store
@@ -196,6 +196,20 @@ store_product_table = sa.Table(
     sa.UniqueConstraint('store_id', 'sku', name='store_product_store_id_sku_ux'),
 )
 
+store_product_data_cache_table = sa.Table(
+    '__store_product_data_cache',
+    metadata,
+    sa.Column('product_cache_id',
+              sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('catalog_json', JsonType),
+    sa.Column('brand_json', JsonType),
+    sa.Column('collections_json', JsonType),
+    sa.Column('units_json', JsonType),
+
+    sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+)
+
 store_product_collection_table = sa.Table(
     'store_product_collection',
     metadata,
@@ -285,44 +299,6 @@ store_product_tag_table = sa.Table(
 )
 
 
-# store_tags_cache_table = sa.Table(
-#     'store_tags_cache',
-#     metadata,
-#     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
-#     sa.Column('tag', sa.String(100))
-# )
-#
-# store_catalog_cache_table = sa.Table(
-#     'store_catalogs_cache',
-#     metadata,
-#     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-#     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
-#     sa.Column('catalog_reference', sa.String(100))
-# )
-#
-# store_collection_cache_table = sa.Table(
-#     'store_collection_cache',
-#     metadata,
-#     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-#     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
-#     sa.Column('collection_id',
-#               sa.ForeignKey(store_collection_table.c.collection_id, ondelete='CASCADE', onupdate='CASCADE')),
-#     sa.Column('collection_reference', sa.String(100))
-# )
-
-
-# store_product_cache_table = sa.Table(
-#     'store_product_cache',
-#     metadata,
-#     metadata,
-#     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id)),
-#     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id)),
-#     sa.Column('collection_id', sa.ForeignKey(store_collection_table.c.collection_id)),
-#     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
-#     sa.Column('product_reference', sa.String(255))
-# )
-
-
 @event.listens_for(StoreRegistration, 'load')
 def store_registration_load(store_registration, _):
     store_registration.domain_events = []
@@ -331,39 +307,3 @@ def store_registration_load(store_registration, _):
 @event.listens_for(Store, 'load')
 def store_load(store, connection):
     store.domain_events = []
-    # store._cached = {
-    #     'catalogs': [],
-    #     'collections': [],
-    #     'products': []
-    # }
-
-    # store._store_owner = connection.session.execute(
-    #     sa.select([StoreOwner]).where(StoreOwner.id == store._owner_id)
-    # ).first()
-
-    # store._cached['catalogs'] = {c.catalog_id: c for c in store.catalogs}
-    # store._cached['catalogs_2'] = {c.reference: c for c in store.catalogs}
-    #
-    # # products
-    # store._cached['products'] = [p.reference for p in store._products]
-    # store._cached['collections'] = [c.reference for c in store._collections]
-    # store._cached['catalogs'] = [c.reference for c in store._catalogs]
-    #
-    # store.SIZE = sys.getsizeof(store)
-
-#
-# @event.listens_for(StoreCatalog, 'load')
-# def ctalog_load(catalog, connection):
-#     catalog._cached = {
-#         'collections': [],
-#         'products': [],
-#     }
-#
-#     # fetch cache of collections into the store
-#     q = sa.select([store_collection_cache_table.c.collection_reference]).where(
-#         store_collection_cache_table.c.store_id == catalog.store_id).where(
-#         store_collection_cache_table.c.catalog_id == catalog.catalog_id
-#     )
-#
-#     fetched_collections = connection.session.execute(q).all()
-#     catalog._cached['collections'] = [r.collection_reference for r in fetched_collections]

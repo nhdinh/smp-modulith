@@ -63,8 +63,8 @@ def _row_to_catalog_dto(row: RowProxy, collections: List[RowProxy]) -> StoreCata
         store_id=row.store_id,
         reference=row.reference,
         title=row.title,
-        default=row.default,
-        disabled=row.disabled,
+        is_default_catalog=row.is_default_catalog,
+        is_catalog_disabled=row.is_catalog_disabled,
         collections=[
             _row_to_collection_dto(collection_row) for collection_row in collections
         ],

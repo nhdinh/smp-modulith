@@ -153,6 +153,7 @@ phonenumbers==8.12.24
 pluggy==0.13.1
     # via pytest
 psycopg2-binary==2.8.6
+jsonpickle
     # via -r ./db_infrastructure/requirements.txt
 py==1.9.0
     # via pytest

@@ -1,13 +1,14 @@
 import uuid
 from typing import Any, Optional
 
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import CHAR, TypeDecorator
+import jsonpickle
 
 __all__ = [
-    'metadata', 'SqlQuery', 'GUID'
+    'metadata', 'SqlQuery', 'GUID', 'JsonType'
 ]
 
 from db_infrastructure.base import SqlQuery
@@ -54,3 +55,19 @@ class GUID(TypeDecorator):
             if not isinstance(value, uuid.UUID):
                 value = uuid.UUID(value)
             return value  # type: ignore
+
+
+class JsonType(TypeDecorator):
+    impl = String
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = jsonpickle.dumps(value)
+
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = jsonpickle.loads(value)
+
+        return value

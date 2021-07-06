@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import select, and_
 
+from store.adapter.store_db import store_product_table, store_brand_table, store_catalog_table, store_collection_table, \
+    store_product_collection_table
 from store.domain.entities.store import StoreId, Store
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_product import StoreProduct, StoreProductId
@@ -32,24 +34,39 @@ def list_store_product_query_factory(store_id: StoreId):
     return query
 
 
-def get_product_query_factory(store_id: StoreId, product_id: StoreProductId):
+def get_product_query_factory(product_id: StoreProductId):
     query = select([
-        StoreProduct,
+        store_product_table,
 
-        StoreCatalog.reference.label('catalog_reference'),
-        StoreCatalog.title.label('catalog_title'),
-        StoreCatalog.default.label('is_default_catalog'),
-        StoreCatalog.image.label('catalog_image'),
-        StoreCatalog.disabled.label('is_catalog_disabled'),
+        store_catalog_table.c.catalog_id,
+        store_catalog_table.c.reference.label('catalog_reference'),
+        store_catalog_table.c.title.label('catalog_title'),
+        store_catalog_table.c.default.label('is_default_catalog'),
+        store_catalog_table.c.image.label('catalog_image'),
+        store_catalog_table.c.disabled.label('is_catalog_disabled'),
 
-        StoreProductBrand,
-        StoreProductBrand.name.label('brand_name'),
-    ])
+        store_brand_table.c.brand_id,
+        store_brand_table.c.name.label('brand_name'),
+        store_brand_table.c.logo,
+    ]) \
+        .join(store_catalog_table, store_product_table.c.catalog_id == store_catalog_table.c.catalog_id) \
+        .join(store_brand_table, store_product_table.c.brand_id == store_brand_table.c.brand_id, isouter=True) \
+        .where(store_product_table.c.product_id == product_id)
 
-    query = query.join(StoreCatalog, StoreProduct._catalog)
-    query = query.join(StoreProductBrand, StoreProduct._brand, isouter=True)
-    query = query.join(Store, StoreProduct._store)
+    return query
 
-    query = query.where(and_(Store.store_id == store_id, StoreProduct.product_id == product_id))
+
+def get_product_collections_query_factory(product_id: StoreProductId):
+    query = select([
+        store_collection_table.c.collection_id,
+        store_collection_table.c.reference,
+        store_collection_table.c.title,
+        store_collection_table.c.disabled.label('is_collection_disabled')
+    ]) \
+        .join(store_product_collection_table,
+              store_product_table.c.product_id == store_product_collection_table.c.product_id) \
+        .join(store_collection_table,
+              store_collection_table.c.collection_id == store_product_collection_table.c.collection_id) \
+        .where(store_product_table.c.product_id == product_id)
 
     return query

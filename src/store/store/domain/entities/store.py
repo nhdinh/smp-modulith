@@ -20,7 +20,7 @@ from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_supplier import StoreSupplier, StoreSupplierId
 from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.events.store_created_event import StoreCreatedEvent
-from store.domain.events.store_product_created_event import StoreProductCreatedEvent
+from store.domain.events.store_product_events import StoreProductCreatedEvent
 
 StoreId = NewType('StoreId', tp=UUID)
 StoreCatalogIdOrReference = Union[StoreCatalogId, StoreCatalogReference]

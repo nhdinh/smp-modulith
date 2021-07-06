@@ -19,7 +19,7 @@ from inventory.application.usecases.remove_draft_purchase_order_item_uc import R
 from inventory.application.usecases.update_draft_purchase_order_uc import UpdatingDraftPurchaseOrderResponseBoundary, \
     UpdateDraftPurchaseOrderUC
 from inventory.inventory_handler_facade import InventoryHandlerFacade, StoreProductCreatedEventHandler
-from store.domain.events.store_product_created_event import StoreProductCreatedEvent
+from store.domain.events.store_product_events import StoreProductCreatedEvent
 
 
 class InventoryModule(injector.Module):

@@ -58,8 +58,8 @@ class StoreCatalogResponseDto:
     store_id: str
     reference: str
     title: str
-    default: bool
-    disabled: bool
+    is_default_catalog: bool
+    is_catalog_disabled: bool
     collections: List[StoreCollectionResponseDto]
 
     def serialize(self):

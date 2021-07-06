@@ -32,7 +32,7 @@ from store.application.usecases.collection.toggle_store_collection_uc import Tog
     ToggleStoreCollectionUC
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
-from store.application.usecases.const import ExceptionOfFindingThingInBlackHole
+from store.application.usecases.const import ExceptionWhileFindingThingInBlackHole
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
@@ -553,7 +553,7 @@ def get_store_product_by_id(product_id: str, get_store_product_by_id_query: GetP
         current_user = get_jwt_identity()
         response = get_store_product_by_id_query.query(owner_email=current_user, product_id=product_id)
         return make_response(jsonify(response)), 200  # type:ignore
-    except ExceptionOfFindingThingInBlackHole as exc:
+    except ExceptionWhileFindingThingInBlackHole as exc:
         return make_response(jsonify({'message': exc.args})), 404  # type:ignore
     except Exception as exc:
         if current_app.debug:

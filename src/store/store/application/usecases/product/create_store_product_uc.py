@@ -8,11 +8,15 @@ from datetime import date
 from typing import Optional as Opt, List
 
 from dateutil.utils import today
+from sqlalchemy import insert
+from sqlalchemy.engine.row import RowProxy
 from sqlalchemy.exc import IntegrityError
+from store.application.store_handler_facade import StoreHandlerFacade
 
+from store.adapter.store_db import store_product_data_cache_table
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.store_product import StoreProductId, StoreProductReference
+from store.domain.entities.store_product import StoreProductId, StoreProductReference, StoreProduct
 
 
 @dataclass(frozen=True)
@@ -222,6 +226,9 @@ class CreateStoreProductUC:
 
                 # increase aggregate version
                 store.version += 1
+
+                handler = StoreHandlerFacade(connection=uow.session.connection())
+                handler.update_store_product_cache(product_id=product.product_id)
                 uow.commit()
             except IntegrityError as exc:
                 raise exc

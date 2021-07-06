@@ -6,7 +6,7 @@ from typing import Optional
 
 from foundation.common_helpers import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages, ExceptionOfFindingThingInBlackHole
+from store.application.usecases.const import ExceptionMessages, ExceptionWhileFindingThingInBlackHole
 from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
 from store.domain.entities.store import Store, StoreId
 from store.domain.entities.store_catalog import StoreCatalogReference
@@ -47,7 +47,7 @@ class CreateStoreCollectionUC:
                 catalog = store.fetch_catalog_by_id_or_reference(search_term=dto.catalog_reference)
 
                 if not catalog:
-                    raise ExceptionOfFindingThingInBlackHole(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+                    raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
                 # validate collection reference
                 strictly_reference_input = False

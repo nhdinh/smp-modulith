@@ -17,3 +17,9 @@ class StoreProductCreatedEvent(Event):
     default_unit: Optional[str] = None
     units: List[str] = list
     first_stocks: List[int] = list
+
+
+@dataclass
+class StoreProductUpdatedEvent(Event):
+    store_id: 'StoreId'
+    product_id: StoreProductId

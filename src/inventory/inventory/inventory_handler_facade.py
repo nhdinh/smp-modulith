@@ -10,7 +10,7 @@ from inventory.adapter.inventory_db import inventory_product_balance_table
 # from inventory.adapter.inventory_db import inventory_product_balance_table
 from store.domain.entities.store import StoreId
 from store.domain.entities.store_product import StoreProductId
-from store.domain.events.store_product_created_event import StoreProductCreatedEvent
+from store.domain.events.store_product_events import StoreProductCreatedEvent
 
 
 class InventoryHandlerFacade:

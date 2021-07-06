@@ -21,7 +21,8 @@ from store.application.queries.store_queries import ListStoreCatalogsQuery, List
 from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
-from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogDeletedEventHandler
+from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogDeletedEventHandler, \
+    StoreProductCreatedOrUpdatedEventHandler
 from store.application.store_repository import SqlAlchemyStoreRepository
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC
@@ -60,6 +61,7 @@ from store.application.usecases.store_uc_common import GenericStoreResponseBound
 from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, \
     StoreCatalogDeletedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
+from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
 
 
@@ -193,6 +195,8 @@ class StoreModule(injector.Module):
         self.async_bind(binder, StoreCatalogDeletedEvent, StoreCatalogDeletedEventHandler)
 
         # self.async_bind(binder, StoreCollectionCreatedEvent, StoreCollectionCreatedEventHandler)
+        self.async_bind(binder, StoreProductCreatedEvent, StoreProductCreatedOrUpdatedEventHandler)
+        self.async_bind(binder, StoreProductUpdatedEvent, StoreProductCreatedOrUpdatedEventHandler)
 
     # endregion
 
