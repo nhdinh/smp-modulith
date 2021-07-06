@@ -2,12 +2,8 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 from enum import Enum
-from typing import NewType
-from uuid import UUID
 
-from foundation.value_objects.address import LocationAddress, LocationCitySubDivision
-
-StoreAddressId = NewType('StoreAddressId', tp=UUID)
+from foundation.value_objects.address import LocationAddress
 
 
 class StoreAddressType(Enum):

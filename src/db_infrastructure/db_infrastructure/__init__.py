@@ -1,6 +1,7 @@
 import uuid
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
+import nanoid
 from sqlalchemy import MetaData, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
@@ -8,7 +9,8 @@ from sqlalchemy.types import CHAR, TypeDecorator
 import jsonpickle
 
 __all__ = [
-    'metadata', 'SqlQuery', 'GUID', 'JsonType'
+    'metadata', 'SqlQuery', 'GUID', 'JsonType',
+    'nanoid_generate'
 ]
 
 from db_infrastructure.base import SqlQuery
@@ -71,3 +73,12 @@ class JsonType(TypeDecorator):
             value = jsonpickle.loads(value)
 
         return value
+
+
+
+
+def nanoid_generate(prefix: str = '', key_size: Tuple[int, int] = (20, 5)) -> str:
+    if not isinstance(key_size, Tuple):
+        key_size = (20, 5)
+    alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    return f"{prefix}_{nanoid.generate(alphabet=alphabet, size=key_size[0])}.{nanoid.generate(alphabet=alphabet, size=key_size[1])}"

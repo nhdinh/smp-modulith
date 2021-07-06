@@ -2,36 +2,23 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional
-
-from foundation.common_helpers import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages, ExceptionWhileFindingThingInBlackHole
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.store import Store, StoreId
-from store.domain.entities.store_catalog import StoreCatalogReference
-from store.domain.entities.store_collection import StoreCollectionId, StoreCollectionReference
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, get_catalog_from_store_or_raise, \
+    GenericStoreActionResponse
+from store.domain.entities.store import Store
+from store.domain.entities.value_objects import StoreCatalogId
 
 
 @dataclass
 class CreatingStoreCollectionRequest:
     current_user: str
-    catalog_reference: StoreCatalogReference
-    reference: Optional[StoreCollectionReference]
-    display_name: str
-
-
-@dataclass
-class CreatingStoreCollectionResponse:
-    store_id: StoreId
-    catalog_reference: StoreCatalogReference
-    collection_id: StoreCollectionId
-    reference: StoreCollectionReference
+    catalog_id: StoreCatalogId
+    title: str
 
 
 class CreatingStoreCollectionResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, response_dto: CreatingStoreCollectionResponse):
+    def present(self, response_dto: GenericStoreActionResponse):
         raise NotImplementedError
 
 
@@ -43,33 +30,14 @@ class CreateStoreCollectionUC:
     def execute(self, dto: CreatingStoreCollectionRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)  # type:Store
-                catalog = store.fetch_catalog_by_id_or_reference(search_term=dto.catalog_reference)
-
-                if not catalog:
-                    raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
-
-                # validate collection reference
-                strictly_reference_input = False
-                if dto.reference is not None:
-                    strictly_reference_input = True
-                    reference = slugify(dto.reference)
-                else:
-                    reference = slugify(dto.display_name)
+                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)  # type:Store
+                catalog = get_catalog_from_store_or_raise(catalog_id=dto.catalog_id, store=store)
 
                 # make collection
-                collection = store.create_store_collection(display_name=dto.display_name,
-                                                           reference=reference)
-
-                # if the reference is not strictly input by user, then we can rename if needed
-                store._add_collection_to_catalog(collection=collection, dest=catalog,
-                                                 new_reference_if_duplicated=not strictly_reference_input)
+                collection = store.make_collection(title=dto.title, parent_catalog=catalog)
 
                 # make response
-                response_dto = CreatingStoreCollectionResponse(store_id=store.store_id,
-                                                               catalog_reference=dto.catalog_reference,
-                                                               collection_id=collection.collection_id,
-                                                               reference=collection.reference)
+                response_dto = GenericStoreActionResponse(status=True)
                 self._ob.present(response_dto=response_dto)
 
                 # increase version of aggregate

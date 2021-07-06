@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import TYPE_CHECKING
 
 from foundation.business_rule import BusinessRuleBase
 from store.domain.entities.registration_status import RegistrationStatus

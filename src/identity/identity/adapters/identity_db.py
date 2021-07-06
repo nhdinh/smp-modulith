@@ -2,17 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import sqlalchemy as sa
+from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
 
-from db_infrastructure import metadata, GUID
+from db_infrastructure import metadata, nanoid_generate
 from identity.domain.entities.revoked_token import RevokedToken
 from identity.domain.entities.role import Role
 from identity.domain.entities.user import User
 
+
+def generate_user_id():
+    return nanoid_generate(prefix='User')
+
+
 user_registration_table = sa.Table(
     'user_registration',
     metadata,
-    sa.Column('registration_id', GUID, primary_key=True),
+    sa.Column('registration_id', sa.String(40), primary_key=True, default=generate_user_id),
     sa.Column('email', sa.String(255), unique=True, nullable=False),
     sa.Column('password', sa.String(255)),
     sa.Column('mobile_phone', sa.String(255), unique=True),
@@ -24,7 +30,7 @@ user_registration_table = sa.Table(
 user_table = sa.Table(
     'user',
     metadata,
-    sa.Column('id', GUID, primary_key=True),
+    sa.Column('user_id', sa.String(40), primary_key=True, default=generate_user_id),
     sa.Column('email', sa.String(255), unique=True),
     sa.Column('mobile', sa.String(255), unique=True),
     sa.Column('password', sa.String(255)),
@@ -39,19 +45,27 @@ user_table = sa.Table(
     sa.Column('request_reset_password_at', sa.DateTime)
 )
 
+
+def role_id_generator():
+    return nanoid_generate(prefix='Role')
+
+
 role_table = sa.Table(
     'role',
     metadata,
-    sa.Column('id', GUID, primary_key=True),
+    sa.Column('role_id', sa.String(40), primary_key=True, default=role_id_generator),
     sa.Column('name', sa.String(100), unique=True),
     sa.Column('description', sa.String(255))
 )
 
-roles_users_table = sa.Table(
+user_role_table = sa.Table(
     'roles_users',
     metadata,
-    sa.Column('user_id', sa.ForeignKey('user.id')),
-    sa.Column('role_id', sa.ForeignKey('role.id')),
+    sa.Column('user_id', sa.ForeignKey(user_table.c.user_id)),
+    sa.Column('role_id', sa.ForeignKey(role_table.c.role_id)),
+
+    sa.UniqueConstraint('user_id', 'role_id', name='user_role_uix'),
+    sa.PrimaryKeyConstraint('user_id', 'role_id', name='user_role_pk'),
 )
 
 revoked_token_table = sa.Table(
@@ -77,23 +91,25 @@ def start_mappers():
         User,
         user_table,
         properties={
-            '_id': user_table.c.id,
+            '_id': user_table.c.user_id,
             '_roles': relationship(
-                role_mapper,
-                secondary=roles_users_table,
+                Role,
+                secondary=user_role_table,
+                primaryjoin=user_table.c.user_id == user_role_table.c.user_id,
+                secondaryjoin=role_table.c.role_id == user_role_table.c.role_id,
                 collection_class=set,
-                backref=backref('users', lazy='dynamic'),
+                backref=backref('_users'),
             )
         }
     )
 
 
-@sa.event.listens_for(RevokedToken, 'load')
+@event.listens_for(RevokedToken, 'load')
 def load_revoked_tokes(token, _):
     # token.revoked_tokens = revoked_token_table.select()
     pass
 
 
-@sa.event.listens_for(User, 'load')
+@event.listens_for(User, 'load')
 def user_loaded(user, _):
     user.domain_events = []

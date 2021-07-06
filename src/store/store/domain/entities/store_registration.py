@@ -9,9 +9,12 @@ from typing import NewType
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
+from store.adapter.id_generators import generate_store_id
+from store.adapter.store_db import generate_warehouse_id
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.store import Store, StoreId
+from store.domain.entities.store import Store
+from store.domain.entities.value_objects import StoreId
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationResendEvent
@@ -23,7 +26,7 @@ from store.domain.rules.user_email_must_be_unique_rule import UserEmailMustBeUni
 from store.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
 from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
 
-RegistrationId = NewType("RegistrationId", tp=uuid.UUID)
+StoreRegistrationId = NewType("RegistrationId", tp=str)
 
 
 class StoreRegistration(EventMixin, Entity):
@@ -31,7 +34,7 @@ class StoreRegistration(EventMixin, Entity):
 
     def __init__(
             self,
-            registration_id: RegistrationId,
+            registration_id: StoreRegistrationId,
             store_name: str,
             owner_email: str,
             owner_mobile: str,
@@ -93,10 +96,8 @@ class StoreRegistration(EventMixin, Entity):
             owner_mobile: str,
             user_counter_services: UserCounters
     ):
-        new_guid = uuid.uuid4()
-
         registration = StoreRegistration(
-            registration_id=new_guid,
+            registration_id=generate_store_id(),
             store_name=store_name,
             owner_email=owner_email,
             owner_password=owner_password,
@@ -122,15 +123,6 @@ class StoreRegistration(EventMixin, Entity):
         self.status = RegistrationStatus.REGISTRATION_CONFIRMED
         self.confirmed_at = datetime.today()
 
-        # self._record_event(StoreRegistrationConfirmedEvent(
-        #     store_id=self.registration_id,
-        #     store_name=self.store_name,
-        #     owner_id=self.registration_id,
-        #     email=self.owner_email,
-        #     mobile=self.owner_mobile,
-        #     hashed_password=self.owner_password,
-        # ))
-
         return self.registration_id
 
     def create_store_owner(self) -> StoreOwner:
@@ -144,16 +136,26 @@ class StoreRegistration(EventMixin, Entity):
         )
 
     def create_store(self, owner: StoreOwner) -> Store:
+        if not self.registration_id.startswith('Store'):
+            store_id = generate_store_id()
+        else:
+            store_id = self.registration_id
+
         # check rule
         return Store.create_store_from_registration(
-            store_id=self.registration_id,
+            store_id=store_id,
             store_name=self.store_name,
             store_owner=owner
         )
 
     def create_default_warehouse(self, store_id: StoreId, owner: StoreOwner) -> StoreWarehouse:
+        if not self.registration_id.startswith('Warehouse'):
+            store_id = generate_warehouse_id()
+        else:
+            store_id = self.registration_id
+
         return StoreWarehouse(
-            warehouse_id=self.registration_id,
+            warehouse_id=store_id,
             store_id=store_id,
             warehouse_owner=owner.email,
             warehouse_name=self.store_name,

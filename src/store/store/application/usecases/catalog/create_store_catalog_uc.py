@@ -2,19 +2,17 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional
 
 from foundation.common_helpers import slugify
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise, GenericStoreActionResponse
-from store.domain.entities.store_catalog import StoreCatalogReference
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, GenericStoreActionResponse
+from store.domain.entities.value_objects import StoreCatalogId
 
 
 @dataclass
 class CreatingStoreCatalogRequest:
     current_user: str
-    reference: Optional[StoreCatalogReference]
     title: str
     enable_default_collection: bool = True
 
@@ -33,17 +31,13 @@ class CreateStoreCatalogUC:
     def execute(self, dto: CreatingStoreCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
-                if store.is_catalog_reference_exists(catalog_reference=dto.reference):
+                if store.is_catalog_exists(title=dto.title):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
-
-                # validate inputs
-                reference = slugify(dto.reference) if dto.reference else slugify(dto.title)
 
                 # make catalog
                 catalog = store.create_catalog(
-                    reference=reference,
                     title=dto.title,
                 )
 

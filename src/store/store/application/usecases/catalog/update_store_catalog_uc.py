@@ -5,17 +5,17 @@ from dataclasses import dataclass
 from typing import Optional
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.store_catalog import StoreCatalogReference
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, get_catalog_from_store_or_raise
+from store.domain.entities.value_objects import StoreCatalogId
 
 
 @dataclass
 class UpdatingStoreCatalogRequest:
     current_user: str
-    catalog_reference: StoreCatalogReference
-    display_name: Optional[str]
+    catalog_id: StoreCatalogId
+    title: Optional[str]
     disabled: Optional[bool]
-    display_image: Optional[str]
+    image: Optional[str]
 
 
 @dataclass
@@ -34,37 +34,36 @@ class UpdateStoreCatalogUC:
         self._ob = ob
         self._uow = uow
 
-    def execute(self, input_dto: UpdatingStoreCatalogRequest):
+    def execute(self, dto: UpdatingStoreCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
                 # get store
-                store = fetch_store_by_owner_or_raise(store_owner=input_dto.current_user, uow=uow)
+                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 # make update input data
                 update_data = {}
 
                 # update display_name
-                if input_dto.display_name:
-                    update_data['display_name'] = input_dto.display_name
+                if dto.title:
+                    update_data['title'] = dto.title
 
                 # toggle the catalog
-                if input_dto.disabled is not None:
-                    update_data['disabled'] = input_dto.disabled
+                if dto.disabled is not None:
+                    update_data['disabled'] = dto.disabled
 
                 # update display_image
-                if input_dto.display_image:
-                    update_data['display_image'] = input_dto.display_image
+                if dto.image:
+                    update_data['image'] = dto.image
 
                 # do update
-                store.update_catalog(catalog_reference=input_dto.catalog_reference, update_data=update_data)
+                store.update_catalog(catalog_id=dto.catalog_id, **update_data)
 
                 # build the output
-                response_dto = UpdatingStoreCatalogResponse(
-                    status=True
-                )
+                response_dto = UpdatingStoreCatalogResponse(status=True)
                 self._ob.present(response_dto=response_dto)
 
                 # commit
+                store.version += 1
                 uow.commit()
             except Exception as exc:
                 raise exc

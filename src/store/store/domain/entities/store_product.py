@@ -11,7 +11,7 @@ from foundation.entity import Entity
 from foundation.events import EventMixin
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-from store.application.usecases.const import ExceptionMessages, ExceptionWhileFindingThingInBlackHole
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
@@ -24,8 +24,7 @@ if TYPE_CHECKING:
     from store.domain.entities.store_catalog import StoreCatalog
     from store.domain.entities.store_collection import StoreCollection
 
-StoreProductId = NewType('StoreProductId', tp=UUID)
-StoreProductReference = NewType('StoreProductReference', tp=str)
+StoreProductId = NewType('StoreProductId', tp=str)
 
 
 class StoreProduct(EventMixin, Entity):
@@ -35,7 +34,6 @@ class StoreProduct(EventMixin, Entity):
     def __init__(
             self,
             product_id: StoreProductId,
-            reference: StoreProductReference,
             title: str,
             sku: str,
             image: str,
@@ -53,7 +51,6 @@ class StoreProduct(EventMixin, Entity):
         self.check_rule(ThresholdsRequireUnitSetupRule(restock_threshold, max_stock_threshold, default_unit))
 
         self.product_id = product_id
-        self.reference = reference
         self.title = title
         self.sku = sku
 
@@ -83,7 +80,6 @@ class StoreProduct(EventMixin, Entity):
     @classmethod
     def create_product(
             cls,
-            reference: StoreProductReference,
             title: str,
             sku: str,
             image: str,
@@ -98,11 +94,9 @@ class StoreProduct(EventMixin, Entity):
             tags: List[str]
     ) -> 'StoreProduct':
         product_id = StoreProductId(uuid.uuid4())
-        reference = slugify(reference)
 
         product = StoreProduct(
             product_id=product_id,
-            reference=reference,
             title=title,
             sku=sku,
             image=image,
@@ -178,7 +172,7 @@ class StoreProduct(EventMixin, Entity):
         try:
             _base_unit = self.get_unit(base_unit)
             if not _base_unit:
-                raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+                raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
 
             product_unit = StoreProductUnit(unit=unit, from_unit=_base_unit, conversion_factor=conversion_factor)
             # product_unit.product = self
@@ -190,7 +184,7 @@ class StoreProduct(EventMixin, Entity):
         try:
             unit_to_delete = self.get_unit(unit=unit)
             if not unit_to_delete:
-                raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+                raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
 
             # else, check if can be deleted
             can_be_delete = True
@@ -233,7 +227,7 @@ class StoreProduct(EventMixin, Entity):
             self._units.add(unit)
             return unit
         except StopIteration:
-            raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
+            raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
 
     def create_default_unit(self, default_name: str) -> StoreProductUnit:
         return self.create_unit(unit_name=default_name, conversion_factor=0, base_unit=None)
@@ -249,7 +243,7 @@ class StoreProduct(EventMixin, Entity):
     def remove_unit(self, unit_name: str):
         unit = self.get_unit(unit=unit_name)
         if not unit:
-            raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+            raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
         elif unit.default and len(self._units) > 1:
             raise Exception(ExceptionMessages.CANNOT_DELETE_DEFAULT_UNIT)
         elif self._is_unit_dependency(unit):

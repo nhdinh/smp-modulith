@@ -5,7 +5,7 @@ from uuid import UUID
 
 from foundation.events import EventMixin
 
-InventoryProductId = NewType('InventoryProductId', tp=UUID)
+InventoryProductId = NewType('InventoryProductId', tp=str)
 
 
 class Product(EventMixin):

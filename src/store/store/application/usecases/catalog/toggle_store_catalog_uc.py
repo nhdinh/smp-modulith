@@ -5,16 +5,16 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
-from store.application.usecases.const import ExceptionMessages, ExceptionWhileFindingThingInBlackHole
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
 from store.application.usecases.store_uc_common import validate_store_ownership
 from store.domain.entities.store import Store
-from store.domain.entities.store_catalog import StoreCatalogReference
+from store.domain.entities.value_objects import StoreCatalogId
 
 
 @dataclass
 class TogglingStoreCatalogRequest:
     current_user: str
-    catalog_reference: StoreCatalogReference
+    catalog_id: StoreCatalogId
 
 
 class ToggleStoreCatalogUC:
@@ -28,7 +28,7 @@ class ToggleStoreCatalogUC:
                 # fetch store data by id ID
                 store = uow.stores.fetch_store_of_owner(owner=input_dto.current_user)
                 if store is None:
-                    raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_NOT_FOUND)
+                    raise ThingGoneInBackHoleError(ExceptionMessages.STORE_NOT_FOUND)
 
                 # if the Store is disabled by admin
                 if ToggleStoreCatalogUC._is_store_disabled(store):
@@ -37,17 +37,7 @@ class ToggleStoreCatalogUC:
                 if not validate_store_ownership(store=store, owner_email=input_dto.current_user):
                     raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE)
 
-                # check catalog
-                if not store.contains_catalog_reference(catalog_reference=input_dto.catalog_reference):
-                    raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
-
-                # check if catalog is system type
-                catalog = store.fetch_catalog_by_id_or_reference(search_term=input_dto.catalog_reference)
-                if catalog.system:
-                    raise Exception(ExceptionMessages.SYSTEM_STORE_CATALOG_CANNOT_BE_DISABLED)
-
-                # do update
-                store.toggle_catalog(catalog_reference=input_dto.catalog_reference)
+                raise NotImplementedError
 
                 # build the output
                 response_dto = UpdatingStoreCatalogResponse(status=True)

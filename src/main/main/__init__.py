@@ -147,7 +147,7 @@ def _create_db_schema(engine: Engine) -> None:
     from product_catalog import catalog_table, product_table  # noqa
     from auctions_infrastructure import auctions, bids  # noqa
     from customer_relationship.models import customers  # noqa
-    from identity.adapters.identity_db import user_table, role_table, roles_users_table  # noqa
+    from identity.adapters.identity_db import user_table, role_table, user_role_table  # noqa
     from inventory.adapter.inventory_db import draft_purchase_order_table, inventory_product_balance_table  # noqa
 
 

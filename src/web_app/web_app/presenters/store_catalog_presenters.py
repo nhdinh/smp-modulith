@@ -9,8 +9,7 @@ from store.application.usecases.catalog.remove_store_catalog_uc import RemovingS
     RemovingStoreCatalogResponseBoundary
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
-from store.application.usecases.collection.create_store_collection_uc import CreatingStoreCollectionResponse, \
-    CreatingStoreCollectionResponseBoundary
+from store.application.usecases.collection.create_store_collection_uc import CreatingStoreCollectionResponseBoundary
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponse, \
     UpdatingStoreCollectionResponseBoundary
 from store.application.usecases.initialize.initialize_store_with_plan_uc import InitializingStoreWithPlanResponse, \
@@ -67,7 +66,7 @@ class RemovingStoreCatalogPresenter(RemovingStoreCatalogResponseBoundary):
 class CreatingStoreCollectionPresenter(CreatingStoreCollectionResponseBoundary):
     response: Response
 
-    def present(self, response_dto: CreatingStoreCollectionResponse) -> None:
+    def present(self, response_dto: GenericStoreActionResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
 
 

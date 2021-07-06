@@ -5,16 +5,14 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.store_catalog import StoreCatalogReference
-from store.domain.entities.store_collection import StoreCollectionReference
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.domain.entities.value_objects import StoreCollectionId
 
 
 @dataclass
 class MakingStoreCollectionDefaultRequest:
     current_user: str
-    catalog_reference: StoreCatalogReference
-    collection_reference: StoreCollectionReference
+    collection_reference: StoreCollectionId
 
 
 class MakeStoreCollectionDefaultUC:
@@ -25,7 +23,8 @@ class MakeStoreCollectionDefaultUC:
     def execute(self, dto: MakingStoreCollectionDefaultRequest):
         with self._uow as uow:  # type: StoreUnitOfWork
             try:
-                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                raise NotImplementedError
+                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
                 store.set_collection_to_default(collection_reference=dto.collection_reference,
                                                 catalog_reference=dto.catalog_reference)
 

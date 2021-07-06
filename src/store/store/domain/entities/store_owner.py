@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import NewType
 from uuid import UUID
 
-StoreOwnerId = NewType("StoreOwnerId", tp=UUID)
+StoreOwnerId = NewType("StoreOwnerId", tp=str)
 
 
 @dataclass(unsafe_hash=True)

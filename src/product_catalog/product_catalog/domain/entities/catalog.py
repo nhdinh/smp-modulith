@@ -199,7 +199,7 @@ class Catalog(EventMixin, Entity):
 
         # set protected data
         product.reference = self.reference
-        product.collection_reference = collection.reference
+        product.collection_id = collection.reference
         product._collection = collection
         product._catalog = self
 

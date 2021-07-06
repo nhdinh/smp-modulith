@@ -6,18 +6,21 @@ from datetime import datetime
 import sqlalchemy as sa
 from sqlalchemy import event, UniqueConstraint
 
-from db_infrastructure import metadata, GUID, JsonType
+from db_infrastructure import metadata, JsonType, nanoid_generate
 from foundation.database_setup import location_address_table
 from identity.adapters.identity_db import user_table
+from store.adapter.id_generators import generate_store_id, generate_warehouse_id, generate_store_owner_id, \
+    generate_product_price_id, generate_product_id, generate_supplier_id, generate_store_address, \
+    generate_store_catalog_id, generate_store_collection_id, generate_brand_id
+from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.store import Store
 from store.domain.entities.store_address import StoreAddressType
 from store.domain.entities.store_registration import StoreRegistration
-from store.domain.entities.registration_status import RegistrationStatus
 
 store_registration_table = sa.Table(
     'store_registration',
     metadata,
-    sa.Column('store_registration_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('store_registration_id', sa.String(40), primary_key=True, default=generate_store_id),
     sa.Column('name', sa.String(100)),
     sa.Column('owner_email', sa.String(255), unique=True, nullable=False),
     sa.Column('owner_password', sa.String(255), nullable=False),
@@ -34,7 +37,7 @@ store_registration_table = sa.Table(
 store_owner_table = sa.Table(
     'user',
     metadata,
-    sa.Column('id', GUID, primary_key=True),
+    sa.Column('user_id', sa.String(40), primary_key=True, default=generate_store_owner_id),
     sa.Column('email', sa.String(255), unique=True),
     sa.Column('mobile', sa.String(255), unique=True),
     sa.Column('password', sa.String(255)),
@@ -47,9 +50,9 @@ store_owner_table = sa.Table(
 store_table = sa.Table(
     'store',
     metadata,
-    sa.Column('store_id', GUID, primary_key=True),
+    sa.Column('store_id', sa.String(40), primary_key=True, default=generate_store_id),
     sa.Column('name', sa.String(100)),
-    sa.Column('_owner_id', sa.ForeignKey(store_owner_table.c.id, ondelete='SET NULL', onupdate='CASCADE')),
+    sa.Column('_owner_id', sa.ForeignKey(store_owner_table.c.user_id, ondelete='SET NULL', onupdate='CASCADE')),
     sa.Column('owner_email', sa.String(255), nullable=False, comment='For easy linking'),
     sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
     sa.Column('version', sa.Integer, nullable=False, default=0),
@@ -60,7 +63,7 @@ store_table = sa.Table(
 store_warehouse_table = sa.Table(
     'warehouse',
     metadata,
-    sa.Column('warehouse_id', GUID, primary_key=True),
+    sa.Column('warehouse_id', sa.String(40), primary_key=True, default=generate_warehouse_id()),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, onupdate='CASCADE', ondelete='CASCADE')),
     sa.Column('warehouse_owner', sa.String(255), nullable=False, comment='For easy linking'),
     sa.Column('warehouse_name', sa.String(255), nullable=False),
@@ -81,20 +84,22 @@ store_settings_table = sa.Table(
     sa.Column('setting_type', sa.String(100), nullable=False),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+
+    sa.PrimaryKeyConstraint('store_id', 'setting_key', name='store_id_settings_key_pk'),
 )
 
 store_managers_table = sa.Table(
     'store_managers',
     metadata,
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='SET NULL', onupdate='CASCADE')),
-    sa.Column('user_id', sa.ForeignKey(user_table.c.id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('user_id', sa.ForeignKey(user_table.c.user_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('store_role_id', sa.String(100), default='store_manager'),
 )
 
 store_addresses_table = sa.Table(
     'store_addresses',
     metadata,
-    sa.Column('store_address_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('store_address_id', sa.String(40), primary_key=True, default=generate_store_address),
     sa.Column('address_id',
               sa.ForeignKey(location_address_table.c.address_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
@@ -113,9 +118,8 @@ store_addresses_table = sa.Table(
 store_catalog_table = sa.Table(
     'store_catalog',
     metadata,
-    sa.Column('catalog_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('catalog_id', sa.String(40), primary_key=True, default=generate_store_catalog_id),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('reference', sa.String(100), nullable=False, unique=True),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('image', sa.String(255)),
     sa.Column('default', sa.Boolean, default=False),
@@ -123,33 +127,30 @@ store_catalog_table = sa.Table(
     sa.Column('deleted', sa.Boolean, default=False),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
-
-    UniqueConstraint('store_id', 'reference', name='store_catalog_store_id_reference_ux'),
 )
 
 store_collection_table = sa.Table(
     'store_collection',
     metadata,
-    sa.Column('collection_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('collection_id', sa.String(40), primary_key=True, default=generate_store_collection_id),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('reference', sa.String(100), nullable=False),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('default', sa.Boolean, default=False),
     sa.Column('disabled', sa.Boolean, default=False),
     sa.Column('deleted', sa.Boolean, default=False),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
-
-    # sa.PrimaryKeyConstraint('store_id', 'catalog_id', 'reference', name='store_catalog_collection_pk')
 )
 
 # region ## Store Data Value ##
+
+
 store_brand_table = sa.Table(
     'store_brand',
     metadata,
     # sa.Column('reference', sa.String(100)),
-    sa.Column('brand_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('brand_id', sa.String(40), primary_key=True, default=generate_brand_id),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('name', sa.String(255), nullable=False),
     sa.Column('logo', sa.String(255), nullable=True, default=''),
@@ -160,7 +161,7 @@ store_brand_table = sa.Table(
 store_supplier_table = sa.Table(
     'store_supplier',
     metadata,
-    sa.Column('supplier_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('supplier_id', sa.String(40), primary_key=True, unique=True, default=generate_supplier_id),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('supplier_name', sa.String, nullable=False),
     sa.Column('contact_name', sa.String, nullable=False),
@@ -173,12 +174,12 @@ store_supplier_table = sa.Table(
 
 # endregion
 
+
 store_product_table = sa.Table(
     'store_product',
     metadata,
-    sa.Column('product_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('product_id', sa.String(40), primary_key=True, default=generate_product_id),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('reference', sa.String(100), nullable=False),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('sku', sa.String(100), nullable=False),
     sa.Column('image', sa.String(1000)),
@@ -186,13 +187,12 @@ store_product_table = sa.Table(
     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id), nullable=True),
 
     sa.Column('restock_threshold', sa.Integer, default='-1'),
-    sa.Column('maxstock_threshold', sa.Integer, default='-1'),
+    sa.Column('max_stock_threshold', sa.Integer, default='-1'),
 
     sa.Column('deleted', sa.Boolean, default=0),
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
-    sa.UniqueConstraint('store_id', 'reference', name='store_product_store_id_reference_ux'),
     sa.UniqueConstraint('store_id', 'sku', name='store_product_store_id_sku_ux'),
 )
 
@@ -261,7 +261,7 @@ store_product_supplier_table = sa.Table(
 store_supplier_product_price_table = sa.Table(
     'store_supplier_product_price',
     metadata,
-    sa.Column('product_price_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('product_price_id', sa.String(40), primary_key=True, default=generate_product_price_id),
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, onupdate='CASCADE', ondelete='CASCADE'),
               nullable=False),
     sa.Column('supplier_id', sa.ForeignKey(store_supplier_table.c.supplier_id, onupdate='CASCADE', ondelete='CASCADE'),
@@ -292,7 +292,6 @@ store_unit_cache_table = sa.Table(
 store_product_tag_table = sa.Table(
     'store_product_tag',
     metadata,
-    # sa.Column('id', GUID, primary_key=True, default=uuid.uuid4),
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('tag', sa.String(100)),
 

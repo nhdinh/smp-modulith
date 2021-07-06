@@ -1,29 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from typing import Set, List, Union, TYPE_CHECKING, Any, Optional, NewType
-from uuid import UUID
+from typing import Set, List, Union, Any, Optional
 
-from foundation.common_helpers import slugify
 from foundation.events import EventMixin
 from foundation.value_objects.address import LocationAddress
 from foundation.value_objects.factories import get_money
-from store.application.usecases.const import ExceptionMessages
+from store.adapter.id_generators import STORE_SUPPLIER_ID_PREFIX
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
 from store.domain.entities.setting import Setting
-from store.domain.entities.store_address import StoreAddress, StoreAddressType, StoreAddressId
-from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogId, StoreCatalogReference
-from store.domain.entities.store_collection import StoreCollection, StoreCollectionReference
+from store.domain.entities.store_address import StoreAddress, StoreAddressType
+from store.domain.entities.store_catalog import StoreCatalog
+from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.entities.store_product import StoreProduct, StoreProductReference
+from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
-from store.domain.entities.store_supplier import StoreSupplier, StoreSupplierId
+from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_warehouse import StoreWarehouse
+from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreSupplierId, StoreAddressId
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
-
-StoreId = NewType('StoreId', tp=UUID)
-StoreCatalogIdOrReference = Union[StoreCatalogId, StoreCatalogReference]
 
 
 class Store(EventMixin):
@@ -165,12 +162,6 @@ class Store(EventMixin):
         except StopIteration:
             pass
 
-        # reference string
-        reference = slugify(title)
-        reference_str = kwargs.get('reference')
-        if reference_str:
-            reference = slugify(reference_str)
-
         # image
         image = ''
         image_str = kwargs.get('image')
@@ -201,7 +192,7 @@ class Store(EventMixin):
         # process input data: StoreCatalog
         catalog_str = kwargs.get('catalog')
         if catalog_str:
-            catalog = self._catalog_factory(title=catalog_str)
+            catalog = self._make_catalog(title=catalog_str)
         else:
             catalog = self._default_catalog_factory()
 
@@ -233,7 +224,6 @@ class Store(EventMixin):
 
         # make product
         store_product = StoreProduct.create_product(
-            reference=reference,
             title=title,
             sku=sku,
             image=image,
@@ -278,7 +268,6 @@ class Store(EventMixin):
 
         # raise event
         self._record_event(StoreProductCreatedEvent(
-            store_id=self.store_id,
             product_id=store_product.product_id,
             default_unit=store_product.default_unit.unit_name,
             units=units,
@@ -288,29 +277,9 @@ class Store(EventMixin):
         return store_product
 
     def _append_product(self, product: StoreProduct):
-        if self._is_product_reference_exists(product.reference):
-            product.reference = self._generate_new_product_reference(base_on=product.reference)
-
         self._products.add(product)
 
-    def _is_product_reference_exists(self, product_reference: StoreProductReference):
-        try:
-            product = next(p for p in self._products if p.reference == product_reference)
-            if product:
-                return True
-        except StopIteration:
-            return False
-        else:
-            return False
-
-    def _generate_new_product_reference(self, base_on: str) -> str:
-        return self.__generate_new_reference(base_on)
-
     # endregion
-
-    @staticmethod
-    def __generate_new_reference(base_on: str) -> str:
-        return base_on + '_' + uuid.uuid4().hex.upper()[0:6]
 
     def _brand_factory(self, name: str) -> StoreProductBrand:
         try:
@@ -338,18 +307,14 @@ class Store(EventMixin):
             self._suppliers.add(supplier)
             return supplier
 
-    def _is_collection_reference_exists(self, collection_reference: StoreCollectionReference,
-                                        parent_catalog: StoreCatalog):
+    def _is_collection_exists(self, title: str, parent_catalog: StoreCatalog):
         try:
             collection = next(
-                c for c in self._collections if c.reference == collection_reference and c.catalog == parent_catalog)
+                c for c in self._collections if c.title == title and c.catalog == parent_catalog)
             if collection:
                 return True
         except StopIteration:
             return False
-
-    def _generate_new_collection_reference(self, base_on: str) -> str:
-        return self.__generate_new_reference(base_on=base_on)
 
     def _collection_factory(self, title: str, parent_catalog: StoreCatalog) -> StoreCollection:
         try:
@@ -357,31 +322,32 @@ class Store(EventMixin):
                               coll.title.lower() == title.strip().lower() and coll.catalog == parent_catalog)
             return collection
         except StopIteration:
-            collection = self._create_collection(title=title, parent_catalog=parent_catalog)
+            collection = self.make_collection(title=title, parent_catalog=parent_catalog)
             self._collections.add(collection)
             return collection
 
-    def _create_collection(self, title: str, parent_catalog: StoreCatalog, **kwargs) -> StoreCollection:
-        reference_str = kwargs.get('reference')
-        if reference_str:
-            reference = slugify(reference_str)
-        else:
-            reference = slugify(title)
+    def make_collection(self, title: str, parent_catalog: StoreCatalog, **kwargs) -> StoreCollection:
+        title = title.strip()
 
-        is_default = kwargs.get('default')
-        if is_default is None:
-            is_default = False
+        try:
+            collection = next(
+                c for c in self._collections if c.title.lower() == title.lower() and c.catalog == parent_catalog)
 
-        if self._is_collection_reference_exists(collection_reference=reference, parent_catalog=parent_catalog):
-            reference = self._generate_new_collection_reference(base_on=reference)
+            if collection:
+                return collection
+        except StopIteration:
+            # make collection
+            is_default = kwargs.get('default')
+            if is_default is None:
+                is_default = False
 
-        # make collection
-        collection = StoreCollection(reference=reference, title=title, default=is_default)
-        collection._catalog = parent_catalog
+            collection = StoreCollection(title=title, default=is_default)
+            parent_catalog.collections.add(collection)
+            self._collections.add(collection)
 
-        return collection
+            return collection
 
-    def _catalog_factory(self, title: str) -> StoreCatalog:
+    def _make_catalog(self, title: str) -> StoreCatalog:
         try:
             catalog = next(c for c in self._catalogs if c.title.lower() == title.strip().lower())
             return catalog
@@ -412,21 +378,12 @@ class Store(EventMixin):
         :param kwargs: may contains `reference`, `default`
         :return: an instance of the `StoreCatalog`
         """
-        reference_str = kwargs.get('reference')
-        if reference_str:
-            reference = slugify(reference_str)
-        else:
-            reference = slugify(title)
-
         is_default = kwargs.get('default')
         if is_default is None:
             is_default = False
 
-        if self.is_catalog_reference_exists(catalog_reference=reference):
-            reference = self._generate_new_catalog_reference(base_on=reference)
-
         # make catalog
-        catalog = StoreCatalog(reference=reference, title=title, default=is_default)
+        catalog = StoreCatalog(title=title, default=is_default)
 
         # make default collection
 
@@ -444,26 +401,18 @@ class Store(EventMixin):
 
         return self.create_catalog(reference=catalog_reference, title=catalog_title, default=is_default)
 
-    def turn_on_default_catalog(self, catalog_reference: StoreCatalogReference) -> bool:
+    def turn_on_default_catalog(self, catalog_id: StoreCatalogId) -> bool:
         try:
-            catalog = next(c for c in self.catalogs if c.reference == catalog_reference)
+            catalog = next(c for c in self.catalogs if c.catalog_id == catalog_id)
             catalog.default = True
             return True
         except StopIteration:
             return False
 
-    def _generate_new_catalog_reference(self, base_on: str) -> str:
-        """
-        Generate a new unique catalog reference base on the input string
-
-        :param base_on: string (prefix) of the reference
-        :return: str
-        """
-        return self.__generate_new_reference(base_on)
-
-    def is_catalog_reference_exists(self, catalog_reference: str) -> bool:
+    def is_catalog_exists(self, title: str) -> bool:
+        title = title.strip()
         try:
-            c = next(c for c in self._catalogs if c.reference == catalog_reference)
+            c = next(c for c in self._catalogs if c.title.lower() == title.lower())
             if c:
                 return True
         except StopIteration:
@@ -501,13 +450,13 @@ class Store(EventMixin):
             disabled=False
         )
 
-    def contains_catalog_reference(self, catalog_reference: StoreCatalogReference):
-        try:
-            catalog = next(c for c in self.catalogs if c.reference == catalog_reference)
-            if catalog:
-                return True
-        except StopIteration:
-            return False
+    # def contains_catalog_reference(self, catalog_reference: StoreCatalogReference):
+    #     try:
+    #         catalog = next(c for c in self.catalogs if c.reference == catalog_reference)
+    #         if catalog:
+    #             return True
+    #     except StopIteration:
+    #         return False
 
     def add_address(self, recipient: str, phone: str, address: LocationAddress):
         try:
@@ -540,7 +489,7 @@ class Store(EventMixin):
 
     def get_supplier(self, supplier_id_or_name: Union[StoreSupplierId, str]):
         try:
-            if isinstance(supplier_id_or_name, UUID):
+            if isinstance(supplier_id_or_name, str) and supplier_id_or_name.startswith(STORE_SUPPLIER_ID_PREFIX):
                 supplier = next(s for s in self._suppliers if s.supplier_id == supplier_id_or_name)
                 return supplier
             elif isinstance(supplier_id_or_name, str):
@@ -565,3 +514,20 @@ class Store(EventMixin):
             product_id=product.product_id,
             updated_keys=items_being_updated
         ))
+
+    def update_catalog(self, catalog_id: StoreCatalogId, **kwargs):
+        try:
+            catalog = next(c for c in self._catalogs if c.catalog_id == catalog_id)
+
+            if 'title' in kwargs.keys():
+                catalog.title = kwargs.get('title')
+
+            if 'disabled' in kwargs.keys():
+                catalog.disabled = kwargs.get('disabled')
+
+            if 'image' in kwargs.keys():
+                catalog.image = kwargs.get('image')
+        except StopIteration:
+            raise ThingGoneInBackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+        except Exception as exc:
+            raise exc

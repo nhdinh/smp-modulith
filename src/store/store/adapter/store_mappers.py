@@ -127,13 +127,13 @@ def start_mappers():
                '_collections': relationship(
                    StoreCollection,
                    collection_class=set,
-                   backref=backref('_catalog', cascade="all"),
+                   backref=backref('_catalog'),
                ),
 
                '_products': relationship(
                    StoreProduct,
                    collection_class=set,
-                   backref=backref('_catalog', cascade='all'),
+                   backref=backref('_catalog'),
                )
            })
 

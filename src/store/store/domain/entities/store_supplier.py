@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from typing import NewType
-from uuid import UUID
-
-StoreSupplierId = NewType('StoreSupplierId', tp=UUID)
 
 
 @dataclass(unsafe_hash=True)

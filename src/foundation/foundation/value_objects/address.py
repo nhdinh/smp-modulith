@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Set, NewType
 from uuid import UUID
 
-LocationAddressId = NewType('LocationAddressId', tp=UUID)
+LocationAddressId = NewType('LocationAddressId', tp=str)
 
 
 @dataclass

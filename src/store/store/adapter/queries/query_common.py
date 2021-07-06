@@ -3,19 +3,17 @@
 from typing import Optional
 
 import email_validator
-
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
-from store.adapter.store_db import store_owner_table, store_table, store_catalog_table, store_collection_table
-from store.domain.entities import store_collection
 
-from store.domain.entities.store_supplier import StoreSupplier
-
-from store.domain.entities.store import Store, StoreId
-from store.domain.entities.store_catalog import StoreCatalog, StoreCatalogReference, StoreCatalogId
-from store.domain.entities.store_collection import StoreCollection, StoreCollectionId, StoreCollectionReference
-from store.domain.entities.store_owner import StoreOwner
+from store.adapter.store_db import store_owner_table, store_table, store_catalog_table, store_collection_table, \
+    store_product_table, store_product_collection_table
+from store.domain.entities.store import Store
+from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCollectionId
+from store.domain.entities.store_catalog import StoreCatalog
+from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_product import StoreProduct
+from store.domain.entities.store_supplier import StoreSupplier
 
 
 def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: bool = True) -> Optional[StoreId]:
@@ -42,15 +40,6 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
         raise exc
 
 
-def sql_get_catalog_id_by_reference(catalog_reference: str, store_id: StoreId, conn: Connection) -> Optional[
-    StoreCatalogId]:
-    q = select(store_catalog_table.c.catalog_id) \
-        .where(and_(store_catalog_table.c.reference == catalog_reference, store_catalog_table.c.store_id == store_id))
-    catalog_id = conn.scalar(q)
-
-    return catalog_id
-
-
 def sql_get_collection_id_by_reference(collection_reference: str, catalog_reference: str, store_id: StoreId,
                                        conn: Connection) -> Optional[StoreCollectionId]:
     q = select(store_collection_table.c.collection_id) \
@@ -58,9 +47,7 @@ def sql_get_collection_id_by_reference(collection_reference: str, catalog_refere
         .where(and_(store_collection_table.c.reference == collection_reference,
                     store_catalog_table.c.reference == catalog_reference, store_catalog_table.c.store_id == store_id))
 
-    collection_id = conn.scalar(q)
-
-    return collection_id
+    return conn.scalar(q)
 
 
 def sql_count_catalogs_in_store(store_id: StoreId, conn: Connection, active_only: bool = False) -> int:
@@ -78,44 +65,30 @@ def sql_count_collections_in_catalog(
         conn: Connection,
         active_only: bool = False
 ) -> int:
-    collection_count = conn.scalar(
-        select([func.count(distinct(StoreCollection.collection_id))]).join(StoreCatalog).join(Store) \
-            .where(Store.store_id == store_id) \
-            .where(StoreCatalog.catalog_id == catalog_id)
-    )
+    q = select([func.count(distinct(store_collection_table.c.collection_id))]).where(and_(
+        store_collection_table.c.catalog_id == catalog_id,
+        store_collection_table.c.store_id == store_id
+    ))
 
-    return collection_count
+    return conn.scalar(q)
 
 
 def sql_count_products_in_collection(
         store_id: StoreId,
-        catalog_reference: StoreCatalogReference,
-        collection_reference: StoreCollectionReference,
+        catalog_id: StoreCatalogId,
+        collection_id: StoreCollectionId,
         conn: Connection,
         active_only: bool = False
 ) -> int:
-    # products_count = conn.scalar(
-    #     select([func.count(distinct(store_product_table.c.product_id))]) \
-    #         .select_from(store_product_table) \
-    #         .join(store_collection_table,
-    #               onclause=(store_collection_table.c.collection_id == store_product_table.c.collection_id)) \
-    #         .join(store_catalog_table,
-    #               onclause=(store_catalog_table.c.catalog_id == store_collection_table.c.catalog_id)) \
-    #         .where(store_catalog_table.c.store_id == store_id)
-    # )
+    q = select([func.count(distinct(store_product_table.c.product_id))]) \
+        .join(store_catalog_table, store_product_table.c.catalog_id == store_catalog_table.c.catalog_id) \
+        .join(store_product_collection_table,
+              store_product_table.c.product_id == store_product_collection_table.c.product_id) \
+        .where(and_(store_product_collection_table.c.collection_id == collection_id,
+                    store_catalog_table.c.catalog_id == catalog_id,
+                    store_catalog_table.c.store_id == store_id))
 
-    q = select([func.count(distinct(StoreProduct.product_id))]) \
-        .join(StoreCollection, StoreProduct.collection_id == StoreCollection.collection_id, isouter=True) \
-        .join(StoreCatalog, StoreCollection.catalog_id == StoreCatalog.catalog_id, isouter=True) \
-        .join(Store, Store.store_id == StoreCatalog.store_id, isouter=True) \
-        .where(and_(StoreCollection.reference == collection_reference,
-                    StoreCatalog.reference == catalog_reference,
-                    Store.store_id == store_id
-                    ))
-
-    products_count = conn.scalar(q)
-
-    return products_count
+    return conn.scalar(q)
 
 
 def sql_count_products_in_store(store_id: StoreId, conn: Connection) -> int:

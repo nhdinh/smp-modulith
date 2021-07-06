@@ -6,7 +6,7 @@ from typing import Optional
 
 from foundation.value_objects.address import LocationAddress, LocationCitySubDivision
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise, get_location
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, get_location
 
 
 @dataclass
@@ -44,7 +44,7 @@ class CreateStoreAddressUC:
     def execute(self, dto: CreatingStoreAddressRequest) -> None:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 sub_division = get_location(sub_division_id=dto.sub_division_id,
                                             uow=uow)  # type:LocationCitySubDivision

@@ -3,12 +3,14 @@
 import abc
 from typing import List
 
-from store.application.queries.response_dtos import StoreCollectionResponseDto, \
-    StoreCatalogResponseDto, StoreProductResponseCompactedDto, StoreProductResponseDto, StoreInfoResponseDto, \
-    StoreWarehouseResponseDto, StoreAddressResponseDto, StoreSupplierResponseDto
-from store.domain.entities.store_catalog import StoreCatalogReference, StoreCatalogId
-from store.domain.entities.store_collection import StoreCollectionReference
-from store.domain.entities.store_product import StoreProductId, StoreProductReference
+from store.application.queries.response_dtos import StoreInfoResponseDto, \
+    StoreWarehouseResponseDto, StoreAddressResponseDto
+from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
+from store.application.queries.dtos.store_product_dto import StoreProductCompactedDto, StoreProductDto
+from store.application.queries.dtos.store_collection_dto import StoreCollectionDto
+from store.application.queries.dtos.store_catalog_dto import StoreCatalogResponseDto
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
+from store.domain.entities.store_product import StoreProductId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 
@@ -22,9 +24,9 @@ class ListStoreCollectionsQuery(abc.ABC):
     @abc.abstractmethod
     def query(
             self,
-            catalog_reference: str,
+            catalog_id: StoreCatalogId,
             dto: AuthorizedPaginationInputDto
-    ) -> PaginationOutputDto[StoreCollectionResponseDto]:
+    ) -> PaginationOutputDto[StoreCollectionDto]:
         pass
 
 
@@ -32,38 +34,35 @@ class ListProductsFromCollectionQuery(abc.ABC):
     @abc.abstractmethod
     def query(
             self,
-            collection_reference: StoreCollectionReference,
-            catalog_reference: StoreCatalogReference,
+            collection_id: StoreCollectionId,
+            catalog_id: StoreCatalogId,
             dto: AuthorizedPaginationInputDto
-    ) -> PaginationOutputDto[StoreProductResponseCompactedDto]:
+    ) -> PaginationOutputDto[StoreProductCompactedDto]:
         pass
 
 
 class ListProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, owner_email: str,
-              catalog_reference: StoreCatalogReference,
-              collection_reference: StoreCollectionReference,
-              product_reference: StoreProductReference) -> StoreProductResponseDto:
+    def query(self, owner_email: str, catalog_id: StoreCatalogId) -> StoreProductDto:
         pass
 
 
 class GetProductByIdQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, owner_email: str, product_id: StoreProductId) -> StoreProductResponseDto:
+    def query(self, owner_email: str, product_id: StoreProductId) -> StoreProductDto:
         pass
 
 
 class ListStoreProductsByCatalogQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
-        StoreProductResponseCompactedDto]:
+        StoreProductCompactedDto]:
         pass
 
 
 class ListStoreProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductResponseCompactedDto]:
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductCompactedDto]:
         pass
 
 
@@ -93,5 +92,5 @@ class ListStoreAddressesQuery(abc.ABC):
 
 class ListStoreSuppliersQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreSupplierResponseDto]:
+    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreSupplierDto]:
         pass

@@ -13,8 +13,8 @@ from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from store.domain.entities.store_address import StoreAddress
 from store.domain.entities.store_supplier import StoreSupplier
 
-DraftPurchaseOrderId = NewType('DraftPurchaseOrderId', tp=UUID)
-PurchaseOrderId = NewType('PurchaseOrderId', tp=UUID)
+DraftPurchaseOrderId = NewType('DraftPurchaseOrderId', tp=str)
+PurchaseOrderId = NewType('PurchaseOrderId', tp=str)
 PurchaseOrderReference = NewType('PurchaseOrderReference', tp=str)
 
 

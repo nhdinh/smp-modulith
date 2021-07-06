@@ -6,8 +6,8 @@ from typing import Optional as Opt
 
 from foundation.fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages, ExceptionWhileFindingThingInBlackHole
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise, get_product_by_id_or_raise
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, get_product_by_id_or_raise
 from store.domain.entities.store_product import StoreProductId
 
 
@@ -44,11 +44,11 @@ class UpdateStoreProductUC:
     def execute(self, dto: UpdatingStoreProductRequest) -> None:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
                 product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
 
                 if not product.is_belong_to_store(store):
-                    raise ExceptionWhileFindingThingInBlackHole(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+                    raise ThingGoneInBackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
 
                 update_data = {}
 

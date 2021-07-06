@@ -8,15 +8,11 @@ from datetime import date
 from typing import Optional as Opt, List
 
 from dateutil.utils import today
-from sqlalchemy import insert
-from sqlalchemy.engine.row import RowProxy
 from sqlalchemy.exc import IntegrityError
-from store.application.store_handler_facade import StoreHandlerFacade
 
-from store.adapter.store_db import store_product_data_cache_table
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.store_product import StoreProductId, StoreProductReference, StoreProduct
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.domain.entities.store_product import StoreProductId
 
 
 @dataclass(frozen=True)
@@ -59,7 +55,6 @@ class CreatingStoreProductRequest:
     default_unit: str
 
     # product data (options)
-    reference: Opt[StoreProductReference] = None
     image: Opt[str] = None
     barcode: Opt[str] = None
 
@@ -93,7 +88,6 @@ class CreatingStoreProductRequest:
 @dataclass
 class CreatingStoreProductResponse:
     product_id: StoreProductId
-    product_reference: StoreProductReference
 
 
 class CreatingStoreProductResponseBoundary(abc.ABC):
@@ -110,7 +104,7 @@ class CreateStoreProductUC:
     def execute(self, dto: CreatingStoreProductRequest) -> None:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = fetch_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
 
                 product_data = dict()
                 product_data_fields = [
@@ -118,7 +112,6 @@ class CreateStoreProductUC:
                     'title',
 
                     # product data (optional)
-                    'reference',
                     'image',
                     'sku',
                     'barcode',
@@ -220,7 +213,6 @@ class CreateStoreProductUC:
                 # make response
                 response_dto = CreatingStoreProductResponse(
                     product_id=product.product_id,
-                    product_reference=product.reference
                 )
                 self._ob.present(response_dto=response_dto)
 

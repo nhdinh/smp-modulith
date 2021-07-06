@@ -6,7 +6,8 @@ from datetime import date
 
 from typing import List
 
-from store.application.queries.response_dtos import StoreAddressResponseDto, StoreSupplierResponseDto
+from store.application.queries.response_dtos import StoreAddressResponseDto
+from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto
 
 
@@ -34,7 +35,7 @@ class PurchaseOrderItemResponseDto:
 @dataclass
 class DraftPurchaseOrderResponseDto:
     purchase_order_id: str
-    supplier: StoreSupplierResponseDto
+    supplier: StoreSupplierDto
     delivery_address: StoreAddressResponseDto
     creator: str
     due_date: date

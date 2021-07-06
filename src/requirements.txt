@@ -191,6 +191,7 @@ python-dateutil==2.8.1
 python-dotenv==0.15.0
     # via -r ./main/requirements.txt
 python-slugify==5.0.2
+nanoid
     # via -r ./foundation/requirements.txt
 pytz==2021.1
     # via

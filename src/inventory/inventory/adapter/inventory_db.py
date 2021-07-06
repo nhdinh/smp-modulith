@@ -5,10 +5,11 @@ from datetime import datetime
 
 import sqlalchemy as sa
 
-from db_infrastructure import metadata, GUID
+from db_infrastructure import metadata, nanoid_generate
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from store.adapter.store_db import store_product_table, store_product_unit_table, store_supplier_table, \
     store_addresses_table, store_warehouse_table
+
 
 # inventory_product_table = sa.Table(
 #     'store_product',
@@ -48,16 +49,19 @@ from store.adapter.store_db import store_product_table, store_product_unit_table
 #     extend_existing=True
 # )
 
+def purchase_order_id_generator():
+    return nanoid_generate(prefix='PO', key_size=(20, 10))
+
 
 draft_purchase_order_table = sa.Table(
     'draft_purchase_order',
     metadata,
-    sa.Column('purchase_order_id', GUID, primary_key=True, default=uuid.uuid4),
-    sa.Column('warehouse_id', GUID,
+    sa.Column('purchase_order_id', sa.String(40), primary_key=True, default=purchase_order_id_generator),
+    sa.Column('warehouse_id',
               sa.ForeignKey(store_warehouse_table.c.warehouse_id, onupdate='SET NULL', ondelete='SET NULL')),
-    sa.Column('supplier_id', GUID,
+    sa.Column('supplier_id',
               sa.ForeignKey(store_supplier_table.c.supplier_id, onupdate='SET NULL', ondelete='SET NULL')),
-    sa.Column('store_address_id', GUID,
+    sa.Column('store_address_id',
               sa.ForeignKey(store_addresses_table.c.store_address_id, onupdate='SET NULL', ondelete='SET NULL')),
     sa.Column('note', sa.String),
     sa.Column('due_date', sa.Date),
@@ -68,10 +72,15 @@ draft_purchase_order_table = sa.Table(
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
+
+def purchase_order_item_id_generator():
+    return nanoid_generate(prefix='POI')
+
+
 draft_purchase_order_item_table = sa.Table(
     'draft_purchase_order_item',
     metadata,
-    sa.Column('purchase_order_item_id', GUID, primary_key=True, default=uuid.uuid4),
+    sa.Column('purchase_order_item_id', sa.String(40), primary_key=True, default=purchase_order_item_id_generator),
     sa.Column('purchase_order_id',
               sa.ForeignKey(draft_purchase_order_table.c.purchase_order_id, onupdate='CASCADE', ondelete='CASCADE')),
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
@@ -88,7 +97,7 @@ draft_purchase_order_item_table = sa.Table(
 inventory_product_balance_table = sa.Table(
     'inventory_balance',
     metadata,
-    sa.Column('product_id', GUID),
+    sa.Column('product_id', sa.String),
     sa.Column('unit', sa.String(50), nullable=False),
 
     sa.Column('stocking_quantity', sa.Integer, default='0'),

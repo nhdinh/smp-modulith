@@ -1,97 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import List
 
 import marshmallow as ma
 
 from db_infrastructure import GUID
 from store.domain.entities.store_address import StoreAddressType
-
-
-@dataclass
-class StoreProductTagResponseDto:
-    tag: str
-
-    def serialize(self):
-        return {
-            'tag': self.tag
-        }
-
-
-@dataclass
-class StoreProductBrandResponseDto:
-    brand_id: GUID
-    brand_name: str
-    logo: str
-
-    def serialize(self):
-        return self.__dict__
-
-
-@dataclass
-class StoreProductUnitResponseDto:
-    unit_name: str
-    default: bool
-    referenced_unit_name: str
-    conversion_factor: float
-
-    def serialize(self):
-        return self.__dict__
-
-
-@dataclass
-class StoreCollectionResponseDto:
-    collection_id: GUID
-    reference: str
-    title: str
-    is_collection_disabled: bool
-
-    def serialize(self):
-        return self.__dict__
-
-
-@dataclass
-class StoreCatalogResponseCompactedDto:
-    catalog_id: GUID
-    catalog_reference: str
-    catalog_title: str
-    catalog_image: str
-    is_catalog_disabled: bool
-
-    def serialize(self):
-        return self.__dict__
-
-
-@dataclass
-class StoreCatalogResponseDto(StoreCatalogResponseCompactedDto):
-    is_default_catalog: bool
-    collections: List[StoreCollectionResponseDto]
-
-
-@dataclass
-class StoreProductResponseCompactedDto:
-    product_id: GUID
-    reference: str
-    title: str
-    image: str
-
-    brand: StoreProductBrandResponseDto
-    catalog: StoreCatalogResponseCompactedDto
-    created_at: datetime
-
-    def serialize(self):
-        return self.__dict__
-
-
-@dataclass
-class StoreProductResponseDto(StoreProductResponseCompactedDto):
-    updated_at: datetime
-
-    units: List[StoreProductUnitResponseDto]
-    tags: List[StoreProductTagResponseDto]
-    collections: List[StoreCollectionResponseDto]
 
 
 @dataclass
@@ -173,13 +88,3 @@ class StoreAddressResponseDto:
         }
 
 
-@dataclass
-class StoreSupplierResponseDto:
-    supplier_id: str
-    supplier_name: str
-    contact_name: str
-    contact_phone: str
-    disabled: bool
-
-    def serialize(self):
-        return self.__dict__

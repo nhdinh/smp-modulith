@@ -3,9 +3,7 @@
 from dataclasses import dataclass
 
 from foundation import Event
-from store.domain.entities.store import StoreId
-from store.domain.entities.store_catalog import StoreCatalogId
-from store.domain.entities.store_collection import StoreCollectionId
+from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCollectionId
 
 
 @dataclass(frozen=True)

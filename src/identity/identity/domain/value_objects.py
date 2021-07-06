@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from uuid import UUID
+from typing import NewType
 
-UserId = UUID
-UserEmail = str
+UserId = NewType('UserId', tp=str)
+UserEmail = NewType('UserEmail', tp=str)

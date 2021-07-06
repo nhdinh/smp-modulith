@@ -3,20 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import NewType
-from uuid import UUID
-
-from foundation.common_helpers import short_id
-
-StoreCatalogId = NewType("StoreCatalogId", tp=UUID)
-StoreCatalogReference = NewType('StoreCatalogReference', tp=str)
+from typing import Set
+from store.domain.entities.store_collection import StoreCollection
 
 
 @dataclass(unsafe_hash=True)
 class StoreCatalog:
-    reference: StoreCatalogReference
     title: str
-    display_image: str = ''
+    image: str = ''
     disabled: bool = False
     default: bool = False
 
@@ -24,11 +18,15 @@ class StoreCatalog:
     def store(self) -> 'Store':
         return getattr(self, '_store')
 
+    @property
+    def collections(self) -> Set[StoreCollection]:
+        return getattr(self, '_collections')
+
     def __str__(self):
-        return f'<StoreCatalog #{short_id(self.catalog_id)}>'
+        return f'<StoreCatalog #{self.catalog_id}>'
 
     def __eq__(self, other):
         if not other or not isinstance(other, StoreCatalog):
             raise TypeError
 
-        return self.reference == other.reference and self.title == other.title
+        return self.title == other.title or self.catalog_id == other.catalog_id

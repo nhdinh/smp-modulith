@@ -5,16 +5,14 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
-from store.application.usecases.store_uc_common import fetch_store_by_owner_or_raise
-from store.domain.entities.store_catalog import StoreCatalogReference
-from store.domain.entities.store_collection import StoreCollectionReference
+from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.domain.entities.value_objects import StoreCollectionId
 
 
 @dataclass
 class TogglingStoreCollectionRequest:
     current_user: str
-    catalog_reference: StoreCatalogReference
-    collection_reference: StoreCollectionReference
+    collection_reference: StoreCollectionId
 
 
 class ToggleStoreCollectionUC:
@@ -25,8 +23,9 @@ class ToggleStoreCollectionUC:
     def execute(self, input_dto: TogglingStoreCollectionRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
+                raise NotImplementedError
                 # get store
-                store = fetch_store_by_owner_or_raise(store_owner=input_dto.current_user, uow=uow)
+                store = get_store_by_owner_or_raise(store_owner=input_dto.current_user, uow=uow)
 
                 # do update
                 store.toggle_collection(catalog_reference=input_dto.catalog_reference,

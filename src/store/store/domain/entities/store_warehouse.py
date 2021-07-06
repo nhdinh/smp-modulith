@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import NewType
 from uuid import UUID
 
-StoreWarehouseId = NewType('StoreWarehouseId', tp=UUID)
+StoreWarehouseId = NewType('StoreWarehouseId', tp=str)
 
 
 @dataclass(unsafe_hash=True)

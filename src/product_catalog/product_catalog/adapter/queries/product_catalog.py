@@ -106,7 +106,7 @@ class SqlListProductBrandsQuery(ListProductBrandsQuery, SqlQuery):
 
 def joined_product_table_query():
     joined_table = product_table \
-        .join(collection_table, collection_table.c.reference == product_table.c.collection_reference) \
+        .join(collection_table, collection_table.c.reference == product_table.c.collection_id) \
         .join(catalog_table, catalog_table.c.reference == collection_table.c.reference) \
         .join(brand_table, brand_table.c.reference == product_table.c.brand_reference)
 
