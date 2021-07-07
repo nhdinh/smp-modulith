@@ -27,7 +27,7 @@ def generate_store_owner_id():
     return nanoid_generate(prefix=STORE_OWNER_ID_PREFIX)
 
 
-def generate_store_address():
+def generate_store_address_id():
     return nanoid_generate(prefix=ADDRESS_ID_PREFIX)
 
 

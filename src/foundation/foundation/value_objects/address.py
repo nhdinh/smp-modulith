@@ -5,7 +5,35 @@ from dataclasses import dataclass
 from typing import Set, NewType
 from uuid import UUID
 
+from db_infrastructure import nanoid_generate
+
 LocationAddressId = NewType('LocationAddressId', tp=str)
+
+COUNTRY_ID_PREFIX = 'Country'
+CITY_ID_PREFIX = 'City'
+DIVISION_ID_PREFIX = 'Div'
+SUB_DIVISION_ID_PREFIX = 'SubDiv'
+ADDRESS_ID_PREFIX = 'Address'
+
+
+def generate_country_id():
+    return nanoid_generate(prefix=COUNTRY_ID_PREFIX)
+
+
+def generate_city_id():
+    return nanoid_generate(prefix=CITY_ID_PREFIX)
+
+
+def generate_division_id():
+    return nanoid_generate(prefix=DIVISION_ID_PREFIX)
+
+
+def generate_sub_division_id():
+    return nanoid_generate(prefix=SUB_DIVISION_ID_PREFIX)
+
+
+def generate_address_id():
+    return nanoid_generate(prefix=ADDRESS_ID_PREFIX)
 
 
 @dataclass

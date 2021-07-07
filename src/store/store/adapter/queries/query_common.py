@@ -9,11 +9,9 @@ from sqlalchemy.engine import Connection
 from store.adapter.store_db import store_owner_table, store_table, store_catalog_table, store_collection_table, \
     store_product_table, store_product_collection_table
 from store.domain.entities.store import Store
-from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCollectionId
-from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_supplier import StoreSupplier
+from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCollectionId
 
 
 def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: bool = True) -> Optional[StoreId]:

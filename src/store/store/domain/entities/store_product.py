@@ -4,9 +4,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional, TYPE_CHECKING, Set, List, Tuple, NewType
-from uuid import UUID
 
-from foundation.common_helpers import slugify
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from foundation.value_objects import Money

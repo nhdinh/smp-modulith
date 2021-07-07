@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
-from sqlalchemy import event, UniqueConstraint
+from sqlalchemy import event
 
-from db_infrastructure import metadata, JsonType, nanoid_generate
+from db_infrastructure import metadata, JsonType
 from foundation.database_setup import location_address_table
 from identity.adapters.identity_db import user_table
 from store.adapter.id_generators import generate_store_id, generate_warehouse_id, generate_store_owner_id, \
-    generate_product_price_id, generate_product_id, generate_supplier_id, generate_store_address, \
+    generate_product_price_id, generate_product_id, generate_supplier_id, generate_store_address_id, \
     generate_store_catalog_id, generate_store_collection_id, generate_brand_id
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.store import Store
@@ -99,7 +98,7 @@ store_managers_table = sa.Table(
 store_addresses_table = sa.Table(
     'store_addresses',
     metadata,
-    sa.Column('store_address_id', sa.String(40), primary_key=True, default=generate_store_address),
+    sa.Column('store_address_id', sa.String(40), primary_key=True, default=generate_store_address_id),
     sa.Column('address_id',
               sa.ForeignKey(location_address_table.c.address_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),

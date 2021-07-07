@@ -5,10 +5,10 @@ from typing import Optional
 
 from foundation.repository import AbstractRepository
 from store.domain.entities.store import Store
-from store.domain.entities.value_objects import StoreId
 from store.domain.entities.store_owner import StoreOwner
 from store.domain.entities.store_product import StoreProduct, StoreProductId
 from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.value_objects import StoreId
 
 
 class AbstractStoreRepository(AbstractRepository):

@@ -11,12 +11,12 @@ from foundation.logger import logger
 from store.adapter.queries.query_factories import get_product_query_factory, get_product_collections_query_factory
 from store.adapter.store_db import store_catalog_table, \
     store_collection_table, store_product_data_cache_table
-from store.application.queries.dtos.store_supplier_dto import _row_to_supplier_dto
-from store.application.queries.dtos.store_collection_dto import _row_to_collection_dto
 from store.application.queries.dtos.store_catalog_dto import _row_to_catalog_dto
+from store.application.queries.dtos.store_collection_dto import _row_to_collection_dto
 from store.application.queries.dtos.store_product_brand_dto import _row_to_brand_dto
-from store.domain.entities.value_objects import StoreCatalogId
+from store.application.queries.dtos.store_supplier_dto import _row_to_supplier_dto
 from store.domain.entities.store_product import StoreProductId
+from store.domain.entities.value_objects import StoreCatalogId
 from store.domain.events.store_catalog_events import StoreCatalogDeletedEvent
 from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
 

@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import NewType
-from uuid import UUID
 
 StoreOwnerId = NewType("StoreOwnerId", tp=str)
 

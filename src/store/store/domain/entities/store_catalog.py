@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Set
+
 from store.domain.entities.store_collection import StoreCollection
 
 

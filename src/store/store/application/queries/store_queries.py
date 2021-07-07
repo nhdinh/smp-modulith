@@ -3,14 +3,14 @@
 import abc
 from typing import List
 
+from store.application.queries.dtos.store_catalog_dto import StoreCatalogResponseDto
+from store.application.queries.dtos.store_collection_dto import StoreCollectionDto
+from store.application.queries.dtos.store_product_dto import StoreProductCompactedDto, StoreProductDto
+from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
 from store.application.queries.response_dtos import StoreInfoResponseDto, \
     StoreWarehouseResponseDto, StoreAddressResponseDto
-from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
-from store.application.queries.dtos.store_product_dto import StoreProductCompactedDto, StoreProductDto
-from store.application.queries.dtos.store_collection_dto import StoreCollectionDto
-from store.application.queries.dtos.store_catalog_dto import StoreCatalogResponseDto
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
 from store.domain.entities.store_product import StoreProductId
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 

@@ -6,7 +6,6 @@ from typing import List, Union
 
 from sqlalchemy.engine.row import RowProxy
 
-from db_infrastructure import GUID
 from store.application.queries.dtos.store_collection_dto import StoreCollectionDto, _row_to_collection_dto
 from store.domain.entities.value_objects import StoreCatalogId
 

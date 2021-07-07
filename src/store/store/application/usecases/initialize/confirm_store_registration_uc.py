@@ -5,8 +5,8 @@ from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.value_objects import StoreId
 from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.value_objects import StoreId
 
 
 @dataclass

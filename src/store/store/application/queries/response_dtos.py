@@ -71,20 +71,4 @@ class StoreAddressResponseDto:
     postal_code: str
 
     def serialize(self):
-        return {
-            'store_address_id': self.store_address_id,
-            'full_address': self.full_address,
-            'street_address': self.street_address,
-            'sub_division_name': self.sub_division_name,
-            'division_name': self.division_name,
-            'city_name': self.city_name,
-            'country_name': self.country_name,
-            'iso_code': self.iso_code,
-
-            'address_type': self.address_type,
-            'recipient': self.recipient,
-            'phone': self.phone,
-            'postal_code': self.postal_code
-        }
-
-
+        return self.__dict__

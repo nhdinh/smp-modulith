@@ -14,9 +14,9 @@ from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_product import StoreProduct, StoreProductId
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
 
 
 @dataclass
