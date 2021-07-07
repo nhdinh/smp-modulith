@@ -4,6 +4,7 @@ import abc
 
 from flask import Response, make_response, jsonify
 
+from store import RemovingStoreProductResponseBoundary, RemovingStoreProductAttributeResponseBoundary
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary
 from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogResponse, \
     RemovingStoreCatalogResponseBoundary
@@ -16,6 +17,8 @@ from store.application.usecases.initialize.initialize_store_with_plan_uc import 
     InitializingStoreWithPlanResponseBoundary
 from store.application.usecases.product.create_store_product_uc import CreatingStoreProductResponseBoundary, \
     CreatingStoreProductRequest
+from store.application.usecases.product.remove_store_product_attribute_uc import RemovingStoreProductAttributeResponse
+from store.application.usecases.product.remove_store_product_uc import RemovingStoreProductResponse
 from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductResponseBoundary, \
     UpdatingStoreProductResponse
 from store.application.usecases.store_uc_common import GenericStoreActionResponse, GenericStoreResponseBoundary
@@ -96,5 +99,19 @@ class UpdatingStoreProductPresenter(UpdatingStoreProductResponseBoundary):
     response: Response
 
     def present(self, response_dto: UpdatingStoreProductResponse) -> None:
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class RemovingStoreProductPresenter(RemovingStoreProductResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: RemovingStoreProductResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class RemovingStoreProductAttributePresenter(RemovingStoreProductAttributeResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: RemovingStoreProductAttributeResponse):
         self.response = make_response(jsonify(response_dto.__dict__))
 # endregion

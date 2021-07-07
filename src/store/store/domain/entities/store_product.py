@@ -1,20 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, TYPE_CHECKING, Set, List, Tuple, NewType
+from enum import Enum
+from typing import Optional, TYPE_CHECKING, Set, List, Tuple, Dict
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
+from store.adapter.id_generators import generate_product_id
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_unit import StoreProductUnit
+from store.domain.entities.value_objects import StoreProductId
 from store.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
 if TYPE_CHECKING:
@@ -22,7 +24,11 @@ if TYPE_CHECKING:
     from store.domain.entities.store_catalog import StoreCatalog
     from store.domain.entities.store_collection import StoreCollection
 
-StoreProductId = NewType('StoreProductId', tp=str)
+
+class StoreProductAttributeTypes(Enum):
+    COLLECTIONS = 'COLLECTIONS'
+    BRAND = 'BRAND'
+    SUPPLIERS = 'SUPPLIERS'
 
 
 class StoreProduct(EventMixin, Entity):
@@ -91,7 +97,7 @@ class StoreProduct(EventMixin, Entity):
             suppliers: List['StoreSupplier'],
             tags: List[str]
     ) -> 'StoreProduct':
-        product_id = StoreProductId(uuid.uuid4())
+        product_id = generate_product_id()
 
         product = StoreProduct(
             product_id=product_id,
@@ -282,8 +288,19 @@ class StoreProduct(EventMixin, Entity):
             self, by_supplier: StoreSupplier, by_unit: StoreProductUnit
     ) -> Optional[Tuple[Money, float, datetime]]:
         try:
-            price = next(p for p in self._purchase_prices if p.product_unit == by_unit and p.supplier == by_supplier)
+            price = next(p for p in self._purchase_prices if
+                         p.product_unit == by_unit and p.supplier == by_supplier)  # type:ProductPurchasePrice
 
             return tuple(price.price, price.tax, price.effective_from)
         except StopIteration:
             return None
+
+    def get_prices(self, by_supplier: StoreSupplier) -> Dict[str, Tuple[Money, float, datetime]]:
+        return_data = dict()
+
+        prices = [p for p in self._purchase_prices if p.supplier == by_supplier]
+        if not prices:
+            return dict()
+
+        for price in prices:  # type:ProductPurchasePrice
+            return_data[price.product_unit.unit_name] = tuple(price.price, price.tax, price.effective_from)

@@ -4,13 +4,10 @@ from dataclasses import dataclass
 
 from sqlalchemy.engine.row import RowProxy
 
-from db_infrastructure import GUID
-
 
 @dataclass
 class StoreCollectionDto:
-    collection_id: GUID
-    reference: str
+    collection_id: 'StoreCollectionId'
     title: str
     is_collection_disabled: bool
 
@@ -21,7 +18,6 @@ class StoreCollectionDto:
 def _row_to_collection_dto(row: RowProxy) -> StoreCollectionDto:
     return StoreCollectionDto(
         collection_id=row.collection_id,
-        reference=row.reference,
         title=row.title,
         is_collection_disabled=row.is_collection_disabled,
     )

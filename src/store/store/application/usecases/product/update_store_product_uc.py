@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional as Opt
+from typing import Optional as Opt, List
 
 from foundation.fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, get_product_by_id_or_raise
-from store.domain.entities.store_product import StoreProductId
+from store.domain.entities.value_objects import StoreProductId
 
 
 @dataclass
@@ -22,6 +22,7 @@ class UpdatingStoreProductRequest:
     image: Opt[str]
 
     brand: Opt[str]
+    collections: Opt[List[str]]
 
 
 @dataclass
@@ -57,6 +58,9 @@ class UpdateStoreProductUC:
 
                 if dto.brand is not None:
                     update_data['brand'] = dto.brand
+
+                if dto.collections is not None:
+                    update_data['collections'] = dto.collections
 
                 store.update_product(product=product, **update_data)
 

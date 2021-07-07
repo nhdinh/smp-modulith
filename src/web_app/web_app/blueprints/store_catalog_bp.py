@@ -8,12 +8,16 @@ import flask_injector
 import injector
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from store import RemovingStoreProductResponseBoundary
+from store.application.usecases.product.remove_store_product_attribute_uc import RemovingStoreProductAttributeRequest, \
+    RemoveStoreProductAttributeUC, RemovingStoreProductAttributeResponseBoundary
 from store.domain.entities.value_objects import StoreCatalogId
 
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
 from store.application.queries.store_queries import ListStoreCatalogsQuery, ListStoreCollectionsQuery, \
-    ListProductsFromCollectionQuery, ListProductsQuery, GetProductByIdQuery, ListStoreProductsQuery, \
+    ListProductsFromCollectionQuery, ListProductsQuery, GetStoreProductQuery, ListStoreProductsQuery, \
     ListStoreSuppliersQuery
 from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
     CreateStoreCatalogUC, CreatingStoreCatalogRequest
@@ -45,7 +49,7 @@ from store.application.usecases.store_uc_common import GenericStoreActionRequest
 from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
     CreatingStoreCollectionPresenter, RemovingStoreCatalogPresenter, CreatingStoreProductPresenter, \
-    UpdatingStoreProductPresenter
+    UpdatingStoreProductPresenter, RemovingStoreProductAttributePresenter, RemovingStoreProductPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'
@@ -108,6 +112,16 @@ class StoreCatalogAPI(injector.Module):
     @flask_injector.request
     def update_store_product_response_boundary(self) -> UpdatingStoreProductResponseBoundary:
         return UpdatingStoreProductPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def remove_store_product_attribute_response_boundary(self) -> RemovingStoreProductAttributeResponseBoundary:
+        return RemovingStoreProductAttributePresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def remove_store_product_response_boundary(self) -> RemovingStoreProductResponseBoundary:
+        return RemovingStoreProductPresenter()
 
     # endregion
 
@@ -549,7 +563,7 @@ def list_store_products_by_collection(
 
 @store_catalog_blueprint.route('/products/<string:product_id>', methods=['GET'])
 @jwt_required()
-def get_store_product_by_id(product_id: str, get_store_product_by_id_query: GetProductByIdQuery) -> Response:
+def get_store_product_by_id(product_id: str, get_store_product_by_id_query: GetStoreProductQuery) -> Response:
     try:
         current_user = get_jwt_identity()
         response = get_store_product_by_id_query.query(owner_email=current_user, product_id=product_id)
@@ -674,6 +688,28 @@ def update_store_product(product_id: str,
         })
 
         update_store_product_uc.execute(dto)
+        return presenter.response, 200  # type: ignore
+    except BusinessRuleValidationError as exc:
+        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
+    except Exception as exc:
+        if current_app.debug:
+            logger.exception(exc)
+        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+
+
+@store_catalog_blueprint.route('/product/<string:product_id>/<string:attr_type>', methods=['DELETE'])
+@jwt_required()
+def delete_store_product_attribute(product_id: str, attr_type: str,
+                                   remove_store_product_attribute_uc: RemoveStoreProductAttributeUC,
+                                   presenter: RemovingStoreProductAttributeResponseBoundary) -> Response:
+    try:
+        dto = get_dto(request, RemovingStoreProductAttributeRequest, context={
+            'current_user': get_jwt_identity(),
+            'product_id': product_id,
+            'attribute_type': attr_type
+        })
+
+        remove_store_product_attribute_uc.execute(dto)
         return presenter.response, 200  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore

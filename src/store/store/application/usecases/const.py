@@ -45,3 +45,5 @@ class ExceptionMessages:
     CANNOT_DELETE_DEFAULT_UNIT = 'Cannot delete default unit'
     CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT = 'This product unit cannot be delete due to another unit is being depends on'
     REGISTRATION_RESEND_TOO_MUCH = 'Too much request, try again later'
+
+    STORE_SUPPLIER_NOT_FOUND = 'Supplier not existed'

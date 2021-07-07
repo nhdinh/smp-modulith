@@ -6,8 +6,8 @@ from typing import NewType, Set, Union, List, Optional
 from uuid import UUID
 
 from store.application.usecases.const import ThingGoneInBlackHoleError
-from store.domain.entities.store_product import StoreProduct, StoreProductId
-from store.domain.entities.value_objects import StoreSupplierId, StoreAddressId
+from store.domain.entities.store_product import StoreProduct
+from store.domain.entities.value_objects import StoreSupplierId, StoreAddressId, StoreProductId
 
 from foundation.events import EventMixin
 from inventory.application.usecases.const import ExceptionMessages

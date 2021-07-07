@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from foundation import Event
-from store.domain.entities.store_product import StoreProductId
+from store.domain.entities.value_objects import StoreProductId
 
 
 @dataclass

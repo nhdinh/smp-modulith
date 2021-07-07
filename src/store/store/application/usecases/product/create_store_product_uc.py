@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
-from store.domain.entities.store_product import StoreProductId
+from store.domain.entities.value_objects import StoreProductId
 
 
 @dataclass(frozen=True)

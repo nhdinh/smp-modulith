@@ -12,11 +12,11 @@ from foundation.fs import FileSystem
 from store.adapter import store_db
 from store.adapter.queries.sql_store_queries import SqlListStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
     SqlListProductsFromCollectionQuery, SqlListStoreCollectionsQuery, SqlListStoreCatalogsQuery, \
-    SqlListProductsQuery, SqlGetProductByIdQuery, SqlListStoreProductsQuery, \
+    SqlListProductsQuery, SqlGetStoreProductQuery, SqlListStoreProductsQuery, \
     SqlListStoreProductsByCatalogQuery, SqlListStoreWarehousesQuery, SqlListStoreAddressesQuery, \
     SqlListStoreSuppliersQuery
 from store.application.queries.store_queries import ListStoreCatalogsQuery, ListStoreCollectionsQuery, \
-    ListProductsFromCollectionQuery, ListProductsQuery, GetProductByIdQuery, ListStoreProductsQuery, \
+    ListProductsFromCollectionQuery, ListProductsQuery, GetStoreProductQuery, ListStoreProductsQuery, \
     ListStoreProductsByCatalogQuery, ListStoreWarehousesQuery, ListStoreAddressesQuery, ListStoreSuppliersQuery
 from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.services.store_unit_of_work import StoreUnitOfWork
@@ -55,6 +55,10 @@ from store.application.usecases.manage.update_store_settings_uc import UpdateSto
 from store.application.usecases.manage.upload_image_uc import UploadImageUC, UploadingImageResponseBoundary
 from store.application.usecases.product.create_store_product_uc import CreatingStoreProductResponseBoundary, \
     CreateStoreProductUC
+from store.application.usecases.product.remove_store_product_attribute_uc import RemoveStoreProductAttributeUC, \
+    RemovingStoreProductAttributeResponseBoundary
+from store.application.usecases.product.remove_store_product_uc import RemoveStoreProductUC, \
+    RemovingStoreProductResponseBoundary
 from store.application.usecases.product.update_store_product_uc import UpdateStoreProductUC, \
     UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
@@ -176,6 +180,16 @@ class StoreModule(injector.Module):
                                 uow: StoreUnitOfWork, fs: FileSystem) -> UpdateStoreProductUC:
         return UpdateStoreProductUC(boundary, uow, fs)
 
+    @injector.provider
+    def remove_store_product_uc(self, boundary: RemovingStoreProductResponseBoundary,
+                                uow: StoreUnitOfWork, fs: FileSystem) -> RemoveStoreProductUC:
+        return RemoveStoreProductUC(boundary, uow, fs)
+
+    @injector.provider
+    def remove_store_product_attribute_uc(self, boundary: RemovingStoreProductAttributeResponseBoundary,
+                                          uow: StoreUnitOfWork, fs: FileSystem) -> RemoveStoreProductAttributeUC:
+        return RemoveStoreProductAttributeUC(boundary, uow, fs)
+
     # endregion
 
     # region ## StoreHandlers Facade and configuration for event listening ##
@@ -252,8 +266,8 @@ class StoreInfrastructureModule(injector.Module):
         return SqlListProductsQuery(conn)
 
     @injector.provider
-    def get_product_by_id_query(self, conn: Connection) -> GetProductByIdQuery:
-        return SqlGetProductByIdQuery(conn)
+    def get_product_by_id_query(self, conn: Connection) -> GetStoreProductQuery:
+        return SqlGetStoreProductQuery(conn)
 
     @injector.provider
     def list_products_in_catalog(self, conn: Connection) -> ListStoreProductsByCatalogQuery:

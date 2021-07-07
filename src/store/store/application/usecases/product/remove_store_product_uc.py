@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import abc
+from dataclasses import dataclass
+
+from foundation.fs import FileSystem
+from store.application.services.store_unit_of_work import StoreUnitOfWork
+
+
+@dataclass
+class RemovingStoreProductResponse:
+    ...
+
+
+class RemovingStoreProductResponseBoundary(abc.ABC):
+    @abc.abstractmethod
+    def present(self, response_dto: RemovingStoreProductResponse):
+        raise NotImplementedError
+
+
+class RemoveStoreProductUC:
+    def __init__(self, boundary: RemovingStoreProductResponseBoundary, uow: StoreUnitOfWork, fs: FileSystem):
+        self._ob = boundary
+        self._uow = uow
+        self._fs = fs

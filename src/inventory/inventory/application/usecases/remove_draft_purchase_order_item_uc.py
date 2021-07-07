@@ -10,7 +10,7 @@ from inventory.domain.entities.warehouse import Warehouse
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.domain.entities.purchase_order import DraftPurchaseOrderId
 from store.application.usecases.const import ThingGoneInBlackHoleError
-from store.domain.entities.store_product import StoreProductId
+from store.domain.entities.value_objects import StoreProductId
 
 
 @dataclass

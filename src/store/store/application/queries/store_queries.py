@@ -9,8 +9,7 @@ from store.application.queries.dtos.store_product_dto import StoreProductCompact
 from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
 from store.application.queries.response_dtos import StoreInfoResponseDto, \
     StoreWarehouseResponseDto, StoreAddressResponseDto
-from store.domain.entities.store_product import StoreProductId
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, StoreProductId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 
@@ -47,9 +46,9 @@ class ListProductsQuery(abc.ABC):
         pass
 
 
-class GetProductByIdQuery(abc.ABC):
+class GetStoreProductQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, owner_email: str, product_id: StoreProductId) -> StoreProductDto:
+    def query(self, owner_email: str, product_id: StoreProductId, from_cache: bool = True) -> StoreProductDto:
         pass
 
 

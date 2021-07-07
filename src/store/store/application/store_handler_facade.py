@@ -8,15 +8,15 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Connection
 
 from foundation.logger import logger
-from store.adapter.queries.query_factories import get_product_query_factory, get_product_collections_query_factory
+from store.adapter.queries.query_factories import get_product_query_factory, list_product_collections_query_factory, \
+    get_suppliers_bound_to_product_query
 from store.adapter.store_db import store_catalog_table, \
     store_collection_table, store_product_data_cache_table
 from store.application.queries.dtos.store_catalog_dto import _row_to_catalog_dto
 from store.application.queries.dtos.store_collection_dto import _row_to_collection_dto
 from store.application.queries.dtos.store_product_brand_dto import _row_to_brand_dto
 from store.application.queries.dtos.store_supplier_dto import _row_to_supplier_dto
-from store.domain.entities.store_product import StoreProductId
-from store.domain.entities.value_objects import StoreCatalogId
+from store.domain.entities.value_objects import StoreCatalogId, StoreProductId
 from store.domain.events.store_catalog_events import StoreCatalogDeletedEvent
 from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
 
@@ -77,21 +77,25 @@ class StoreHandlerFacade:
             brand_json = _row_to_brand_dto(product_data)
 
             # get collections
-            query = get_product_collections_query_factory(product_id=product_id)
+            query = list_product_collections_query_factory(product_id=product_id)
             collections_data = self._conn.execute(query).all()
             collections_json = [_row_to_collection_dto(r) for r in collections_data]
 
             # get suppliers
             query = get_suppliers_bound_to_product_query(product_id=product_id)
             suppliers_data = self._conn.execute(query).all()
-            suppliers_data = [_row_to_supplier_dto(r) for r in suppliers_data]
+            suppliers_json = [_row_to_supplier_dto(r) for r in suppliers_data]
 
             # insert data
             data = {
                 'product_cache_id': product_id,
+                'store_id': product_data.store_id,
+                'catalog_id': product_data.catalog_id,
+                'brand_id': product_data.brand_id,
                 'catalog_json': catalog_json,
                 'collections_json': collections_json,
-                'brand_json': brand_json
+                'brand_json': brand_json,
+                'suppliers_json': suppliers_json,
             }
             stmt = insert(store_product_data_cache_table).values(**data)
 

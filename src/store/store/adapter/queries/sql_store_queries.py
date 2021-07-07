@@ -9,9 +9,9 @@ from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_products_in_collection, sql_count_collections_in_catalog, \
     sql_count_catalogs_in_store, sql_count_products_in_store, sql_count_suppliers_in_store
 from store.adapter.queries.query_factories import list_store_product_query_factory, get_product_query_factory, \
-    store_catalog_query_factory, get_store_query_factory
+    store_catalog_query_factory, get_store_query_factory, list_product_collections_query_factory
 from store.adapter.store_db import store_catalog_table, store_collection_table, store_warehouse_table, \
-    store_settings_table
+    store_settings_table, store_addresses_table, store_table, store_product_collection_table, store_product_table
 from store.application.queries.dto_factories import _row_to_store_settings_dto, _row_to_store_info_dto, \
     _row_to_warehouse_dto, _row_to_address_dto
 from store.application.queries.dtos.store_catalog_dto import StoreCatalogResponseDto, _row_to_catalog_dto
@@ -24,7 +24,7 @@ from store.application.queries.response_dtos import StoreInfoResponseDto, StoreW
 from store.application.queries.store_queries import ListProductsFromCollectionQuery, ListStoreCollectionsQuery, \
     ListStoreCatalogsQuery, \
     ListProductsQuery, \
-    GetProductByIdQuery, ListStoreProductsQuery, ListStoreProductsByCatalogQuery, \
+    GetStoreProductQuery, ListStoreProductsQuery, ListStoreProductsByCatalogQuery, \
     ListStoreWarehousesQuery, ListStoreAddressesQuery, ListStoreSuppliersQuery
 from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
@@ -34,13 +34,13 @@ from store.domain.entities.store_address import StoreAddress
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_owner import StoreOwner
-from store.domain.entities.store_product import StoreProduct, StoreProductId
+from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_unit import StoreProductUnit
 from store.domain.entities.store_warehouse import StoreWarehouse
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, StoreProductId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
 
@@ -204,7 +204,10 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
                                                                 catalog_id=catalog_id,
                                                                 conn=self._conn)
 
-            collection_query = select(store_collection_table) \
+            collection_query = select([
+                store_collection_table,
+                store_collection_table.c.disabled.label('is_collection_disabled')
+            ]) \
                 .where(and_(
                 store_collection_table.c.store_id == store_id,
                 store_collection_table.c.catalog_id == catalog_id
@@ -223,10 +226,11 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
             raise exc
 
 
-class SqlGetProductByIdQuery(GetProductByIdQuery, SqlQuery):
+class SqlGetStoreProductQuery(GetStoreProductQuery, SqlQuery):
     def query(self,
               owner_email: str,
-              product_id: StoreProductId):
+              product_id: StoreProductId,
+              from_cache: bool = True):
         try:
             store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
             if not store_id:
@@ -237,21 +241,22 @@ class SqlGetProductByIdQuery(GetProductByIdQuery, SqlQuery):
             product = self._conn.execute(query).first()
 
             if product:
-                fetch_collections_query = select([StoreCollection,
-                                                  StoreCollection.disabled.label('is_collection_disabled')]) \
-                    .join(StoreProduct, StoreCollection._products).where(StoreProduct.product_id == product_id)
-                collections = self._conn.execute(fetch_collections_query).all()
+                # list collections
+                list_collections_query = list_product_collections_query_factory(product_id=product_id)
+                collections = self._conn.execute(list_collections_query).all()
 
+                # list units
                 fetch_units_query = select(StoreProductUnit) \
                     .join(StoreProduct) \
                     .where(StoreProduct.product_id == product_id)
                 units = self._conn.execute(fetch_units_query).all()
 
+                # list tags
                 fetch_tags_query = select(StoreProductTag) \
                     .join(StoreProduct) \
                     .where(StoreProduct.product_id == product_id)
                 tags = self._conn.execute(fetch_tags_query).all()
-                return _row_to_product_dto(product, unit_rows=units, tag_rows=tags, collection_rows=collections)
+                return _row_to_product_dto(product, unit_rows=units, tag_rows=tags, collection_rows=collections, compacted=False)
             else:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
         except Exception as exc:
@@ -348,7 +353,7 @@ class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
                 page_size=page_size,
                 total_items=total_product_cnt,
                 items=[
-                    _row_to_product_dto(row, compacted=True) for row in products
+                    _row_to_product_dto(row) for row in products
                 ]
             )
         except Exception as exc:
@@ -373,7 +378,10 @@ class SqlListStoreAddressesQuery(ListStoreAddressesQuery, SqlQuery):
         if not store_id:
             raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
 
-        query = select(StoreAddress).join(Store, StoreAddress._store).where(Store.store_id == store_id)
+        # query = select(StoreAddress).join(Store, StoreAddress._store).where(Store.store_id == store_id)
+        query = select(store_addresses_table).join(store_table,
+                                                   store_addresses_table.c.store_id == store_table.c.store_id).where(
+            store_table.c.store_id == store_id)
 
         addresses = self._conn.execute(query).all()
 

@@ -16,8 +16,8 @@ from store.application.usecases.const import ExceptionMessages, ThingGoneInBlack
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.store_product import StoreProduct, StoreProductId
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
+from store.domain.entities.store_product import StoreProduct
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, StoreProductId
 
 
 @dataclass
@@ -137,7 +137,7 @@ def get_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWork)
 
 def list_countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
     try:
-        query = select(location_country_table).select_from(location_country_table)
+        query = select(LocationCountry)
         country_rows = uow._session.execute(query).all()
         return set(country_rows)
     except Exception as exc:
@@ -147,8 +147,8 @@ def list_countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
 def get_location(sub_division_id: LocationCitySubDivisionId, uow: SqlAlchemyUnitOfWork) -> LocationCitySubDivision:
     # TODO: Move to foundation Repository
     try:
-        location = uow.session.query(location_city_sub_division_table).filter(
-            location_city_sub_division_table.c.sub_division_id == sub_division_id).first()
+        location = uow.session.query(LocationCitySubDivision).filter(
+            LocationCitySubDivision.sub_division_id == sub_division_id).first()
         return location
     except Exception as exc:
         raise exc

@@ -510,6 +510,14 @@ class Store(EventMixin):
 
             product.brand = brand
 
+        collections_str_list = kwarg.get('collections')
+        if collections_str_list:
+            for collection_str in collections_str_list:
+                collection = self._collection_factory(title=collection_str, parent_catalog=product.catalog)
+                if collection not in product.collections:
+                    product.collections.add(collection)
+                    items_being_updated.append('collections')
+
         self._record_event(StoreProductUpdatedEvent(
             product_id=product.product_id,
             updated_keys=items_being_updated
