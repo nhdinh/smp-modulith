@@ -3,11 +3,14 @@
 from dataclasses import dataclass
 
 from typing import Set, NewType
-from uuid import UUID
 
 from db_infrastructure import nanoid_generate
 
 LocationAddressId = NewType('LocationAddressId', tp=str)
+LocationCountryId = NewType('LocationCountryId', tp=str)
+LocationCityId = NewType('LocationCityId', tp=str)
+LocationCityDivisionId = NewType('LocationCityDivisionId', tp=str)
+LocationCitySubDivisionId = NewType('LocationCitySubDivisionId', tp=str)
 
 COUNTRY_ID_PREFIX = 'Country'
 CITY_ID_PREFIX = 'City'

@@ -6,8 +6,8 @@ from typing import Set, List, Union, Any, Optional
 from foundation.events import EventMixin
 from foundation.value_objects.address import LocationAddress
 from foundation.value_objects.factories import get_money
-from store.adapter.id_generators import STORE_SUPPLIER_ID_PREFIX
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
+from store.adapter.id_generators import STORE_SUPPLIER_ID_PREFIX, generate_warehouse_id
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.setting import Setting
 from store.domain.entities.store_address import StoreAddress, StoreAddressType
 from store.domain.entities.store_catalog import StoreCatalog
@@ -442,7 +442,7 @@ class Store(EventMixin):
         :return: instance of the warehouse
         """
         return StoreWarehouse(
-            warehouse_id=uuid.uuid4(),
+            warehouse_id=generate_warehouse_id(),
             store_id=self.store_id,
             warehouse_owner=self.owner_email,
             warehouse_name=warehouse_name,
@@ -528,6 +528,6 @@ class Store(EventMixin):
             if 'image' in kwargs.keys():
                 catalog.image = kwargs.get('image')
         except StopIteration:
-            raise ThingGoneInBackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
         except Exception as exc:
             raise exc

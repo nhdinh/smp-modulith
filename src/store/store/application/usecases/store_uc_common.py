@@ -8,10 +8,11 @@ import email_validator
 from sqlalchemy import select
 
 from foundation.common_helpers import uuid_validate
+from foundation.database_setup import location_country_table, location_city_sub_division_table
 from foundation.uow import SqlAlchemyUnitOfWork
-from foundation.value_objects.address import LocationCountry, LocationCitySubDivision
+from foundation.value_objects.address import LocationCountry, LocationCitySubDivision, LocationCitySubDivisionId
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.store import Store
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
@@ -71,7 +72,7 @@ def get_store_by_owner_or_raise(store_owner: str, uow: StoreUnitOfWork, active_o
 
         store = uow.stores.fetch_store_of_owner(owner=store_owner)
         if not store:
-            raise ThingGoneInBackHoleError(ExceptionMessages.STORE_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
 
         if active_only and is_store_disabled(store):
             raise Exception(ExceptionMessages.STORE_NOT_AVAILABLE)
@@ -95,31 +96,26 @@ def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Store) ->
     """
 
     if not store or getattr(store, 'store_id') is None:
-        raise ThingGoneInBackHoleError(ExceptionMessages.STORE_NOT_FOUND)
+        raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
 
     # catalog = store.fetch_catalog_by_id_or_reference(search_term=catalog_id)
     try:
         catalog = next(c for c in store.catalogs if c.catalog_id == catalog_id)
         return catalog
     except StopIteration:
-        raise ThingGoneInBackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+        raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
 
-def fetch_collection_from_catalog_or_raise(by_collection: str, catalog: StoreCatalog) -> StoreCollection:
+def get_collection_from_catalog_or_raise(collection_id: StoreCollectionId, catalog: StoreCatalog) -> StoreCollection:
     try:
         # validate catalog
-        if not catalog or type(catalog) is not StoreCatalog or getattr(catalog, 'catalog_id') is None:
-            raise ThingGoneInBackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+        if not catalog or not isinstance(catalog, StoreCatalog) or getattr(catalog, 'catalog_id') is None:
+            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
-        collection = None
-        uuid = uuid_validate(by_collection)
-        if uuid:
-            collection = catalog.get_collection_by_id(collection_id=StoreCollectionId(uuid))
-        else:
-            collection = catalog.get_collection_by_reference(collection_reference=by_collection)
+        collection = catalog.get_collection_by_id(collection_id=collection_id)
 
         if not collection:
-            raise ThingGoneInBackHoleError(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
         return collection
     except Exception as exc:
@@ -132,26 +128,27 @@ def get_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWork)
         product = uow.stores.get_product_by_id(product_id=product_id)
 
         if not product:
-            raise ThingGoneInBackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
 
         return product
     except Exception as exc:
         raise exc
 
 
-def countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
+def list_countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
     try:
-        query = select(LocationCountry)
+        query = select(location_country_table).select_from(location_country_table)
         country_rows = uow._session.execute(query).all()
         return set(country_rows)
     except Exception as exc:
         raise exc
 
 
-def get_location(sub_division_id: str, uow: SqlAlchemyUnitOfWork) -> LocationCitySubDivision:
+def get_location(sub_division_id: LocationCitySubDivisionId, uow: SqlAlchemyUnitOfWork) -> LocationCitySubDivision:
+    # TODO: Move to foundation Repository
     try:
-        location = uow.session.query(LocationCitySubDivision).filter(
-            LocationCitySubDivision.sub_division_id == sub_division_id).first()
+        location = uow.session.query(location_city_sub_division_table).filter(
+            location_city_sub_division_table.c.sub_division_id == sub_division_id).first()
         return location
     except Exception as exc:
         raise exc

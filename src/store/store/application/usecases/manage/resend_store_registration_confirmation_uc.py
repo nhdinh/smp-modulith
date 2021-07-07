@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.store_registration import StoreRegistration
 
@@ -40,7 +40,7 @@ class ResendRegistrationConfirmationUC:
                     email=dto.registration_email)  # type:StoreRegistration
 
                 if not registration:
-                    raise ThingGoneInBackHoleError(ExceptionMessages.REGISTRATION_NOT_FOUND)
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.REGISTRATION_NOT_FOUND)
 
                 if registration.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION:
                     raise Exception(ExceptionMessages.REGISTRATION_HAS_BEEN_CONFIRMED)

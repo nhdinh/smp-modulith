@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 
-class ThingGoneInBackHoleError(Exception):
+class ThingGoneInBlackHoleError(Exception):
     # The 404 or Not_Found exception
     pass
 

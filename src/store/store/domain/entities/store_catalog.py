@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Set
+from typing import Set, Optional
+
+from store.domain.entities.value_objects import StoreCollectionId
 
 from store.domain.entities.store_collection import StoreCollection
 
@@ -31,3 +33,14 @@ class StoreCatalog:
             raise TypeError
 
         return self.title == other.title or self.catalog_id == other.catalog_id
+
+    def get_collection_by_id(self, collection_id: StoreCollectionId) -> Optional[StoreCollection]:
+        collections = getattr(self, '_collections')
+        if isinstance(collections, Set) and len(collections):
+            try:
+                collection = next(c for c in collections if c.collection_id == collection_id)
+                return collection
+            except StopIteration:
+                return None
+
+        return None

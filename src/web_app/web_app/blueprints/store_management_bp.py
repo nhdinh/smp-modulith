@@ -172,7 +172,7 @@ def fetch_store_settings(query: ListStoreSettingsQuery) -> Response:
     try:
         store_owner = get_jwt_identity()
 
-        settings = query.query(store_of=store_owner)
+        settings = query.query(store_owner_email=store_owner)
         return make_response(jsonify(settings)), 200  # type:ignore
     except Exception as exc:
         if current_app.debug:

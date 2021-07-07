@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.application.usecases.store_uc_common import validate_store_ownership
 from store.domain.entities.store import Store
 from store.domain.entities.value_objects import StoreCatalogId
@@ -28,7 +28,7 @@ class ToggleStoreCatalogUC:
                 # fetch store data by id ID
                 store = uow.stores.fetch_store_of_owner(owner=input_dto.current_user)
                 if store is None:
-                    raise ThingGoneInBackHoleError(ExceptionMessages.STORE_NOT_FOUND)
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
 
                 # if the Store is disabled by admin
                 if ToggleStoreCatalogUC._is_store_disabled(store):

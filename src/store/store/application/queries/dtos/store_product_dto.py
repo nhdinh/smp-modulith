@@ -20,7 +20,6 @@ from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto, 
 @dataclass
 class StoreProductCompactedDto:
     product_id: GUID
-    reference: str
     title: str
     sku: str
     image: str
@@ -29,7 +28,7 @@ class StoreProductCompactedDto:
     catalog: StoreCatalogResponseCompactedDto
 
     collections: List[StoreCollectionDto]
-    supplier: StoreSupplierDto
+    suppliers: List[StoreSupplierDto]
 
     def serialize(self):
         return self.__dict__
@@ -59,18 +58,18 @@ def _row_to_product_dto(
         unit_rows: List[RowProxy] = None,
         tag_rows: List[RowProxy] = None,
         collection_rows: List[RowProxy] = None,
+        supplier_rows: List[RowProxy] = None,
         compacted=True
 ) -> Union[StoreProductCompactedDto, StoreProductDto]:
     product_data = {
         'product_id': row.product_id,
-        'reference': row.reference,
         'title': row.title,
         'sku': row.sku,
         'image': row.image,
 
         'brand': _row_to_brand_dto(row=row, compacted=compacted) if row.brand_id else None,
         'catalog': _row_to_catalog_dto(row=row, collections=[], compacted=compacted) if row.catalog_id else None,
-        'supplier': _row_to_supplier_dto(row=row) if row.supplier_id else None,
+        'suppliers': [_row_to_supplier_dto(row=supplier_row) for supplier_row in supplier_rows] if supplier_rows else [],
         'collections': [_row_to_collection_dto(collection_row) for collection_row in
                         collection_rows] if collection_rows else []
     }

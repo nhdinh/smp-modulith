@@ -4,9 +4,10 @@
 from sqlalchemy import select
 from sqlalchemy.sql import Select
 
-from db_infrastructure import GUID
 from store.adapter.store_db import store_product_table, store_brand_table, store_catalog_table, store_collection_table, \
-    store_product_collection_table, store_supplier_table, store_product_supplier_table
+    store_product_collection_table, store_supplier_table, store_product_supplier_table, store_owner_table, store_table
+from store.domain.entities.store_owner import StoreOwnerId
+from store.domain.entities.store_product import StoreProductId
 from store.domain.entities.value_objects import StoreId
 
 
@@ -31,12 +32,11 @@ def store_collection_query_factory() -> Select:
     return query
 
 
-def list_store_product_query_factory(store_id: GUID) -> Select:
+def list_store_product_query_factory(store_id: StoreId) -> Select:
     query = select([
         store_product_table,
 
         store_catalog_table.c.catalog_id,
-        store_catalog_table.c.reference.label('catalog_reference'),
         store_catalog_table.c.title.label('catalog_title'),
         store_catalog_table.c.default.label('is_default_catalog'),
         store_catalog_table.c.image.label('catalog_image'),
@@ -59,12 +59,11 @@ def list_store_product_query_factory(store_id: GUID) -> Select:
     return query
 
 
-def get_product_query_factory(product_id: GUID):
+def get_product_query_factory(product_id: StoreProductId) -> Select:
     query = select([
         store_product_table,
 
         store_catalog_table.c.catalog_id,
-        store_catalog_table.c.reference.label('catalog_reference'),
         store_catalog_table.c.title.label('catalog_title'),
         store_catalog_table.c.default.label('is_default_catalog'),
         store_catalog_table.c.image.label('catalog_image'),
@@ -81,7 +80,7 @@ def get_product_query_factory(product_id: GUID):
     return query
 
 
-def get_product_collections_query_factory(product_id: GUID):
+def get_product_collections_query_factory(product_id: StoreProductId):
     query = store_collection_query_factory() \
         .join(store_product_collection_table,
               store_product_table.c.product_id == store_product_collection_table.c.product_id) \
@@ -89,4 +88,11 @@ def get_product_collections_query_factory(product_id: GUID):
               store_collection_table.c.collection_id == store_product_collection_table.c.collection_id) \
         .where(store_product_table.c.product_id == product_id)
 
+    return query
+
+
+def get_store_query_factory(store_owner_email: str):
+    query = select(store_table) \
+        .join(store_owner_table, store_table.c._owner_id == store_owner_table.c.user_id) \
+        .where(store_owner_table.c.email == store_owner_email)
     return query

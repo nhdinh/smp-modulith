@@ -68,7 +68,7 @@ class ListStoreProductsQuery(abc.ABC):
 
 class ListStoreSettingsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, store_of: str) -> StoreInfoResponseDto:
+    def query(self, store_owner_email: str) -> StoreInfoResponseDto:
         pass
 
 

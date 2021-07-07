@@ -9,7 +9,7 @@ from foundation.entity import Entity
 from foundation.events import EventMixin
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBackHoleError
+from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
@@ -170,7 +170,7 @@ class StoreProduct(EventMixin, Entity):
         try:
             _base_unit = self.get_unit(base_unit)
             if not _base_unit:
-                raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+                raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
 
             product_unit = StoreProductUnit(unit=unit, from_unit=_base_unit, conversion_factor=conversion_factor)
             # product_unit.product = self
@@ -182,7 +182,7 @@ class StoreProduct(EventMixin, Entity):
         try:
             unit_to_delete = self.get_unit(unit=unit)
             if not unit_to_delete:
-                raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+                raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
 
             # else, check if can be deleted
             can_be_delete = True
@@ -225,7 +225,7 @@ class StoreProduct(EventMixin, Entity):
             self._units.add(unit)
             return unit
         except StopIteration:
-            raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
 
     def create_default_unit(self, default_name: str) -> StoreProductUnit:
         return self.create_unit(unit_name=default_name, conversion_factor=0, base_unit=None)
@@ -241,7 +241,7 @@ class StoreProduct(EventMixin, Entity):
     def remove_unit(self, unit_name: str):
         unit = self.get_unit(unit=unit_name)
         if not unit:
-            raise ThingGoneInBackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
         elif unit.default and len(self._units) > 1:
             raise Exception(ExceptionMessages.CANNOT_DELETE_DEFAULT_UNIT)
         elif self._is_unit_dependency(unit):
