@@ -79,13 +79,6 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
             dto: AuthorizedPaginationInputDto
     ) -> PaginationOutputDto[StoreProductCompactedDto]:
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             # get store_id and collection_id
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:
@@ -112,13 +105,12 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
                             StoreCatalog.reference == catalog_id,
                             Store.store_id == store_id
                             )) \
-                .limit(page_size).offset((current_page - 1) * page_size)
+                .limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             products = self._conn.execute(fetch_products_query).all()
 
             return paginate_response_factory(
-                current_page=current_page,
-                page_size=page_size,
+                input_dto=dto,
                 total_items=product_in_collection_count,
                 items=[
                     _row_to_product_dto(row, compacted=True) for row in products
@@ -131,13 +123,6 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
 class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
@@ -146,8 +131,7 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
             catalog_count = sql_count_catalogs_in_store(store_id=store_id, conn=self._conn)
             if not catalog_count:
                 return paginate_response_factory(
-                    current_page=dto.page,
-                    page_size=dto.page_size,
+                input_dto=dto,
                     total_items=catalog_count,
                     items=[]
                 )
@@ -155,7 +139,7 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
             # get all catalogs limit by page and offset
             fetch_catalogs_query = store_catalog_query_factory(store_id=store_id) \
                 .order_by(store_catalog_table.c.created_at) \
-                .limit(dto.page_size).offset((current_page - 1) * dto.page_size)
+                .limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             catalogs = self._conn.execute(fetch_catalogs_query).all()
 
@@ -175,8 +159,7 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
             collections = self._conn.execute(collection_query).all()
 
             return paginate_response_factory(
-                current_page=dto.page,
-                page_size=page_size,
+                input_dto=dto,
                 total_items=catalog_count,
                 items=[
                     _row_to_catalog_dto(row, collections=[c for c in collections if c.catalog_id == row.catalog_id])
@@ -189,13 +172,6 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
 class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
     def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto):
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
@@ -215,8 +191,7 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
 
             collections = self._conn.execute(collection_query).all()
             return paginate_response_factory(
-                current_page=current_page,
-                page_size=page_size,
+                input_dto=dto,
                 total_items=collection_count,
                 items=[
                     _row_to_collection_dto(row) for row in collections
@@ -267,13 +242,6 @@ class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQue
     def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
         StoreProductCompactedDto]:
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
@@ -284,14 +252,13 @@ class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQue
             # build product query
             query = list_store_product_query_factory(store_id=store_id)
             query = query.where(StoreCatalog.catalog_id == catalog_id)
-            query = query.limit(page_size).offset((current_page - 1) * page_size)
+            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             # query products
             products = self._conn.execute(query).all()
 
             return paginate_response_factory(
-                current_page=current_page,
-                page_size=page_size,
+                input_dto=dto,
                 total_items=product_counts,
                 items=[
                     _row_to_product_dto(row, compacted=True) for row in products
@@ -327,13 +294,6 @@ class SqlListProductsQuery(ListProductsQuery, SqlQuery):
 class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductCompactedDto]:
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
@@ -343,14 +303,13 @@ class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
 
             # build product query
             query = list_store_product_query_factory(store_id=store_id)
-            query = query.limit(page_size).offset((current_page - 1) * page_size)
+            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             # query products
             products = self._conn.execute(query).all()
 
             return paginate_response_factory(
-                current_page=current_page,
-                page_size=page_size,
+                input_dto=dto,
                 total_items=total_product_cnt,
                 items=[
                     _row_to_product_dto(row) for row in products
@@ -391,13 +350,6 @@ class SqlListStoreAddressesQuery(ListStoreAddressesQuery, SqlQuery):
 class SqlListStoreSuppliersQuery(ListStoreSuppliersQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreSupplierDto]:
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
@@ -407,14 +359,13 @@ class SqlListStoreSuppliersQuery(ListStoreSuppliersQuery, SqlQuery):
 
             # build supplier query
             query = select(StoreSupplier).join(Store).where(Store.store_id == store_id)
-            query = query.limit(page_size).offset((current_page - 1) * page_size)
+            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             # query products
             suppliers = self._conn.execute(query).all()
 
             return paginate_response_factory(
-                current_page=current_page,
-                page_size=page_size,
+                input_dto=dto,
                 total_items=count_suppliers,
                 items=[
                     _row_to_supplier_dto(row) for row in suppliers

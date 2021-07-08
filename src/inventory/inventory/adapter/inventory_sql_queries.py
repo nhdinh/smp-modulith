@@ -34,13 +34,6 @@ def _row_to_product_balance_dto(row):
 class SqlListProductsBalanceQuery(ListProductsBalanceQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[ProductBalanceResponseDto]:
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             warehouse_id = sql_get_warehouse_id_by_owner(warehouse_owner=dto.current_user, conn=self._conn)
 
@@ -108,13 +101,6 @@ def _row_to_draft_purchase_order_dto(row: RowProxy, child_rows: List[RowProxy]) 
 class SqlListDraftPurchaseOrdersQuery(ListDraftPurchaseOrdersQuery, SqlQuery):
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[DraftPurchaseOrderResponseDto]:
         try:
-            try:
-                current_page = int(dto.page) if int(dto.page) > 0 else 1
-                page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
-            except:
-                current_page = 1
-                page_size = 10
-
             # store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             warehouse_id = sql_get_warehouse_id_by_owner(warehouse_owner=dto.current_user, conn=self._conn)
 

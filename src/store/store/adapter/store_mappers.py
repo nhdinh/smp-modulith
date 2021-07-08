@@ -8,7 +8,8 @@ from store.adapter.store_db import store_settings_table, store_registration_tabl
     store_managers_table, store_catalog_table, store_product_table, \
     store_product_unit_table, store_brand_table, store_product_tag_table, store_collection_table, \
     store_product_collection_table, store_warehouse_table, store_product_supplier_table, store_supplier_table, \
-    store_supplier_product_price_table, store_addresses_table
+    store_supplier_product_price_table, store_addresses_table, collision_test_table
+from store.domain.entities.collision import Collision
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.setting import Setting
 from store.domain.entities.store import Store
@@ -209,3 +210,7 @@ def start_mappers():
                 collection_class=set,
             )
         })
+
+    mapper(
+        Collision, collision_test_table
+    )

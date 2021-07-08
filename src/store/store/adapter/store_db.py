@@ -302,6 +302,13 @@ store_product_tag_table = sa.Table(
     sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
 )
 
+collision_test_table = sa.Table(
+    '__collision',
+    metadata,
+    sa.Column('id', sa.String(40), primary_key=True),
+    sa.Column('name', sa.String(40))
+)
+
 
 @event.listens_for(StoreRegistration, 'load')
 def store_registration_load(store_registration, _):
