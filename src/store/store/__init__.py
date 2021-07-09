@@ -62,6 +62,7 @@ from store.application.usecases.product.remove_store_product_uc import RemoveSto
 from store.application.usecases.product.update_store_product_uc import UpdateStoreProductUC, \
     UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreResponseBoundary
+from store.domain.entities.collision import CollionCreatedEvent, CollionCreatedEventHandler
 from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, StoreCollectionCreatedEvent, \
     StoreCatalogDeletedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
@@ -211,6 +212,7 @@ class StoreModule(injector.Module):
         # self.async_bind(binder, StoreCollectionCreatedEvent, StoreCollectionCreatedEventHandler)
         self.async_bind(binder, StoreProductCreatedEvent, StoreProductCreatedOrUpdatedEventHandler)
         self.async_bind(binder, StoreProductUpdatedEvent, StoreProductCreatedOrUpdatedEventHandler)
+        self.async_bind(binder, CollionCreatedEvent, CollionCreatedEventHandler)
 
     # endregion
 

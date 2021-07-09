@@ -10,6 +10,7 @@ from inventory.application.services.inventory_unit_of_work import InventoryUnitO
 from inventory.application.usecases.inventory_uc_common import fetch_warehouse_by_owner_or_raise
 from inventory.domain.entities.purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
+from store.domain.entities.collision import Collision
 from store.domain.entities.value_objects import StoreSupplierId, StoreProductId
 
 if TYPE_CHECKING:
