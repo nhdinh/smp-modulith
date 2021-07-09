@@ -548,6 +548,8 @@ def list_store_products_by_collection(
             'collection_reference': collection_reference,
             'catalog_reference': catalog_reference
         })
+
+        # TODO: Fix this
         response = list_store_products_by_collection_query.query(
             collection_reference=collection_reference,
             catalog_reference=catalog_reference,
