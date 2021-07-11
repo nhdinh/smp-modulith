@@ -8,6 +8,7 @@ from uuid import UUID
 from auctions import AuctionDto
 from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
+from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from product_catalog.application.queries.product_catalog import CatalogDto, CollectionDto, BrandDto
 from store.domain.entities.store_address import StoreAddressType
 
@@ -82,7 +83,7 @@ class JSONEncoder(json.JSONEncoder):
         return obj.isoformat()
 
     @default.register(date)  # noqa: F811
-    def serialize_date(self, obj:date)->str:
+    def serialize_date(self, obj: date) -> str:
         return obj.isoformat()
 
     @default.register(UUID)  # noqa: F811
@@ -95,4 +96,8 @@ class JSONEncoder(json.JSONEncoder):
 
     @default.register(StoreAddressType)
     def serialize_store_address_type(self, obj: StoreAddressType) -> str:
+        return str(obj.value)
+
+    @default.register(PurchaseOrderStatus)
+    def serialize_purchase_order_status(self, obj: PurchaseOrderStatus) -> str:
         return str(obj.value)

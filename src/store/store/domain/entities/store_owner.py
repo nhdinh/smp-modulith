@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import NewType
 
-StoreOwnerId = NewType("StoreOwnerId", tp=str)
+StoreUserId = NewType("StoreOwnerId", tp=str)
 
 
 @dataclass(unsafe_hash=True)
-class StoreOwner:
-    id: StoreOwnerId
+class StoreUser:
+    user_id: StoreUserId
     email: str
     mobile: str
     hashed_password: str
@@ -17,7 +17,7 @@ class StoreOwner:
     active: bool = True
 
     def __eq__(self, other):
-        if not other or not isinstance(other, StoreOwner):
+        if not other or not isinstance(other, StoreUser):
             raise TypeError
 
         return self.email == other.email and self.hashed_password == other.hashed_password

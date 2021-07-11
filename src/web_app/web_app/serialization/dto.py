@@ -1,6 +1,6 @@
 import math
 from dataclasses import field
-from typing import Type, TypeVar, cast, List, Generic, Union
+from typing import Type, TypeVar, cast, List, Generic, Union, Optional
 
 import marshmallow as ma
 from flask import Request
@@ -21,8 +21,8 @@ class BaseSchema(ma.Schema):
 
 @dataclass
 class PaginationInputDto:
-    page: int
-    page_size: int
+    page: Optional[int] = 1
+    page_size: Optional[int] = 10
     current_page: int = 1
 
 

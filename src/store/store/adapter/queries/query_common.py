@@ -6,8 +6,8 @@ import email_validator
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
 
-from store.adapter.store_db import store_owner_table, store_table, store_catalog_table, store_collection_table, \
-    store_product_table, store_product_collection_table
+from store.adapter.store_db import store_user_table, store_table, store_catalog_table, store_collection_table, \
+    store_product_table, store_product_collection_table, store_managers_table
 from store.domain.entities.store import Store
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_supplier import StoreSupplier
@@ -18,20 +18,14 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
     try:
         email_validator.validate_email(store_owner)
 
-        q = select([store_table.c.store_id]).where(store_table.c.owner_email == store_owner)  # type:ignore
+        q = select(store_table.c.store_id) \
+            .join(store_managers_table, store_table.c.store_id == store_managers_table.c.store_id) \
+            .join(store_user_table, store_managers_table.c.user_id == store_user_table.c.user_id) \
+            .where(store_user_table.c.email == store_owner)
+
         if active_only:
             q = q.where(store_table.c.disabled == False)  # type:ignore
         store_id = conn.scalar(q)
-
-        # problem with the cache email from the `Store` table, we need to fetch the store by user_id
-        if not store_id:
-            q = select(store_table.c.store_id) \
-                .join(store_owner_table, store_table.c._owner_id == store_owner_table.c.id) \
-                .where(store_owner_table.c.email == store_owner)
-
-            if active_only:
-                q = q.where(store_table.c.disabled == False)  # type:ignore
-            store_id = conn.scalar(q)
 
         return store_id
     except Exception as exc:

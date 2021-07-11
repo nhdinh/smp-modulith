@@ -5,9 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.sql import Select
 
 from store.adapter.store_db import store_product_table, store_brand_table, store_catalog_table, store_collection_table, \
-    store_product_collection_table, store_supplier_table, store_product_supplier_table, store_owner_table, store_table, \
-    store_product_data_cache_table
-from store.domain.entities.store_owner import StoreOwnerId
+    store_product_collection_table, store_supplier_table, store_product_supplier_table, store_user_table, store_table, \
+    store_product_data_cache_table, store_managers_table
+from store.domain.entities.store_owner import StoreUserId
 from store.domain.entities.value_objects import StoreId, StoreProductId
 
 
@@ -94,8 +94,9 @@ def list_product_collections_query_factory(product_id: StoreProductId):
 
 def get_store_query_factory(store_owner_email: str):
     query = select(store_table) \
-        .join(store_owner_table, store_table.c._owner_id == store_owner_table.c.user_id) \
-        .where(store_owner_table.c.email == store_owner_email)
+        .join(store_managers_table, store_table.c.store_id == store_managers_table.c.store_id) \
+        .join(store_user_table, store_managers_table.c.user_id == store_user_table.c.user_id) \
+        .where(store_user_table.c.email == store_owner_email)
     return query
 
 

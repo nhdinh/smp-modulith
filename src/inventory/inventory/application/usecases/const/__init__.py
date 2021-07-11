@@ -13,3 +13,5 @@ class ExceptionMessages:
 
     DRAFT_PURCHASE_ORDER_NOT_FOUND = 'Draft Purchase Order not existed'
     DRAFT_PURCHASE_ORDER_ITEM_NOT_FOUND = 'Draft Purchase Order Item not existed'
+
+    APPROVE_DATE_CANNOT_BE_EARLIER_THAN_LATEST_DATE_IN_DATABASE = 'Date of the new Purchase Order cannot be earlier than the latest PO\'s date'

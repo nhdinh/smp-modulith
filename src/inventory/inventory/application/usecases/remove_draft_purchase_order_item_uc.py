@@ -4,11 +4,12 @@ import abc
 from dataclasses import dataclass
 
 from inventory.application.usecases.const import ExceptionMessages
-from inventory.application.usecases.inventory_uc_common import fetch_warehouse_by_owner_or_raise
+from inventory.application.usecases.inventory_uc_common import get_warehouse_by_owner_or_raise, \
+    get_draft_purchase_order_from_warehouse_or_raise
 from inventory.domain.entities.warehouse import Warehouse
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
-from inventory.domain.entities.purchase_order import DraftPurchaseOrderId
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrderId
 from store.application.usecases.const import ThingGoneInBlackHoleError
 from store.domain.entities.value_objects import StoreProductId
 
@@ -40,13 +41,8 @@ class RemoveDraftPurchaseOrderItemUC:
     def execute(self, dto: RemovingDraftPurchaseOrderItemRequest):
         with self._uow as uow:
             try:
-                warehouse = fetch_warehouse_by_owner_or_raise(owner=dto.current_user, uow=uow)  # type: Warehouse
-
-                try:
-                    draft_purchase_order = next(
-                        po for po in warehouse.draft_purchase_orders if po.purchase_order_id == dto.purchase_order_id)
-                except StopIteration:
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.DRAFT_PURCHASE_ORDER_NOT_FOUND)
+                warehouse = get_warehouse_by_owner_or_raise(owner=dto.current_user, uow=uow)  # type: Warehouse
+                draft_purchase_order = get_draft_purchase_order_from_warehouse_or_raise(draft_purchase_order_id=dto.purchase_order_id, warehouse=warehouse)
 
                 # get item to remove
                 try:

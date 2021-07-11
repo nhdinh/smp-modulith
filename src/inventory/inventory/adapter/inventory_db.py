@@ -5,11 +5,12 @@ from datetime import datetime
 
 import sqlalchemy as sa
 
-from db_infrastructure import metadata, nanoid_generate
+from db_infrastructure import metadata
+from inventory.adapter.id_generators import generate_draft_purchase_order_id, generate_purchase_order_id, \
+    generate_purchase_order_item_id, generate_delivery_order_id
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from store.adapter.store_db import store_product_table, store_product_unit_table, store_supplier_table, \
     store_addresses_table, store_warehouse_table
-
 
 # inventory_product_table = sa.Table(
 #     'store_product',
@@ -49,14 +50,41 @@ from store.adapter.store_db import store_product_table, store_product_unit_table
 #     extend_existing=True
 # )
 
-def purchase_order_id_generator():
-    return nanoid_generate(prefix='PO', key_size=(20, 10))
+purchase_order_table = sa.Table(
+    'purchase_order',
+    metadata,
+    sa.Column('purchase_order_id', sa.String(40), primary_key=True, default=generate_purchase_order_id()),
+    sa.Column('warehouse_id',
+              sa.ForeignKey(store_warehouse_table.c.warehouse_id, onupdate='SET NULL', ondelete='SET NULL')),
+    sa.Column('approved_date', sa.Date),
+    sa.Column('status', sa.Enum(PurchaseOrderStatus), nullable=False, default=PurchaseOrderStatus.APPROVED),
+    sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+)
 
+purchase_order_item_table = sa.Table(
+    'purchase_order_item',
+    metadata,
+    sa.Column('purchase_order_item_id', sa.String(40), primary_key=True, default=generate_purchase_order_item_id),
+    sa.Column('purchase_order_id',
+              sa.ForeignKey(purchase_order_table.c.purchase_order_id, onupdate='CASCADE', ondelete='CASCADE')),
+    sa.Column('product_title', sa.String(255)),
+    sa.Column('product_sku', sa.String(50)),
+    sa.Column('product_barcode', sa.String(100)),
+    sa.Column('brand_title', sa.String(100)),
+    sa.Column('brand_logo', sa.String),
+    sa.Column('unit', sa.String),
+    sa.Column('quantity', sa.Numeric, default=1, nullable=False),
+    sa.Column('price_amount', sa.Numeric, nullable=False),
+    sa.Column('price_currency', sa.String(10), nullable=False),
+    sa.Column('total_amount', sa.Numeric, nullable=False),
+    sa.Column('description', sa.String(255))
+)
 
 draft_purchase_order_table = sa.Table(
     'draft_purchase_order',
     metadata,
-    sa.Column('purchase_order_id', sa.String(40), primary_key=True, default=purchase_order_id_generator),
+    sa.Column('purchase_order_id', sa.String(40), primary_key=True, default=generate_draft_purchase_order_id),
     sa.Column('warehouse_id',
               sa.ForeignKey(store_warehouse_table.c.warehouse_id, onupdate='SET NULL', ondelete='SET NULL')),
     sa.Column('supplier_id',
@@ -67,20 +95,18 @@ draft_purchase_order_table = sa.Table(
     sa.Column('due_date', sa.Date),
     sa.Column('creator', sa.String(255), nullable=False),
     sa.Column('status', sa.Enum(PurchaseOrderStatus), nullable=False, default=PurchaseOrderStatus.DRAFT),
+    sa.Column('approved_id',
+              sa.ForeignKey(purchase_order_table.c.purchase_order_id, onupdate='SET NULL', ondelete='SET NULL'),
+              nullable=True),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
-
-def purchase_order_item_id_generator():
-    return nanoid_generate(prefix='POI')
-
-
 draft_purchase_order_item_table = sa.Table(
     'draft_purchase_order_item',
     metadata,
-    sa.Column('purchase_order_item_id', sa.String(40), primary_key=True, default=purchase_order_item_id_generator),
+    sa.Column('purchase_order_item_id', sa.String(40), primary_key=True, default=generate_purchase_order_item_id),
     sa.Column('purchase_order_id',
               sa.ForeignKey(draft_purchase_order_table.c.purchase_order_id, onupdate='CASCADE', ondelete='CASCADE')),
     sa.Column('product_id', sa.ForeignKey(store_product_table.c.product_id)),
@@ -108,4 +134,11 @@ inventory_product_balance_table = sa.Table(
     sa.ForeignKeyConstraint(('product_id', 'unit'),
                             [store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
                             name='inventory_balance_product_unit_pk', ondelete='SET NULL')
+)
+
+delivery_order_table = sa.Table(
+    'delivery_order',
+    metadata,
+    sa.Column('delivery_order_id', sa.String(40), primary_key=True, default=generate_delivery_order_id),
+    sa.Column('purchase_order_id', sa.ForeignKey(purchase_order_table.c.purchase_order_id)),
 )

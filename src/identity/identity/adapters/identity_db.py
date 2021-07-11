@@ -91,7 +91,6 @@ def start_mappers():
         User,
         user_table,
         properties={
-            '_id': user_table.c.user_id,
             '_roles': relationship(
                 Role,
                 secondary=user_role_table,

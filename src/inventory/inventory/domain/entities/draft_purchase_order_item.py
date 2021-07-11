@@ -10,5 +10,5 @@ from store.domain.entities.store_unit import StoreProductUnit
 class DraftPurchaseOrderItem:
     product: StoreProduct
     unit: StoreProductUnit
-    quantity: int
+    quantity: float
     description: str

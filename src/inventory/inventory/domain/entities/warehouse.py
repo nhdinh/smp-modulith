@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import NewType, Set, Union, List, Optional
 from uuid import UUID
 
+from dateutil.utils import today
+
+from inventory.adapter.inventory_db import generate_draft_purchase_order_id
+from inventory.domain.entities.purchase_order import PurchaseOrder
 from store.application.usecases.const import ThingGoneInBlackHoleError
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.value_objects import StoreSupplierId, StoreAddressId, StoreProductId
 
-from foundation.events import EventMixin
+from foundation.events import EventMixin, Event
 from inventory.application.usecases.const import ExceptionMessages
-from inventory.domain.entities.purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId, PurchaseOrderId
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from inventory.domain.events.draft_purchase_order_events import DraftPurchaseOrderCreatedEvent, \
@@ -22,18 +26,20 @@ WarehouseId = NewType('WarehouseId', tp=str)
 
 
 class Warehouse(EventMixin):
-    def __init__(self):
+    def __init__(self,
+                 version: int = 0):
         super(Warehouse, self).__init__()
 
         self._draft_purchase_orders = set()  # type:Set[DraftPurchaseOrder]
-        self._processing_purchase_orders = set()  # type: Set
-        self._completed_purchase_orders = set()  # type:Set
+
+        # those following are approved purchase orders
+        self._purchase_orders = set()  # type: Set[PurchaseOrder]
+
+        self._domain_events = []
+        self.version = version
 
     @property
-    def domain_events(self):
-        if not self._domain_events:
-            self._domain_events = []
-
+    def domain_events(self) -> List[Event]:
         return self._domain_events
 
     @property
@@ -46,11 +52,11 @@ class Warehouse(EventMixin):
 
     @property
     def processing_purchase_orders(self) -> Set:
-        return self._processing_purchase_orders
+        raise NotImplementedError
 
     @property
     def completed_purchase_orders(self) -> Set:
-        return self._completed_purchase_orders
+        raise NotImplementedError
 
     def create_draft_purchase_order(
             self,
@@ -61,7 +67,7 @@ class Warehouse(EventMixin):
             creator: str,
             items: List = None
     ) -> DraftPurchaseOrder:
-        new_guid = uuid.uuid4()
+        new_guid = generate_draft_purchase_order_id()
         supplier = self.store.get_supplier(supplier_id_or_name)
         if not supplier:
             raise ThingGoneInBlackHoleError(ExceptionMessages.SUPPLIER_NOT_FOUND)
@@ -150,3 +156,32 @@ class Warehouse(EventMixin):
             self._draft_purchase_orders.add(draft)
 
             return draft.purchase_order_id
+
+    def _generate_purchase_order_id(self):
+        new_id = generate_draft_purchase_order_id()
+
+        # check collision
+        return new_id
+
+    def get_latest_purchase_order_date(self) -> date:
+        if len(self._purchase_orders):
+            latest = sorted(self._purchase_orders,
+                            key=lambda x: x.approved_date, reverse=True)[0]  # sorted with latest date first
+            return latest.approved_date
+        else:
+            if getattr(self, 'created_at') and isinstance(self.created_at, datetime):
+                return self.created_at.date()
+            else:
+                return today()
+
+    def add_purchase_order_to_processing(self, purchase_order: PurchaseOrder) -> PurchaseOrderId:
+        """
+        Add the purchase_order into processing line
+
+        :param purchase_order: the order to added into
+        :return: id of the new added purchase order, instance of PurchaseOrderId
+        """
+        purchase_order.purchase_order_id = self._generate_purchase_order_id()
+        self._purchase_orders.add(purchase_order)
+
+        return purchase_order.purchase_order_id

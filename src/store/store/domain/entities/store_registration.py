@@ -13,7 +13,7 @@ from store.adapter.store_db import generate_warehouse_id
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.store import Store
-from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_owner import StoreUser
 from store.domain.entities.store_warehouse import StoreWarehouse
 from store.domain.entities.value_objects import StoreId
 from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationResendEvent
@@ -124,17 +124,17 @@ class StoreRegistration(EventMixin, Entity):
 
         return self.registration_id
 
-    def create_store_owner(self) -> StoreOwner:
+    def create_store_owner(self) -> StoreUser:
         # check rule
-        return StoreOwner(
-            id=self.registration_id,
+        return StoreUser(
+            user_id=self.registration_id,
             email=self.owner_email,
             mobile=self.owner_mobile,
             hashed_password=self.owner_password,
             confirmed_at=datetime.now(),
         )
 
-    def create_store(self, owner: StoreOwner) -> Store:
+    def create_store(self, store_admin: StoreUser) -> Store:
         if not self.registration_id.startswith('Store'):
             store_id = generate_store_id()
         else:
@@ -144,10 +144,10 @@ class StoreRegistration(EventMixin, Entity):
         return Store.create_store_from_registration(
             store_id=store_id,
             store_name=self.store_name,
-            store_owner=owner
+            store_admin=store_admin
         )
 
-    def create_default_warehouse(self, store_id: StoreId, owner: StoreOwner) -> StoreWarehouse:
+    def create_default_warehouse(self, store_id: StoreId, owner: StoreUser) -> StoreWarehouse:
         if not self.registration_id.startswith('Warehouse'):
             store_id = generate_warehouse_id()
         else:

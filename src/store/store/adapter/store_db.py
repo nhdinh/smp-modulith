@@ -14,6 +14,7 @@ from store.adapter.id_generators import generate_store_id, generate_warehouse_id
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.store import Store
 from store.domain.entities.store_address import StoreAddressType
+from store.domain.entities.store_manager_type import StoreManagerType
 from store.domain.entities.store_registration import StoreRegistration
 
 store_registration_table = sa.Table(
@@ -33,7 +34,7 @@ store_registration_table = sa.Table(
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
 )
 
-store_owner_table = sa.Table(
+store_user_table = sa.Table(
     'user',
     metadata,
     sa.Column('user_id', sa.String(40), primary_key=True, default=generate_store_owner_id),
@@ -51,12 +52,23 @@ store_table = sa.Table(
     metadata,
     sa.Column('store_id', sa.String(40), primary_key=True, default=generate_store_id),
     sa.Column('name', sa.String(100)),
-    sa.Column('_owner_id', sa.ForeignKey(store_owner_table.c.user_id, ondelete='SET NULL', onupdate='CASCADE')),
-    sa.Column('owner_email', sa.String(255), nullable=False, comment='For easy linking'),
+    # sa.Column('_owner_id', sa.ForeignKey(store_owner_table.c.user_id, ondelete='SET NULL', onupdate='CASCADE')),
+    # sa.Column('owner_email', sa.String(255), nullable=False, comment='For easy linking'),
     sa.Column('disabled', sa.Boolean, default=False, comment='Disabled by admin'),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+)
+
+store_managers_table = sa.Table(
+    'store_managers',
+    metadata,
+    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('user_id', sa.ForeignKey(store_user_table.c.user_id, ondelete='SET NULL', onupdate='SET NULL'),
+              unique=True),
+    sa.Column('store_role', sa.Enum(StoreManagerType), default=StoreManagerType.MANAGER),
+
+    sa.PrimaryKeyConstraint('store_id', 'user_id', name='store_managers_pk'),
 )
 
 store_warehouse_table = sa.Table(
@@ -85,14 +97,6 @@ store_settings_table = sa.Table(
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 
     sa.PrimaryKeyConstraint('store_id', 'setting_key', name='store_id_settings_key_pk'),
-)
-
-store_managers_table = sa.Table(
-    'store_managers',
-    metadata,
-    sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='SET NULL', onupdate='CASCADE')),
-    sa.Column('user_id', sa.ForeignKey(user_table.c.user_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('store_role_id', sa.String(100), default='store_manager'),
 )
 
 store_addresses_table = sa.Table(
@@ -181,6 +185,7 @@ store_product_table = sa.Table(
     sa.Column('store_id', sa.ForeignKey(store_table.c.store_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('sku', sa.String(100), nullable=False),
+    sa.Column('barcode', sa.String(100), nullable=False),
     sa.Column('image', sa.String(1000)),
     sa.Column('brand_id', sa.ForeignKey(store_brand_table.c.brand_id), nullable=True),
     sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id), nullable=True),
@@ -273,8 +278,8 @@ store_supplier_product_price_table = sa.Table(
     sa.Column('unit', sa.String(50), nullable=False),
     sa.Column('price', sa.Numeric, nullable=False),
     sa.Column('currency', sa.String(10), nullable=False),
-    sa.Column('tax', sa.Numeric),
-    sa.Column('effective_from', sa.DateTime, nullable=False, server_default=sa.func.now()),
+    sa.Column('tax', sa.Numeric, nullable=True),
+    sa.Column('effective_from', sa.Date, nullable=False, server_default=sa.func.now()),
 
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
@@ -318,3 +323,8 @@ def store_registration_load(store_registration, _):
 @event.listens_for(Store, 'load')
 def store_load(store, connection):
     store.domain_events = []
+
+    try:
+        store._admin = next(sm for sm in store._managers if sm.store_role == StoreManagerType.ADMIN)
+    except StopIteration:
+        store._admin = None

@@ -2,13 +2,21 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from datetime import date
+from typing import Optional
+
+from store.domain.entities.value_objects import StoreAddressId
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrderId
 
 
 @dataclass
 class UpdatingDraftPurchaseOrderRequest:
-    pass
+    draft_purchase_order_id: DraftPurchaseOrderId
+    due_date: Optional[date]
+    note: Optional[str]
+    delivery_address: Optional[StoreAddressId]
 
 
 @dataclass

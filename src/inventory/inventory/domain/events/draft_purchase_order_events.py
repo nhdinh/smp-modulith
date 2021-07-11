@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 from foundation import Event
-from inventory.domain.entities.purchase_order import DraftPurchaseOrderId
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrderId
 
 
 @dataclass

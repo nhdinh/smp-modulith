@@ -12,7 +12,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from store import RemovingStoreProductResponseBoundary
 from store.application.usecases.product.remove_store_product_attribute_uc import RemovingStoreProductAttributeRequest, \
     RemoveStoreProductAttributeUC, RemovingStoreProductAttributeResponseBoundary
-from store.domain.entities.value_objects import StoreCatalogId
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
 
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
@@ -524,35 +524,34 @@ def fetch_store_products(fetch_store_products_query: ListStoreProductsQuery):
 
 
 @store_catalog_blueprint.route(
-    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>',
+    '/catalog/<string:catalog_id>/collection/<string:collection_id>',
     methods=['GET']
 )
 @jwt_required()
 def list_store_products_by_collection(
-        collection_reference: str,
-        catalog_reference: str,
+        collection_id: StoreCollectionId,
+        catalog_id: StoreCatalogId,
         list_store_products_by_collection_query: ListProductsFromCollectionQuery
 ) -> Response:
     """
-    GET :5000/store-catalog/catalog/<catalog_id>/collection/<collection_reference>
+    GET :5000/store-catalog/catalog/<catalog_id>/collection/<collection_id>
     Fetch products in catalog/ collection
 
     :param list_store_products_by_collection_query:
-    :param catalog_reference:
-    :param collection_reference:
+    :param catalog_id:
+    :param collection_id:
     """
     try:
         current_user = get_jwt_identity()
         dto = get_dto(request, AuthorizedPaginationInputDto, context={
             'current_user': current_user,
-            'collection_reference': collection_reference,
-            'catalog_reference': catalog_reference
+            'collection_id': collection_id,
+            'catalog_id': catalog_id
         })
 
-        # TODO: Fix this
         response = list_store_products_by_collection_query.query(
-            collection_reference=collection_reference,
-            catalog_reference=catalog_reference,
+            collection_id=collection_id,
+            catalog_id=catalog_id,
             dto=dto
         )
 
@@ -639,11 +638,12 @@ def create_store_product_without_collection(create_store_product_uc: CreateStore
 
 
 @store_catalog_blueprint.route(
-    '/catalog/<string:catalog_reference>/collection/<string:collection_reference>',
+    '/catalog/<string:catalog_id>/collection/<string:collection_id>',
     methods=['POST']
 )
 @jwt_required()
-def create_store_product_with_collection(catalog_reference: str, collection_reference: str,
+def create_store_product_with_collection(catalog_id: str,
+                                         collection_id: str,
                                          create_store_product_uc: CreateStoreProductUC,
                                          presenter: CreatingStoreProductResponseBoundary) -> Response:
     """
@@ -652,14 +652,14 @@ def create_store_product_with_collection(catalog_reference: str, collection_refe
 
     :param presenter:
     :param create_store_product_uc:
-    :param catalog_reference:
-    :param collection_reference:
+    :param catalog_id:
+    :param collection_id:
     """
     try:
         dto = get_dto(request, CreatingStoreProductRequest, context={
             'current_user': get_jwt_identity(),
-            'catalog_reference': catalog_reference,
-            'collection_reference': collection_reference
+            'catalog_id': catalog_id,
+            'collection_id': collection_id
         })
         return create_store_product_common(dto, create_store_product_uc, presenter)
     except BusinessRuleValidationError as exc:

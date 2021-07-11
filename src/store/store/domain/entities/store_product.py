@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
 from typing import Optional, TYPE_CHECKING, Set, List, Tuple, Dict
@@ -57,6 +57,7 @@ class StoreProduct(EventMixin, Entity):
         self.product_id = product_id
         self.title = title
         self.sku = sku
+        self.barcode = 'NoBarCode applied yet'
 
         self._store = store  # type:Store
         self.image = image
@@ -286,12 +287,12 @@ class StoreProduct(EventMixin, Entity):
 
     def get_price(
             self, by_supplier: StoreSupplier, by_unit: StoreProductUnit
-    ) -> Optional[Tuple[Money, float, datetime]]:
+    ) -> Optional[Tuple[Money, Optional[float], date]]:
         try:
             price = next(p for p in self._purchase_prices if
                          p.product_unit == by_unit and p.supplier == by_supplier)  # type:ProductPurchasePrice
 
-            return tuple(price.price, price.tax, price.effective_from)
+            return price.price, price.tax, price.effective_from
         except StopIteration:
             return None
 

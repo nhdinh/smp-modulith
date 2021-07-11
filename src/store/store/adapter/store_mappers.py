@@ -4,7 +4,7 @@ from sqlalchemy.orm import mapper, relationship, backref
 
 from foundation.value_objects.address import LocationAddress
 from identity.domain.entities import User
-from store.adapter.store_db import store_settings_table, store_registration_table, store_owner_table, store_table, \
+from store.adapter.store_db import store_settings_table, store_registration_table, store_user_table, store_table, \
     store_managers_table, store_catalog_table, store_product_table, \
     store_product_unit_table, store_brand_table, store_product_tag_table, store_collection_table, \
     store_product_collection_table, store_warehouse_table, store_product_supplier_table, store_supplier_table, \
@@ -16,7 +16,8 @@ from store.domain.entities.store import Store
 from store.domain.entities.store_address import StoreAddress
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_manager import StoreManager
+from store.domain.entities.store_owner import StoreUser
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
@@ -46,8 +47,8 @@ def start_mappers():
     )
 
     mapper(
-        StoreOwner, store_owner_table, properties={
-            'hashed_password': store_owner_table.c.password
+        StoreUser, store_user_table, properties={
+            'hashed_password': store_user_table.c.password
         })
 
     mapper(
@@ -148,6 +149,12 @@ def start_mappers():
         )
     })
 
+    mapper(StoreManager, store_managers_table, properties={
+        'store_user': relationship(
+            StoreUser
+        ),
+    })
+
     mapper(
         Store, store_table,
         version_id_col=store_table.c.version,
@@ -165,19 +172,14 @@ def start_mappers():
                 backref=backref('_store'),
             ),
 
-            '_store_owner': relationship(
-                StoreOwner,
-                backref=backref('_store'),
-            ),
-
             '_warehouses': relationship(
                 StoreWarehouse,
                 collection_class=set,
             ),
 
             '_managers': relationship(
-                User,
-                secondary=store_managers_table,
+                StoreManager,
+                # secondary=store_managers_table,
                 collection_class=set,
             ),
 

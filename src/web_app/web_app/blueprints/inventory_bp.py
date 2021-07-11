@@ -20,7 +20,7 @@ from inventory.application.usecases.remove_draft_purchase_order_item_uc import R
 from inventory.application.usecases.update_draft_purchase_order_uc import UpdateDraftPurchaseOrderUC, \
     UpdatingDraftPurchaseOrderResponseBoundary, UpdatingDraftPurchaseOrderRequest
 from web_app.presenters.inventory_presenters import CreatingDraftPurchaseOrderPresenter, \
-    RemovingDraftPurchaseOrderItemPresenter
+    RemovingDraftPurchaseOrderItemPresenter, UpdatingDraftPurchaseOrderPresenter, ApprovingPurchaseOrderPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 INVENTORY_BLUEPRINT_NAME = 'inventory_blueprint'
@@ -38,10 +38,20 @@ class InventoryAPI(injector.Module):
     def removing_draft_purchase_order_item_boundary(self) -> RemovingDraftPurchaseOrderItemResponseBoundary:
         return RemovingDraftPurchaseOrderItemPresenter()
 
+    @injector.provider
+    @flask_injector.request
+    def updating_draft_purchase_order_response_boundary(self) -> UpdatingDraftPurchaseOrderResponseBoundary:
+        return UpdatingDraftPurchaseOrderPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def approving_purchase_order_response_boundary(self) -> ApprovingPurchaseOrderResponseBoundary:
+        return ApprovingPurchaseOrderPresenter()
+
 
 @inventory_blueprint.route('/', methods=['GET'])
 @jwt_required()
-def fetch_products_balance(list_products_balance_query: ListProductsBalanceQuery) -> Response:
+def list_products_balance(list_products_balance_query: ListProductsBalanceQuery) -> Response:
     try:
         current_user = get_jwt_identity()
         dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
@@ -138,14 +148,14 @@ def remove_draft_purchase_order_item(remove_draft_purchase_order_item_uc: Remove
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
-@inventory_blueprint.route('/purchase_order/<string:purchase_order_id>', methods=['PATCH'])
+@inventory_blueprint.route('/purchase_order/<draft_purchase_order_id>', methods=['POST'])
 @jwt_required()
-def approve_purchase_order(purchase_order_id: str,
+def approve_purchase_order(draft_purchase_order_id: str,
                            approve_purchase_order_uc: ApprovePurchaseOrderUC,
                            presenter: ApprovingPurchaseOrderResponseBoundary) -> Response:
     try:
         dto = get_dto(request, ApprovingPurchaseOrderRequest, context={
-            'purchase_order_id': purchase_order_id,
+            'draft_purchase_order_id': draft_purchase_order_id,
             'current_user': get_jwt_identity()
         })
         approve_purchase_order_uc.execute(dto)

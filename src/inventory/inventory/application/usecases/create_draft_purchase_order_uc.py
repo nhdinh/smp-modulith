@@ -7,8 +7,8 @@ from typing import List, Union, TYPE_CHECKING, Optional
 
 from foundation.value_objects.address import LocationAddressId
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
-from inventory.application.usecases.inventory_uc_common import fetch_warehouse_by_owner_or_raise
-from inventory.domain.entities.purchase_order import DraftPurchaseOrder
+from inventory.application.usecases.inventory_uc_common import get_warehouse_by_owner_or_raise
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from store.domain.entities.collision import Collision
 from store.domain.entities.value_objects import StoreSupplierId, StoreProductId
@@ -60,7 +60,7 @@ class CreateDraftPurchaseOrderUC:
     def execute(self, dto: CreatingDraftPurchaseOrderRequest):
         with self._uow as uow:
             try:
-                warehouse = fetch_warehouse_by_owner_or_raise(owner=dto.current_user, uow=uow)  # type: Warehouse
+                warehouse = get_warehouse_by_owner_or_raise(owner=dto.current_user, uow=uow)  # type: Warehouse
 
                 po_data = dict()
                 po_data['supplier_id_or_name'] = dto.supplier_id_or_name

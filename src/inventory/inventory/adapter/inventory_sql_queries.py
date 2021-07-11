@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from inventory.adapter.inventory_db import draft_purchase_order_item_table
 from sqlalchemy import select
 from sqlalchemy.engine.row import RowProxy
 from typing import List
@@ -7,7 +8,7 @@ from typing import List
 from store.domain.entities.store_supplier import StoreSupplier
 
 from inventory.adapter.common_queries import sql_count_draft_purchase_orders_in_warehouse
-from inventory.domain.entities.purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.warehouse import WarehouseId, Warehouse
 from sqlalchemy.orm import Query
@@ -42,7 +43,7 @@ class SqlListProductsBalanceQuery(ListProductsBalanceQuery, SqlQuery):
 
             # build product query
             query = fetch_inventory_product_balance_query_factory(warehouse_id=warehouse_id)
-            query = query.limit(page_size).offset((current_page - 1) * page_size)
+            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             # query product balance
             balance_records = self._conn.execute(query).all()
@@ -73,7 +74,9 @@ def list_draft_purchase_orders_query_factory(warehouse_id: WarehouseId) -> Query
 
 
 def list_purchase_order_items_query_factory(purchase_order_id: DraftPurchaseOrderId) -> Query:
-    query = select(DraftPurchaseOrderItem).where(DraftPurchaseOrderItem.purchase_order_id == purchase_order_id)
+    # query = select(DraftPurchaseOrderItem).where(DraftPurchaseOrderItem.purchase_order_id == purchase_order_id)
+    query = select(draft_purchase_order_item_table).where(
+        draft_purchase_order_item_table.c.purchase_order_id == purchase_order_id)
 
     return query
 
@@ -94,6 +97,7 @@ def _row_to_draft_purchase_order_dto(row: RowProxy, child_rows: List[RowProxy]) 
         creator=row.creator,
         due_date=row.due_date,
         note=row.note,
+        status=row.status,
         items=[_row_to_purchase_order_item_dto(r) for r in child_rows]
     )
 
@@ -109,7 +113,7 @@ class SqlListDraftPurchaseOrdersQuery(ListDraftPurchaseOrdersQuery, SqlQuery):
 
             # build query
             query = list_draft_purchase_orders_query_factory(warehouse_id=warehouse_id)
-            query = query.limit(page_size).offset((current_page - 1) * page_size)
+            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             draft_purchase_orders_dtos = []
             fetched_po_rows = self._conn.execute(query).all()
@@ -122,10 +126,9 @@ class SqlListDraftPurchaseOrdersQuery(ListDraftPurchaseOrdersQuery, SqlQuery):
                 dpo.items = [_row_to_purchase_order_item_dto(r) for r in po_items_rows]
 
             return paginate_response_factory(
-                current_page=current_page,
-                page_size=page_size,
                 total_items=draft_PO_count,
-                items=draft_purchase_orders_dtos
+                items=draft_purchase_orders_dtos,
+                input_dto=dto
             )
         except Exception as exc:
             raise exc

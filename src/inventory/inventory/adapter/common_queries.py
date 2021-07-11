@@ -3,7 +3,7 @@
 from sqlalchemy import select, func, distinct
 from sqlalchemy.engine import Connection
 
-from inventory.domain.entities.purchase_order import DraftPurchaseOrder
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.warehouse import WarehouseId, Warehouse
 
 

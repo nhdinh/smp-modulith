@@ -36,7 +36,7 @@ class User(EventMixin, Entity):
         self.check_rule(EmailMustBeValidAddressRule(email=email))
         self.check_rule(PasswordMustMeetRequirementRule(password=password))
 
-        self._id = user_id
+        self.user_id = user_id
         self.email = email
         self.password = User.generate_hash(plain_string=password)
         self.active = True
@@ -50,7 +50,7 @@ class User(EventMixin, Entity):
 
     @property
     def id(self) -> UserId:
-        return self._id
+        return self.user_id
 
     @staticmethod
     def create(

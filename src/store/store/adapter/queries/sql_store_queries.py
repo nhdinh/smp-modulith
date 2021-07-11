@@ -33,7 +33,7 @@ from store.domain.entities.store import Store
 from store.domain.entities.store_address import StoreAddress
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_owner import StoreUser
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag

@@ -88,3 +88,9 @@ class Money:
 
     def __hash__(self) -> int:
         return hash((self.amount, self.currency))
+
+    def __rmul__(self, other) -> 'Money':
+        if isinstance(other, int) or isinstance(other, float) or isinstance(other, Decimal):
+            return Money(self.currency, self.amount * other)
+        else:
+            raise TypeError("unsupported operand with type Money")

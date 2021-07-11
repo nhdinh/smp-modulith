@@ -5,7 +5,8 @@ from typing import Optional
 
 from foundation.repository import AbstractRepository
 from store.domain.entities.store import Store
-from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_manager import StoreManager
+from store.domain.entities.store_owner import StoreUser
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_registration import StoreRegistration
 from store.domain.entities.value_objects import StoreId, StoreProductId
@@ -41,7 +42,9 @@ class SqlAlchemyStoreRepository(AbstractStoreRepository):
         Fetch store of the owner
         :param owner:
         """
-        return self._sess.query(Store).join(StoreOwner).filter(StoreOwner.email == owner).first()
+        return self._sess.query(Store) \
+            .join(StoreManager, Store._managers) \
+            .join(StoreUser, StoreManager.store_user).filter(StoreUser.email == owner).first()
 
     def get_product_by_id(self, product_id: StoreProductId):
         return self._sess.query(StoreProduct).filter(StoreProduct.product_id == product_id).first()

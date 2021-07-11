@@ -49,7 +49,7 @@ class ConfirmStoreRegistrationUC:
 
                 # create the entity
                 owner = store_registration.create_store_owner()
-                store = store_registration.create_store(owner=owner)
+                store = store_registration.create_store(store_admin=owner)
                 warehouse = store_registration.create_default_warehouse(store_id=store.store_id, owner=owner)
 
                 # add warehouse to store

@@ -6,6 +6,9 @@ class Currency:
     iso_code = "OVERRIDE"
     symbol = "OVERRIDE"
 
+    def __str__(self):
+        return self.iso_code
+
 
 class USD(Currency):
     iso_code = "USD"
@@ -15,6 +18,7 @@ class USD(Currency):
 class VND(Currency):
     iso_code = "VND"
     symbol = "VND"
+    decimal_precision = 0
 
 
 REGISTERED_CURRENCIES = [

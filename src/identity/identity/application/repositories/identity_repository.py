@@ -19,7 +19,7 @@ class SqlAlchemyIdentityRepository(AbstractIdentityRepository):
         return self._fetch_user_by_email(email=query)
 
     def _fetch_user_by_id(self, user_id: UserId) -> User:
-        return self._sess.query(User).filter(User.id == user_id).first()
+        return self._sess.query(User).filter(User.user_id == user_id).first()
 
     def _fetch_user_by_email(self, email: UserEmail) -> User:
         return self._sess.query(User).filter(User.email == email).first()

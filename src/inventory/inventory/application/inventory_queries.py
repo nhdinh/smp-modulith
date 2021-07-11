@@ -6,6 +6,7 @@ from datetime import date
 
 from typing import List
 
+from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from store.application.queries.response_dtos import StoreAddressResponseDto
 from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto
@@ -40,6 +41,7 @@ class DraftPurchaseOrderResponseDto:
     creator: str
     due_date: date
     items: List[PurchaseOrderItemResponseDto]
+    status: PurchaseOrderStatus
     note: str
 
     def serialize(self):

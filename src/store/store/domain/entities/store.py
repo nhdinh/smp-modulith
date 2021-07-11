@@ -12,7 +12,9 @@ from store.domain.entities.setting import Setting
 from store.domain.entities.store_address import StoreAddress, StoreAddressType
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.store_owner import StoreOwner
+from store.domain.entities.store_manager import StoreManager
+from store.domain.entities.store_manager_type import StoreManagerType
+from store.domain.entities.store_owner import StoreUser
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
@@ -24,7 +26,7 @@ from store.domain.events.store_product_events import StoreProductCreatedEvent, S
 
 
 class Store(EventMixin):
-    def __init__(self, store_id: StoreId, store_name: str, store_owner: StoreOwner, version: int = 0,
+    def __init__(self, store_id: StoreId, store_name: str, first_store_user: StoreUser, version: int = 0,
                  settings: List[Setting] = None) -> None:
         super(Store, self).__init__()
 
@@ -32,19 +34,20 @@ class Store(EventMixin):
         self.name = store_name
         self.version = version
 
-        if store_owner is not None:
-            self._store_owner = store_owner
-            self.owner_email = store_owner.email
-            self._owner_id = store_owner.id
-        else:
-            raise Exception(ExceptionMessages.FAILED_TO_CREATE_STORE_NO_OWNER)
-
         if settings:
             self._settings = settings
         else:
             self._settings = self._default_settings
 
-        self._managers = set()  # type: Set
+        self._managers = set()  # type: Set[StoreManager]
+        self._admin = None
+
+        if first_store_user is not None:
+            store_admin = StoreManager(store_user=first_store_user, store_role=StoreManagerType.ADMIN)
+            self._managers.add(store_admin)
+            self._admin = store_admin
+        else:
+            raise Exception(ExceptionMessages.FAILED_TO_CREATE_STORE_NO_OWNER)
 
         # children data
         self._addresses = set()  # type:Set[StoreAddress]
@@ -56,6 +59,14 @@ class Store(EventMixin):
         self._products = set()  # type: Set[StoreProduct]
 
     # region ## Properties ##
+    @property
+    def managers(self) -> Set[StoreManager]:
+        return self._managers
+
+    @property
+    def store_admin(self) -> StoreManager:
+        return self._admin
+
     @property
     def settings(self) -> Set[Setting]:
         return set() if self._settings is None else self._settings
@@ -125,24 +136,21 @@ class Store(EventMixin):
 
         return _settings
 
-    @property
-    def store_owner(self) -> StoreOwner:
-        return self._store_owner
-
     # endregion
 
     # region ## Creating new store ##
     @classmethod
-    def create_store_from_registration(cls, store_id: StoreId, store_name: str, store_owner: StoreOwner) -> "Store":
+    def create_store_from_registration(cls, store_id: StoreId, store_name: str, store_admin: StoreUser) -> "Store":
         # create the store from registration data
         store = Store(
             store_id=store_id,
             store_name=store_name,
-            store_owner=store_owner
+            first_store_user=store_admin
         )
 
         # raise event
-        store._record_event(StoreCreatedEvent(store.store_id, store.name, store.store_owner.email, store.owner_email))
+        store._record_event(
+            StoreCreatedEvent(store.store_id, store.name, store.store_admin.email, store.store_admin.email))
 
         return store
 

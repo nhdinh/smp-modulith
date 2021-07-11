@@ -34,6 +34,7 @@ class FileSystem:
 
     def upload_file(self, file_name: str, bucket: str, file: FileStorage) -> ObjectWriteResult:
         try:
+            bucket = str(hash(bucket))
             if not self._minio.bucket_exists(bucket_name=bucket):
                 self._minio.make_bucket(bucket_name=bucket)
                 self._minio.set_bucket_policy(bucket_name=bucket,
