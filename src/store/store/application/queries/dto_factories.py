@@ -18,7 +18,7 @@ def _row_to_store_settings_dto(row: RowProxy) -> StoreSettingResponseDto:
 
 def _row_to_store_info_dto(store_row_proxy: RowProxy) -> StoreInfoResponseDto:
     return StoreInfoResponseDto(
-        store_id=store_row_proxy.store_id,
+        store_id=store_row_proxy.shop_id,
         store_name=store_row_proxy.name,
         settings=[]
     )

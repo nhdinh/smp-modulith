@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from db_infrastructure import nanoid_generate
+from identity.adapters.identity_db import generate_user_id
 
 STORE_ID_PREFIX = 'Store'
 WAREHOUSE_ID_PREFIX = 'Warehouse'
-STORE_OWNER_ID_PREFIX = 'User'
 ADDRESS_ID_PREFIX = 'Address'
 STORE_CATALOG_ID_PREFIX = 'Cat'
 STORE_COLLECTION_ID_PREFIX = 'Coll'
@@ -15,16 +15,12 @@ STORE_PRODUCT_ID_KEYSIZE = (20, 10)
 STORE_PRODUCT_PRICE_PREFIX = 'Price'
 
 
-def generate_store_id():
+def generate_shop_id():
     return nanoid_generate(prefix=STORE_ID_PREFIX)
 
 
 def generate_warehouse_id():
     return nanoid_generate(prefix=WAREHOUSE_ID_PREFIX)
-
-
-def generate_store_owner_id():
-    return nanoid_generate(prefix=STORE_OWNER_ID_PREFIX)
 
 
 def generate_store_address_id():

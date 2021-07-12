@@ -2,41 +2,41 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from datetime import datetime
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, GenericStoreActionResponse
+from store.application.usecases.store_uc_common import get_shop_or_raise, GenericStoreActionResponse
+from web_app.serialization.dto import BaseInputDto, BaseShopInputDto
 
 
 @dataclass
-class CreatingStoreCatalogRequest:
-    current_user: str
-    title: str
-    enable_default_collection: bool = True
+class AddingShopCatalogRequest(BaseShopInputDto):
+    name: str
 
 
-class CreatingStoreCatalogResponseBoundary(abc.ABC):
+class AddingShopCatalogResponseBoundary(abc.ABC):
     @abc.abstractmethod
     def present(self, dto: GenericStoreActionResponse):
         raise NotImplementedError
 
 
-class CreateStoreCatalogUC:
-    def __init__(self, ob: CreatingStoreCatalogResponseBoundary, uow: StoreUnitOfWork):
+class AddShopCatalogUC:
+    def __init__(self, ob: AddingShopCatalogResponseBoundary, uow: StoreUnitOfWork):
         self._ob = ob
         self._uow = uow
 
-    def execute(self, dto: CreatingStoreCatalogRequest):
+    def execute(self, dto: AddingShopCatalogRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
 
-                if store.is_catalog_exists(title=dto.title):
+                if store.is_catalog_exists(title=dto.name):
                     raise Exception(ExceptionMessages.STORE_CATALOG_EXISTED)
 
                 # make catalog
                 catalog = store.create_catalog(
-                    title=dto.title,
+                    title=dto.name,
                 )
 
                 store.catalogs.add(catalog)

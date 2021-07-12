@@ -10,7 +10,7 @@ from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from product_catalog.application.queries.product_catalog import CatalogDto, CollectionDto, BrandDto
-from store.domain.entities.store_address import StoreAddressType
+from store.domain.entities.shop_address import AddressType
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -94,8 +94,8 @@ class JSONEncoder(json.JSONEncoder):
     def serialize_decimal(self, obj: Decimal) -> str:
         return json.dumps(obj, cls=DecimalEncoder).replace("\"`", '').replace("`\"", '')
 
-    @default.register(StoreAddressType)
-    def serialize_store_address_type(self, obj: StoreAddressType) -> str:
+    @default.register(AddressType)
+    def serialize_store_address_type(self, obj: AddressType) -> str:
         return str(obj.value)
 
     @default.register(PurchaseOrderStatus)

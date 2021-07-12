@@ -11,7 +11,7 @@ from dateutil.utils import today
 from sqlalchemy.exc import IntegrityError
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import StoreProductId
 
 
@@ -104,7 +104,7 @@ class CreateStoreProductUC:
     def execute(self, dto: CreatingStoreProductRequest) -> None:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
                 product_data = dict()
                 product_data_fields = [

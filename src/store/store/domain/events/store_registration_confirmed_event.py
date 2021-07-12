@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from store.domain.entities.value_objects import StoreId
+from store.domain.entities.value_objects import ShopId
 
 
 @dataclass(frozen=True)
 class StoreRegistrationConfirmedEvent:
-    store_id: StoreId
+    store_id: ShopId
     store_name: str

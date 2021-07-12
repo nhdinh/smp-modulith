@@ -36,7 +36,7 @@ class RequestToChangePasswordUC:
     def execute(self, input_dto: RequestingToChangePasswordRequest) -> None:
         with self._uow as uow:  # type: AuthenticationUnitOfWork
             try:
-                user = uow.identities.fetch_user(query=input_dto.email)
+                user = uow.identities.get_user(query=input_dto.email)
                 if not user:
                     raise Exception('User not found')
 

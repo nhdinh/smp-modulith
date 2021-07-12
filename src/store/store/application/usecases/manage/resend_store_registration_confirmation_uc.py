@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.shop_registration import ShopRegistration
 
 ALLOWABLE_RESEND_DURATION = timedelta(minutes=0)
 
@@ -36,8 +36,8 @@ class ResendRegistrationConfirmationUC:
     def execute(self, dto: ResendingRegistrationConfirmationRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                registration = uow.stores.fetch_registration_by_registration_email(
-                    email=dto.registration_email)  # type:StoreRegistration
+                registration = uow.shops.fetch_registration_by_registration_email(
+                    email=dto.registration_email)  # type:ShopRegistration
 
                 if not registration:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.REGISTRATION_NOT_FOUND)

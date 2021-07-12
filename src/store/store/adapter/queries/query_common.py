@@ -6,25 +6,25 @@ import email_validator
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
 
-from store.adapter.store_db import store_user_table, store_table, store_catalog_table, store_collection_table, \
-    store_product_table, store_product_collection_table, store_managers_table
-from store.domain.entities.store import Store
+from store.adapter.store_db import shop_user_table, shop_table, store_catalog_table, shop_collection_table, \
+    shop_product_table, shop_product_collection_table, shop_managers_table
+from store.domain.entities.shop import Shop
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_supplier import StoreSupplier
-from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreCollectionId
+from store.domain.entities.value_objects import ShopId, StoreCatalogId, StoreCollectionId
 
 
-def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: bool = True) -> Optional[StoreId]:
+def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: bool = True) -> Optional[ShopId]:
     try:
         email_validator.validate_email(store_owner)
 
-        q = select(store_table.c.store_id) \
-            .join(store_managers_table, store_table.c.store_id == store_managers_table.c.store_id) \
-            .join(store_user_table, store_managers_table.c.user_id == store_user_table.c.user_id) \
-            .where(store_user_table.c.email == store_owner)
+        q = select(shop_table.c.shop_id) \
+            .join(shop_managers_table, shop_table.c.shop_id == shop_managers_table.c.shop_id) \
+            .join(shop_user_table, shop_managers_table.c.user_id == shop_user_table.c.user_id) \
+            .where(shop_user_table.c.email == store_owner)
 
         if active_only:
-            q = q.where(store_table.c.disabled == False)  # type:ignore
+            q = q.where(shop_table.c.disabled == False)  # type:ignore
         store_id = conn.scalar(q)
 
         return store_id
@@ -32,64 +32,64 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
         raise exc
 
 
-def sql_get_collection_id_by_reference(collection_reference: str, catalog_reference: str, store_id: StoreId,
+def sql_get_collection_id_by_reference(collection_reference: str, catalog_reference: str, store_id: ShopId,
                                        conn: Connection) -> Optional[StoreCollectionId]:
-    q = select(store_collection_table.c.collection_id) \
-        .join(store_catalog_table, store_collection_table.c.catalog_id == store_catalog_table.c.catalog_id) \
-        .where(and_(store_collection_table.c.reference == collection_reference,
-                    store_catalog_table.c.reference == catalog_reference, store_catalog_table.c.store_id == store_id))
+    q = select(shop_collection_table.c.collection_id) \
+        .join(store_catalog_table, shop_collection_table.c.catalog_id == store_catalog_table.c.catalog_id) \
+        .where(and_(shop_collection_table.c.reference == collection_reference,
+                    store_catalog_table.c.reference == catalog_reference, store_catalog_table.c.shop_id == store_id))
 
     return conn.scalar(q)
 
 
-def sql_count_catalogs_in_store(store_id: StoreId, conn: Connection, active_only: bool = False) -> int:
+def sql_count_catalogs_in_store(store_id: ShopId, conn: Connection, active_only: bool = False) -> int:
     catalog_count = conn.scalar(
         select(func.count(distinct(store_catalog_table.c.catalog_id))) \
-            .where(store_catalog_table.c.store_id == store_id)
+            .where(store_catalog_table.c.shop_id == store_id)
     )
 
     return catalog_count
 
 
 def sql_count_collections_in_catalog(
-        store_id: StoreId,
+        store_id: ShopId,
         catalog_id: StoreCatalogId,
         conn: Connection,
         active_only: bool = False
 ) -> int:
-    q = select([func.count(distinct(store_collection_table.c.collection_id))]).where(and_(
-        store_collection_table.c.catalog_id == catalog_id,
-        store_collection_table.c.store_id == store_id
+    q = select([func.count(distinct(shop_collection_table.c.collection_id))]).where(and_(
+        shop_collection_table.c.catalog_id == catalog_id,
+        shop_collection_table.c.shop_id == store_id
     ))
 
     return conn.scalar(q)
 
 
 def sql_count_products_in_collection(
-        store_id: StoreId,
+        store_id: ShopId,
         catalog_id: StoreCatalogId,
         collection_id: StoreCollectionId,
         conn: Connection,
         active_only: bool = False
 ) -> int:
-    q = select([func.count(distinct(store_product_table.c.product_id))]) \
-        .join(store_catalog_table, store_product_table.c.catalog_id == store_catalog_table.c.catalog_id) \
-        .join(store_product_collection_table,
-              store_product_table.c.product_id == store_product_collection_table.c.product_id) \
-        .where(and_(store_product_collection_table.c.collection_id == collection_id,
+    q = select([func.count(distinct(shop_product_table.c.product_id))]) \
+        .join(store_catalog_table, shop_product_table.c.catalog_id == store_catalog_table.c.catalog_id) \
+        .join(shop_product_collection_table,
+              shop_product_table.c.product_id == shop_product_collection_table.c.product_id) \
+        .where(and_(shop_product_collection_table.c.collection_id == collection_id,
                     store_catalog_table.c.catalog_id == catalog_id,
-                    store_catalog_table.c.store_id == store_id))
+                    store_catalog_table.c.shop_id == store_id))
 
     return conn.scalar(q)
 
 
-def sql_count_products_in_store(store_id: StoreId, conn: Connection) -> int:
+def sql_count_products_in_store(store_id: ShopId, conn: Connection) -> int:
     q = select([func.count(distinct(StoreProduct.product_id))]). \
-        join(Store).where(
-        Store.store_id == store_id)
+        join(Shop).where(
+        Shop.shop_id == store_id)
     return conn.scalar(q)
 
 
-def sql_count_suppliers_in_store(store_id: StoreId, conn: Connection) -> int:
-    q = select([func.count(distinct(StoreSupplier.supplier_id))]).join(Store).where(Store.store_id == store_id)
+def sql_count_suppliers_in_store(store_id: ShopId, conn: Connection) -> int:
+    q = select([func.count(distinct(StoreSupplier.supplier_id))]).join(Shop).where(Shop.shop_id == store_id)
     return conn.scalar(q)

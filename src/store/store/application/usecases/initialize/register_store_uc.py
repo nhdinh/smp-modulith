@@ -7,7 +7,7 @@ from passlib.hash import pbkdf2_sha256 as sha256
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
-from store.domain.entities.store_registration import StoreRegistration
+from store.domain.entities.shop_registration import ShopRegistration
 
 
 @dataclass
@@ -43,8 +43,8 @@ class RegisterStoreUC:
         with self._uow as uow:
             try:
                 # parse request data
-                store_registration = StoreRegistration.create_registration(
-                    store_name=dto.store_name,
+                store_registration = ShopRegistration.create_registration(
+                    shop_name=dto.store_name,
                     owner_email=dto.email,
                     owner_password=sha256.hash(dto.password),
                     owner_mobile=dto.mobile,

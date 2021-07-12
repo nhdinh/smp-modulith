@@ -3,6 +3,6 @@
 from enum import Enum
 
 
-class StoreManagerType(Enum):
+class ShopManagerType(Enum):
     MANAGER = 'Manager'
     ADMIN = 'Admin'

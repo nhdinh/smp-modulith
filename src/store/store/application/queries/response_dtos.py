@@ -6,7 +6,7 @@ from typing import List
 import marshmallow as ma
 
 from db_infrastructure import GUID
-from store.domain.entities.store_address import StoreAddressType
+from store.domain.entities.shop_address import AddressType
 
 
 @dataclass
@@ -33,7 +33,7 @@ class StoreInfoResponseDto:
 
     def serialize(self):
         return {
-            'store_id': str(self.store_id),
+            'store_id': str(self.shop_id),
             'store_name': self.store_name,
             'settings': [setting.serialize() for setting in self.settings]
         }
@@ -65,7 +65,7 @@ class StoreAddressResponseDto:
     city_name: str
     country_name: str
     iso_code: str
-    address_type: StoreAddressType
+    address_type: AddressType
     recipient: str
     phone: str
     postal_code: str

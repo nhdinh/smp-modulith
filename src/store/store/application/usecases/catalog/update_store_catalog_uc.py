@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import StoreCatalogId
 
 
@@ -38,7 +38,7 @@ class UpdateStoreCatalogUC:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
                 # get store
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
                 # make update input data
                 update_data = {}

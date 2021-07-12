@@ -7,7 +7,7 @@ from store.application.usecases.catalog.update_store_catalog_uc import UpdatingS
     UpdatingStoreCatalogResponse
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.application.usecases.store_uc_common import validate_store_ownership
-from store.domain.entities.store import Store
+from store.domain.entities.shop import Shop
 from store.domain.entities.value_objects import StoreCatalogId
 
 
@@ -26,13 +26,13 @@ class ToggleStoreCatalogUC:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
                 # fetch store data by id ID
-                store = uow.stores.fetch_store_of_owner(owner=input_dto.current_user)
+                store = uow.shops.fetch_store_of_owner(owner=input_dto.current_user)
                 if store is None:
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
                 # if the Store is disabled by admin
                 if ToggleStoreCatalogUC._is_store_disabled(store):
-                    raise Exception(ExceptionMessages.STORE_NOT_AVAILABLE)
+                    raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
 
                 if not validate_store_ownership(store=store, owner_email=input_dto.current_user):
                     raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE)
@@ -49,5 +49,5 @@ class ToggleStoreCatalogUC:
                 raise exc
 
     @classmethod
-    def _is_store_disabled(cls, store: Store):
+    def _is_store_disabled(cls, store: Shop):
         return getattr(store, 'disabled', False)

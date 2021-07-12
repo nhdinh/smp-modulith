@@ -8,7 +8,7 @@ from customer_relationship.models import customers
 from foundation.events import AsyncEventHandlerProvider, AsyncHandler
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
-from store import StoreRegisteredEvent, StoreCreatedEvent
+from store import ShopRegisteredEvent, StoreCreatedEvent
 
 __all__ = [
     # module
@@ -20,7 +20,7 @@ __all__ = [
     "customers",
 ]
 
-from store.domain.events.store_registered_event import StoreRegistrationResendEvent
+from store.domain.events.shop_registered_event import ShopRegistrationResendEvent
 
 
 class CustomerRelationship(injector.Module):
@@ -31,8 +31,8 @@ class CustomerRelationship(injector.Module):
     def configure(self, binder: injector.Binder) -> None:
         binder.multibind(AsyncHandler[BidderHasBeenOverbid], to=AsyncEventHandlerProvider(BidderHasBeenOverbidHandler))
         binder.multibind(AsyncHandler[WinningBidPlaced], to=AsyncEventHandlerProvider(WinningBidPlacedHandler))
-        binder.multibind(AsyncHandler[StoreRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
-        binder.multibind(AsyncHandler[StoreRegistrationResendEvent], to=AsyncEventHandlerProvider(StoreRegistrationResendEventHandler))
+        binder.multibind(AsyncHandler[ShopRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
+        binder.multibind(AsyncHandler[ShopRegistrationResendEvent], to=AsyncEventHandlerProvider(StoreRegistrationResendEventHandler))
         binder.multibind(AsyncHandler[StoreCreatedEvent],
                          to=AsyncEventHandlerProvider(StoreCreatedSuccessfullyEventHandler))
         binder.multibind(AsyncHandler[RequestPasswordChangeCreatedEvent],
@@ -64,9 +64,9 @@ class StoreRegisteredEventHandler:
     def __init__(self, facade: CustomerRelationshipFacade) -> None:
         self._facade = facade
 
-    def __call__(self, event: StoreRegisteredEvent) -> None:
+    def __call__(self, event: ShopRegisteredEvent) -> None:
         self._facade.send_store_registration_confirmation_token_email(
-            event.store_name, event.confirmation_token,
+            event.shop_name, event.confirmation_token,
             event.owner_email
         )
 
@@ -76,9 +76,9 @@ class StoreRegistrationResendEventHandler:
     def __init__(self, facade: CustomerRelationshipFacade) -> None:
         self._facade = facade
 
-    def __call__(self, event: StoreRegistrationResendEvent) -> None:
+    def __call__(self, event: ShopRegistrationResendEvent) -> None:
         self._facade.send_store_registration_confirmation_token_email(
-            event.store_name, event.confirmation_token,
+            event.shop_name, event.confirmation_token,
             event.owner_email
         )
 

@@ -224,8 +224,8 @@ class LoggingUserInPresenter(LoggingUserInResponseBoundary):
     response: Response
 
     def present(self, response_dto: LoggedUserResponse) -> None:
-        _access_token = create_access_token(identity=response_dto.username)
-        _refresh_token = create_refresh_token(identity=response_dto.username)
+        _access_token = create_access_token(identity=response_dto.user_id)
+        _refresh_token = create_refresh_token(identity=response_dto.user_id)
 
         # update response_dto with access_token and refresh_token
         response_dto = _merge_dict(

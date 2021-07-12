@@ -19,8 +19,8 @@ from foundation.logger import logger
 from store.application.queries.store_queries import ListStoreCatalogsQuery, ListStoreCollectionsQuery, \
     ListProductsFromCollectionQuery, ListProductsQuery, GetStoreProductQuery, ListStoreProductsQuery, \
     ListStoreSuppliersQuery
-from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
-    CreateStoreCatalogUC, CreatingStoreCatalogRequest
+from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary, \
+    AddShopCatalogUC, AddingShopCatalogRequest
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
 from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogRequest, \
     RemoveStoreCatalogUC, RemovingStoreCatalogResponseBoundary
@@ -46,7 +46,7 @@ from store.application.usecases.product.create_store_product_uc import CreateSto
 from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductRequest, \
     UpdateStoreProductUC, UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
-from web_app.presenters.store_catalog_presenters import CreatingStoreCatalogPresenter, UpdatingStoreCatalogPresenter, \
+from web_app.presenters.store_catalog_presenters import AddingShopCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
     CreatingStoreCollectionPresenter, RemovingStoreCatalogPresenter, CreatingStoreProductPresenter, \
     UpdatingStoreProductPresenter, RemovingStoreProductAttributePresenter, RemovingStoreProductPresenter
@@ -72,8 +72,8 @@ class StoreCatalogAPI(injector.Module):
 
     @injector.provider
     @flask_injector.request
-    def create_store_catalog_response_boundary(self) -> CreatingStoreCatalogResponseBoundary:
-        return CreatingStoreCatalogPresenter()
+    def create_store_catalog_response_boundary(self) -> AddingShopCatalogResponseBoundary:
+        return AddingShopCatalogPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -167,28 +167,6 @@ def fetch_store_catalogs(list_store_catalogs_query: ListStoreCatalogsQuery) -> R
 
 
 store_catalog_blueprint_endpoint_callers.append(fetch_store_catalogs)
-
-
-@store_catalog_blueprint.route('/', methods=['POST'])
-@jwt_required()
-def create_store_catalog(create_store_catalog_uc: CreateStoreCatalogUC,
-                         presenter: CreatingStoreCatalogResponseBoundary) -> Response:
-    """
-    POST :5000/store-catalog/
-    Create a new catalog
-    """
-    try:
-        current_user = get_jwt_identity()
-        dto = get_dto(request, CreatingStoreCatalogRequest, context={'current_user': current_user})
-        create_store_catalog_uc.execute(dto)
-
-        return presenter.response, 201  # type:ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
 @store_catalog_blueprint.route('/cache-invalidate', methods=['POST'])

@@ -4,47 +4,50 @@ import abc
 from typing import Optional
 
 from foundation.repository import AbstractRepository
-from store.domain.entities.store import Store
-from store.domain.entities.store_manager import StoreManager
-from store.domain.entities.store_owner import StoreUser
+from store.domain.entities.shop import Shop
+from store.domain.entities.shop_manager import ShopManager
+from store.domain.entities.shop_user import ShopUser
 from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.store_registration import StoreRegistration
-from store.domain.entities.value_objects import StoreId, StoreProductId
+from store.domain.entities.shop_registration import ShopRegistration
+from store.domain.entities.value_objects import ShopId, StoreProductId
 
 
 class AbstractStoreRepository(AbstractRepository):
-    def save(self, store: Store) -> None:
+    def save(self, store: Shop) -> None:
         self._save(store)
 
     @abc.abstractmethod
-    def get(self, store: StoreId) -> Store:
+    def get(self, store: ShopId) -> Shop:
         raise NotImplementedError
 
 
 class SqlAlchemyStoreRepository(AbstractStoreRepository):
-    def get(self, store_id_to_find: StoreId) -> Optional[Store]:
-        return self._sess.query(Store).filter(Store.store_id == store_id_to_find).first()
+    def get(self, store_id_to_find: ShopId) -> Optional[Shop]:
+        return self._sess.query(Shop).filter(Shop.shop_id == store_id_to_find).first()
 
-    def _save(self, store: Store) -> None:
+    def _save(self, store: Shop) -> None:
         self._sess.add(store)
 
     def save_registration(self, store_registration) -> None:
         self._sess.add(store_registration)
 
     def fetch_registration_by_token(self, token):
-        return self._sess.query(StoreRegistration).filter(StoreRegistration.confirmation_token == token).first()
+        return self._sess.query(ShopRegistration).filter(ShopRegistration.confirmation_token == token).first()
 
     def fetch_registration_by_registration_email(self, email: str):
-        return self._sess.query(StoreRegistration).filter(StoreRegistration.owner_email == email).first()
+        return self._sess.query(ShopRegistration).filter(ShopRegistration.owner_email == email).first()
 
-    def fetch_store_of_owner(self, owner: str) -> Store:
+    def fetch_store_of_owner(self, owner: str) -> Shop:
         """
         Fetch store of the owner
         :param owner:
         """
-        return self._sess.query(Store) \
-            .join(StoreManager, Store._managers) \
-            .join(StoreUser, StoreManager.store_user).filter(StoreUser.email == owner).first()
+        return self._sess.query(Shop) \
+            .join(ShopManager, Shop._managers) \
+            .join(ShopUser, ShopManager.shop_user).filter(ShopUser.email == owner).first()
 
     def get_product_by_id(self, product_id: StoreProductId):
         return self._sess.query(StoreProduct).filter(StoreProduct.product_id == product_id).first()
+
+    def fetch_shop(self, shop_id: ShopId) -> Shop:
+        return self._sess.query(Shop).filter(Shop.shop_id == shop_id).first()

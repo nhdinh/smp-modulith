@@ -4,9 +4,9 @@ import abc
 from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, get_catalog_from_store_or_raise, \
+from store.application.usecases.store_uc_common import get_shop_or_raise, get_catalog_from_store_or_raise, \
     GenericStoreActionResponse
-from store.domain.entities.store import Store
+from store.domain.entities.shop import Shop
 from store.domain.entities.value_objects import StoreCatalogId
 
 
@@ -31,7 +31,7 @@ class CreateStoreCollectionUC:
     def execute(self, dto: CreatingStoreCollectionRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)  # type:Store
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)  # type:Shop
                 catalog = get_catalog_from_store_or_raise(catalog_id=dto.catalog_id, store=store)
 
                 # make collection

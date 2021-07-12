@@ -4,8 +4,8 @@ import abc
 from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
-from store.domain.entities.store import Store
+from store.application.usecases.store_uc_common import get_shop_or_raise
+from store.domain.entities.shop import Shop
 
 
 @dataclass
@@ -38,7 +38,7 @@ class UpdateStoreSettingsUC:
     def execute(self, input_dto: UpdatingStoreSettingsRequest) -> None:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=input_dto.current_user, uow=uow)  # type:Store
+                store = get_shop_or_raise(store_owner=input_dto.current_user, uow=uow)  # type:Shop
 
                 if store.has_setting(key=input_dto.key):
                     store.update_setting(key=input_dto.key, value=input_dto.value)
@@ -46,7 +46,7 @@ class UpdateStoreSettingsUC:
                     raise Exception('Setting name not existed.')
 
                 response = UpdatingStoreSettingsResponse(
-                    store_id=store.store_id,
+                    store_id=store.shop_id,
                     status=True
                 )
                 self._output_boundary.present(response)

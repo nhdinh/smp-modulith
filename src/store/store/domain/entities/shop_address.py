@@ -6,16 +6,16 @@ from enum import Enum
 from foundation.value_objects.address import LocationAddress
 
 
-class StoreAddressType(Enum):
-    STORE_ADDRESS = 'STORE_ADDRESS'
+class AddressType(Enum):
+    SHOP_ADDRESS = 'SHOP_ADDRESS'
     WAREHOUSE_ADDRESS = 'WAREHOUSE_ADDRESS'
 
 
 @dataclass
-class StoreAddress:
+class ShopAddress:
     recipient: str
     phone: str
-    address_type: StoreAddressType
+    address_type: AddressType
     location_address: LocationAddress
 
     @property
@@ -51,7 +51,7 @@ class StoreAddress:
         return f"{self._street_address}, {self._sub_division_name}, {self._division_name}, {self._city_name}, {self._country_name}"
 
     def __eq__(self, other):
-        if other is None or not isinstance(other, StoreAddress):
+        if other is None or not isinstance(other, ShopAddress):
             return False
 
         return self.full_address == other.full_address and self.recipient == other.recipient and self.phone == other.phone and self._postal_code == other._postal_code

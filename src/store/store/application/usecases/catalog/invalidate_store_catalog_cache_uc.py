@@ -19,13 +19,13 @@ class InvalidateStoreCatalogCacheUC:
         #             raise ExceptionOfNotFound(ExceptionMessages.STORE_NOT_FOUND)
         #
         #         # remove all old cache data
-        #         q = delete(store_catalog_cache_table).where(store_catalog_cache_table.c.store_id == store.store_id)
+        #         q = delete(store_catalog_cache_table).where(store_catalog_cache_table.c.shop_id == store.shop_id)
         #         uow.session.execute(q)
         #
         #         # update new cache
         #         q = insert(store_catalog_cache_table).values([
         #             {
-        #                 'store_id': store.store_id,
+        #                 'store_id': store.shop_id,
         #                 'catalog_id': catalog.catalog_id,
         #                 'catalog_reference': catalog.reference
         #             } for catalog in store.catalogs

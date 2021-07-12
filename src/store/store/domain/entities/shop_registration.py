@@ -8,16 +8,17 @@ from typing import NewType
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
-from store.adapter.id_generators import generate_store_id
+from identity.adapters.identity_db import generate_user_id
+from store.adapter.id_generators import generate_shop_id
 from store.adapter.store_db import generate_warehouse_id
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.store import Store
-from store.domain.entities.store_owner import StoreUser
+from store.domain.entities.shop import Shop
+from store.domain.entities.shop_user import ShopUser
 from store.domain.entities.store_warehouse import StoreWarehouse
-from store.domain.entities.value_objects import StoreId
-from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationResendEvent
-from store.domain.rules.store_name_must_not_be_empty_rule import StoreNameMustNotBeEmptyRule
+from store.domain.entities.value_objects import ShopId
+from store.domain.events.shop_registered_event import ShopRegisteredEvent, ShopRegistrationResendEvent
+from store.domain.rules.shop_name_must_not_be_empty_rule import ShopNameMustNotBeEmptyRule
 from store.domain.rules.store_registration_must_have_valid_expiration_rule import \
     StoreRegistrationMustHaveValidExpirationRule
 from store.domain.rules.store_registration_must_have_valid_token_rule import StoreRegistrationMustHaveValidTokenRule
@@ -25,16 +26,16 @@ from store.domain.rules.user_email_must_be_unique_rule import UserEmailMustBeUni
 from store.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
 from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
 
-StoreRegistrationId = NewType("RegistrationId", tp=str)
+ShopRegistrationId = NewType("RegistrationId", tp=str)
 
 
-class StoreRegistration(EventMixin, Entity):
+class ShopRegistration(EventMixin, Entity):
     confirmation_token: str
 
     def __init__(
             self,
-            registration_id: StoreRegistrationId,
-            store_name: str,
+            registration_id: ShopRegistrationId,
+            shop_name: str,
             owner_email: str,
             owner_mobile: str,
             owner_password: str,
@@ -44,18 +45,18 @@ class StoreRegistration(EventMixin, Entity):
             user_counter_services: UserCounters,
             version: int = 0,
     ):
-        super(StoreRegistration, self).__init__()
-        self.check_rule(StoreNameMustNotBeEmptyRule(store_name))
+        super(ShopRegistration, self).__init__()
+        self.check_rule(ShopNameMustNotBeEmptyRule(shop_name))
         self.check_rule(UserEmailMustBeValidRule(owner_email))
         self.check_rule(UserMobileMustBeValidRule(owner_mobile))
         self.check_rule(UserEmailMustBeUniqueRule(owner_email, user_counter_services))
 
         # TODO: need refactoring
         self.registration_id = registration_id
-        self._store_registration_id = registration_id
+        self._shop_registration_id = registration_id
         self._owner_id = registration_id
 
-        self.store_name = store_name
+        self.shop_name = shop_name
 
         self.owner_email = owner_email
         self.owner_mobile = owner_mobile
@@ -68,19 +69,19 @@ class StoreRegistration(EventMixin, Entity):
         self.version = version
 
         # add domain event
-        self._record_event(StoreRegisteredEvent(
+        self._record_event(ShopRegisteredEvent(
             self.registration_id,
-            self.store_name,
+            self.shop_name,
             self.owner_email,
             self.confirmation_token
         ))
 
     @property
-    def store_name(self):
+    def shop_name(self):
         return self._name
 
-    @store_name.setter
-    def store_name(self, value):
+    @shop_name.setter
+    def shop_name(self, value):
         self._name = value
 
     @property
@@ -89,19 +90,19 @@ class StoreRegistration(EventMixin, Entity):
 
     @staticmethod
     def create_registration(
-            store_name: str,
+            shop_name: str,
             owner_email: str,
             owner_password: str,
             owner_mobile: str,
             user_counter_services: UserCounters
     ):
-        registration = StoreRegistration(
-            registration_id=generate_store_id(),
-            store_name=store_name,
+        registration = ShopRegistration(
+            registration_id=generate_shop_id(),
+            shop_name=shop_name,
             owner_email=owner_email,
             owner_password=owner_password,
             owner_mobile=owner_mobile,
-            confirmation_token=StoreRegistration._create_confirmation_token(),
+            confirmation_token=ShopRegistration._create_confirmation_token(),
             status=RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION,
             version=1,
             last_resend=datetime.now(),
@@ -124,30 +125,30 @@ class StoreRegistration(EventMixin, Entity):
 
         return self.registration_id
 
-    def create_store_owner(self) -> StoreUser:
+    def create_shop_user(self) -> ShopUser:
         # check rule
-        return StoreUser(
-            user_id=self.registration_id,
+        return ShopUser(
+            user_id=generate_user_id(),
             email=self.owner_email,
             mobile=self.owner_mobile,
             hashed_password=self.owner_password,
             confirmed_at=datetime.now(),
         )
 
-    def create_store(self, store_admin: StoreUser) -> Store:
+    def create_store(self, shop_admin: ShopUser) -> Shop:
         if not self.registration_id.startswith('Store'):
-            store_id = generate_store_id()
+            store_id = generate_shop_id()
         else:
             store_id = self.registration_id
 
         # check rule
-        return Store.create_store_from_registration(
-            store_id=store_id,
-            store_name=self.store_name,
-            store_admin=store_admin
+        return Shop.create_store_from_registration(
+            shop_id=store_id,
+            shop_name=self.shop_name,
+            shop_admin=shop_admin
         )
 
-    def create_default_warehouse(self, store_id: StoreId, owner: StoreUser) -> StoreWarehouse:
+    def create_default_warehouse(self, store_id: ShopId, owner: ShopUser) -> StoreWarehouse:
         if not self.registration_id.startswith('Warehouse'):
             store_id = generate_warehouse_id()
         else:
@@ -157,7 +158,7 @@ class StoreRegistration(EventMixin, Entity):
             warehouse_id=store_id,
             store_id=store_id,
             warehouse_owner=owner.email,
-            warehouse_name=self.store_name,
+            warehouse_name=self.shop_name,
             default=True
         )
 
@@ -167,14 +168,14 @@ class StoreRegistration(EventMixin, Entity):
 
     def resend_confirmation_link(self):
         # make new confirmation token
-        self.confirmation_token = StoreRegistration._create_confirmation_token()
+        self.confirmation_token = ShopRegistration._create_confirmation_token()
         self.last_resend = datetime.now()
         self.version += 1
 
         # add domain event
-        self._record_event(StoreRegistrationResendEvent(
+        self._record_event(ShopRegistrationResendEvent(
             self.registration_id,
-            self.store_name,
+            self.shop_name,
             self.owner_email,
             self.confirmation_token
         ))

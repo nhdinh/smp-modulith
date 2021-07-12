@@ -12,7 +12,7 @@ from werkzeug.datastructures import FileStorage
 from foundation.fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise
 
 ALLOWED_MIME_TYPES = {'image/jpg', 'image/jpeg', 'image/png'}
 
@@ -49,7 +49,7 @@ class UploadImageUC:
     def execute(self, uploaded_file: FileStorage, dto: UploadingImageRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
                 # validate allowed file extension
                 if uploaded_file.content_type not in ALLOWED_MIME_TYPES:
@@ -61,7 +61,7 @@ class UploadImageUC:
                 file_ext = Path(uploaded_file.filename).suffix
                 new_file_name = f"{upload_for}_{identity}{file_ext}"
 
-                bucket_name = str(store.store_id)
+                bucket_name = str(store.shop_id)
                 write_result = self._fs.upload_file(file_name=new_file_name, bucket=bucket_name, file=uploaded_file)
 
                 # respond_dto = UploadingImageResponse(

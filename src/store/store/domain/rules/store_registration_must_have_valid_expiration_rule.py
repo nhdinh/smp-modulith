@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from store.domain.entities.store_registration import StoreRegistration
+    from store.domain.entities.shop_registration import ShopRegistration
 
 from foundation.business_rule import BusinessRuleBase
 
@@ -14,7 +14,7 @@ class StoreRegistrationMustHaveValidExpirationRule(BusinessRuleBase):
         message = self.__class__.__name__
         super(StoreRegistrationMustHaveValidExpirationRule, self).__init__(message=message)
 
-        self.reg = registration  # type:StoreRegistration
+        self.reg = registration  # type:ShopRegistration
 
     def is_broken(self) -> bool:
         created_at = getattr(self.reg, 'created_at', None)

@@ -10,9 +10,9 @@ from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.purchase_order import PurchaseOrder
 from inventory.domain.entities.warehouse import Warehouse
-from store.adapter.store_db import store_warehouse_table
-from store.domain.entities.store import Store
-from store.domain.entities.store_address import StoreAddress
+from store.adapter.store_db import shop_warehouse_table
+from store.domain.entities.shop import Shop
+from store.domain.entities.shop_address import ShopAddress
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_unit import StoreProductUnit
@@ -37,7 +37,7 @@ def start_mappers():
         ),
 
         '_delivery_address': relationship(
-            StoreAddress
+            ShopAddress
         ),
 
         '_items': relationship(
@@ -63,12 +63,12 @@ def start_mappers():
         )
     })
 
-    mapper(Warehouse, store_warehouse_table,
-           version_id_col=store_warehouse_table.c.version,
+    mapper(Warehouse, shop_warehouse_table,
+           version_id_col=shop_warehouse_table.c.version,
            version_id_generator=None,
            properties={
                '_store': relationship(
-                   Store,
+                   Shop,
                    viewonly=True
                ),
 

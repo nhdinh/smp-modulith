@@ -9,29 +9,29 @@ from foundation.value_objects.factories import get_money
 from store.adapter.id_generators import STORE_SUPPLIER_ID_PREFIX, generate_warehouse_id
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.setting import Setting
-from store.domain.entities.store_address import StoreAddress, StoreAddressType
+from store.domain.entities.shop_address import ShopAddress, AddressType
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.store_manager import StoreManager
-from store.domain.entities.store_manager_type import StoreManagerType
-from store.domain.entities.store_owner import StoreUser
+from store.domain.entities.shop_manager import ShopManager, ShopAdmin
+from store.domain.entities.shop_manager_type import ShopManagerType
+from store.domain.entities.shop_user import ShopUser
 from store.domain.entities.store_product import StoreProduct
 from store.domain.entities.store_product_brand import StoreProductBrand
 from store.domain.entities.store_product_tag import StoreProductTag
 from store.domain.entities.store_supplier import StoreSupplier
 from store.domain.entities.store_warehouse import StoreWarehouse
-from store.domain.entities.value_objects import StoreId, StoreCatalogId, StoreSupplierId, StoreAddressId
+from store.domain.entities.value_objects import ShopId, StoreCatalogId, StoreSupplierId, StoreAddressId
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
 
 
-class Store(EventMixin):
-    def __init__(self, store_id: StoreId, store_name: str, first_store_user: StoreUser, version: int = 0,
+class Shop(EventMixin):
+    def __init__(self, shop_id: ShopId, name: str, first_user: ShopUser, version: int = 0,
                  settings: List[Setting] = None) -> None:
-        super(Store, self).__init__()
+        super(Shop, self).__init__()
 
-        self.store_id = store_id
-        self.name = store_name
+        self.shop_id = shop_id
+        self.name = name
         self.version = version
 
         if settings:
@@ -39,18 +39,18 @@ class Store(EventMixin):
         else:
             self._settings = self._default_settings
 
-        self._managers = set()  # type: Set[StoreManager]
+        self._managers = set()  # type: Set[ShopManager]
         self._admin = None
 
-        if first_store_user is not None:
-            store_admin = StoreManager(store_user=first_store_user, store_role=StoreManagerType.ADMIN)
-            self._managers.add(store_admin)
-            self._admin = store_admin
+        if first_user is not None:
+            shop_admin = ShopAdmin(shop_user=first_user)
+            self._managers.add(shop_admin)
+            self._admin = shop_admin
         else:
             raise Exception(ExceptionMessages.FAILED_TO_CREATE_STORE_NO_OWNER)
 
         # children data
-        self._addresses = set()  # type:Set[StoreAddress]
+        self._addresses = set()  # type:Set[ShopAddress]
         self._warehouses = set()  # type: Set[StoreWarehouse]
         self._brands = set()  # type: Set[StoreProductBrand]
         self._suppliers = set()  # type:Set[StoreSupplier]
@@ -60,11 +60,11 @@ class Store(EventMixin):
 
     # region ## Properties ##
     @property
-    def managers(self) -> Set[StoreManager]:
+    def managers(self) -> Set[ShopManager]:
         return self._managers
 
     @property
-    def store_admin(self) -> StoreManager:
+    def shop_admin(self) -> ShopManager:
         return self._admin
 
     @property
@@ -76,7 +76,7 @@ class Store(EventMixin):
         return self._warehouses
 
     @property
-    def addresses(self) -> Set[StoreAddress]:
+    def addresses(self) -> Set[ShopAddress]:
         return self._addresses
 
     @property
@@ -140,17 +140,17 @@ class Store(EventMixin):
 
     # region ## Creating new store ##
     @classmethod
-    def create_store_from_registration(cls, store_id: StoreId, store_name: str, store_admin: StoreUser) -> "Store":
+    def create_store_from_registration(cls, shop_id: ShopId, shop_name: str, shop_admin: ShopUser) -> "Shop":
         # create the store from registration data
-        store = Store(
-            store_id=store_id,
-            store_name=store_name,
-            first_store_user=store_admin
+        store = Shop(
+            shop_id=shop_id,
+            name=shop_name,
+            first_user=shop_admin
         )
 
         # raise event
         store._record_event(
-            StoreCreatedEvent(store.store_id, store.name, store.store_admin.email, store.store_admin.email))
+            StoreCreatedEvent(store.shop_id, store.name, store.shop_admin.email, store.shop_admin.email))
 
         return store
 
@@ -433,10 +433,10 @@ class Store(EventMixin):
 
     # region ## Internal class method ##
     def __str__(self) -> str:
-        return f'<Store #{self.store_id} name="{self.name}" >'
+        return f'<Store #{self.shop_id} name="{self.name}" >'
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, Store) and self.store_id == other.store_id
+        return isinstance(other, Shop) and self.shop_id == other.shop_id
 
     # endregion
     def create_warehouse(self, warehouse_name: str):
@@ -451,7 +451,7 @@ class Store(EventMixin):
         """
         return StoreWarehouse(
             warehouse_id=generate_warehouse_id(),
-            store_id=self.store_id,
+            store_id=self.shop_id,
             warehouse_owner=self.owner_email,
             warehouse_name=warehouse_name,
             default=False,
@@ -468,10 +468,10 @@ class Store(EventMixin):
 
     def add_address(self, recipient: str, phone: str, address: LocationAddress):
         try:
-            store_address = StoreAddress(
+            store_address = ShopAddress(
                 recipient=recipient,
                 phone=phone,
-                address_type=StoreAddressType.STORE_ADDRESS,
+                address_type=AddressType.SHOP_ADDRESS,
                 location_address=address,
             )
 

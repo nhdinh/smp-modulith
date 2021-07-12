@@ -24,8 +24,8 @@ from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogDeletedEventHandler, \
     StoreProductCreatedOrUpdatedEventHandler
 from store.application.store_repository import SqlAlchemyStoreRepository
-from store.application.usecases.catalog.create_store_catalog_uc import CreatingStoreCatalogResponseBoundary, \
-    CreateStoreCatalogUC
+from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary, \
+    AddShopCatalogUC
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
 from store.application.usecases.catalog.remove_store_catalog_uc import RemoveStoreCatalogUC, \
     RemovingStoreCatalogResponseBoundary
@@ -67,7 +67,7 @@ from store.domain.events.store_catalog_events import StoreCatalogCreatedEvent, S
     StoreCatalogDeletedEvent
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
-from store.domain.events.store_registered_event import StoreRegisteredEvent, StoreRegistrationConfirmedEvent
+from store.domain.events.shop_registered_event import ShopRegisteredEvent, ShopRegistrationConfirmedEvent
 
 
 class StoreModule(injector.Module):
@@ -119,9 +119,9 @@ class StoreModule(injector.Module):
     # region ## StoreCatalog Operations ##
 
     @injector.provider
-    def create_store_catalog_uc(self, boundary: CreatingStoreCatalogResponseBoundary,
-                                uow: StoreUnitOfWork) -> CreateStoreCatalogUC:
-        return CreateStoreCatalogUC(boundary, uow)
+    def create_store_catalog_uc(self, boundary: AddingShopCatalogResponseBoundary,
+                                uow: StoreUnitOfWork) -> AddShopCatalogUC:
+        return AddShopCatalogUC(boundary, uow)
 
     @injector.provider
     def toggle_store_catalog_uc(self, boundary: UpdatingStoreCatalogResponseBoundary,
@@ -286,5 +286,5 @@ class StoreInfrastructureModule(injector.Module):
 
 __all__ = [
     StoreModule, StoreInfrastructureModule,
-    'StoreRegisteredEvent', 'StoreRegistrationConfirmedEvent', 'StoreCreatedEvent'
+    'ShopRegisteredEvent', 'ShopRegistrationConfirmedEvent', 'StoreCreatedEvent'
 ]

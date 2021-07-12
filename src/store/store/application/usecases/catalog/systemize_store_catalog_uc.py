@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponse, \
     UpdatingStoreCatalogResponseBoundary
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import StoreCatalogId
 
 
@@ -23,7 +23,7 @@ class SystemizeStoreCatalogUC:
     def execute(self, dto: SystemizingStoreCatalogRequest):
         with self._uow as uow:  # type: StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
                 store.turn_on_default_catalog(catalog_id=dto.catalog_id)
 

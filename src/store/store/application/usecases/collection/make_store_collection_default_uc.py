@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import StoreCollectionId
 
 
@@ -24,7 +24,7 @@ class MakeStoreCollectionDefaultUC:
         with self._uow as uow:  # type: StoreUnitOfWork
             try:
                 raise NotImplementedError
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
                 store.set_collection_to_default(collection_reference=dto.collection_reference,
                                                 catalog_reference=dto.catalog_reference)
 

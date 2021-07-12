@@ -10,6 +10,7 @@ class ThingGoneInBlackHoleError(Exception):
 
 @dataclass(frozen=True)
 class ExceptionMessages:
+    SHOP_OWNERSHIP_NOT_FOUND = 'Shop Ownership not found'
     FAILED_TO_CREATE_STORE_NO_OWNER = 'Store creating failed. No owner.'
     REGISTRATION_HAS_BEEN_EXPIRED = 'Store registration confirmation link has been expired'
     REGISTRATION_HAS_BEEN_CONFIRMED = 'Store registration has been confirmed'
@@ -18,8 +19,8 @@ class ExceptionMessages:
     INVALID_FILE_TYPE = 'Upload invalid file type'
 
     CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE = 'Current user do not have permission on this store'
-    STORE_NOT_FOUND = 'Store not existed or current user do not have any store created'
-    STORE_NOT_AVAILABLE = 'Store not available'
+    SHOP_NOT_FOUND = 'Store not existed or current user do not have any store created'
+    SHOP_NOT_AVAILABLE = 'Store not available'
 
     INVALID_STORE_CATALOG_REFERENCE_FORMAT = 'CatalogReference not in corrected format'
     STORE_CATALOG_NOT_FOUND = 'Catalog not existed'

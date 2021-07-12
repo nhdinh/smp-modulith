@@ -1,5 +1,7 @@
 import math
+import calendar
 from dataclasses import field
+from datetime import datetime
 from typing import Type, TypeVar, cast, List, Generic, Union, Optional
 
 import marshmallow as ma
@@ -17,6 +19,17 @@ class BaseSchema(ma.Schema):
     TYPE_MAPPING = {
         Money: Dollars,
     }
+
+
+@dataclass
+class BaseInputDto:
+    timestamp: int
+
+
+@dataclass
+class BaseShopInputDto(BaseInputDto):
+    partner_id: str
+    shop_id: str
 
 
 @dataclass

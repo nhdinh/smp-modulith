@@ -11,7 +11,7 @@ from foundation.logger import logger
 from store.adapter.queries.query_factories import get_product_query_factory, list_product_collections_query_factory, \
     get_suppliers_bound_to_product_query
 from store.adapter.store_db import store_catalog_table, \
-    store_collection_table, store_product_data_cache_table
+    shop_collection_table, store_product_data_cache_table
 from store.application.queries.dtos.store_catalog_dto import _row_to_catalog_dto
 from store.application.queries.dtos.store_collection_dto import _row_to_collection_dto
 from store.application.queries.dtos.store_product_brand_dto import _row_to_brand_dto
@@ -56,7 +56,7 @@ class StoreHandlerFacade:
         query = delete(store_catalog_table).where(store_catalog_table.c.catalog_id == catalog_id)
         self._conn.execute(query)
 
-        query = delete(store_collection_table).where(store_collection_table.c.catalog_id is None)
+        query = delete(shop_collection_table).where(shop_collection_table.c.catalog_id is None)
         self._conn.execute(query)
 
     def update_store_product_cache(self, product_id: StoreProductId, is_updated=False, updated_keys=[]):
@@ -89,7 +89,7 @@ class StoreHandlerFacade:
             # insert data
             data = {
                 'product_cache_id': product_id,
-                'store_id': product_data.store_id,
+                'store_id': product_data.shop_id,
                 'catalog_id': product_data.catalog_id,
                 'brand_id': product_data.brand_id,
                 'catalog_json': catalog_json,
@@ -116,7 +116,7 @@ class StoreHandlerFacade:
 #         self._facade = facade
 #
 #     def __call__(self, event: StoreCatalogCreatedEvent) -> None:
-#         self._facade.update_store_catalog_cache(event.store_id, event.catalog_id, event.catalog_reference)
+#         self._facade.update_store_catalog_cache(event.shop_id, event.catalog_id, event.catalog_reference)
 
 
 class StoreCatalogDeletedEventHandler:
@@ -126,7 +126,7 @@ class StoreCatalogDeletedEventHandler:
 
     def __call__(self, event: StoreCatalogDeletedEvent) -> None:
         self._facade.delete_orphan_catalog_children(event.catalog_id)
-        # self._facade.update_store_catalog_cache(event.store_id)
+        # self._facade.update_store_catalog_cache(event.shop_id)
 
 
 # class StoreCollectionCreatedEventHandler:
@@ -136,7 +136,7 @@ class StoreCatalogDeletedEventHandler:
 #
 #     def __call__(self, event: StoreCollectionCreatedEvent) -> None:
 #         self._facade.update_store_collection_cache(
-#             event.store_id,
+#             event.shop_id,
 #             event.catalog_id,
 #             event.collection_id,
 #             event.collection_reference

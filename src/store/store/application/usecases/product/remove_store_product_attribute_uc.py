@@ -8,7 +8,7 @@ from store.domain.events.store_product_events import StoreProductUpdatedEvent
 from foundation.fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ThingGoneInBlackHoleError, ExceptionMessages
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise, get_product_by_id_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise, get_product_by_id_or_raise
 from store.domain.entities.store_product import StoreProductAttributeTypes
 from store.domain.entities.value_objects import StoreProductId
 
@@ -41,7 +41,7 @@ class RemoveStoreProductAttributeUC:
     def execute(self, dto: RemovingStoreProductAttributeRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
                 product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
 
                 if not product.is_belong_to_store(store):

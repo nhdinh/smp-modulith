@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.store_warehouse import StoreWarehouseId
 
 
@@ -33,7 +33,7 @@ class CreateStoreWarehouseUC:
     def execute(self, dto: CreatingStoreWarehouseRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                store = get_store_by_owner_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
                 new_warehouse = store.create_warehouse(warehouse_name=dto.warehouse_name)
                 store.warehouses.add(new_warehouse)

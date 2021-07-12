@@ -10,18 +10,18 @@ from identity.domain.value_objects import UserId, UserEmail
 
 class AbstractIdentityRepository(AbstractRepository):
     @abc.abstractmethod
-    def fetch_user(self, query: Union[UserId, UserEmail]) -> User:
+    def get_user(self, query: Union[UserId, UserEmail]) -> User:
         raise NotImplementedError
 
 
 class SqlAlchemyIdentityRepository(AbstractIdentityRepository):
-    def fetch_user(self, query: UserEmail) -> User:
-        return self._fetch_user_by_email(email=query)
+    def get_user(self, query: UserEmail) -> User:
+        return self._get_user_by_email(email=query)
 
-    def _fetch_user_by_id(self, user_id: UserId) -> User:
+    def get_user_by_id(self, user_id: UserId) -> User:
         return self._sess.query(User).filter(User.user_id == user_id).first()
 
-    def _fetch_user_by_email(self, email: UserEmail) -> User:
+    def _get_user_by_email(self, email: UserEmail) -> User:
         return self._sess.query(User).filter(User.email == email).first()
 
     def _save(self, user: User) -> None:

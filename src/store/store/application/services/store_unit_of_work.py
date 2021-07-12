@@ -22,5 +22,5 @@ class StoreUnitOfWork(SqlAlchemyUnitOfWork):
         self._session.rollback()
 
     @property
-    def stores(self) -> SqlAlchemyStoreRepository:
+    def shops(self) -> SqlAlchemyStoreRepository:
         return self._store_repo

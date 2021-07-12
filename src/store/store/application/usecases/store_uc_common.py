@@ -13,11 +13,11 @@ from foundation.uow import SqlAlchemyUnitOfWork
 from foundation.value_objects.address import LocationCountry, LocationCitySubDivision, LocationCitySubDivisionId
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
-from store.domain.entities.store import Store
+from store.domain.entities.shop import Shop
 from store.domain.entities.store_catalog import StoreCatalog
 from store.domain.entities.store_collection import StoreCollection
 from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, StoreProductId
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, StoreProductId, ShopId
 
 
 @dataclass
@@ -36,7 +36,7 @@ class GenericStoreResponseBoundary(abc.ABC):
         raise NotImplementedError
 
 
-def validate_store_ownership(store: Store, owner_email: str) -> bool:
+def validate_store_ownership(store: Shop, owner_email: str) -> bool:
     """
     Validate if the store owner has the specified email
 
@@ -47,7 +47,7 @@ def validate_store_ownership(store: Store, owner_email: str) -> bool:
     return store.owner.email == owner_email
 
 
-def is_store_disabled(store: Store) -> bool:
+def is_store_disabled(store: Shop) -> bool:
     """
     Indicate if the store is disabled or not
 
@@ -57,27 +57,34 @@ def is_store_disabled(store: Store) -> bool:
     return getattr(store, 'disabled', False)
 
 
-def get_store_by_owner_or_raise(store_owner: str, uow: StoreUnitOfWork, active_only: bool = True) -> Store:
+def get_shop_or_raise(shop_id: ShopId,
+                      partner_id: str,
+                      uow: StoreUnitOfWork,
+                      active_only: bool = True) -> Shop:
     """
     Fetch store information from persisted data by its owner's email
 
-    :param store_owner: email of the store owner
+    :param shop_id:
+    :param partner_id:
     :param uow: injected StoreUnitOfWork
     :param active_only: Search for active store only (the inactive store means that the store was disabled by admins)
     :return: instance of `Store` or None
     """
     # validate input
     try:
-        email_validator.validate_email(store_owner)
+        shop = uow.shops.fetch_shop(shop_id=shop_id)
+        if not shop:
+            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
-        store = uow.stores.fetch_store_of_owner(owner=store_owner)
-        if not store:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
+        try:
+            manager = next(m for m in shop.managers if m.user_id == partner_id)
+        except StopIteration:
+            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 
-        if active_only and is_store_disabled(store):
-            raise Exception(ExceptionMessages.STORE_NOT_AVAILABLE)
+        if active_only and is_store_disabled(shop):
+            raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
 
-        return store
+        return shop
     except email_validator.EmailSyntaxError as exc:
         # TODO: Log for the attack
         raise exc
@@ -85,7 +92,7 @@ def get_store_by_owner_or_raise(store_owner: str, uow: StoreUnitOfWork, active_o
         raise exc
 
 
-def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Store) -> StoreCatalog:
+def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Shop) -> StoreCatalog:
     """
     Fetch the catalog from specified store, by it reference or catalog_id
 
@@ -96,7 +103,7 @@ def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Store) ->
     """
 
     if not store or getattr(store, 'store_id') is None:
-        raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_NOT_FOUND)
+        raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
     # catalog = store.fetch_catalog_by_id_or_reference(search_term=catalog_id)
     try:
@@ -125,7 +132,7 @@ def get_collection_from_catalog_or_raise(collection_id: StoreCollectionId, catal
 def get_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWork) -> StoreProduct:
     try:
         # validate product_id
-        product = uow.stores.get_product_by_id(product_id=product_id)
+        product = uow.shops.get_product_by_id(product_id=product_id)
 
         if not product:
             raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)

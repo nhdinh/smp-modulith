@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
-from store.application.usecases.store_uc_common import get_store_by_owner_or_raise
+from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import StoreCollectionId
 
 
@@ -25,7 +25,7 @@ class ToggleStoreCollectionUC:
             try:
                 raise NotImplementedError
                 # get store
-                store = get_store_by_owner_or_raise(store_owner=input_dto.current_user, uow=uow)
+                store = get_shop_or_raise(store_owner=input_dto.current_user, uow=uow)
 
                 # do update
                 store.toggle_collection(catalog_reference=input_dto.catalog_reference,

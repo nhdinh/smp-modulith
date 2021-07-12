@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from identity.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
 from identity.domain.entities import User
 from identity.domain.value_objects import UserEmail, UserId
+from web_app.serialization.dto import BaseInputDto
 
 
 @dataclass
@@ -16,8 +17,8 @@ class LoggingUserInRequest:
 
 @dataclass
 class LoggedUserResponse:
-    id: UserId
-    username: UserEmail
+    user_id: UserId
+    email: UserEmail
 
 
 class LoggingUserInResponseBoundary(metaclass=abc.ABCMeta):
@@ -36,7 +37,7 @@ class LoggingUserInUC:
     def execute(self, input_dto: LoggingUserInRequest) -> None:
         with self._uow as uow:  # type: AuthenticationUnitOfWork
             try:
-                user = uow.identities.fetch_user(query=input_dto.username)  # type:User
+                user = uow.identities.get_user(query=input_dto.username)  # type: User
                 if not user:
                     raise Exception('User not found')
 
@@ -48,8 +49,8 @@ class LoggingUserInUC:
 
                 # prepare output dto
                 output_dto = LoggedUserResponse(
-                    id=user.id,
-                    username=user.email
+                    user_id=user.user_id,
+                    email=user.email
                 )
                 self._ob.present(output_dto)
                 uow.commit()

@@ -20,7 +20,7 @@ from store.domain.entities.value_objects import StoreProductId
 from store.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
 if TYPE_CHECKING:
-    from store.domain.entities.store import Store
+    from store.domain.entities.shop import Shop
     from store.domain.entities.store_catalog import StoreCatalog
     from store.domain.entities.store_collection import StoreCollection
 
@@ -41,7 +41,7 @@ class StoreProduct(EventMixin, Entity):
             title: str,
             sku: str,
             image: str,
-            store: 'Store',
+            store: 'Shop',
             brand: StoreProductBrand,
             collections: Set['StoreCollection'],
             catalog: 'StoreCatalog',
@@ -59,7 +59,7 @@ class StoreProduct(EventMixin, Entity):
         self.sku = sku
         self.barcode = 'NoBarCode applied yet'
 
-        self._store = store  # type:Store
+        self._store = store  # type:Shop
         self.image = image
 
         self._brand = brand  # type:StoreProductBrand
@@ -91,7 +91,7 @@ class StoreProduct(EventMixin, Entity):
             default_unit: str,
             restock_threshold: int,
             max_stock_threshold: int,
-            store: 'Store',
+            store: 'Shop',
             brand: StoreProductBrand,
             catalog: 'StoreCatalog',
             collections: List['StoreCollection'],
@@ -158,7 +158,7 @@ class StoreProduct(EventMixin, Entity):
     def tags(self) -> Set[StoreProductTag]:
         return self._tags
 
-    def is_belong_to_store(self, store: 'Store') -> bool:
+    def is_belong_to_store(self, store: 'Shop') -> bool:
         return self._store is store
 
     def get_unit(self, unit: str) -> Optional[StoreProductUnit]:

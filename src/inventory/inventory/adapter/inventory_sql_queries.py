@@ -20,7 +20,7 @@ from inventory.application.inventory_queries import ListProductsBalanceQuery, Pr
 from store.adapter.queries.query_common import sql_get_store_id_by_owner, sql_count_products_in_store
 from store.application.queries.dto_factories import _row_to_address_dto
 from store.application.queries.dtos.store_supplier_dto import _row_to_supplier_dto
-from store.domain.entities.store_address import StoreAddress
+from store.domain.entities.shop_address import ShopAddress
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto, paginate_response_factory
 
 
@@ -63,10 +63,10 @@ class SqlListProductsBalanceQuery(ListProductsBalanceQuery, SqlQuery):
 def list_draft_purchase_orders_query_factory(warehouse_id: WarehouseId) -> Query:
     query = select([
         DraftPurchaseOrder,
-        StoreAddress,
+        ShopAddress,
         StoreSupplier,
     ]) \
-        .join(StoreAddress) \
+        .join(ShopAddress) \
         .join(StoreSupplier) \
         .join(Warehouse).where(Warehouse.warehouse_id == warehouse_id)
 

@@ -12,6 +12,6 @@ class UserCounters:
         from store.adapter import store_db
 
         return self._conn.scalar(
-            select([func.count()]).select_from(store_db.store_user_table).where(
-                store_db.store_user_table.c.email == email)
+            select([func.count()]).select_from(store_db.shop_user_table).where(
+                store_db.shop_user_table.c.email == email)
         )
