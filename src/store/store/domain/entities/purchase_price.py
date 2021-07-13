@@ -6,13 +6,13 @@ from typing import Optional
 
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-from store.domain.entities.store_supplier import StoreSupplier
-from store.domain.entities.store_unit import StoreProductUnit
+from store.domain.entities.shop_supplier import ShopSupplier
+from store.domain.entities.shop_unit import ShopProductUnit
 
 
 @dataclass(unsafe_hash=True)
 class ProductPurchasePrice:
-    def __init__(self, supplier: StoreSupplier, product_unit: StoreProductUnit, price: Money, tax: Optional[float],
+    def __init__(self, supplier: ShopSupplier, product_unit: ShopProductUnit, price: Money, tax: Optional[float],
                  effective_from: date):
         self.supplier = supplier
         self.product_unit = product_unit

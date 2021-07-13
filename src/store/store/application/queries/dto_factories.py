@@ -35,7 +35,7 @@ def _row_to_warehouse_dto(row: RowProxy) -> StoreWarehouseResponseDto:
 
 def _row_to_address_dto(row: RowProxy) -> StoreAddressResponseDto:
     return StoreAddressResponseDto(
-        store_address_id=row.store_address_id,
+        store_address_id=row.shop_address_id,
         full_address=f"{row._street_address}, {row._sub_division_name}, {row._division_name}, {row._city_name}, {row._country_name}",
         street_address=row._street_address,
         sub_division_name=row._sub_division_name,

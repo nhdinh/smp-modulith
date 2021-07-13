@@ -26,7 +26,7 @@ class ToggleStoreCatalogUC:
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
                 # fetch store data by id ID
-                store = uow.shops.fetch_store_of_owner(owner=input_dto.current_user)
+                store = uow.shops.get_shop_by_email(email=input_dto.current_user)
                 if store is None:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 

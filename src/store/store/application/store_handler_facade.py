@@ -10,13 +10,13 @@ from sqlalchemy.engine import Connection
 from foundation.logger import logger
 from store.adapter.queries.query_factories import get_product_query_factory, list_product_collections_query_factory, \
     get_suppliers_bound_to_product_query
-from store.adapter.store_db import store_catalog_table, \
-    shop_collection_table, store_product_data_cache_table
+from store.adapter.shop_db import shop_catalog_table, \
+    shop_collection_table, shop_product_data_cache_table
 from store.application.queries.dtos.store_catalog_dto import _row_to_catalog_dto
 from store.application.queries.dtos.store_collection_dto import _row_to_collection_dto
 from store.application.queries.dtos.store_product_brand_dto import _row_to_brand_dto
 from store.application.queries.dtos.store_supplier_dto import _row_to_supplier_dto
-from store.domain.entities.value_objects import StoreCatalogId, StoreProductId
+from store.domain.entities.value_objects import StoreCatalogId, ShopProductId
 from store.domain.events.store_catalog_events import StoreCatalogDeletedEvent
 from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
 
@@ -53,13 +53,13 @@ class StoreHandlerFacade:
         pass
 
     def delete_orphan_catalog_children(self, catalog_id: StoreCatalogId):
-        query = delete(store_catalog_table).where(store_catalog_table.c.catalog_id == catalog_id)
+        query = delete(shop_catalog_table).where(shop_catalog_table.c.catalog_id == catalog_id)
         self._conn.execute(query)
 
         query = delete(shop_collection_table).where(shop_collection_table.c.catalog_id is None)
         self._conn.execute(query)
 
-    def update_store_product_cache(self, product_id: StoreProductId, is_updated=False, updated_keys=[]):
+    def update_store_product_cache(self, product_id: ShopProductId, is_updated=False, updated_keys=[]):
         """
         Update the product info into cache
 
@@ -97,11 +97,11 @@ class StoreHandlerFacade:
                 'brand_json': brand_json,
                 'suppliers_json': suppliers_json,
             }
-            stmt = insert(store_product_data_cache_table).values(**data)
+            stmt = insert(shop_product_data_cache_table).values(**data)
 
             # or update if duplicated
             on_duplicate_key_stmt = stmt.on_conflict_do_update(
-                constraint=store_product_data_cache_table.primary_key,
+                constraint=shop_product_data_cache_table.primary_key,
                 set_=data
             )
 

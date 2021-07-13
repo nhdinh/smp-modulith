@@ -10,7 +10,7 @@ from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
     sql_count_catalogs_in_store, sql_count_products_in_store, sql_count_suppliers_in_store
 from store.adapter.queries.query_factories import list_store_product_query_factory, get_product_query_factory, \
     store_catalog_query_factory, get_store_query_factory, list_product_collections_query_factory
-from store.adapter.store_db import store_catalog_table, shop_collection_table, shop_warehouse_table, \
+from store.adapter.shop_db import shop_catalog_table, shop_collection_table, shop_warehouse_table, \
     shop_settings_table, shop_addresses_table, shop_table, shop_product_collection_table, shop_product_table
 from store.application.queries.dto_factories import _row_to_store_settings_dto, _row_to_store_info_dto, \
     _row_to_warehouse_dto, _row_to_address_dto
@@ -31,16 +31,16 @@ from store.application.usecases.const import ExceptionMessages, ThingGoneInBlack
 from store.domain.entities.setting import Setting
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import ShopAddress
-from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
+from store.domain.entities.shop_catalog import ShopCatalog
+from store.domain.entities.store_collection import ShopCollection
 from store.domain.entities.shop_user import ShopUser
-from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.store_product_brand import StoreProductBrand
-from store.domain.entities.store_product_tag import StoreProductTag
-from store.domain.entities.store_supplier import StoreSupplier
-from store.domain.entities.store_unit import StoreProductUnit
-from store.domain.entities.store_warehouse import StoreWarehouse
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, StoreProductId
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.store_product_brand import ShopProductBrand
+from store.domain.entities.store_product_tag import ShopProductTag
+from store.domain.entities.shop_supplier import ShopSupplier
+from store.domain.entities.shop_unit import ShopProductUnit
+from store.domain.entities.store_warehouse import Warehouse
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, ShopProductId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
 
 
@@ -91,18 +91,18 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
                                                                            conn=self._conn)
 
             fetch_products_query = select([
-                StoreProduct,
-                StoreCollection.title.label('collection_display_name'),
-                StoreCatalog.title.label('catalog_display_name'),
-                StoreProductBrand.title.label('brand_display_name'),
+                ShopProduct,
+                ShopCollection.title.label('collection_display_name'),
+                ShopCatalog.title.label('catalog_display_name'),
+                ShopProductBrand.title.label('brand_display_name'),
             ]) \
-                .join(StoreCollection, StoreProduct.collection_id == StoreCollection.collection_id) \
-                .join(StoreCatalog, StoreProduct.catalog_id == StoreCatalog.catalog_id) \
-                .join(Shop, StoreProduct.shop_id == Shop.shop_id) \
-                .join(StoreProductBrand, and_(StoreProduct.brand_reference == StoreProductBrand.reference,
-                                              Shop.shop_id == StoreProductBrand.shop_id), isouter=True) \
-                .where(and_(StoreCollection.reference == collection_id,
-                            StoreCatalog.reference == catalog_id,
+                .join(ShopCollection, ShopProduct.collection_id == ShopCollection.collection_id) \
+                .join(ShopCatalog, ShopProduct.catalog_id == ShopCatalog.catalog_id) \
+                .join(Shop, ShopProduct.shop_id == Shop.shop_id) \
+                .join(ShopProductBrand, and_(ShopProduct.brand_reference == ShopProductBrand.reference,
+                                             Shop.shop_id == ShopProductBrand.shop_id), isouter=True) \
+                .where(and_(ShopCollection.reference == collection_id,
+                            ShopCatalog.reference == catalog_id,
                             Shop.shop_id == store_id
                             )) \
                 .limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
@@ -138,7 +138,7 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
 
             # get all catalogs limit by page and offset
             fetch_catalogs_query = store_catalog_query_factory(store_id=store_id) \
-                .order_by(store_catalog_table.c.created_at) \
+                .order_by(shop_catalog_table.c.created_at) \
                 .limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             catalogs = self._conn.execute(fetch_catalogs_query).all()
@@ -152,9 +152,9 @@ class SqlListStoreCatalogsQuery(ListStoreCatalogsQuery, SqlQuery):
             collection_query = select([
                 shop_collection_table,
                 shop_collection_table.c.disabled.label('is_collection_disabled')
-            ]).join(store_catalog_table, store_catalog_table.c.catalog_id == shop_collection_table.c.catalog_id) \
-                .where(and_(store_catalog_table.c.catalog_id.in_(catalog_indices),
-                            store_catalog_table.c.shop_id == store_id))
+            ]).join(shop_catalog_table, shop_catalog_table.c.catalog_id == shop_collection_table.c.catalog_id) \
+                .where(and_(shop_catalog_table.c.catalog_id.in_(catalog_indices),
+                            shop_catalog_table.c.shop_id == store_id))
 
             collections = self._conn.execute(collection_query).all()
 
@@ -204,7 +204,7 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
 class SqlGetStoreProductQuery(GetStoreProductQuery, SqlQuery):
     def query(self,
               owner_email: str,
-              product_id: StoreProductId,
+              product_id: ShopProductId,
               from_cache: bool = True):
         try:
             store_id = sql_get_store_id_by_owner(store_owner=owner_email, conn=self._conn)
@@ -221,15 +221,15 @@ class SqlGetStoreProductQuery(GetStoreProductQuery, SqlQuery):
                 collections = self._conn.execute(list_collections_query).all()
 
                 # list units
-                fetch_units_query = select(StoreProductUnit) \
-                    .join(StoreProduct) \
-                    .where(StoreProduct.product_id == product_id)
+                fetch_units_query = select(ShopProductUnit) \
+                    .join(ShopProduct) \
+                    .where(ShopProduct.product_id == product_id)
                 units = self._conn.execute(fetch_units_query).all()
 
                 # list tags
-                fetch_tags_query = select(StoreProductTag) \
-                    .join(StoreProduct) \
-                    .where(StoreProduct.product_id == product_id)
+                fetch_tags_query = select(ShopProductTag) \
+                    .join(ShopProduct) \
+                    .where(ShopProduct.product_id == product_id)
                 tags = self._conn.execute(fetch_tags_query).all()
                 return _row_to_product_dto(product, unit_rows=units, tag_rows=tags, collection_rows=collections, compacted=False)
             else:
@@ -251,7 +251,7 @@ class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQue
 
             # build product query
             query = list_store_product_query_factory(store_id=store_id)
-            query = query.where(StoreCatalog.catalog_id == catalog_id)
+            query = query.where(ShopCatalog.catalog_id == catalog_id)
             query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             # query products
@@ -281,7 +281,7 @@ class SqlListProductsQuery(ListProductsQuery, SqlQuery):
 
             query = list_store_product_query_factory(store_id=store_id)
             query = query.where(
-                store_catalog_table.c.catalog_id == catalog_id)
+                shop_catalog_table.c.catalog_id == catalog_id)
 
             product = self._conn.execute(query).first()
 
@@ -358,7 +358,7 @@ class SqlListStoreSuppliersQuery(ListStoreSuppliersQuery, SqlQuery):
             count_suppliers = sql_count_suppliers_in_store(store_id=store_id, conn=self._conn)
 
             # build supplier query
-            query = select(StoreSupplier).join(Shop).where(Shop.shop_id == store_id)
+            query = select(ShopSupplier).join(Shop).where(Shop.shop_id == store_id)
             query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             # query products

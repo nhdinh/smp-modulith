@@ -5,7 +5,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.engine import Connection
 
 from inventory.domain.entities.warehouse import Warehouse, WarehouseId
-from store.adapter.store_db import shop_warehouse_table, shop_table, shop_managers_table, shop_user_table
+from store.adapter.shop_db import shop_warehouse_table, shop_table, shop_managers_table, shop_user_table
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_user import ShopUser
 

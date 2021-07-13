@@ -36,7 +36,7 @@ class ResendRegistrationConfirmationUC:
     def execute(self, dto: ResendingRegistrationConfirmationRequest):
         with self._uow as uow:  # type:StoreUnitOfWork
             try:
-                registration = uow.shops.fetch_registration_by_registration_email(
+                registration = uow.shops.get_registration_by_email(
                     email=dto.registration_email)  # type:ShopRegistration
 
                 if not registration:

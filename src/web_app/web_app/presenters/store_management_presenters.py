@@ -7,8 +7,6 @@ from store import ResendingRegistrationConfirmationResponseBoundary, CreatingSto
 from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse
 from store.application.usecases.initialize.confirm_store_registration_uc import \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationResponse
-from store.application.usecases.initialize.register_store_uc import RegisteringStoreResponseBoundary, \
-    RegisteringStoreResponse
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponse, \
     AddingStoreManagerResponseBoundary
 from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponse
@@ -19,13 +17,6 @@ from store.application.usecases.manage.update_store_settings_uc import UpdatingS
 from store.application.usecases.manage.upload_image_uc import UploadingImageResponseBoundary, UploadingImageResponse
 from store.application.usecases.select_store_plan_uc import SelectingStorePlanResponseBoundary, \
     SelectingStorePlanResponse
-
-
-class RegisteringStorePresenter(RegisteringStoreResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: RegisteringStoreResponse) -> None:
-        self.response = make_response(jsonify(response_dto.__dict__))
 
 
 class ResendingRegistrationResponsePresenter(ResendingRegistrationConfirmationResponseBoundary):

@@ -8,13 +8,13 @@ from foundation.fs import FileSystem
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.application.usecases.store_uc_common import get_shop_or_raise, get_product_by_id_or_raise
-from store.domain.entities.value_objects import StoreProductId
+from store.domain.entities.value_objects import ShopProductId
 
 
 @dataclass
 class UpdatingStoreProductRequest:
     current_user: str
-    product_id: StoreProductId
+    product_id: ShopProductId
 
     title: Opt[str]
     sku: Opt[str]

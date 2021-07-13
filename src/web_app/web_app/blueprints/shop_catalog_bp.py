@@ -16,7 +16,6 @@ from web_app.serialization.dto import get_dto
 SHOP_CATALOG_BLUEPRINT_NAME = 'shop_catalog_blueprint'
 shop_catalog_blueprint = Blueprint(SHOP_CATALOG_BLUEPRINT_NAME, __name__)
 
-
 class ShopCatalogAPI(injector.Module):
     @injector.provider
     @flask_injector.request

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.engine.row import RowProxy
 from typing import List
 
-from store.domain.entities.store_supplier import StoreSupplier
+from store.domain.entities.shop_supplier import ShopSupplier
 
 from inventory.adapter.common_queries import sql_count_draft_purchase_orders_in_warehouse
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId
@@ -64,10 +64,10 @@ def list_draft_purchase_orders_query_factory(warehouse_id: WarehouseId) -> Query
     query = select([
         DraftPurchaseOrder,
         ShopAddress,
-        StoreSupplier,
+        ShopSupplier,
     ]) \
         .join(ShopAddress) \
-        .join(StoreSupplier) \
+        .join(ShopSupplier) \
         .join(Warehouse).where(Warehouse.warehouse_id == warehouse_id)
 
     return query

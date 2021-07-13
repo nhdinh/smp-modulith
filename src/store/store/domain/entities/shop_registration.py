@@ -10,12 +10,12 @@ from foundation.entity import Entity
 from foundation.events import EventMixin
 from identity.adapters.identity_db import generate_user_id
 from store.adapter.id_generators import generate_shop_id
-from store.adapter.store_db import generate_warehouse_id
+from store.adapter.shop_db import generate_warehouse_id
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_user import ShopUser
-from store.domain.entities.store_warehouse import StoreWarehouse
+from store.domain.entities.store_warehouse import Warehouse
 from store.domain.entities.value_objects import ShopId
 from store.domain.events.shop_registered_event import ShopRegisteredEvent, ShopRegistrationResendEvent
 from store.domain.rules.shop_name_must_not_be_empty_rule import ShopNameMustNotBeEmptyRule
@@ -148,13 +148,13 @@ class ShopRegistration(EventMixin, Entity):
             shop_admin=shop_admin
         )
 
-    def create_default_warehouse(self, store_id: ShopId, owner: ShopUser) -> StoreWarehouse:
+    def create_default_warehouse(self, store_id: ShopId, owner: ShopUser) -> Warehouse:
         if not self.registration_id.startswith('Warehouse'):
             store_id = generate_warehouse_id()
         else:
             store_id = self.registration_id
 
-        return StoreWarehouse(
+        return Warehouse(
             warehouse_id=store_id,
             store_id=store_id,
             warehouse_owner=owner.email,

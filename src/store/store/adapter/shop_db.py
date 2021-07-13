@@ -9,12 +9,12 @@ from db_infrastructure import metadata, JsonType
 from foundation.database_setup import location_address_table
 from identity.adapters.identity_db import user_table, generate_user_id
 from store.adapter.id_generators import generate_shop_id, generate_warehouse_id, \
-    generate_product_price_id, generate_product_id, generate_supplier_id, generate_store_address_id, \
-    generate_store_catalog_id, generate_store_collection_id, generate_brand_id
+    generate_product_price_id, generate_product_id, generate_supplier_id, generate_brand_id, generate_shop_address_id, \
+    generate_shop_catalog_id, generate_shop_collection_id
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import AddressType
-from store.domain.entities.shop_manager_type import ShopManagerType
+from store.domain.entities.shop_user_type import ShopUserType
 from store.domain.entities.shop_registration import ShopRegistration
 from store.domain.entities.value_objects import ShopStatus
 
@@ -65,7 +65,7 @@ shop_managers_table = sa.Table(
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('user_id', sa.ForeignKey(shop_user_table.c.user_id, ondelete='SET NULL', onupdate='SET NULL'),
               unique=True),
-    sa.Column('shop_role', sa.Enum(ShopManagerType), default=ShopManagerType.MANAGER),
+    sa.Column('shop_role', sa.Enum(ShopUserType), default=ShopUserType.MANAGER),
 
     sa.PrimaryKeyConstraint('shop_id', 'user_id', name='shop_managers_pk'),
 )
@@ -85,7 +85,7 @@ shop_warehouse_table = sa.Table(
 )
 
 shop_settings_table = sa.Table(
-    'store_settings',
+    'shop_settings',
     metadata,
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE'),
               primary_key=True),
@@ -95,16 +95,16 @@ shop_settings_table = sa.Table(
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 
-    sa.PrimaryKeyConstraint('store_id', 'setting_key', name='store_id_settings_key_pk'),
+    sa.PrimaryKeyConstraint('shop_id', 'setting_key', name='shop_id_settings_key_pk'),
 )
 
 shop_addresses_table = sa.Table(
     'shop_addresses',
     metadata,
-    sa.Column('store_address_id', sa.String(40), primary_key=True, default=generate_store_address_id),
+    sa.Column('shop_address_id', sa.String(40), primary_key=True, default=generate_shop_address_id),
     sa.Column('address_id',
               sa.ForeignKey(location_address_table.c.address_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('recipient', sa.String(100), nullable=False),
     sa.Column('phone', sa.String(100)),
     sa.Column('address_type', sa.Enum(AddressType), nullable=False, default=AddressType.SHOP_ADDRESS),
@@ -118,10 +118,10 @@ shop_addresses_table = sa.Table(
 )
 
 shop_catalog_table = sa.Table(
-    'store_catalog',
+    'shop_catalog',
     metadata,
-    sa.Column('catalog_id', sa.String(40), primary_key=True, default=generate_store_catalog_id),
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('catalog_id', sa.String(40), primary_key=True, default=generate_shop_catalog_id),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('image', sa.String(255)),
     sa.Column('default', sa.Boolean, default=False),
@@ -132,10 +132,10 @@ shop_catalog_table = sa.Table(
 )
 
 shop_collection_table = sa.Table(
-    'store_collection',
+    'shop_collection',
     metadata,
-    sa.Column('collection_id', sa.String(40), primary_key=True, default=generate_store_collection_id),
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('collection_id', sa.String(40), primary_key=True, default=generate_shop_collection_id),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('catalog_id', sa.ForeignKey(shop_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('default', sa.Boolean, default=False),
@@ -148,23 +148,23 @@ shop_collection_table = sa.Table(
 # region ## Store Data Value ##
 
 
-store_brand_table = sa.Table(
-    'store_brand',
+shop_brand_table = sa.Table(
+    'shop_brand',
     metadata,
     # sa.Column('reference', sa.String(100)),
     sa.Column('brand_id', sa.String(40), primary_key=True, default=generate_brand_id),
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('name', sa.String(255), nullable=False),
     sa.Column('logo', sa.String(255), nullable=True, default=''),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
 
-store_supplier_table = sa.Table(
-    'store_supplier',
+shop_supplier_table = sa.Table(
+    'shop_supplier',
     metadata,
     sa.Column('supplier_id', sa.String(40), primary_key=True, unique=True, default=generate_supplier_id),
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('supplier_name', sa.String, nullable=False),
     sa.Column('contact_name', sa.String, nullable=False),
     sa.Column('contact_phone', sa.String, nullable=False),
@@ -178,15 +178,15 @@ store_supplier_table = sa.Table(
 
 
 shop_product_table = sa.Table(
-    'store_product',
+    'shop_product',
     metadata,
     sa.Column('product_id', sa.String(40), primary_key=True, default=generate_product_id),
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('sku', sa.String(100), nullable=False),
     sa.Column('barcode', sa.String(100), nullable=False),
     sa.Column('image', sa.String(1000)),
-    sa.Column('brand_id', sa.ForeignKey(store_brand_table.c.brand_id), nullable=True),
+    sa.Column('brand_id', sa.ForeignKey(shop_brand_table.c.brand_id), nullable=True),
     sa.Column('catalog_id', sa.ForeignKey(shop_catalog_table.c.catalog_id), nullable=True),
 
     sa.Column('restock_threshold', sa.Integer, default='-1'),
@@ -196,17 +196,17 @@ shop_product_table = sa.Table(
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
-    sa.UniqueConstraint('store_id', 'sku', name='store_product_store_id_sku_ux'),
+    sa.UniqueConstraint('shop_id', 'sku', name='shop_product_shop_id_sku_ux'),
 )
 
-store_product_data_cache_table = sa.Table(
-    '__store_product_data_cache',
+shop_product_data_cache_table = sa.Table(
+    '__shop_product_data_cache',
     metadata,
     sa.Column('product_cache_id',
               sa.ForeignKey(shop_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('catalog_id', sa.ForeignKey(shop_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('brand_id', sa.ForeignKey(store_brand_table.c.brand_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('brand_id', sa.ForeignKey(shop_brand_table.c.brand_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('catalog_json', JsonType),
     sa.Column('brand_json', JsonType),
     sa.Column('collections_json', JsonType),
@@ -220,7 +220,7 @@ store_product_data_cache_table = sa.Table(
 )
 
 shop_product_collection_table = sa.Table(
-    'store_product_collection',
+    'shop_product_collection',
     metadata,
     sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('collection_id',
@@ -229,14 +229,14 @@ shop_product_collection_table = sa.Table(
     sa.PrimaryKeyConstraint('product_id', 'collection_id', name='product_collection_pk'),
 )
 
-store_product_unit_table = sa.Table(
-    'store_product_unit',
+shop_product_unit_table = sa.Table(
+    'shop_product_unit',
     metadata,
     sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('unit_name', sa.String(50)),
 
-    sa.UniqueConstraint('product_id', 'unit_name', name='store_product_unit_uix'),
-    sa.PrimaryKeyConstraint('product_id', 'unit_name', name='store_product_unit_pk'),
+    sa.UniqueConstraint('product_id', 'unit_name', name='shop_product_unit_uix'),
+    sa.PrimaryKeyConstraint('product_id', 'unit_name', name='shop_product_unit_pk'),
 
     sa.Column('referenced_unit_name', nullable=True, default=None),
     sa.Column('conversion_factor', sa.Numeric, nullable=True, server_default='1'),
@@ -250,28 +250,28 @@ store_product_unit_table = sa.Table(
 
     sa.ForeignKeyConstraint(
         ('product_id', 'referenced_unit_name'),
-        ['store_product_unit.product_id', 'store_product_unit.unit_name'],
-        name='store_product_unit_fk',
+        ['shop_product_unit.product_id', 'shop_product_unit.unit_name'],
+        name='shop_product_unit_fk',
         ondelete='SET NULL'
     ),
 )
 
-store_product_supplier_table = sa.Table(
-    'store_product_supplier',
+shop_product_supplier_table = sa.Table(
+    'shop_product_supplier',
     metadata,
     sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('supplier_id', sa.ForeignKey(store_supplier_table.c.supplier_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('supplier_id', sa.ForeignKey(shop_supplier_table.c.supplier_id, ondelete='CASCADE', onupdate='CASCADE')),
 
     sa.PrimaryKeyConstraint('product_id', 'supplier_id', name='product_supplier_pk')
 )
 
-store_supplier_product_price_table = sa.Table(
-    'store_supplier_product_price',
+shop_supplier_product_price_table = sa.Table(
+    'shop_supplier_product_price',
     metadata,
     sa.Column('product_price_id', sa.String(40), primary_key=True, default=generate_product_price_id),
     sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, onupdate='CASCADE', ondelete='CASCADE'),
               nullable=False),
-    sa.Column('supplier_id', sa.ForeignKey(store_supplier_table.c.supplier_id, onupdate='CASCADE', ondelete='CASCADE'),
+    sa.Column('supplier_id', sa.ForeignKey(shop_supplier_table.c.supplier_id, onupdate='CASCADE', ondelete='CASCADE'),
               nullable=False),
 
     sa.Column('unit', sa.String(50), nullable=False),
@@ -284,25 +284,25 @@ store_supplier_product_price_table = sa.Table(
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 
     sa.ForeignKeyConstraint(('product_id', 'unit'),
-                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
-                            name='store_product_unit_fk'),
-    sa.UniqueConstraint('product_id', 'supplier_id', 'unit', 'effective_from', name='store_product_supplier_price_uix'),
+                            [shop_product_unit_table.c.product_id, shop_product_unit_table.c.unit_name],
+                            name='shop_product_unit_fk'),
+    sa.UniqueConstraint('product_id', 'supplier_id', 'unit', 'effective_from', name='shop_product_supplier_price_uix'),
 )
 
-store_unit_cache_table = sa.Table(
-    'store_units_cache',
+shop_unit_cache_table = sa.Table(
+    'shop_units_cache',
     metadata,
-    sa.Column('store_id', sa.ForeignKey(shop_table.c.shop_id)),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id)),
     sa.Column('unit', sa.String(100))
 )
 
-store_product_tag_table = sa.Table(
-    'store_product_tag',
+shop_product_tag_table = sa.Table(
+    'shop_product_tag',
     metadata,
     sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('tag', sa.String(100)),
 
-    sa.PrimaryKeyConstraint('product_id', 'tag', name='store_product_tag_pk'),
+    sa.PrimaryKeyConstraint('product_id', 'tag', name='shop_product_tag_pk'),
     sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
 )
 
@@ -315,15 +315,15 @@ collision_test_table = sa.Table(
 
 
 @event.listens_for(ShopRegistration, 'load')
-def store_registration_load(store_registration, _):
-    store_registration.domain_events = []
+def shop_registration_load(shop_registration, _):
+    shop_registration.domain_events = []
 
 
 @event.listens_for(Shop, 'load')
-def store_load(store, connection):
+def shop_load(store, connection):
     store.domain_events = []
 
     try:
-        store._admin = next(sm for sm in store._managers if sm.shop_role == ShopManagerType.ADMIN)
+        store._admin = next(sm for sm in store._managers if sm.shop_role == ShopUserType.ADMIN)
     except StopIteration:
         store._admin = None

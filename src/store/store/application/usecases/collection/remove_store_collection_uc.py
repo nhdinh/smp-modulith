@@ -6,7 +6,7 @@ from typing import Optional
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
-from store.domain.entities.store_catalog import StoreCatalogReference
+from store.domain.entities.shop_catalog import StoreCatalogReference
 from store.domain.entities.store_collection import StoreCollectionReference
 
 

@@ -14,10 +14,10 @@ from foundation.value_objects.address import LocationCountry, LocationCitySubDiv
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.shop import Shop
-from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
-from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, StoreProductId, ShopId
+from store.domain.entities.shop_catalog import ShopCatalog
+from store.domain.entities.store_collection import ShopCollection
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, ShopProductId, ShopId
 
 
 @dataclass
@@ -77,7 +77,7 @@ def get_shop_or_raise(shop_id: ShopId,
             raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
         try:
-            manager = next(m for m in shop.managers if m.user_id == partner_id)
+            manager = next(m for m in shop.users if m.user_id == partner_id)
         except StopIteration:
             raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 
@@ -92,7 +92,7 @@ def get_shop_or_raise(shop_id: ShopId,
         raise exc
 
 
-def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Shop) -> StoreCatalog:
+def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Shop) -> ShopCatalog:
     """
     Fetch the catalog from specified store, by it reference or catalog_id
 
@@ -113,10 +113,10 @@ def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Shop) -> 
         raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
 
-def get_collection_from_catalog_or_raise(collection_id: StoreCollectionId, catalog: StoreCatalog) -> StoreCollection:
+def get_collection_from_catalog_or_raise(collection_id: StoreCollectionId, catalog: ShopCatalog) -> ShopCollection:
     try:
         # validate catalog
-        if not catalog or not isinstance(catalog, StoreCatalog) or getattr(catalog, 'catalog_id') is None:
+        if not catalog or not isinstance(catalog, ShopCatalog) or getattr(catalog, 'catalog_id') is None:
             raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
         collection = catalog.get_collection_by_id(collection_id=collection_id)
@@ -129,7 +129,7 @@ def get_collection_from_catalog_or_raise(collection_id: StoreCollectionId, catal
         raise exc
 
 
-def get_product_by_id_or_raise(product_id: StoreProductId, uow: StoreUnitOfWork) -> StoreProduct:
+def get_product_by_id_or_raise(product_id: ShopProductId, uow: StoreUnitOfWork) -> ShopProduct:
     try:
         # validate product_id
         product = uow.shops.get_product_by_id(product_id=product_id)

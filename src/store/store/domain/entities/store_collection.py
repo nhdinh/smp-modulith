@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 
 @dataclass(unsafe_hash=True)
-class StoreCollection:
+class ShopCollection:
     title: str
     default: bool = False
     disabled: bool = False
@@ -20,7 +20,7 @@ class StoreCollection:
         return f'<StoreCollection #{self.collection_id} catalog="{self.catalog.title}">'
 
     def __eq__(self, other):
-        if not other or not isinstance(other, StoreCollection):
+        if not other or not isinstance(other, ShopCollection):
             raise TypeError
 
         return self.collection_id == other.collection_id or self.title == other.title

@@ -16,7 +16,7 @@ class SupplierContact:
 
 
 @dataclass(unsafe_hash=True)
-class StoreSupplier:
+class ShopSupplier:
     supplier_name: str
     contact_name: str
     contact_phone: str

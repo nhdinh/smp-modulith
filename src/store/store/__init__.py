@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus, AsyncHandler, AsyncEventHandlerProvider
 from foundation.fs import FileSystem
-from store.adapter import store_db
+from store.adapter import shop_db
 from store.adapter.queries.sql_store_queries import SqlListStoreSettingsQuery, SqlCountStoreOwnerByEmailQuery, \
     SqlListProductsFromCollectionQuery, SqlListStoreCollectionsQuery, SqlListStoreCatalogsQuery, \
     SqlListProductsQuery, SqlGetStoreProductQuery, SqlListStoreProductsQuery, \
@@ -23,7 +23,7 @@ from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogDeletedEventHandler, \
     StoreProductCreatedOrUpdatedEventHandler
-from store.application.store_repository import SqlAlchemyStoreRepository
+from store.application.shop_repository import SqlAlchemyShopRepository
 from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary, \
     AddShopCatalogUC
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
@@ -44,7 +44,7 @@ from store.application.usecases.create_store_warehouse_uc import CreatingStoreWa
 from store.application.usecases.initialize.confirm_store_registration_uc import \
     ConfirmingStoreRegistrationResponseBoundary, \
     ConfirmStoreRegistrationUC
-from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary
+from store.application.usecases.initialize.register_shop_uc import RegisterShopUC, RegisteringShopResponseBoundary
 from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponseBoundary, \
     CreateStoreAddressUC
@@ -72,9 +72,9 @@ from store.domain.events.shop_registered_event import ShopRegisteredEvent, ShopR
 
 class StoreModule(injector.Module):
     @injector.provider
-    def register_store_uc(self, boundary: RegisteringStoreResponseBoundary, uow: StoreUnitOfWork,
-                          user_counter_services: UserCounters) -> RegisterStoreUC:
-        return RegisterStoreUC(boundary, uow, user_counter_services)
+    def register_store_uc(self, boundary: RegisteringShopResponseBoundary, uow: StoreUnitOfWork,
+                          user_counter_services: UserCounters) -> RegisterShopUC:
+        return RegisterShopUC(boundary, uow, user_counter_services)
 
     @injector.provider
     def confirm_store_registration_uc(self, boundary: ConfirmingStoreRegistrationResponseBoundary,
@@ -219,8 +219,8 @@ class StoreModule(injector.Module):
 
 class StoreInfrastructureModule(injector.Module):
     @injector.provider
-    def store_db(self) -> store_db:
-        return store_db
+    def store_db(self) -> shop_db:
+        return shop_db
 
     @injector.provider
     def get_uow(self, conn: Connection, event_bus: EventBus) -> StoreUnitOfWork:

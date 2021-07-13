@@ -9,9 +9,9 @@ class UserCounters:
         self._conn = conn
 
     def count(self, email: str):
-        from store.adapter import store_db
+        from store.adapter import shop_db
 
         return self._conn.scalar(
-            select([func.count()]).select_from(store_db.shop_user_table).where(
-                store_db.shop_user_table.c.email == email)
+            select([func.count()]).select_from(shop_db.shop_user_table).where(
+                shop_db.shop_user_table.c.email == email)
         )

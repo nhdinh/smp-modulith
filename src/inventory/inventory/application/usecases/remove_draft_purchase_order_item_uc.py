@@ -11,7 +11,7 @@ from inventory.domain.entities.warehouse import Warehouse
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrderId
 from store.application.usecases.const import ThingGoneInBlackHoleError
-from store.domain.entities.value_objects import StoreProductId
+from store.domain.entities.value_objects import ShopProductId
 
 
 @dataclass
@@ -29,7 +29,7 @@ class RemovingDraftPurchaseOrderItemResponseBoundary(abc.ABC):
 class RemovingDraftPurchaseOrderItemRequest:
     current_user: str
     purchase_order_id: DraftPurchaseOrderId
-    product_id: StoreProductId
+    product_id: ShopProductId
     unit: str
 
 

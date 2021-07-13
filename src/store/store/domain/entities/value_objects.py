@@ -8,7 +8,7 @@ StoreCatalogId = NewType("StoreCatalogId", tp=str)
 StoreCollectionId = NewType('StoreCollectionId', tp=str)
 StoreSupplierId = NewType('StoreSupplierId', tp=str)
 StoreAddressId = NewType('StoreAddressId', tp=str)
-StoreProductId = NewType('StoreProductId', tp=str)
+ShopProductId = NewType('StoreProductId', tp=str)
 
 
 class ShopStatus(Enum):

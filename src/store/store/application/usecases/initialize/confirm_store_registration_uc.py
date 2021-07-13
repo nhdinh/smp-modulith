@@ -38,7 +38,7 @@ class ConfirmStoreRegistrationUC:
     def execute(self, confirmation_token: str):
         with self._uow as uow:  # type: StoreUnitOfWork
             try:
-                store_registration = uow.shops.fetch_registration_by_token(
+                store_registration = uow.shops.get_registration_by_token(
                     token=confirmation_token
                 )  # type: ShopRegistration
                 if not store_registration:

@@ -6,20 +6,20 @@ from typing import Set, List, Union, Any, Optional
 from foundation.events import EventMixin
 from foundation.value_objects.address import LocationAddress
 from foundation.value_objects.factories import get_money
-from store.adapter.id_generators import STORE_SUPPLIER_ID_PREFIX, generate_warehouse_id
+from store.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX, generate_warehouse_id
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.setting import Setting
 from store.domain.entities.shop_address import ShopAddress, AddressType
-from store.domain.entities.store_catalog import StoreCatalog
-from store.domain.entities.store_collection import StoreCollection
+from store.domain.entities.shop_catalog import ShopCatalog
+from store.domain.entities.store_collection import ShopCollection
 from store.domain.entities.shop_manager import ShopManager, ShopAdmin
-from store.domain.entities.shop_manager_type import ShopManagerType
+from store.domain.entities.shop_user_type import ShopUserType
 from store.domain.entities.shop_user import ShopUser
-from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.store_product_brand import StoreProductBrand
-from store.domain.entities.store_product_tag import StoreProductTag
-from store.domain.entities.store_supplier import StoreSupplier
-from store.domain.entities.store_warehouse import StoreWarehouse
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.store_product_brand import ShopProductBrand
+from store.domain.entities.store_product_tag import ShopProductTag
+from store.domain.entities.shop_supplier import ShopSupplier
+from store.domain.entities.store_warehouse import Warehouse
 from store.domain.entities.value_objects import ShopId, StoreCatalogId, StoreSupplierId, StoreAddressId
 from store.domain.events.store_created_event import StoreCreatedEvent
 from store.domain.events.store_product_events import StoreProductCreatedEvent, StoreProductUpdatedEvent
@@ -51,16 +51,16 @@ class Shop(EventMixin):
 
         # children data
         self._addresses = set()  # type:Set[ShopAddress]
-        self._warehouses = set()  # type: Set[StoreWarehouse]
-        self._brands = set()  # type: Set[StoreProductBrand]
-        self._suppliers = set()  # type:Set[StoreSupplier]
-        self._catalogs = set()  # type: Set[StoreCatalog]
-        self._collections = set()  # type: Set[StoreCollection]
-        self._products = set()  # type: Set[StoreProduct]
+        self._warehouses = set()  # type: Set[Warehouse]
+        self._brands = set()  # type: Set[ShopProductBrand]
+        self._suppliers = set()  # type:Set[ShopSupplier]
+        self._catalogs = set()  # type: Set[ShopCatalog]
+        self._collections = set()  # type: Set[ShopCollection]
+        self._products = set()  # type: Set[ShopProduct]
 
     # region ## Properties ##
     @property
-    def managers(self) -> Set[ShopManager]:
+    def users(self) -> Set[ShopManager]:
         return self._managers
 
     @property
@@ -72,7 +72,7 @@ class Shop(EventMixin):
         return set() if self._settings is None else self._settings
 
     @property
-    def warehouses(self) -> Set[StoreWarehouse]:
+    def warehouses(self) -> Set[Warehouse]:
         return self._warehouses
 
     @property
@@ -80,19 +80,19 @@ class Shop(EventMixin):
         return self._addresses
 
     @property
-    def catalogs(self) -> Set[StoreCatalog]:
+    def catalogs(self) -> Set[ShopCatalog]:
         return self._catalogs
 
     @property
-    def products(self) -> Set[StoreProduct]:
+    def products(self) -> Set[ShopProduct]:
         return self._products
 
     @property
-    def suppliers(self) -> Set[StoreSupplier]:
+    def suppliers(self) -> Set[ShopSupplier]:
         return self._suppliers
 
     @property
-    def default_warehouse(self) -> Optional[StoreWarehouse]:
+    def default_warehouse(self) -> Optional[Warehouse]:
         try:
             default_warehouse = next(w for w in self._warehouses if w.default)
             return default_warehouse
@@ -100,7 +100,7 @@ class Shop(EventMixin):
             return None
 
     @property
-    def brands(self) -> Set[StoreProductBrand]:
+    def brands(self) -> Set[ShopProductBrand]:
         return self._brands
 
     def get_setting(self, key: str, default_value: Any = None):
@@ -161,7 +161,7 @@ class Shop(EventMixin):
                        title: str,
                        sku: str,
                        default_unit: str,
-                       **kwargs) -> StoreProduct:
+                       **kwargs) -> ShopProduct:
         # check if any product with this title exists
         try:
             product_with_such_title = next(p for p in self._products if p.title.lower() == title.strip().lower())
@@ -231,7 +231,7 @@ class Shop(EventMixin):
             self.append_tags_stack(tags)
 
         # make product
-        store_product = StoreProduct.create_product(
+        store_product = ShopProduct.create_product(
             title=title,
             sku=sku,
             image=image,
@@ -284,17 +284,17 @@ class Shop(EventMixin):
 
         return store_product
 
-    def _append_product(self, product: StoreProduct):
+    def _append_product(self, product: ShopProduct):
         self._products.add(product)
 
     # endregion
 
-    def _brand_factory(self, name: str) -> StoreProductBrand:
+    def _brand_factory(self, name: str) -> ShopProductBrand:
         try:
             brand = next(b for b in self._brands if b.name.lower() == name.strip().lower())
             return brand
         except StopIteration:
-            brand = StoreProductBrand(name=name)
+            brand = ShopProductBrand(name=name)
             self._brands.add(brand)
             return brand
 
@@ -308,14 +308,14 @@ class Shop(EventMixin):
             return supplier
         except StopIteration:
             # contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone)
-            supplier = StoreSupplier(supplier_name=supplier_name,
-                                     contact_name=contact_name,
-                                     contact_phone=contact_phone)
+            supplier = ShopSupplier(supplier_name=supplier_name,
+                                    contact_name=contact_name,
+                                    contact_phone=contact_phone)
             # , contacts=set([contact]))
             self._suppliers.add(supplier)
             return supplier
 
-    def _is_collection_exists(self, title: str, parent_catalog: StoreCatalog):
+    def _is_collection_exists(self, title: str, parent_catalog: ShopCatalog):
         try:
             collection = next(
                 c for c in self._collections if c.title == title and c.catalog == parent_catalog)
@@ -324,7 +324,7 @@ class Shop(EventMixin):
         except StopIteration:
             return False
 
-    def _collection_factory(self, title: str, parent_catalog: StoreCatalog) -> StoreCollection:
+    def _collection_factory(self, title: str, parent_catalog: ShopCatalog) -> ShopCollection:
         try:
             collection = next(coll for coll in self._collections if
                               coll.title.lower() == title.strip().lower() and coll.catalog == parent_catalog)
@@ -334,7 +334,7 @@ class Shop(EventMixin):
             self._collections.add(collection)
             return collection
 
-    def make_collection(self, title: str, parent_catalog: StoreCatalog, **kwargs) -> StoreCollection:
+    def make_collection(self, title: str, parent_catalog: ShopCatalog, **kwargs) -> ShopCollection:
         title = title.strip()
 
         try:
@@ -349,13 +349,13 @@ class Shop(EventMixin):
             if is_default is None:
                 is_default = False
 
-            collection = StoreCollection(title=title, default=is_default)
+            collection = ShopCollection(title=title, default=is_default)
             parent_catalog.collections.add(collection)
             self._collections.add(collection)
 
             return collection
 
-    def _make_catalog(self, title: str) -> StoreCatalog:
+    def _make_catalog(self, title: str) -> ShopCatalog:
         try:
             catalog = next(c for c in self._catalogs if c.title.lower() == title.strip().lower())
             return catalog
@@ -378,7 +378,7 @@ class Shop(EventMixin):
             self._catalogs.add(catalog)
             return catalog
 
-    def create_catalog(self, title: str, **kwargs) -> StoreCatalog:
+    def create_catalog(self, title: str, **kwargs) -> ShopCatalog:
         """
         Create a `StoreCatalog` instance
 
@@ -391,13 +391,13 @@ class Shop(EventMixin):
             is_default = False
 
         # make catalog
-        catalog = StoreCatalog(title=title, default=is_default)
+        catalog = ShopCatalog(title=title, default=is_default)
 
         # make default collection
 
         return catalog
 
-    def _create_default_catalog(self) -> StoreCatalog:
+    def _create_default_catalog(self) -> ShopCatalog:
         """
         Create a default `StoreCatalog` instance
 
@@ -428,7 +428,7 @@ class Shop(EventMixin):
         else:
             return False
 
-    def append_tags_stack(self, tags: List[StoreProductTag]):
+    def append_tags_stack(self, tags: List[ShopProductTag]):
         pass
 
     # region ## Internal class method ##
@@ -449,7 +449,7 @@ class Shop(EventMixin):
         :param warehouse_name: name of the warehouse
         :return: instance of the warehouse
         """
-        return StoreWarehouse(
+        return Warehouse(
             warehouse_id=generate_warehouse_id(),
             store_id=self.shop_id,
             warehouse_owner=self.owner_email,
@@ -490,14 +490,14 @@ class Shop(EventMixin):
 
     def get_address(self, address_id: StoreAddressId):
         try:
-            address = next(a for a in self._addresses if a.store_address_id == address_id)
+            address = next(a for a in self._addresses if a.shop_address_id == address_id)
             return address
         except StopIteration:
             return None
 
     def get_supplier(self, supplier_id_or_name: Union[StoreSupplierId, str]):
         try:
-            if isinstance(supplier_id_or_name, str) and supplier_id_or_name.startswith(STORE_SUPPLIER_ID_PREFIX):
+            if isinstance(supplier_id_or_name, str) and supplier_id_or_name.startswith(SHOP_SUPPLIER_ID_PREFIX):
                 supplier = next(s for s in self._suppliers if s.supplier_id == supplier_id_or_name)
                 return supplier
             elif isinstance(supplier_id_or_name, str):
@@ -508,7 +508,7 @@ class Shop(EventMixin):
         except StopIteration:
             return None
 
-    def update_product(self, product: StoreProduct, **kwarg):
+    def update_product(self, product: ShopProduct, **kwarg):
         items_being_updated = []
 
         brand_str = kwarg.get('brand')

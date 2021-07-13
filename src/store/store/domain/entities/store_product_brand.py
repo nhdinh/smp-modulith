@@ -9,12 +9,12 @@ from dataclasses import dataclass
 
 
 @dataclass(unsafe_hash=True)
-class StoreProductBrand:
+class ShopProductBrand:
     name: str
     logo: str = None
 
     def __eq__(self, other):
-        if not other or not isinstance(other, StoreProductBrand):
+        if not other or not isinstance(other, ShopProductBrand):
             raise TypeError
 
         return self.name == other.name

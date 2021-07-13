@@ -15,8 +15,8 @@ from store.application.usecases.create_store_warehouse_uc import CreateStoreWare
     CreatingStoreWarehouseResponseBoundary, CreatingStoreWarehouseRequest
 from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
     ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest
-from store.application.usecases.initialize.register_store_uc import RegisterStoreUC, RegisteringStoreResponseBoundary, \
-    RegisteringStoreRequest
+from store.application.usecases.initialize.register_shop_uc import RegisterShopUC, RegisteringShopResponseBoundary, \
+    RegisteringShopRequest
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
     AddStoreManagerUC
 from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressRequest
@@ -29,10 +29,10 @@ from store.application.usecases.manage.upload_image_uc import UploadingImageRequ
     UploadImageUC
 from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
     SelectingStorePlanRequest
-from web_app.presenters.store_management_presenters import RegisteringStorePresenter, \
-    ConfirmingStoreRegistrationPresenter, \
+from web_app.presenters.store_management_presenters import ConfirmingStoreRegistrationPresenter, \
     SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
     ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter, CreatingStoreAddressPresenter
+from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.serialization.dto import get_dto
 
 STORE_MANAGEMENT_BLUEPRINT_NAME = 'store_management_blueprint'
@@ -42,8 +42,8 @@ store_management_blueprint = Blueprint(STORE_MANAGEMENT_BLUEPRINT_NAME, __name__
 class StoreAPI(injector.Module):
     @injector.provider
     @flask_injector.request
-    def register_store_response_boundary(self) -> RegisteringStoreResponseBoundary:
-        return RegisteringStorePresenter()
+    def register_store_response_boundary(self) -> RegisteringShopResponseBoundary:
+        return RegisteringShopPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -87,10 +87,10 @@ class StoreAPI(injector.Module):
 
 
 @store_management_blueprint.route('/register', methods=['POST'])
-def register_new_store(register_store_uc: RegisterStoreUC, presenter: RegisteringStoreResponseBoundary) -> Response:
+def register_new_store(register_shop_uc: RegisterShopUC, presenter: RegisteringShopResponseBoundary) -> Response:
     try:
-        dto = get_dto(request, RegisteringStoreRequest, context={})
-        register_store_uc.execute(dto)
+        dto = get_dto(request, RegisteringShopRequest, context={})
+        register_shop_uc.execute(dto)
         return presenter.response, 201  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore

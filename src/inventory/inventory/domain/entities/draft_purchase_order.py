@@ -19,7 +19,7 @@ from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from inventory.domain.rules.draft_purchase_order_must_be_unconfirmed_status import \
     DraftPurchaseOrderMustBeUnconfirmedStatusRule
 from store.domain.entities.shop_address import ShopAddress
-from store.domain.entities.store_supplier import StoreSupplier
+from store.domain.entities.shop_supplier import ShopSupplier
 
 DraftPurchaseOrderId = NewType('DraftPurchaseOrderId', tp=str)
 PurchaseOrderId = NewType('PurchaseOrderId', tp=str)
@@ -30,7 +30,7 @@ class DraftPurchaseOrder(EventMixin, Entity):
     def __init__(
             self,
             purchase_order_id: DraftPurchaseOrderId,
-            supplier: StoreSupplier,
+            supplier: ShopSupplier,
             delivery_address: ShopAddress,
             note: str,
             due_date: date,

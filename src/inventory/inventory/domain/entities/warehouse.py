@@ -10,8 +10,8 @@ from dateutil.utils import today
 from inventory.adapter.inventory_db import generate_draft_purchase_order_id
 from inventory.domain.entities.purchase_order import PurchaseOrder
 from store.application.usecases.const import ThingGoneInBlackHoleError
-from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.value_objects import StoreSupplierId, StoreAddressId, StoreProductId
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.value_objects import StoreSupplierId, StoreAddressId, ShopProductId
 
 from foundation.events import EventMixin, Event
 from inventory.application.usecases.const import ExceptionMessages
@@ -20,7 +20,7 @@ from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrd
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from inventory.domain.events.draft_purchase_order_events import DraftPurchaseOrderCreatedEvent, \
     DraftPurchasedOrderUpdatedEvent
-from store.domain.entities.store_unit import StoreProductUnit
+from store.domain.entities.shop_unit import ShopProductUnit
 
 WarehouseId = NewType('WarehouseId', tp=str)
 
@@ -89,7 +89,7 @@ class Warehouse(EventMixin):
         # process items
         if items:
             for item in items:
-                loaded_product = self._get_product_from_store(product_id=item['product_id'])  # type:StoreProduct
+                loaded_product = self._get_product_from_store(product_id=item['product_id'])  # type:ShopProduct
                 if loaded_product is None:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_NOT_FOUND)
                 elif supplier not in loaded_product.suppliers:
@@ -97,7 +97,7 @@ class Warehouse(EventMixin):
 
                 try:
                     loaded_unit = next(
-                        u for u in loaded_product.units if u.unit_name == item['unit'])  # type:StoreProductUnit
+                        u for u in loaded_product.units if u.unit_name == item['unit'])  # type:ShopProductUnit
                 except StopIteration:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.UNIT_NOT_FOUND)
 
@@ -132,7 +132,7 @@ class Warehouse(EventMixin):
 
         return draft_po_id
 
-    def _get_product_from_store(self, product_id: StoreProductId) -> Optional[StoreProduct]:
+    def _get_product_from_store(self, product_id: ShopProductId) -> Optional[ShopProduct]:
         try:
             product = next(p for p in self.store.products if p.product_id == product_id)
             return product

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 
 @dataclass(unsafe_hash=True)
-class StoreProductTag:
+class ShopProductTag:
     tag: str
 
     _product = None

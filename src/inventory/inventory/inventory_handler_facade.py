@@ -8,7 +8,7 @@ from sqlalchemy.engine import Connection
 
 from inventory.adapter.inventory_db import inventory_product_balance_table
 # from inventory.adapter.inventory_db import inventory_product_balance_table
-from store.domain.entities.value_objects import ShopId, StoreProductId
+from store.domain.entities.value_objects import ShopId, ShopProductId
 from store.domain.events.store_product_events import StoreProductCreatedEvent
 
 
@@ -19,7 +19,7 @@ class InventoryHandlerFacade:
     def update_inventory_first_stock(
             self,
             store_id: ShopId,
-            product_id: StoreProductId,
+            product_id: ShopProductId,
             default_unit: str,
             units: List[str],
             first_stocks: List[int]

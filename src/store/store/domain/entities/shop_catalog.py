@@ -7,11 +7,11 @@ from typing import Set, Optional
 
 from store.domain.entities.value_objects import StoreCollectionId
 
-from store.domain.entities.store_collection import StoreCollection
+from store.domain.entities.store_collection import ShopCollection
 
 
 @dataclass(unsafe_hash=True)
-class StoreCatalog:
+class ShopCatalog:
     title: str
     image: str = ''
     disabled: bool = False
@@ -22,19 +22,19 @@ class StoreCatalog:
         return getattr(self, '_store')
 
     @property
-    def collections(self) -> Set[StoreCollection]:
+    def collections(self) -> Set[ShopCollection]:
         return getattr(self, '_collections')
 
     def __str__(self):
         return f'<StoreCatalog #{self.catalog_id}>'
 
     def __eq__(self, other):
-        if not other or not isinstance(other, StoreCatalog):
+        if not other or not isinstance(other, ShopCatalog):
             raise TypeError
 
         return self.title == other.title or self.catalog_id == other.catalog_id
 
-    def get_collection_by_id(self, collection_id: StoreCollectionId) -> Optional[StoreCollection]:
+    def get_collection_by_id(self, collection_id: StoreCollectionId) -> Optional[ShopCollection]:
         collections = getattr(self, '_collections')
         if isinstance(collections, Set) and len(collections):
             try:

@@ -9,7 +9,7 @@ from db_infrastructure import metadata
 from inventory.adapter.id_generators import generate_draft_purchase_order_id, generate_purchase_order_id, \
     generate_purchase_order_item_id, generate_delivery_order_id
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
-from store.adapter.store_db import shop_product_table, store_product_unit_table, store_supplier_table, \
+from store.adapter.shop_db import shop_product_table, shop_product_unit_table, shop_supplier_table, \
     shop_addresses_table, shop_warehouse_table
 
 # inventory_product_table = sa.Table(
@@ -21,8 +21,8 @@ from store.adapter.store_db import shop_product_table, store_product_unit_table,
 #     sa.Column('title', sa.String(255), nullable=False),
 #     sa.Column('sku', sa.String(100), nullable=False),
 #     sa.Column('image', sa.String(1000)),
-#     # sa.Column('brand_id', sa.ForeignKey(store_brand_table.c.brand_id), nullable=True),
-#     # sa.Column('catalog_id', sa.ForeignKey(store_catalog_table.c.catalog_id), nullable=True),
+#     # sa.Column('brand_id', sa.ForeignKey(shop_brand_table.c.brand_id), nullable=True),
+#     # sa.Column('catalog_id', sa.ForeignKey(shop_catalog_table.c.catalog_id), nullable=True),
 #
 #     sa.Column('restock_threshold', sa.Integer, default='-1'),
 #     sa.Column('maxstock_threshold', sa.Integer, default='-1'),
@@ -88,9 +88,9 @@ draft_purchase_order_table = sa.Table(
     sa.Column('warehouse_id',
               sa.ForeignKey(shop_warehouse_table.c.warehouse_id, onupdate='SET NULL', ondelete='SET NULL')),
     sa.Column('supplier_id',
-              sa.ForeignKey(store_supplier_table.c.supplier_id, onupdate='SET NULL', ondelete='SET NULL')),
-    sa.Column('store_address_id',
-              sa.ForeignKey(shop_addresses_table.c.store_address_id, onupdate='SET NULL', ondelete='SET NULL')),
+              sa.ForeignKey(shop_supplier_table.c.supplier_id, onupdate='SET NULL', ondelete='SET NULL')),
+    sa.Column('shop_address_id',
+              sa.ForeignKey(shop_addresses_table.c.shop_address_id, onupdate='SET NULL', ondelete='SET NULL')),
     sa.Column('note', sa.String),
     sa.Column('due_date', sa.Date),
     sa.Column('creator', sa.String(255), nullable=False),
@@ -116,7 +116,7 @@ draft_purchase_order_item_table = sa.Table(
 
     sa.UniqueConstraint('purchase_order_id', 'product_id', 'unit_unit', name='draft_purchase_order_product_unit_uix'),
     sa.ForeignKeyConstraint(('product_id', 'unit_unit'),
-                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
+                            [shop_product_unit_table.c.product_id, shop_product_unit_table.c.unit_name],
                             name='draft_purchase_order_product_fk', ondelete='SET NULL')
 )
 
@@ -132,7 +132,7 @@ inventory_product_balance_table = sa.Table(
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 
     sa.ForeignKeyConstraint(('product_id', 'unit'),
-                            [store_product_unit_table.c.product_id, store_product_unit_table.c.unit_name],
+                            [shop_product_unit_table.c.product_id, shop_product_unit_table.c.unit_name],
                             name='inventory_balance_product_unit_pk', ondelete='SET NULL')
 )
 

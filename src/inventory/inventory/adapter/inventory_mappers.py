@@ -10,30 +10,30 @@ from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.purchase_order import PurchaseOrder
 from inventory.domain.entities.warehouse import Warehouse
-from store.adapter.store_db import shop_warehouse_table
+from store.adapter.shop_db import shop_warehouse_table
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import ShopAddress
-from store.domain.entities.store_product import StoreProduct
-from store.domain.entities.store_supplier import StoreSupplier
-from store.domain.entities.store_unit import StoreProductUnit
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.shop_supplier import ShopSupplier
+from store.domain.entities.shop_unit import ShopProductUnit
 
 
 def start_mappers():
     mapper(DraftPurchaseOrderItem, draft_purchase_order_item_table, properties={
         'product': relationship(
-            StoreProduct,
+            ShopProduct,
             overlaps='unit, product_id'
         ),
 
         'unit': relationship(
-            StoreProductUnit,
+            ShopProductUnit,
             overlaps='product, product_id'
         )
     })
 
     mapper(DraftPurchaseOrder, draft_purchase_order_table, properties={
         '_supplier': relationship(
-            StoreSupplier
+            ShopSupplier
         ),
 
         '_delivery_address': relationship(

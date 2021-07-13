@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from foundation.uow import SqlAlchemyUnitOfWork
-from store.application.store_repository import SqlAlchemyStoreRepository
+from store.application.shop_repository import SqlAlchemyShopRepository
 
 
 class StoreUnitOfWork(SqlAlchemyUnitOfWork):
@@ -11,7 +11,7 @@ class StoreUnitOfWork(SqlAlchemyUnitOfWork):
 
     def __enter__(self):
         super(StoreUnitOfWork, self).__enter__()
-        self._store_repo = SqlAlchemyStoreRepository(session=self._session)
+        self._shop_repo = SqlAlchemyShopRepository(session=self._session)
 
         return self
 
@@ -22,5 +22,5 @@ class StoreUnitOfWork(SqlAlchemyUnitOfWork):
         self._session.rollback()
 
     @property
-    def shops(self) -> SqlAlchemyStoreRepository:
-        return self._store_repo
+    def shops(self) -> SqlAlchemyShopRepository:
+        return self._shop_repo

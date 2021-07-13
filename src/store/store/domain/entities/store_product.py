@@ -12,17 +12,17 @@ from foundation.value_objects.factories import get_money
 from store.adapter.id_generators import generate_product_id
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.purchase_price import ProductPurchasePrice
-from store.domain.entities.store_product_brand import StoreProductBrand
-from store.domain.entities.store_product_tag import StoreProductTag
-from store.domain.entities.store_supplier import StoreSupplier
-from store.domain.entities.store_unit import StoreProductUnit
-from store.domain.entities.value_objects import StoreProductId
+from store.domain.entities.store_product_brand import ShopProductBrand
+from store.domain.entities.store_product_tag import ShopProductTag
+from store.domain.entities.shop_supplier import ShopSupplier
+from store.domain.entities.shop_unit import ShopProductUnit
+from store.domain.entities.value_objects import ShopProductId
 from store.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
 if TYPE_CHECKING:
     from store.domain.entities.shop import Shop
-    from store.domain.entities.store_catalog import StoreCatalog
-    from store.domain.entities.store_collection import StoreCollection
+    from store.domain.entities.shop_catalog import ShopCatalog
+    from store.domain.entities.store_collection import ShopCollection
 
 
 class StoreProductAttributeTypes(Enum):
@@ -31,26 +31,26 @@ class StoreProductAttributeTypes(Enum):
     SUPPLIERS = 'SUPPLIERS'
 
 
-class StoreProduct(EventMixin, Entity):
-    product_id: StoreProductId
+class ShopProduct(EventMixin, Entity):
+    product_id: ShopProductId
     title: str
 
     def __init__(
             self,
-            product_id: StoreProductId,
+            product_id: ShopProductId,
             title: str,
             sku: str,
             image: str,
-            store: 'Shop',
-            brand: StoreProductBrand,
-            collections: Set['StoreCollection'],
-            catalog: 'StoreCatalog',
+            shop: 'Shop',
+            brand: ShopProductBrand,
+            collections: Set['ShopCollection'],
+            catalog: 'ShopCatalog',
             default_unit: str,
-            suppliers: Set['StoreSupplier'],
+            suppliers: Set['ShopSupplier'],
             restock_threshold: int = -1,
             max_stock_threshold: int = -1,
     ):
-        super(StoreProduct, self).__init__()
+        super(ShopProduct, self).__init__()
 
         self.check_rule(ThresholdsRequireUnitSetupRule(restock_threshold, max_stock_threshold, default_unit))
 
@@ -59,16 +59,16 @@ class StoreProduct(EventMixin, Entity):
         self.sku = sku
         self.barcode = 'NoBarCode applied yet'
 
-        self._store = store  # type:Shop
+        self._shop = shop  # type:Shop
         self.image = image
 
-        self._brand = brand  # type:StoreProductBrand
+        self._brand = brand  # type:ShopProductBrand
 
-        self._catalog = catalog  # type:StoreCatalog
-        self._collections = collections  # type:Set[StoreCollection]
+        self._catalog = catalog  # type:ShopCatalog
+        self._collections = collections  # type:Set[ShopCollection]
 
-        self._units = set()  # type:Set[StoreProductUnit]
-        self._tags = set()  # type:Set[StoreProductTag]
+        self._units = set()  # type:Set[ShopProductUnit]
+        self._tags = set()  # type:Set[ShopProductTag]
 
         # create default unit
         _default_unit = self.create_default_unit(default_name=default_unit)
@@ -92,20 +92,20 @@ class StoreProduct(EventMixin, Entity):
             restock_threshold: int,
             max_stock_threshold: int,
             store: 'Shop',
-            brand: StoreProductBrand,
-            catalog: 'StoreCatalog',
-            collections: List['StoreCollection'],
-            suppliers: List['StoreSupplier'],
+            brand: ShopProductBrand,
+            catalog: 'ShopCatalog',
+            collections: List['ShopCollection'],
+            suppliers: List['ShopSupplier'],
             tags: List[str]
-    ) -> 'StoreProduct':
+    ) -> 'ShopProduct':
         product_id = generate_product_id()
 
-        product = StoreProduct(
+        product = ShopProduct(
             product_id=product_id,
             title=title,
             sku=sku,
             image=image,
-            store=store,
+            shop=store,
             brand=brand,
             catalog=catalog,
             collections=set(collections),
@@ -118,7 +118,7 @@ class StoreProduct(EventMixin, Entity):
         # add tags
         if tags:
             for tag in tags:
-                product._tags.add(StoreProductTag(tag=tag))
+                product._tags.add(ShopProductTag(tag=tag))
 
         # add collections
         if collections:
@@ -127,15 +127,15 @@ class StoreProduct(EventMixin, Entity):
         return product
 
     @property
-    def catalog(self) -> 'StoreCatalog':
+    def catalog(self) -> 'ShopCatalog':
         return self._catalog
 
     @property
-    def collections(self) -> Set['StoreCollection']:
+    def collections(self) -> Set['ShopCollection']:
         return self._collections
 
     @property
-    def brand(self) -> 'StoreProductBrand':
+    def brand(self) -> 'ShopProductBrand':
         return self._brand
 
     @brand.setter
@@ -143,31 +143,31 @@ class StoreProduct(EventMixin, Entity):
         self._brand = value
 
     @property
-    def suppliers(self) -> Set['StoreSupplier']:
+    def suppliers(self) -> Set['ShopSupplier']:
         return self._suppliers
 
     @property
-    def units(self) -> Set[StoreProductUnit]:
+    def units(self) -> Set[ShopProductUnit]:
         return self._units
 
     @property
-    def default_unit(self) -> StoreProductUnit:
+    def default_unit(self) -> ShopProductUnit:
         return self.get_default_unit()
 
     @property
-    def tags(self) -> Set[StoreProductTag]:
+    def tags(self) -> Set[ShopProductTag]:
         return self._tags
 
     def is_belong_to_store(self, store: 'Shop') -> bool:
-        return self._store is store
+        return self._shop is store
 
-    def get_unit(self, unit: str) -> Optional[StoreProductUnit]:
+    def get_unit(self, unit: str) -> Optional[ShopProductUnit]:
         try:
             return next(product_unit for product_unit in self._units if product_unit.unit_name == unit)
         except StopIteration:
             return None
 
-    def get_default_unit(self) -> Optional[StoreProductUnit]:
+    def get_default_unit(self) -> Optional[ShopProductUnit]:
         try:
             return next(product_unit for product_unit in self._units if product_unit.default)
         except StopIteration:
@@ -179,7 +179,7 @@ class StoreProduct(EventMixin, Entity):
             if not _base_unit:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
 
-            product_unit = StoreProductUnit(unit=unit, from_unit=_base_unit, conversion_factor=conversion_factor)
+            product_unit = ShopProductUnit(unit=unit, from_unit=_base_unit, conversion_factor=conversion_factor)
             # product_unit.product = self
             return product_unit
         except Exception as exc:
@@ -204,7 +204,7 @@ class StoreProduct(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    def create_unit(self, unit_name: str, conversion_factor: float, base_unit: str = None) -> StoreProductUnit:
+    def create_unit(self, unit_name: str, conversion_factor: float, base_unit: str = None) -> ShopProductUnit:
         try:
             # check if there is any unit with that name has been existed
             unit = next(unit for unit in self._units if unit.unit_name == unit_name)
@@ -227,17 +227,17 @@ class StoreProduct(EventMixin, Entity):
                 _base_unit = None
 
             # make unit
-            unit = StoreProductUnit(unit_name=unit_name, conversion_factor=conversion_factor, default=is_default,
-                                    disabled=False, referenced_unit=_base_unit)
+            unit = ShopProductUnit(unit_name=unit_name, conversion_factor=conversion_factor, default=is_default,
+                                   disabled=False, referenced_unit=_base_unit)
             self._units.add(unit)
             return unit
         except StopIteration:
             raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
 
-    def create_default_unit(self, default_name: str) -> StoreProductUnit:
+    def create_default_unit(self, default_name: str) -> ShopProductUnit:
         return self.create_unit(unit_name=default_name, conversion_factor=0, base_unit=None)
 
-    def _is_unit_dependency(self, unit: StoreProductUnit):
+    def _is_unit_dependency(self, unit: ShopProductUnit):
         try:
             unit = next(u for u in self._units if u.base_unit == unit)
             if unit:
@@ -286,7 +286,7 @@ class StoreProduct(EventMixin, Entity):
             self._purchase_prices.add(purchase_price)
 
     def get_price(
-            self, by_supplier: StoreSupplier, by_unit: StoreProductUnit
+            self, by_supplier: ShopSupplier, by_unit: ShopProductUnit
     ) -> Optional[Tuple[Money, Optional[float], date]]:
         try:
             price = next(p for p in self._purchase_prices if
@@ -296,7 +296,7 @@ class StoreProduct(EventMixin, Entity):
         except StopIteration:
             return None
 
-    def get_prices(self, by_supplier: StoreSupplier) -> Dict[str, Tuple[Money, float, datetime]]:
+    def get_prices(self, by_supplier: ShopSupplier) -> Dict[str, Tuple[Money, float, datetime]]:
         return_data = dict()
 
         prices = [p for p in self._purchase_prices if p.supplier == by_supplier]

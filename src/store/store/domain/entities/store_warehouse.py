@@ -7,7 +7,7 @@ StoreWarehouseId = NewType('StoreWarehouseId', tp=str)
 
 
 @dataclass(unsafe_hash=True)
-class StoreWarehouse:
+class Warehouse:
     warehouse_id: StoreWarehouseId
     store_id: 'StoreId'
     warehouse_owner: str

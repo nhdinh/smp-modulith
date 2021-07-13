@@ -10,13 +10,13 @@ from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.const import ThingGoneInBlackHoleError, ExceptionMessages
 from store.application.usecases.store_uc_common import get_shop_or_raise, get_product_by_id_or_raise
 from store.domain.entities.store_product import StoreProductAttributeTypes
-from store.domain.entities.value_objects import StoreProductId
+from store.domain.entities.value_objects import ShopProductId
 
 
 @dataclass
 class RemovingStoreProductAttributeRequest:
     current_user: str
-    product_id: StoreProductId
+    product_id: ShopProductId
     attribute_type: StoreProductAttributeTypes
     attribute_id: str
 

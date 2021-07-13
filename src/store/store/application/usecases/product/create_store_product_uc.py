@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError
 
 from store.application.services.store_unit_of_work import StoreUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
-from store.domain.entities.value_objects import StoreProductId
+from store.domain.entities.value_objects import ShopProductId
 
 
 @dataclass(frozen=True)
@@ -87,7 +87,7 @@ class CreatingStoreProductRequest:
 
 @dataclass
 class CreatingStoreProductResponse:
-    product_id: StoreProductId
+    product_id: ShopProductId
 
 
 class CreatingStoreProductResponseBoundary(abc.ABC):

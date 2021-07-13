@@ -11,7 +11,7 @@ from inventory.application.usecases.inventory_uc_common import get_warehouse_by_
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from store.domain.entities.collision import Collision
-from store.domain.entities.value_objects import StoreSupplierId, StoreProductId
+from store.domain.entities.value_objects import StoreSupplierId, ShopProductId
 
 if TYPE_CHECKING:
     from inventory.domain.entities.warehouse import Warehouse
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class PurchaseOrderItemRequest:
-    product_id: StoreProductId
+    product_id: ShopProductId
     unit_name: str
     quantity: int
     description: str

@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from foundation import Event
-from store.domain.entities.value_objects import StoreProductId
+from store.domain.entities.value_objects import ShopProductId
 
 
 @dataclass
 class StoreProductCreatedEvent(Event):
-    product_id: StoreProductId
+    product_id: ShopProductId
     restock_threshold = -1
     maxstock_threshold = -1
 
@@ -20,5 +20,5 @@ class StoreProductCreatedEvent(Event):
 
 @dataclass
 class StoreProductUpdatedEvent(Event):
-    product_id: StoreProductId
+    product_id: ShopProductId
     updated_keys: List[str] = list
