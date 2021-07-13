@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
 
 
@@ -27,12 +27,12 @@ class RemovingStoreCatalogResponseBoundary(abc.ABC):
 
 
 class RemoveStoreCatalogUC:
-    def __init__(self, boundary: RemovingStoreCatalogResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: RemovingStoreCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
     def execute(self, dto: RemovingStoreCatalogRequest) -> None:
-        with self._uow as uow:  # type: StoreUnitOfWork
+        with self._uow as uow:  # type: ShopUnitOfWork
             try:
                 # get input
                 remove_completely = dto.remove_completely

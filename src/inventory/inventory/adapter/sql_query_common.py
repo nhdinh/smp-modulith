@@ -5,7 +5,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.engine import Connection
 
 from inventory.domain.entities.warehouse import Warehouse, WarehouseId
-from store.adapter.shop_db import shop_warehouse_table, shop_table, shop_managers_table, shop_user_table
+from store.adapter.shop_db import shop_warehouse_table, shop_table, shop_users_table, shop_user_table
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_user import ShopUser
 
@@ -22,8 +22,8 @@ def sql_get_warehouse_id_by_owner(warehouse_owner: str, conn: Connection, active
         # warehouse_id = conn.scalar(q)
 
         q = select(shop_warehouse_table.c.warehouse_id) \
-            .join(shop_managers_table, shop_warehouse_table.c.shop_id == shop_managers_table.c.shop_id) \
-            .join(shop_user_table, shop_managers_table.c.user_id == shop_user_table.c.user_id) \
+            .join(shop_users_table, shop_warehouse_table.c.shop_id == shop_users_table.c.shop_id) \
+            .join(shop_user_table, shop_users_table.c.user_id == shop_user_table.c.user_id) \
             .where(shop_user_table.c.email == warehouse_owner)
 
         if active_only:

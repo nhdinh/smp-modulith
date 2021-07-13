@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from passlib.hash import pbkdf2_sha256 as sha256
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.shop_registration import ShopRegistration, ShopRegistrationId
 from web_app.serialization.dto import BaseInputDto
@@ -34,7 +34,7 @@ class RegisterShopUC:
     def __init__(
             self,
             ob: RegisteringShopResponseBoundary,
-            uow: StoreUnitOfWork,
+            uow: ShopUnitOfWork,
             user_counter_services: UserCounters):
         self._ob = ob
         self._uow = uow

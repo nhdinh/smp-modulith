@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponse, \
     UpdatingStoreCatalogResponseBoundary
 from store.application.usecases.store_uc_common import get_shop_or_raise
@@ -16,12 +16,12 @@ class SystemizingStoreCatalogRequest:
 
 
 class SystemizeStoreCatalogUC:
-    def __init__(self, boundary: UpdatingStoreCatalogResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: UpdatingStoreCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
     def execute(self, dto: SystemizingStoreCatalogRequest):
-        with self._uow as uow:  # type: StoreUnitOfWork
+        with self._uow as uow:  # type: ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 

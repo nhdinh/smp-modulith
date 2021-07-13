@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import StoreCatalogId
 
@@ -30,12 +30,12 @@ class UpdatingStoreCatalogResponseBoundary(abc.ABC):
 
 
 class UpdateStoreCatalogUC:
-    def __init__(self, ob: UpdatingStoreCatalogResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: UpdatingStoreCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, dto: UpdatingStoreCatalogRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 # get store
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)

@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from datetime import datetime
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import get_shop_or_raise, GenericStoreActionResponse
 from web_app.serialization.dto import BaseInputDto, BaseShopInputDto
@@ -22,12 +22,12 @@ class AddingShopCatalogResponseBoundary(abc.ABC):
 
 
 class AddShopCatalogUC:
-    def __init__(self, ob: AddingShopCatalogResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: AddingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, dto: AddingShopCatalogRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
 

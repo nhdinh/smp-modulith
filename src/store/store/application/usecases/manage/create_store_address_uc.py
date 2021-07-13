@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from foundation.value_objects.address import LocationAddress, LocationCitySubDivision
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise, get_location
 
 
@@ -37,12 +37,12 @@ class CreatingStoreAddressRequest:
 
 
 class CreateStoreAddressUC:
-    def __init__(self, boundary: CreatingStoreAddressResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: CreatingStoreAddressResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
     def execute(self, dto: CreatingStoreAddressRequest) -> None:
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 

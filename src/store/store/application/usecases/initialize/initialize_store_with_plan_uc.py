@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from uuid import UUID
 
-from store import StoreUnitOfWork
+from store import ShopUnitOfWork
 
 
 @dataclass(unsafe_hash=True)
@@ -27,7 +27,7 @@ class InitializingStoreWithPlanRequest:
 
 
 class InitializeStoreWithPlanUC:
-    def __init__(self, ob: InitializingStoreWithPlanResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: InitializingStoreWithPlanResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 

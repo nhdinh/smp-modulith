@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 
 
 class InvalidateStoreCatalogCacheUC:
-    def __init__(self, ob: GenericStoreResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: GenericStoreResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 

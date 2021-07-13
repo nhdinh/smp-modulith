@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 
 from foundation.fs import FileSystem
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 
 
 @dataclass
@@ -19,7 +19,7 @@ class RemovingStoreProductResponseBoundary(abc.ABC):
 
 
 class RemoveStoreProductUC:
-    def __init__(self, boundary: RemovingStoreProductResponseBoundary, uow: StoreUnitOfWork, fs: FileSystem):
+    def __init__(self, boundary: RemovingStoreProductResponseBoundary, uow: ShopUnitOfWork, fs: FileSystem):
         self._ob = boundary
         self._uow = uow
         self._fs = fs

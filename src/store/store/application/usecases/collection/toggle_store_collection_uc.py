@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdatingStoreCollectionResponse
 from store.application.usecases.store_uc_common import get_shop_or_raise
@@ -16,12 +16,12 @@ class TogglingStoreCollectionRequest:
 
 
 class ToggleStoreCollectionUC:
-    def __init__(self, boundary: UpdatingStoreCollectionResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: UpdatingStoreCollectionResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
     def execute(self, input_dto: TogglingStoreCollectionRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 raise NotImplementedError
                 # get store

@@ -86,6 +86,7 @@ flask==1.1.2
     #   flask-principal
     #   flask-security
     #   flask-wtf
+flask-log-request-id
 freezegun==1.0.0
     # via
     #   -r ./auctions/requirements-dev.txt

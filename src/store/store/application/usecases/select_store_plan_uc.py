@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 
 
 @dataclass
@@ -27,12 +27,12 @@ class SelectingStorePlanResponseBoundary(abc.ABC):
 
 
 class SelectStorePlanUC:
-    def __init__(self, ob, uow: StoreUnitOfWork):
+    def __init__(self, ob, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, dto: SelectingStorePlanRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             """ 
             TODO: Need the following things to implemented first:
             

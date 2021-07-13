@@ -5,12 +5,12 @@ from foundation.uow import SqlAlchemyUnitOfWork
 from store.application.shop_repository import SqlAlchemyShopRepository
 
 
-class StoreUnitOfWork(SqlAlchemyUnitOfWork):
+class ShopUnitOfWork(SqlAlchemyUnitOfWork):
     def __init__(self, sessionfactory, event_bus):
-        super(StoreUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
+        super(ShopUnitOfWork, self).__init__(sessionfactory=sessionfactory, event_bus=event_bus)
 
     def __enter__(self):
-        super(StoreUnitOfWork, self).__enter__()
+        super(ShopUnitOfWork, self).__enter__()
         self._shop_repo = SqlAlchemyShopRepository(session=self._session)
 
         return self

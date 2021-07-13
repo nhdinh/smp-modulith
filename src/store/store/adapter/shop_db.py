@@ -14,7 +14,7 @@ from store.adapter.id_generators import generate_shop_id, generate_warehouse_id,
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import AddressType
-from store.domain.entities.shop_manager import ShopUserStatus
+from store.domain.entities.shop_user import SystemUserStatus
 from store.domain.entities.shop_user_type import ShopUserType
 from store.domain.entities.shop_registration import ShopRegistration
 from store.domain.entities.value_objects import ShopStatus
@@ -43,7 +43,7 @@ shop_user_table = sa.Table(
     sa.Column('email', sa.String(255), unique=True),
     sa.Column('mobile', sa.String(255), unique=True),
     sa.Column('password', sa.String(255)),
-    sa.Column('status', sa.Enum(ShopUserStatus), nullable=False, default=ShopUserStatus.NORMAL),
+    sa.Column('status', sa.Enum(SystemUserStatus), nullable=False, default=SystemUserStatus.NORMAL),
     sa.Column('confirmed_at', sa.DateTime),
 
     extend_existing=True
@@ -60,8 +60,8 @@ shop_table = sa.Table(
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
-shop_managers_table = sa.Table(
-    'shop_managers',
+shop_users_table = sa.Table(
+    'shop_user',
     metadata,
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('user_id', sa.ForeignKey(shop_user_table.c.user_id, ondelete='SET NULL', onupdate='SET NULL'),
@@ -325,6 +325,6 @@ def shop_load(store, connection):
     store.domain_events = []
 
     try:
-        store._admin = next(sm for sm in store._managers if sm.shop_role == ShopUserType.ADMIN)
+        store._admin = next(sm for sm in store._users if sm.shop_role == ShopUserType.ADMIN)
     except StopIteration:
         store._admin = None

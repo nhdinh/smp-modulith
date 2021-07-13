@@ -19,7 +19,7 @@ from store.application.queries.store_queries import ListStoreCatalogsQuery, List
     ListProductsFromCollectionQuery, ListProductsQuery, GetStoreProductQuery, ListStoreProductsQuery, \
     ListStoreProductsByCatalogQuery, ListStoreWarehousesQuery, ListStoreAddressesQuery, ListStoreSuppliersQuery
 from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.services.user_counter_services import UserCounters
 from store.application.store_handler_facade import StoreHandlerFacade, StoreCatalogDeletedEventHandler, \
     StoreProductCreatedOrUpdatedEventHandler
@@ -41,9 +41,9 @@ from store.application.usecases.collection.update_store_collection_uc import Upd
     UpdateStoreCollectionUC
 from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponseBoundary, \
     CreateStoreWarehouseUC
-from store.application.usecases.initialize.confirm_store_registration_uc import \
-    ConfirmingStoreRegistrationResponseBoundary, \
-    ConfirmStoreRegistrationUC
+from store.application.usecases.initialize.confirm_shop_registration_uc import \
+    ConfirmingShopRegistrationResponseBoundary, \
+    ConfirmShopRegistrationUC
 from store.application.usecases.initialize.register_shop_uc import RegisterShopUC, RegisteringShopResponseBoundary
 from store.application.usecases.manage.add_store_manager import AddStoreManagerUC, AddingStoreManagerResponseBoundary
 from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponseBoundary, \
@@ -72,47 +72,47 @@ from store.domain.events.shop_registered_event import ShopRegisteredEvent, ShopR
 
 class StoreModule(injector.Module):
     @injector.provider
-    def register_store_uc(self, boundary: RegisteringShopResponseBoundary, uow: StoreUnitOfWork,
+    def register_store_uc(self, boundary: RegisteringShopResponseBoundary, uow: ShopUnitOfWork,
                           user_counter_services: UserCounters) -> RegisterShopUC:
         return RegisterShopUC(boundary, uow, user_counter_services)
 
     @injector.provider
-    def confirm_store_registration_uc(self, boundary: ConfirmingStoreRegistrationResponseBoundary,
-                                      uow: StoreUnitOfWork) -> ConfirmStoreRegistrationUC:
-        return ConfirmStoreRegistrationUC(boundary, uow)
+    def confirm_store_registration_uc(self, boundary: ConfirmingShopRegistrationResponseBoundary,
+                                      uow: ShopUnitOfWork) -> ConfirmShopRegistrationUC:
+        return ConfirmShopRegistrationUC(boundary, uow)
 
     @injector.provider
     def resend_store_registration_uc(self, boundary: ResendingRegistrationConfirmationResponseBoundary,
-                                     uow: StoreUnitOfWork) -> ResendRegistrationConfirmationUC:
+                                     uow: ShopUnitOfWork) -> ResendRegistrationConfirmationUC:
         return ResendRegistrationConfirmationUC(boundary, uow)
 
     @injector.provider
     def add_store_manager_uc(self, boundary: AddingStoreManagerResponseBoundary,
-                             uow: StoreUnitOfWork) -> AddStoreManagerUC:
+                             uow: ShopUnitOfWork) -> AddStoreManagerUC:
         return AddStoreManagerUC(boundary, uow)
 
     @injector.provider
     def create_store_address_uc(self, boundary: CreatingStoreAddressResponseBoundary,
-                                uow: StoreUnitOfWork) -> CreateStoreAddressUC:
+                                uow: ShopUnitOfWork) -> CreateStoreAddressUC:
         return CreateStoreAddressUC(boundary, uow)
 
     @injector.provider
     def update_store_settings_uc(self, boundary: UpdatingStoreSettingsResponseBoundary,
-                                 uow: StoreUnitOfWork) -> UpdateStoreSettingsUC:
+                                 uow: ShopUnitOfWork) -> UpdateStoreSettingsUC:
         return UpdateStoreSettingsUC(boundary, uow)
 
     @injector.provider
     def create_store_warehouse_uc(self, boundary: CreatingStoreWarehouseResponseBoundary,
-                                  uow: StoreUnitOfWork) -> CreateStoreWarehouseUC:
+                                  uow: ShopUnitOfWork) -> CreateStoreWarehouseUC:
         return CreateStoreWarehouseUC(boundary, uow)
 
     @injector.provider
     def invalidate_store_catalog_cache_uc(self, boundary: GenericStoreResponseBoundary,
-                                          uow: StoreUnitOfWork) -> InvalidateStoreCatalogCacheUC:
+                                          uow: ShopUnitOfWork) -> InvalidateStoreCatalogCacheUC:
         return InvalidateStoreCatalogCacheUC(boundary, uow)
 
     @injector.provider
-    def upload_image_uc(self, boundary: UploadingImageResponseBoundary, uow: StoreUnitOfWork,
+    def upload_image_uc(self, boundary: UploadingImageResponseBoundary, uow: ShopUnitOfWork,
                         minio_client: Minio, fs: FileSystem) -> UploadImageUC:
         return UploadImageUC(boundary, uow, minio_client, fs)
 
@@ -120,27 +120,27 @@ class StoreModule(injector.Module):
 
     @injector.provider
     def create_store_catalog_uc(self, boundary: AddingShopCatalogResponseBoundary,
-                                uow: StoreUnitOfWork) -> AddShopCatalogUC:
+                                uow: ShopUnitOfWork) -> AddShopCatalogUC:
         return AddShopCatalogUC(boundary, uow)
 
     @injector.provider
     def toggle_store_catalog_uc(self, boundary: UpdatingStoreCatalogResponseBoundary,
-                                uow: StoreUnitOfWork) -> ToggleStoreCatalogUC:
+                                uow: ShopUnitOfWork) -> ToggleStoreCatalogUC:
         return ToggleStoreCatalogUC(boundary, uow)
 
     @injector.provider
     def remove_store_catalog_uc(self, boundary: RemovingStoreCatalogResponseBoundary,
-                                uow: StoreUnitOfWork) -> RemoveStoreCatalogUC:
+                                uow: ShopUnitOfWork) -> RemoveStoreCatalogUC:
         return RemoveStoreCatalogUC(boundary, uow)
 
     @injector.provider
     def update_store_catalog_uc(self, boundary: UpdatingStoreCatalogResponseBoundary,
-                                uow: StoreUnitOfWork) -> UpdateStoreCatalogUC:
+                                uow: ShopUnitOfWork) -> UpdateStoreCatalogUC:
         return UpdateStoreCatalogUC(boundary, uow)
 
     @injector.provider
     def make_store_catalog_system_uc(self, boundary: UpdatingStoreCatalogResponseBoundary,
-                                     uow: StoreUnitOfWork) -> SystemizeStoreCatalogUC:
+                                     uow: ShopUnitOfWork) -> SystemizeStoreCatalogUC:
         return SystemizeStoreCatalogUC(boundary, uow)
 
     # endregion
@@ -149,22 +149,22 @@ class StoreModule(injector.Module):
 
     @injector.provider
     def create_store_collection_uc(self, boundary: CreatingStoreCollectionResponseBoundary,
-                                   uow: StoreUnitOfWork) -> CreateStoreCollectionUC:
+                                   uow: ShopUnitOfWork) -> CreateStoreCollectionUC:
         return CreateStoreCollectionUC(boundary, uow)
 
     @injector.provider
     def update_store_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
-                                   uow: StoreUnitOfWork) -> UpdateStoreCollectionUC:
+                                   uow: ShopUnitOfWork) -> UpdateStoreCollectionUC:
         return UpdateStoreCollectionUC(boundary, uow)
 
     @injector.provider
     def toggle_store_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
-                                   uow: StoreUnitOfWork) -> ToggleStoreCollectionUC:
+                                   uow: ShopUnitOfWork) -> ToggleStoreCollectionUC:
         return ToggleStoreCollectionUC(boundary, uow)
 
     @injector.provider
     def make_store_collection_default_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
-                                         uow: StoreUnitOfWork) -> MakeStoreCollectionDefaultUC:
+                                         uow: ShopUnitOfWork) -> MakeStoreCollectionDefaultUC:
         return MakeStoreCollectionDefaultUC(boundary, uow)
 
     # endregion
@@ -173,22 +173,22 @@ class StoreModule(injector.Module):
 
     @injector.provider
     def create_store_product_uc(self, boundary: CreatingStoreProductResponseBoundary,
-                                uow: StoreUnitOfWork) -> CreateStoreProductUC:
+                                uow: ShopUnitOfWork) -> CreateStoreProductUC:
         return CreateStoreProductUC(boundary, uow)
 
     @injector.provider
     def update_store_product_uc(self, boundary: UpdatingStoreProductResponseBoundary,
-                                uow: StoreUnitOfWork, fs: FileSystem) -> UpdateStoreProductUC:
+                                uow: ShopUnitOfWork, fs: FileSystem) -> UpdateStoreProductUC:
         return UpdateStoreProductUC(boundary, uow, fs)
 
     @injector.provider
     def remove_store_product_uc(self, boundary: RemovingStoreProductResponseBoundary,
-                                uow: StoreUnitOfWork, fs: FileSystem) -> RemoveStoreProductUC:
+                                uow: ShopUnitOfWork, fs: FileSystem) -> RemoveStoreProductUC:
         return RemoveStoreProductUC(boundary, uow, fs)
 
     @injector.provider
     def remove_store_product_attribute_uc(self, boundary: RemovingStoreProductAttributeResponseBoundary,
-                                          uow: StoreUnitOfWork, fs: FileSystem) -> RemoveStoreProductAttributeUC:
+                                          uow: ShopUnitOfWork, fs: FileSystem) -> RemoveStoreProductAttributeUC:
         return RemoveStoreProductAttributeUC(boundary, uow, fs)
 
     # endregion
@@ -223,9 +223,9 @@ class StoreInfrastructureModule(injector.Module):
         return shop_db
 
     @injector.provider
-    def get_uow(self, conn: Connection, event_bus: EventBus) -> StoreUnitOfWork:
+    def get_uow(self, conn: Connection, event_bus: EventBus) -> ShopUnitOfWork:
         sessfactory = sessionmaker(bind=conn)
-        return StoreUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
+        return ShopUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
 
     # @injector.provider
     # def get_repository(self, uow: StoreUnitOfWork) -> SqlAlchemyStoreRepository:

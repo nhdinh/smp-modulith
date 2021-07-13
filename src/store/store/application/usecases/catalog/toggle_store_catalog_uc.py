@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
     UpdatingStoreCatalogResponse
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
@@ -18,12 +18,12 @@ class TogglingStoreCatalogRequest:
 
 
 class ToggleStoreCatalogUC:
-    def __init__(self, ob: UpdatingStoreCatalogResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: UpdatingStoreCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, input_dto: TogglingStoreCatalogRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 # fetch store data by id ID
                 store = uow.shops.get_shop_by_email(email=input_dto.current_user)

@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop_registration import ShopRegistration
@@ -29,12 +29,12 @@ class ResendingRegistrationConfirmationRequest:
 
 
 class ResendRegistrationConfirmationUC:
-    def __init__(self, ob: ResendingRegistrationConfirmationResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: ResendingRegistrationConfirmationResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, dto: ResendingRegistrationConfirmationRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 registration = uow.shops.get_registration_by_email(
                     email=dto.registration_email)  # type:ShopRegistration

@@ -10,7 +10,7 @@ from minio import Minio
 from werkzeug.datastructures import FileStorage
 
 from foundation.fs import FileSystem
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.const import ExceptionMessages
 from store.application.usecases.store_uc_common import get_shop_or_raise
 
@@ -40,14 +40,14 @@ class UploadingImageResponseBoundary(abc.ABC):
 
 
 class UploadImageUC:
-    def __init__(self, ob: UploadingImageResponseBoundary, uow: StoreUnitOfWork, minio_client: Minio, fs: FileSystem):
+    def __init__(self, ob: UploadingImageResponseBoundary, uow: ShopUnitOfWork, minio_client: Minio, fs: FileSystem):
         self._ob = ob
         self._uow = uow
         self._minio = minio_client
         self._fs = fs
 
     def execute(self, uploaded_file: FileStorage, dto: UploadingImageRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 

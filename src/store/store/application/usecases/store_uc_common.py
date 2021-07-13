@@ -11,7 +11,7 @@ from foundation.common_helpers import uuid_validate
 from foundation.database_setup import location_country_table, location_city_sub_division_table
 from foundation.uow import SqlAlchemyUnitOfWork
 from foundation.value_objects.address import LocationCountry, LocationCitySubDivision, LocationCitySubDivisionId
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_catalog import ShopCatalog
@@ -59,7 +59,7 @@ def is_store_disabled(store: Shop) -> bool:
 
 def get_shop_or_raise(shop_id: ShopId,
                       partner_id: str,
-                      uow: StoreUnitOfWork,
+                      uow: ShopUnitOfWork,
                       active_only: bool = True) -> Shop:
     """
     Fetch store information from persisted data by its owner's email
@@ -129,7 +129,7 @@ def get_collection_from_catalog_or_raise(collection_id: StoreCollectionId, catal
         raise exc
 
 
-def get_product_by_id_or_raise(product_id: ShopProductId, uow: StoreUnitOfWork) -> ShopProduct:
+def get_product_by_id_or_raise(product_id: ShopProductId, uow: ShopUnitOfWork) -> ShopProduct:
     try:
         # validate product_id
         product = uow.shops.get_product_by_id(product_id=product_id)

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional as Opt, List
 
 from foundation.fs import FileSystem
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.application.usecases.store_uc_common import get_shop_or_raise, get_product_by_id_or_raise
 from store.domain.entities.value_objects import ShopProductId
@@ -37,13 +37,13 @@ class UpdatingStoreProductResponseBoundary(abc.ABC):
 
 
 class UpdateStoreProductUC:
-    def __init__(self, boundary: UpdatingStoreProductResponseBoundary, uow: StoreUnitOfWork, fs: FileSystem):
+    def __init__(self, boundary: UpdatingStoreProductResponseBoundary, uow: ShopUnitOfWork, fs: FileSystem):
         self._ob = boundary
         self._uow = uow
         self._fs = fs
 
     def execute(self, dto: UpdatingStoreProductRequest) -> None:
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
                 product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)

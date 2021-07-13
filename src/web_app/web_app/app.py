@@ -7,6 +7,7 @@ from flask import Flask, Response, request, make_response
 from flask_cors import CORS
 from flask_injector import FlaskInjector
 from flask_jwt_extended import JWTManager, get_jwt, create_access_token, get_jwt_identity, set_access_cookies
+from flask_log_request_id import current_request_id, RequestID
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
@@ -125,6 +126,11 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     jwt = JWTManager()
     jwt.init_app(app)
 
+    app.config['LOG_REQUEST_ID_GENERATE_IF_NOT_FOUND'] = True
+    app.config['LOG_REQUEST_ID_LOG_ALL_REQUESTS'] = True
+    app.config['LOG_REQUEST_ID_G_OBJECT_ATTRIBUTE'] = 'current_request_id'
+    RequestID(app)
+
     @app.after_request
     def refresh_expiring_jwts(response):
         try:
@@ -139,6 +145,11 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         except (RuntimeError, KeyError):
             # Case where there is not a valid JWT. Just return the original response
             return response
+
+    @app.after_request
+    def append_request_id(response):
+        response.headers.add('X-REQUEST-ID', current_request_id())
+        return response
 
     # enable CORS
     CORS(app)

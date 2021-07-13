@@ -5,8 +5,8 @@ from flask import Response, make_response, jsonify
 from store import ResendingRegistrationConfirmationResponseBoundary, CreatingStoreWarehouseResponseBoundary, \
     CreatingStoreAddressResponseBoundary
 from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse
-from store.application.usecases.initialize.confirm_store_registration_uc import \
-    ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationResponse
+from store.application.usecases.initialize.confirm_shop_registration_uc import \
+    ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationResponse
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponse, \
     AddingStoreManagerResponseBoundary
 from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponse
@@ -26,10 +26,10 @@ class ResendingRegistrationResponsePresenter(ResendingRegistrationConfirmationRe
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class ConfirmingStoreRegistrationPresenter(ConfirmingStoreRegistrationResponseBoundary):
+class ConfirmingShopRegistrationPresenter(ConfirmingShopRegistrationResponseBoundary):
     response: Response
 
-    def present(self, response_dto: ConfirmingStoreRegistrationResponse):
+    def present(self, response_dto: ConfirmingShopRegistrationResponse):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 

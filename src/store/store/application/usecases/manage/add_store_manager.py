@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 
 
 @dataclass
@@ -26,10 +26,10 @@ class AddingStoreManagerResponseBoundary(abc.ABC):
 
 
 class AddStoreManagerUC:
-    def __init__(self, ob: AddingStoreManagerResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: AddingStoreManagerResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, input_dto: AddingStoreManagerRequest) -> None:
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             raise NotImplementedError

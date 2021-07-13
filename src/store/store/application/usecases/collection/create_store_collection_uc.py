@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise, get_catalog_from_store_or_raise, \
     GenericStoreActionResponse
 from store.domain.entities.shop import Shop
@@ -24,12 +24,12 @@ class CreatingStoreCollectionResponseBoundary(abc.ABC):
 
 
 class CreateStoreCollectionUC:
-    def __init__(self, boundary: CreatingStoreCollectionResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: CreatingStoreCollectionResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
     def execute(self, dto: CreatingStoreCollectionRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)  # type:Shop
                 catalog = get_catalog_from_store_or_raise(catalog_id=dto.catalog_id, store=store)

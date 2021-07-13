@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import injector
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 
 from foundation.events import EventMixin, Event
 from store.adapter.id_generators import generate_product_id
@@ -15,10 +15,10 @@ class CollionCreatedEvent(Event):
 
 class CollionCreatedEventHandler:
     @injector.inject
-    def __init__(self, uow: StoreUnitOfWork):
+    def __init__(self, uow: ShopUnitOfWork):
         self._uow = uow
 
-    def __call__(self, uow: StoreUnitOfWork):
+    def __call__(self, uow: ShopUnitOfWork):
         with self._uow as uow:
             try:
                 c = Collision.create()

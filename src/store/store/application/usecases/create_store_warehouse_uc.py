@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.store_warehouse import StoreWarehouseId
 
@@ -26,12 +26,12 @@ class CreatingStoreWarehouseResponseBoundary(abc.ABC):
 
 
 class CreateStoreWarehouseUC:
-    def __init__(self, boundary: CreatingStoreWarehouseResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: CreatingStoreWarehouseResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
     def execute(self, dto: CreatingStoreWarehouseRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 

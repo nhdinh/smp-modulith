@@ -13,8 +13,8 @@ from store.application.queries.store_queries import ListStoreSettingsQuery, List
     ListStoreAddressesQuery
 from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
     CreatingStoreWarehouseResponseBoundary, CreatingStoreWarehouseRequest
-from store.application.usecases.initialize.confirm_store_registration_uc import ConfirmStoreRegistrationUC, \
-    ConfirmingStoreRegistrationResponseBoundary, ConfirmingStoreRegistrationRequest
+from store.application.usecases.initialize.confirm_shop_registration_uc import ConfirmShopRegistrationUC, \
+    ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationRequest
 from store.application.usecases.initialize.register_shop_uc import RegisterShopUC, RegisteringShopResponseBoundary, \
     RegisteringShopRequest
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
@@ -29,7 +29,7 @@ from store.application.usecases.manage.upload_image_uc import UploadingImageRequ
     UploadImageUC
 from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
     SelectingStorePlanRequest
-from web_app.presenters.store_management_presenters import ConfirmingStoreRegistrationPresenter, \
+from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter, \
     SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
     ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter, CreatingStoreAddressPresenter
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
@@ -52,8 +52,8 @@ class StoreAPI(injector.Module):
 
     @injector.provider
     @flask_injector.request
-    def confirm_store_registration_boundary(self) -> ConfirmingStoreRegistrationResponseBoundary:
-        return ConfirmingStoreRegistrationPresenter()
+    def confirm_store_registration_boundary(self) -> ConfirmingShopRegistrationResponseBoundary:
+        return ConfirmingShopRegistrationPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -115,8 +115,8 @@ def resend_registration_confirmation(resend_registration_confirmation_uc: Resend
         return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
 
 
-def confirm_store_registration(confirmation_token, confirm_store_registration_uc: ConfirmStoreRegistrationUC,
-                               presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
+def confirm_store_registration(confirmation_token, confirm_store_registration_uc: ConfirmShopRegistrationUC,
+                               presenter: ConfirmingShopRegistrationResponseBoundary) -> Response:
     try:
         confirm_store_registration_uc.execute(confirmation_token)
         return presenter.response, 201  # type: ignore
@@ -129,10 +129,10 @@ def confirm_store_registration(confirmation_token, confirm_store_registration_uc
 
 
 @store_management_blueprint.route('/confirm', methods=['POST'])
-def confirm_store_registration_post(confirm_store_registration_uc: ConfirmStoreRegistrationUC,
-                                    presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
+def confirm_store_registration_post(confirm_store_registration_uc: ConfirmShopRegistrationUC,
+                                    presenter: ConfirmingShopRegistrationResponseBoundary) -> Response:
     try:
-        dto = get_dto(request, ConfirmingStoreRegistrationRequest, context={})
+        dto = get_dto(request, ConfirmingShopRegistrationRequest, context={})
         return confirm_store_registration(dto.confirmation_token, confirm_store_registration_uc, presenter)
     except Exception as exc:
         if current_app.debug:
@@ -141,8 +141,8 @@ def confirm_store_registration_post(confirm_store_registration_uc: ConfirmStoreR
 
 
 @store_management_blueprint.route('/confirm/<string:confirmation_token>', methods=['GET'])
-def confirm_store_registration_get(confirmation_token: str, confirm_store_registration_uc: ConfirmStoreRegistrationUC,
-                                   presenter: ConfirmingStoreRegistrationResponseBoundary) -> Response:
+def confirm_store_registration_get(confirmation_token: str, confirm_store_registration_uc: ConfirmShopRegistrationUC,
+                                   presenter: ConfirmingShopRegistrationResponseBoundary) -> Response:
     try:
         return confirm_store_registration(confirmation_token, confirm_store_registration_uc, presenter)
     except Exception as exc:

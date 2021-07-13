@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import StoreCollectionId
 
@@ -28,12 +28,12 @@ class UpdatingStoreCollectionResponseBoundary(abc.ABC):
 
 
 class UpdateStoreCollectionUC:
-    def __init__(self, ob: UpdatingStoreCollectionResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, ob: UpdatingStoreCollectionResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, dto: UpdatingStoreCollectionRequest):
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 

@@ -10,7 +10,7 @@ from typing import Optional as Opt, List
 from dateutil.utils import today
 from sqlalchemy.exc import IntegrityError
 
-from store.application.services.store_unit_of_work import StoreUnitOfWork
+from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import ShopProductId
 
@@ -97,12 +97,12 @@ class CreatingStoreProductResponseBoundary(abc.ABC):
 
 
 class CreateStoreProductUC:
-    def __init__(self, boundary: CreatingStoreProductResponseBoundary, uow: StoreUnitOfWork):
+    def __init__(self, boundary: CreatingStoreProductResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
     def execute(self, dto: CreatingStoreProductRequest) -> None:
-        with self._uow as uow:  # type:StoreUnitOfWork
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
