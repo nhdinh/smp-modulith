@@ -17,7 +17,7 @@ class ShopUserStatus(Enum):
     DELETED = 'DELETED'
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class ShopUser:
     user_id: ShopUserId
     email: str

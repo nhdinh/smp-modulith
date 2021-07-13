@@ -5,6 +5,7 @@ from __future__ import annotations
 import secrets
 import uuid
 from datetime import datetime
+from enum import Enum
 
 from passlib.hash import pbkdf2_sha256 as sha256
 
@@ -16,6 +17,11 @@ from identity.domain.rules.email_must_be_valid_address_rule import EmailMustBeVa
 from identity.domain.rules.email_must_not_be_empty_rule import EmailMustNotBeEmptyRule
 from identity.domain.rules.password_must_meet_requirement_rule import PasswordMustMeetRequirementRule
 from identity.domain.value_objects import UserId
+
+class UserStatus(Enum):
+    NORMAL = 'NORMAL'
+    DISABLED = 'DISABLED'
+    DELETED = 'DELETED'
 
 
 class User(EventMixin, Entity):

@@ -14,6 +14,7 @@ from store.adapter.id_generators import generate_shop_id, generate_warehouse_id,
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import AddressType
+from store.domain.entities.shop_manager import ShopUserStatus
 from store.domain.entities.shop_user_type import ShopUserType
 from store.domain.entities.shop_registration import ShopRegistration
 from store.domain.entities.value_objects import ShopStatus
@@ -42,7 +43,7 @@ shop_user_table = sa.Table(
     sa.Column('email', sa.String(255), unique=True),
     sa.Column('mobile', sa.String(255), unique=True),
     sa.Column('password', sa.String(255)),
-    sa.Column('active', sa.Boolean),
+    sa.Column('status', sa.Enum(ShopUserStatus), nullable=False, default=ShopUserStatus.NORMAL),
     sa.Column('confirmed_at', sa.DateTime),
 
     extend_existing=True

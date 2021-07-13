@@ -12,9 +12,8 @@ from store.domain.entities.setting import Setting
 from store.domain.entities.shop_address import ShopAddress, AddressType
 from store.domain.entities.shop_catalog import ShopCatalog
 from store.domain.entities.store_collection import ShopCollection
-from store.domain.entities.shop_manager import ShopManager, ShopAdmin
+from store.domain.entities.shop_manager import ShopManager, ShopAdmin, ShopUser
 from store.domain.entities.shop_user_type import ShopUserType
-from store.domain.entities.shop_user import ShopUser
 from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.store_product_brand import ShopProductBrand
 from store.domain.entities.store_product_tag import ShopProductTag

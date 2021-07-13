@@ -130,8 +130,8 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
         raise exc
 
     try:
-        from store.adapter import store_mappers
-        store_mappers.start_mappers()
+        from store.adapter import shop_mappers
+        shop_mappers.start_mappers()
     except Exception as exc:
         raise exc
 

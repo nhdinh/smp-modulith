@@ -8,7 +8,7 @@ from sqlalchemy.orm import mapper, relationship, backref
 from db_infrastructure import metadata, nanoid_generate
 from identity.domain.entities.revoked_token import RevokedToken
 from identity.domain.entities.role import Role
-from identity.domain.entities.user import User
+from identity.domain.entities.user import User, UserStatus
 
 
 def generate_user_id():
@@ -34,7 +34,7 @@ user_table = sa.Table(
     sa.Column('email', sa.String(255), unique=True),
     sa.Column('mobile', sa.String(255), unique=True),
     sa.Column('password', sa.String(255)),
-    sa.Column('active', sa.Boolean),
+    sa.Column('status', sa.Enum(UserStatus), nullable=False, default=UserStatus.NORMAL),
     sa.Column('confirmed_at', sa.DateTime),
     sa.Column('last_login_at', sa.DateTime),
     sa.Column('current_login_at', sa.DateTime),
