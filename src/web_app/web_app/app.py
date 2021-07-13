@@ -149,6 +149,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     @app.after_request
     def append_request_id(response):
         response.headers.add('X-REQUEST-ID', current_request_id())
+
         return response
 
     # enable CORS
