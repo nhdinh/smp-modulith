@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime, timezone
-from typing import Optional
+from json import JSONDecodeError
+from typing import Optional, Dict
 
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
@@ -8,6 +9,7 @@ from flask_cors import CORS
 from flask_injector import FlaskInjector
 from flask_jwt_extended import JWTManager, get_jwt, create_access_token, get_jwt_identity, set_access_cookies
 from flask_log_request_id import current_request_id, RequestID
+from jsonpickle import json
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
@@ -148,7 +150,21 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     @app.after_request
     def append_request_id(response):
-        response.headers.add('X-REQUEST-ID', current_request_id())
+        request_id = current_request_id()
+        response.headers.add('X-REQUEST-ID', request_id)
+
+        try:
+            if hasattr(response, 'data'):
+                if getattr(response, 'data') is not None:
+                    json_data = json.loads(response.data.decode('utf-8'))
+                    json_data.update({'request_id': request_id})
+                    response.data = json.dumps(json_data).encode('utf-8')
+        except JSONDecodeError:
+            pass
+
+        # update json data
+        if hasattr(response, 'json') and getattr(response, 'json') is not None:
+            response.json.update({'request_id': request_id})
 
         return response
 
