@@ -14,7 +14,7 @@ from store.adapter.shop_db import generate_warehouse_id
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop import Shop
-from store.domain.entities.shop_user import ShopUser, SystemUser, SystemUserStatus
+from store.domain.entities.shop_user import SystemUser, SystemUserStatus, ShopUser
 from store.domain.entities.shop_user_type import ShopUserType
 from store.domain.entities.store_warehouse import Warehouse
 from store.domain.entities.value_objects import ShopId
@@ -126,7 +126,7 @@ class ShopRegistration(EventMixin, Entity):
 
         return self.registration_id
 
-    def create_shop_user(self) -> ShopUser:
+    def generate_shop_admin(self) -> ShopUser:
         # check rule
         system_user = SystemUser(
             user_id=generate_user_id(),
@@ -138,21 +138,21 @@ class ShopRegistration(EventMixin, Entity):
         )
 
         return ShopUser(
-            _shop_user=system_user,
+            _system_user=system_user,
             shop_role=ShopUserType.ADMIN
         )
 
-    def create_store(self, shop_admin: ShopUser) -> Shop:
+    def generate_shop(self, shop_admin: ShopUser) -> Shop:
         if not self.registration_id.startswith('Store'):
             store_id = generate_shop_id()
         else:
             store_id = self.registration_id
 
         # check rule
-        return Shop.create_store_from_registration(
+        return Shop.create_shop_from_registration(
             shop_id=store_id,
             shop_name=self.shop_name,
-            shop_admin=shop_admin
+            first_user=shop_admin
         )
 
     def create_default_warehouse(self, store_id: ShopId, owner: ShopUser) -> Warehouse:

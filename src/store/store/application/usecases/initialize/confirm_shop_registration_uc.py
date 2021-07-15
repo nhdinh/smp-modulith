@@ -48,18 +48,18 @@ class ConfirmShopRegistrationUC:
                     raise Exception('Invalid registration')
 
                 # create the entity
-                owner = shop_registration.create_shop_user()
-                shop = shop_registration.create_store(shop_admin=owner)
+                owner = shop_registration.generate_shop_admin()
+                shop = shop_registration.generate_shop(shop_admin=owner)
                 warehouse = shop_registration.create_default_warehouse(store_id=shop.shop_id, owner=owner)
 
                 # add warehouse to store
                 shop.warehouses.add(warehouse)
-                shop_id = shop_registration.confirm()
+                shop_registration.confirm()
 
                 # persist into database
                 uow.shops.save(shop)
 
-                dto = ConfirmingShopRegistrationResponse(shop_id=shop_id, status=True)
+                dto = ConfirmingShopRegistrationResponse(shop_id=shop.shop_id, status=True)
                 self._ob.present(dto)
 
                 shop.version += 1

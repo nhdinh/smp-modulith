@@ -1,0 +1,125 @@
+openapi: "3.0.2"
+info:
+  title: SMP Selling Point
+  version: "1.0"
+servers:
+  - url: https://localhost:5000/
+
+components:
+  schemas:
+    ShopRegistrationSuccess:
+      type: object
+      properties:
+        status:
+          type: boolean
+        request_id:
+          type: string
+          format: uuid
+        registration_id:
+          type: string
+
+  securitySchemes:
+    name:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: "https://domain.test/api/oauth/dialog"
+          tokenUrl: "https://domain.test/api/oauth/token"
+          scopes:
+            read: example read scope
+            write: example write scope
+paths:
+  /shop_catalog/catalog/add:
+    post:
+      description: Add new catalog
+      operationId: smp.shopcatalog.AddCatalog
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: shop_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: partner_id
+          in: query
+          required: false
+          description: UserId of the show's owner or manager. If ShopUser logged in then the partner_id will be filled automatically, else has to submit manually.
+          schema:
+            type: string
+        - name: timestamp
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Catalog created
+  /shop/confirm:
+    post:
+      operationId: smp.common.confirmShopRegistration
+      description: Confirm shop registration with emailed information and registration token
+      parameters:
+        - name: confirmation_token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: timestamp
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Shop created. You can now login
+  /shop/register:
+    post:
+      operationId: smp.common.registerNewShop
+      parameters:
+        - name: email
+          in: query
+          description: email for registering new shop
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: password in clear text, for login
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: Name of the new shop
+          required: true
+          schema:
+            type: string
+        - name: mobile
+          in: query
+          description: mobile phone number of shop's owner
+          required: false
+          schema:
+            type: string
+        - name: timestamp
+          in: query
+          description: timestamp of the request
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: "Shop registration has been created. Need to be confirmed in order to finish the setup"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopRegistrationSuccess"
+              example:
+                status: true
+                request_id: "1f76aaed-618c-4529-8d05-37c0ae8b854e"
+                registration_id: "Shop_nJxGbzufIN9ZIGtEbe4m.EqVD6"
+        "400":
+          description: "Error while registering for a new shop"

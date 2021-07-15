@@ -6,7 +6,7 @@ import email_validator
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
 
-from store.adapter.shop_db import shop_user_table, shop_table, shop_catalog_table, shop_collection_table, \
+from store.adapter.shop_db import system_user_table, shop_table, shop_catalog_table, shop_collection_table, \
     shop_product_table, shop_product_collection_table, shop_users_table
 from store.domain.entities.shop import Shop
 from store.domain.entities.store_product import ShopProduct
@@ -20,8 +20,8 @@ def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: b
 
         q = select(shop_table.c.shop_id) \
             .join(shop_users_table, shop_table.c.shop_id == shop_users_table.c.shop_id) \
-            .join(shop_user_table, shop_users_table.c.user_id == shop_user_table.c.user_id) \
-            .where(shop_user_table.c.email == store_owner)
+            .join(system_user_table, shop_users_table.c.user_id == system_user_table.c.user_id) \
+            .where(system_user_table.c.email == store_owner)
 
         if active_only:
             q = q.where(shop_table.c.disabled == False)  # type:ignore

@@ -83,6 +83,7 @@ def get_shop_or_raise(shop_id: ShopId,
 
         if active_only and is_store_disabled(shop):
             raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
+        
 
         return shop
     except email_validator.EmailSyntaxError as exc:

@@ -12,7 +12,7 @@ from store.domain.entities.setting import Setting
 from store.domain.entities.shop_address import ShopAddress, AddressType
 from store.domain.entities.shop_catalog import ShopCatalog
 from store.domain.entities.store_collection import ShopCollection
-from store.domain.entities.shop_user import ShopUser, ShopAdmin, SystemUser
+from store.domain.entities.shop_user import SystemUser, ShopUser
 from store.domain.entities.shop_user_type import ShopUserType
 from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.store_product_brand import ShopProductBrand
@@ -25,7 +25,7 @@ from store.domain.events.store_product_events import StoreProductCreatedEvent, S
 
 
 class Shop(EventMixin):
-    def __init__(self, shop_id: ShopId, name: str, first_user: SystemUser, version: int = 0,
+    def __init__(self, shop_id: ShopId, name: str, first_user: Union[SystemUser, ShopUser], version: int = 0,
                  settings: List[Setting] = None) -> None:
         super(Shop, self).__init__()
 
@@ -41,8 +41,15 @@ class Shop(EventMixin):
         self._users = set()  # type: Set[ShopUser]
         self._admin = None
 
+        shop_admin = None
         if first_user is not None:
-            shop_admin = ShopAdmin(_shop_user=first_user)
+            if isinstance(first_user, ShopUser):
+                shop_admin = first_user
+                shop_admin.shop_role = ShopUserType.ADMIN
+            elif isinstance(first_user, SystemUser):
+                shop_admin = ShopUser(_system_user=first_user, shop_role=ShopUserType.ADMIN)
+
+        if shop_admin:
             self._users.add(shop_admin)
             self._admin = shop_admin
         else:
@@ -127,9 +134,7 @@ class Shop(EventMixin):
     def _default_settings(self) -> Set[Setting]:
         _settings = set()  # type: Set[Setting]
         _settings.add(Setting('default_page_size', '10', 'int'))
-        _settings.add(Setting('default_catalog_reference', 'unassigned_catalog', 'str'))
         _settings.add(Setting('default_catalog_display_name', 'Chưa phân loại', 'str'))
-        _settings.add(Setting('default_collection_reference', 'unassigned_collection', 'str'))
         _settings.add(Setting('default_collection_display_name', 'Chưa phân loại', 'str'))
         _settings.add(Setting('default_currency', 'VND', 'str'))
 
@@ -139,12 +144,13 @@ class Shop(EventMixin):
 
     # region ## Creating new store ##
     @classmethod
-    def create_store_from_registration(cls, shop_id: ShopId, shop_name: str, shop_admin: SystemUser) -> "Shop":
+    def create_shop_from_registration(cls, shop_id: ShopId, shop_name: str,
+                                      first_user: Union[SystemUser, ShopUser]) -> "Shop":
         # create the store from registration data
         store = Shop(
             shop_id=shop_id,
             name=shop_name,
-            first_user=shop_admin
+            first_user=first_user
         )
 
         # raise event

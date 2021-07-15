@@ -36,7 +36,7 @@ shop_registration_table = sa.Table(
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
 )
 
-shop_user_table = sa.Table(
+system_user_table = sa.Table(
     'user',
     metadata,
     sa.Column('user_id', sa.String(40), primary_key=True, default=generate_user_id),
@@ -64,11 +64,11 @@ shop_users_table = sa.Table(
     'shop_user',
     metadata,
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('user_id', sa.ForeignKey(shop_user_table.c.user_id, ondelete='SET NULL', onupdate='SET NULL'),
+    sa.Column('user_id', sa.ForeignKey(system_user_table.c.user_id, ondelete='SET NULL', onupdate='SET NULL'),
               unique=True),
     sa.Column('shop_role', sa.Enum(ShopUserType), default=ShopUserType.MANAGER),
 
-    sa.PrimaryKeyConstraint('shop_id', 'user_id', name='shop_managers_pk'),
+    sa.PrimaryKeyConstraint('shop_id', 'user_id', name='shop_users_pk'),
 )
 
 shop_warehouse_table = sa.Table(

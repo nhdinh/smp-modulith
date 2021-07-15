@@ -8,7 +8,7 @@ from typing import NewType
 
 from store.domain.entities.shop_user_type import ShopUserType
 
-ShopUserId = NewType("ShopUserId", tp=str)
+SystemUserId = NewType("SystemUserId", tp=str)
 
 
 class SystemUserStatus(Enum):
@@ -19,7 +19,7 @@ class SystemUserStatus(Enum):
 
 @dataclass
 class SystemUser:
-    user_id: ShopUserId
+    user_id: SystemUserId
     email: str
     mobile: str
     hashed_password: str
@@ -30,36 +30,27 @@ class SystemUser:
         return hash(self.email)
 
 
-@dataclass
-class ShopUserBase:
-    _shop_user: SystemUser
+@dataclass(unsafe_hash=True)
+class ShopUser:
+    _system_user: SystemUser
+    shop_role: ShopUserType
 
     @property
-    def user_id(self) -> ShopUserId:
-        return self._shop_user.user_id
+    def system_user_id(self) -> SystemUserId:
+        return self._system_user.user_id
 
     @property
     def email(self) -> str:
-        return self._shop_user.email
+        return self._system_user.email
 
     @property
     def mobile(self) -> str:
-        return self._shop_user.mobile
+        return self._system_user.mobile
 
     @property
     def confirmed_at(self) -> datetime:
-        return self._shop_user.confirmed_at
+        return self._system_user.confirmed_at
 
     @property
     def status(self) -> SystemUserStatus:
-        return self._shop_user.status
-
-
-@dataclass(unsafe_hash=True)
-class ShopUser(ShopUserBase):
-    shop_role: ShopUserType = ShopUserType.MANAGER
-
-
-@dataclass(unsafe_hash=True)
-class ShopAdmin(ShopUserBase):
-    shop_role: ShopUserType = ShopUserType.ADMIN
+        return self._system_user.status

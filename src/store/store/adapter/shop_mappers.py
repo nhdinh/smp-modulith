@@ -3,7 +3,7 @@
 from sqlalchemy.orm import mapper, relationship, backref
 
 from foundation.value_objects.address import LocationAddress
-from store.adapter.shop_db import shop_settings_table, shop_registration_table, shop_user_table, shop_table, \
+from store.adapter.shop_db import shop_settings_table, shop_registration_table, system_user_table, shop_table, \
     shop_users_table, shop_catalog_table, shop_product_table, \
     shop_product_unit_table, shop_brand_table, shop_product_tag_table, shop_collection_table, \
     shop_product_collection_table, shop_warehouse_table, shop_product_supplier_table, shop_supplier_table, \
@@ -15,7 +15,7 @@ from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import ShopAddress
 from store.domain.entities.shop_catalog import ShopCatalog
 from store.domain.entities.store_collection import ShopCollection
-from store.domain.entities.shop_user import ShopUser, SystemUser
+from store.domain.entities.shop_user import SystemUser, ShopUser
 from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.store_product_brand import ShopProductBrand
 from store.domain.entities.store_product_tag import ShopProductTag
@@ -45,8 +45,8 @@ def start_mappers():
     )
 
     mapper(
-        SystemUser, shop_user_table, properties={
-            'hashed_password': shop_user_table.c.password
+        SystemUser, system_user_table, properties={
+            'hashed_password': system_user_table.c.password
         })
 
     mapper(
@@ -148,7 +148,7 @@ def start_mappers():
     })
 
     mapper(ShopUser, shop_users_table, properties={
-        'shop_user': relationship(
+        '_system_user': relationship(
             SystemUser
         ),
     })
@@ -177,7 +177,6 @@ def start_mappers():
 
             '_users': relationship(
                 ShopUser,
-                # secondary=store_managers_table,
                 collection_class=set,
             ),
 

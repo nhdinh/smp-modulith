@@ -4,10 +4,10 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
+from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
+
 from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
-from store.domain.entities.shop_catalog import StoreCatalogReference
-from store.domain.entities.store_collection import StoreCollectionReference
 
 
 @dataclass
@@ -24,8 +24,8 @@ class RemovingStoreCollectionResponseBoundary(abc.ABC):
 @dataclass
 class RemovingStoreCollectionRequest:
     current_user: str
-    catalog_reference: StoreCatalogReference
-    collection_reference: StoreCollectionReference
+    catalog_id: StoreCatalogId
+    collection_id: StoreCollectionId
     remove_completely: Optional[bool] = False
 
 
@@ -37,14 +37,17 @@ class RemoveStoreCollectionUC:
     def execute(self, dto: RemovingStoreCollectionRequest) -> None:
         with self._uow as uow:  # type: ShopUnitOfWork
             try:
-                store = get_shop_or_raise(store_owner=dto.current_user)
-                store.delete_collection(collection_reference=dto.collection_reference,
-                                        catalog_reference=dto.catalog_reference,
-                                        remove_completely=dto.remove_completely)
+                raise NotImplementedError
 
-                response = RemovingStoreCollectionResponse(status=True)
-                self._ob.present(response=response)
-
-                uow.commit()
+                # TODO: Fix this
+                # store = get_shop_or_raise(store_owner=dto.current_user)
+                # store.delete_collection(collection_reference=dto.collection_reference,
+                #                         catalog_reference=dto.catalog_reference,
+                #                         remove_completely=dto.remove_completely)
+                #
+                # response = RemovingStoreCollectionResponse(status=True)
+                # self._ob.present(response=response)
+                #
+                # uow.commit()
             except Exception as exc:
                 raise exc

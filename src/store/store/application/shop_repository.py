@@ -3,10 +3,11 @@
 import abc
 from typing import Optional
 
+from store.domain.entities.shop_user import ShopUser, SystemUser
+
 from foundation.repository import AbstractRepository
 from store.domain.entities.shop import Shop
-from store.domain.entities.shop_user import ShopUser
-from store.domain.entities.shop_user import ShopUser
+
 from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.shop_registration import ShopRegistration
 from store.domain.entities.value_objects import ShopId, ShopProductId
@@ -43,8 +44,8 @@ class SqlAlchemyShopRepository(AbstractShopRepository):
         :param email:
         """
         return self._sess.query(Shop) \
-            .join(ShopUser, Shop._managers) \
-            .join(ShopUser, ShopUser.shop_user).filter(ShopUser.email == email).first()
+            .join(ShopUser, Shop._users) \
+            .join(SystemUser, ShopUser._system_user).filter(SystemUser.email == email).first()
 
     def get_product_by_id(self, product_id: ShopProductId):
         return self._sess.query(ShopProduct).filter(ShopProduct.product_id == product_id).first()
