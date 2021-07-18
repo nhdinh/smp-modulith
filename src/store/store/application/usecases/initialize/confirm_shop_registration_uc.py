@@ -5,19 +5,19 @@ from dataclasses import dataclass
 
 from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.shop_registration import ShopRegistration
-from store.domain.entities.value_objects import ShopId
+from store.domain.entities.shop_registration import ShopRegistration, ShopRegistrationId
+from web_app.serialization.dto import BaseInputDto
 
 
 @dataclass
-class ConfirmingShopRegistrationRequest:
+class ConfirmingShopRegistrationRequest(BaseInputDto):
     confirmation_token: str
 
 
 @dataclass
 class ConfirmingShopRegistrationResponse:
-    shop_id: ShopId
-    status: bool
+    registration_id: ShopRegistrationId
+    status: RegistrationStatus
 
 
 class ConfirmingShopRegistrationResponseBoundary(abc.ABC):
@@ -35,34 +35,36 @@ class ConfirmShopRegistrationUC:
         self._ob = ob
         self._uow = uow
 
-    def execute(self, confirmation_token: str):
+    def execute(self, dto: ConfirmingShopRegistrationRequest):
         with self._uow as uow:  # type: ShopUnitOfWork
             try:
                 shop_registration = uow.shops.get_registration_by_token(
-                    token=confirmation_token
+                    token=dto.confirmation_token
                 )  # type: ShopRegistration
                 if not shop_registration:
                     raise Exception('Registration not existed')
 
-                if shop_registration.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION:
-                    raise Exception('Invalid registration')
+                # TODO: Remove this
+                # if shop_registration.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION:
+                #     raise Exception('Invalid registration')
 
                 # create the entity
-                owner = shop_registration.generate_shop_admin()
-                shop = shop_registration.generate_shop(shop_admin=owner)
-                warehouse = shop_registration.create_default_warehouse(store_id=shop.shop_id, owner=owner)
-
-                # add warehouse to store
-                shop.warehouses.add(warehouse)
                 shop_registration.confirm()
 
-                # persist into database
-                uow.shops.save(shop)
+                # owner = shop_registration.generate_shop_admin()
+                # shop = shop_registration.create_shop(shop_admin=owner)
+                # warehouse = shop_registration.create_default_warehouse(store_id=shop.shop_id, owner=owner)
 
-                dto = ConfirmingShopRegistrationResponse(shop_id=shop.shop_id, status=True)
+                # add warehouse to store
+                # shop.warehouses.add(warehouse)
+
+                # persist into database
+
+                dto = ConfirmingShopRegistrationResponse(registration_id=shop_registration.registration_id,
+                                                         status=shop_registration.status)
                 self._ob.present(dto)
 
-                shop.version += 1
+                shop_registration.version += 1
 
                 uow.commit()
             except Exception as exc:

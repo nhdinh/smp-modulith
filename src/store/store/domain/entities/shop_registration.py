@@ -3,31 +3,29 @@
 from __future__ import annotations
 
 import secrets
+import uuid
 from datetime import datetime, timedelta
 from typing import NewType
 
+from foundation.domain_events.shop_events import ShopRegistrationConfirmedEvent, ShopRegisteredEvent, \
+    ShopRegistrationResendEvent
 from foundation.entity import Entity
-from foundation.events import EventMixin
-from identity.adapters.identity_db import generate_user_id
-from store.adapter.id_generators import generate_shop_id
-from store.adapter.shop_db import generate_warehouse_id
+from foundation.events import EventMixin, EveryModuleMustCatchThisEvent
+from inventory.adapter.id_generators import generate_warehouse_id
+from store.adapter.id_generators import generate_shop_id, SHOP_ID_PREFIX
 from store.application.services.user_counter_services import UserCounters
 from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop import Shop
-from store.domain.entities.shop_user import SystemUser, SystemUserStatus, ShopUser
+from store.domain.entities.shop_user import ShopUser, SystemUserId
 from store.domain.entities.shop_user_type import ShopUserType
-from store.domain.entities.store_warehouse import Warehouse
+from store.domain.entities.store_warehouse import ShopWarehouse
 from store.domain.entities.value_objects import ShopId
-from store.domain.events.shop_registered_event import ShopRegisteredEvent, ShopRegistrationResendEvent
 from store.domain.rules.shop_name_must_not_be_empty_rule import ShopNameMustNotBeEmptyRule
-from store.domain.rules.store_registration_must_have_valid_expiration_rule import \
-    StoreRegistrationMustHaveValidExpirationRule
-from store.domain.rules.store_registration_must_have_valid_token_rule import StoreRegistrationMustHaveValidTokenRule
 from store.domain.rules.user_email_must_be_unique_rule import UserEmailMustBeUniqueRule
 from store.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
 from store.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
 
-ShopRegistrationId = NewType("RegistrationId", tp=str)
+ShopRegistrationId = NewType("ShopRegistrationId", tp=str)
 
 
 class ShopRegistration(EventMixin, Entity):
@@ -71,10 +69,11 @@ class ShopRegistration(EventMixin, Entity):
 
         # add domain event
         self._record_event(ShopRegisteredEvent(
-            self.registration_id,
-            self.shop_name,
-            self.owner_email,
-            self.confirmation_token
+            event_id=uuid.uuid4(),
+            registration_id=self.registration_id,
+            shop_name=self.shop_name,
+            owner_email=self.owner_email,
+            confirmation_token=self.confirmation_token
         ))
 
     @property
@@ -118,32 +117,36 @@ class ShopRegistration(EventMixin, Entity):
 
         :return:
         """
-        self.check_rule(StoreRegistrationMustHaveValidTokenRule(registration=self))
-        self.check_rule(StoreRegistrationMustHaveValidExpirationRule(registration=self))
+        # TODO: Remove this
+        # self.check_rule(StoreRegistrationMustHaveValidTokenRule(registration=self))
+        # self.check_rule(StoreRegistrationMustHaveValidExpirationRule(registration=self))
 
-        self.status = RegistrationStatus.REGISTRATION_CONFIRMED
-        self.confirmed_at = datetime.today()
+        self.status = RegistrationStatus.REGISTRATION_CONFIRMED_YET_COMPLETED
+        self.confirmed_at = datetime.now()
+
+        # emit the event
+        self._record_event(ShopRegistrationConfirmedEvent(
+            event_id=uuid.uuid4(),
+            registration_id=self.registration_id,
+            user_email=self.owner_email,
+            user_hashed_password=self.owner_password,
+            mobile=self.owner_mobile
+        ))
+
+        self._record_event(EveryModuleMustCatchThisEvent(event_id=uuid.uuid4()))
 
         return self.registration_id
 
-    def generate_shop_admin(self) -> ShopUser:
-        # check rule
-        system_user = SystemUser(
-            user_id=generate_user_id(),
-            email=self.owner_email,
-            mobile=self.owner_mobile,
-            status=SystemUserStatus.NORMAL,
-            hashed_password=self.owner_password,
-            confirmed_at=datetime.now(),
-        )
-
+    def generate_shop_admin(self, user_id: SystemUserId, email: str, mobile: str) -> ShopUser:
         return ShopUser(
-            _system_user=system_user,
+            user_id=user_id,
+            email=email,
+            mobile=mobile,
             shop_role=ShopUserType.ADMIN
         )
 
-    def generate_shop(self, shop_admin: ShopUser) -> Shop:
-        if not self.registration_id.startswith('Store'):
+    def create_shop(self, shop_admin: ShopUser) -> 'Shop':
+        if not self.registration_id.startswith(SHOP_ID_PREFIX):
             store_id = generate_shop_id()
         else:
             store_id = self.registration_id
@@ -155,13 +158,13 @@ class ShopRegistration(EventMixin, Entity):
             first_user=shop_admin
         )
 
-    def create_default_warehouse(self, store_id: ShopId, owner: ShopUser) -> Warehouse:
+    def create_default_warehouse(self, store_id: ShopId, owner: ShopUser) -> ShopWarehouse:
         if not self.registration_id.startswith('Warehouse'):
             store_id = generate_warehouse_id()
         else:
             store_id = self.registration_id
 
-        return Warehouse(
+        return ShopWarehouse(
             warehouse_id=store_id,
             store_id=store_id,
             warehouse_owner=owner.email,

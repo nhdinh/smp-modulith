@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime, timezone
 from json import JSONDecodeError
-from typing import Optional, Dict
+from typing import Optional
 
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
@@ -15,18 +15,16 @@ from sqlalchemy.orm import Session
 
 from main import bootstrap_app
 from main.modules import RequestScope
-from web_app.blueprints.auctions import AuctionsWeb, auctions_blueprint
 from web_app.blueprints.auth_bp import auth_blueprint, AuthenticationAPI
-from web_app.blueprints.brand import brand_blueprint
 from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
 from web_app.blueprints.inventory_bp import inventory_blueprint, InventoryAPI
 from web_app.blueprints.product_bp import product_blueprint, ProductAPI
-from web_app.blueprints.shipping import shipping_blueprint
 from web_app.blueprints.shop_bp import shop_blueprint, ShopAPI
 from web_app.blueprints.shop_catalog_bp import ShopCatalogAPI, shop_catalog_blueprint
+from web_app.blueprints.shop_product_bp import shop_product_blueprint, ShopProductAPI
 from web_app.blueprints.store_catalog_bp import store_catalog_blueprint, StoreCatalogAPI, \
     store_catalog_blueprint_endpoint_callers, STORE_CATALOG_BLUEPRINT_NAME
-from web_app.blueprints.store_management_bp import store_management_blueprint, StoreAPI
+from web_app.blueprints.store_management_bp import store_management_blueprint, ShopAPI
 from web_app.json_encoder import JSONEncoder
 from web_app.openapi import docs
 
@@ -51,13 +49,13 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.register_blueprint(auth_blueprint, url_prefix='/user')
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
     app.register_blueprint(product_blueprint, url_prefix='/product')
-    app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
-    app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
-    app.register_blueprint(brand_blueprint, url_prefix='/brand')
+    # app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
+    # app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
     app.register_blueprint(store_management_blueprint, url_prefix='/manage-store')
 
     app.register_blueprint(shop_blueprint, url_prefix='/shop')
-    app.register_blueprint(shop_catalog_blueprint, url_prefix='/shop_catalog')
+    app.register_blueprint(shop_catalog_blueprint, url_prefix='/shop/catalog')
+    app.register_blueprint(shop_product_blueprint, url_prefix='/shop/product')
     app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
     app.register_blueprint(inventory_blueprint, url_prefix='/inventory')
     for _handler in store_catalog_blueprint_endpoint_callers:
@@ -76,13 +74,14 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app_context = bootstrap_app()
     FlaskInjector(app, modules=[
         AuthenticationAPI(),
-        AuctionsWeb(),
+        # AuctionsWeb(),
         CatalogAPI(),
         ProductAPI(),
-        StoreAPI(),
 
         ShopAPI(),
+
         ShopCatalogAPI(),
+        ShopProductAPI(),
 
         StoreCatalogAPI(),
         InventoryAPI(),

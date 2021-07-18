@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 
-from db_infrastructure import metadata, GUID
+from db_infrastructure import metadata
 from foundation.value_objects.address import LocationAddress, LocationCountry, LocationCityDivision, \
     LocationCitySubDivision, LocationCity, generate_country_id, generate_city_id, generate_division_id, \
     generate_sub_division_id, generate_address_id

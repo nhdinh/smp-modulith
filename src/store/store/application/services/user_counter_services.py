@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import select, func
+# from sqlalchemy import select, func
 from sqlalchemy.engine import Connection
 
 
@@ -9,9 +9,10 @@ class UserCounters:
         self._conn = conn
 
     def count(self, email: str):
-        from store.adapter import shop_db
-
-        return self._conn.scalar(
-            select([func.count()]).select_from(shop_db.system_user_table).where(
-                shop_db.system_user_table.c.email == email)
-        )
+        # from store.adapter import shop_db
+        #
+        # return self._conn.scalar(
+        #     select([func.count()]).select_from(shop_db.system_user_table).where(
+        #         shop_db.system_user_table.c.email == email)
+        # )
+        return -1

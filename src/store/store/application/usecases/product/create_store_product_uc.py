@@ -13,6 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
 from store.domain.entities.value_objects import ShopProductId
+from web_app.serialization.dto import BaseShopInputDto
 
 
 @dataclass(frozen=True)
@@ -45,10 +46,8 @@ class CreatingStoreSupplierRequest:
     purchase_prices: Opt[List[CreatingProductPriceRequest]] = field(default_factory=list)
 
 
-@dataclass(frozen=True)
-class CreatingStoreProductRequest:
-    current_user: str
-
+@dataclass
+class AddingShopProductRequest(BaseShopInputDto):
     # product data (mandatory)
     title: str
     sku: str
@@ -71,7 +70,7 @@ class CreatingStoreProductRequest:
 
     # catalog & collection (optional)
     catalog: Opt[str] = None
-    collections: Opt[List[str]] = field(default_factory=list),
+    collections: Opt[List[str]] = field(default_factory=list)
 
     # threshold(s)
     restock_threshold: Opt[int] = 0
@@ -86,25 +85,25 @@ class CreatingStoreProductRequest:
 
 
 @dataclass
-class CreatingStoreProductResponse:
+class AddingShopProductResponse:
     product_id: ShopProductId
 
 
-class CreatingStoreProductResponseBoundary(abc.ABC):
+class AddingShopProductResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, response_dto: CreatingStoreProductResponse):
+    def present(self, response_dto: AddingShopProductResponse):
         raise NotImplementedError
 
 
 class CreateStoreProductUC:
-    def __init__(self, boundary: CreatingStoreProductResponseBoundary, uow: ShopUnitOfWork):
+    def __init__(self, boundary: AddingShopProductResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
-    def execute(self, dto: CreatingStoreProductRequest) -> None:
+    def execute(self, dto: AddingShopProductRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
 
                 product_data = dict()
                 product_data_fields = [
@@ -211,7 +210,7 @@ class CreateStoreProductUC:
                 product = store.create_product(**product_data)
 
                 # make response
-                response_dto = CreatingStoreProductResponse(
+                response_dto = AddingShopProductResponse(
                     product_id=product.product_id,
                 )
                 self._ob.present(response_dto=response_dto)

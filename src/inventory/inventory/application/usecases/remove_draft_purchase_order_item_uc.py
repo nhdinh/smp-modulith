@@ -3,13 +3,12 @@
 import abc
 from dataclasses import dataclass
 
+from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.const import ExceptionMessages
 from inventory.application.usecases.inventory_uc_common import get_warehouse_by_owner_or_raise, \
     get_draft_purchase_order_from_warehouse_or_raise
-from inventory.domain.entities.warehouse import Warehouse
-
-from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrderId
+from inventory.domain.entities.warehouse import Warehouse
 from store.application.usecases.const import ThingGoneInBlackHoleError
 from store.domain.entities.value_objects import ShopProductId
 

@@ -86,7 +86,7 @@ class StoreRegistrationConfirmationEmail(Email):
 
     @property
     def text(self) -> str:
-        return f'Somene take your email to register for the store {self.store_name}. If this is your registration, ' \
+        return f'Someone take your email to register for the store {self.store_name}. If this is your registration, ' \
                f'please click the link below to confirm. {self.confirmation_token} '
 
     @property

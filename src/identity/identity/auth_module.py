@@ -13,11 +13,6 @@ from identity.application.usecases.request_to_change_password_uc import RequestT
     RequestingToChangePasswordResponseBoundary
 from identity.application.usecases.revoke_token import RevokingTokenUC
 
-__all__ = [
-    # module
-    'AuthenticationModule'
-]
-
 
 class AuthenticationModule(injector.Module):
     @injector.provider

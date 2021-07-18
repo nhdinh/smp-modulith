@@ -30,6 +30,9 @@ def config_path(tmp_path_factory: TempPathFactory) -> str:
                 "EMAIL_FROM_ADDRESS=auctions@cleanarchitecture.io\n",
                 "REDIS_HOST=localhost\n",
                 f"DB_DSN=sqlite:///{db_dir}/db.sqlite\n",
+                "MINIO_HOST=minio:9000\n",
+                "MINIO_ACCESS_KEY=Q3AM3UQ867\n",
+                "MINIO_SECRET_KEY=Vh5smyLeyCZd^$4m9pmb7T16!DwyU18kvPJFiCSG\n",
             ]
         )
     return str(conf_file_path)
@@ -43,8 +46,10 @@ def app(config_path: str) -> Flask:
         "SECURITY_PASSWORD_HASH": "plaintext",
         "SECURITY_HASHING_SCHEMES": ["hex_md5"],
         "SECURITY_DEPRECATED_HASHING_SCHEMES": [],
+        "TESTING": True,
     }
-    return create_app(settings_to_override)
+    app = create_app(settings_to_override)
+    yield app
 
 
 @pytest.fixture()

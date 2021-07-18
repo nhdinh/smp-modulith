@@ -9,14 +9,17 @@ from enum import Enum
 
 from passlib.hash import pbkdf2_sha256 as sha256
 
+from foundation.domain_events.identity_events import UserCreatedEvent
 from foundation.entity import Entity
 from foundation.events import EventMixin
+from identity.adapters.id_generator import generate_user_id
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
 from identity.domain.rules.email_must_be_valid_address_rule import EmailMustBeValidAddressRule
 from identity.domain.rules.email_must_not_be_empty_rule import EmailMustNotBeEmptyRule
 from identity.domain.rules.password_must_meet_requirement_rule import PasswordMustMeetRequirementRule
 from identity.domain.value_objects import UserId
+
 
 class UserStatus(Enum):
     NORMAL = 'NORMAL'
@@ -32,7 +35,7 @@ class User(EventMixin, Entity):
             self,
             user_id: UserId,
             email: str,
-            password: str,
+            hashed_password: str,
             **kwargs
     ):
         super(User, self).__init__()
@@ -40,35 +43,51 @@ class User(EventMixin, Entity):
         # check rules
         self.check_rule(EmailMustNotBeEmptyRule(email=email))
         self.check_rule(EmailMustBeValidAddressRule(email=email))
-        self.check_rule(PasswordMustMeetRequirementRule(password=password))
+        # self.check_rule(PasswordMustMeetRequirementRule(password=password))
 
         self.user_id = user_id
         self.email = email
-        self.password = User.generate_hash(plain_string=password)
-        self.active = True
+        self.mobile = kwargs.get('mobile', '')
+
+        self.password = hashed_password
+        self.status = UserStatus.NORMAL
 
         # set roles
         self._roles = set()
 
+        # set time data
+        self.confirmed_at = datetime.now()
+        self.current_login_at = datetime.now()
+        self.current_login_ip = ''
+        self.login_count = 0
+
         # change password token
-        self.reset_password_token = None
+        self.reset_password_token = ''
         self.request_reset_password_at = None
 
-    @property
-    def id(self) -> UserId:
-        return self.user_id
+        self._record_event(UserCreatedEvent(
+            event_id=uuid.uuid4(),
+            user_id=self.user_id,
+            email=self.email,
+            mobile=self.mobile,
+            created_at=datetime.now(),
+        ))
 
     @staticmethod
     def create(
             email: str,
-            plain_password: str,
+            mobile: str,
+            password: str,
+            is_plain_password: bool = True,
     ) -> User:
+        if is_plain_password:
+            password = User.generate_hash(password)
+
         return User(
-            user_id=uuid.uuid4(),
+            user_id=generate_user_id(),
             email=email,
-            password=plain_password,
-            registered_on=datetime.now(),
-            admin=False
+            hashed_password=password,
+            mobile=mobile,
         )
 
     @staticmethod
@@ -124,7 +143,7 @@ class User(EventMixin, Entity):
         self.password = User.generate_hash(new_password)
 
         # remove token
-        self.reset_password_token = None
+        self.reset_password_token = ''
         self.request_reset_password_at = None
 
         self._record_event(PasswordResettedEvent(

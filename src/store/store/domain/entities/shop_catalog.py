@@ -5,9 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Set, Optional
 
-from store.domain.entities.value_objects import StoreCollectionId
-
 from store.domain.entities.store_collection import ShopCollection
+from store.domain.entities.value_objects import StoreCollectionId
 
 
 @dataclass(unsafe_hash=True)

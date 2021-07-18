@@ -3,13 +3,11 @@
 import abc
 from typing import Optional
 
-from store.domain.entities.shop_user import ShopUser, SystemUser
-
 from foundation.repository import AbstractRepository
 from store.domain.entities.shop import Shop
-
-from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.shop_registration import ShopRegistration
+from store.domain.entities.shop_user import ShopUser, SystemUser
+from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.value_objects import ShopId, ShopProductId
 
 
@@ -35,7 +33,7 @@ class SqlAlchemyShopRepository(AbstractShopRepository):
     def get_registration_by_token(self, token):
         return self._sess.query(ShopRegistration).filter(ShopRegistration.confirmation_token == token).first()
 
-    def get_registration_by_email(self, email: str):
+    def get_registration_by_email(self, email: str) -> Optional[ShopRegistration]:
         return self._sess.query(ShopRegistration).filter(ShopRegistration.owner_email == email).first()
 
     def get_shop_by_email(self, email: str) -> Shop:
@@ -45,7 +43,11 @@ class SqlAlchemyShopRepository(AbstractShopRepository):
         """
         return self._sess.query(Shop) \
             .join(ShopUser, Shop._users) \
-            .join(SystemUser, ShopUser._system_user).filter(SystemUser.email == email).first()
+            .join(SystemUser, ShopUser.user_id == SystemUser.user_id).filter(SystemUser.email == email).first()
+
+    def get_shop_by_admin_id(self, user_id: str) -> Optional[Shop]:
+        return self._sess.query(Shop) \
+            .join(ShopUser, Shop._users).filter(ShopUser.user_id == user_id).first()
 
     def get_product_by_id(self, product_id: ShopProductId):
         return self._sess.query(ShopProduct).filter(ShopProduct.product_id == product_id).first()

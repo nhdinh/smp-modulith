@@ -6,48 +6,51 @@ from typing import Optional
 
 from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
+from store.domain.entities.value_objects import ShopCatalogId
+from web_app.serialization.dto import BaseShopInputDto
 
 
 @dataclass
-class RemovingStoreCatalogRequest:
-    current_user: str
-    catalog_reference: str
+class RemovingShopCatalogRequest(BaseShopInputDto):
+    catalog_id: ShopCatalogId
     remove_completely: Optional[bool] = False
 
 
 @dataclass
-class RemovingStoreCatalogResponse:
+class RemovingShopCatalogResponse:
     status: bool
 
 
-class RemovingStoreCatalogResponseBoundary(abc.ABC):
+class RemovingShopCatalogResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, response: RemovingStoreCatalogResponse):
+    def present(self, response: RemovingShopCatalogResponse):
         raise NotImplementedError
 
 
-class RemoveStoreCatalogUC:
-    def __init__(self, boundary: RemovingStoreCatalogResponseBoundary, uow: ShopUnitOfWork):
+class RemoveShopCatalogUC:
+    def __init__(self, boundary: RemovingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
-    def execute(self, dto: RemovingStoreCatalogRequest) -> None:
+    def execute(self, dto: RemovingShopCatalogRequest) -> None:
         with self._uow as uow:  # type: ShopUnitOfWork
             try:
                 # get input
                 remove_completely = dto.remove_completely
 
                 # get store
-                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
 
                 # delete catalog
-                store.delete_store_catalog(
-                    catalog_reference=dto.catalog_reference,
+                catalog_to_del = shop.delete_shop_catalog(
+                    catalog_id=dto.catalog_id,
                     remove_completely=remove_completely
                 )
 
+                uow.session.delete(catalog_to_del)
+
                 # release the dto
-                response = RemovingStoreCatalogResponse(status=True)
+                response = RemovingShopCatalogResponse(status=True)
                 self._ob.present(response)
 
                 # commit

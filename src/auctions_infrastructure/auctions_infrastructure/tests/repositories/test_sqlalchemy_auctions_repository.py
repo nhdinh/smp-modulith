@@ -54,7 +54,7 @@ def expired_auction(connection: Connection, past_date: datetime) -> RowProxy:
             }
         )
     )
-    return connection.execute(auctions.select(whereclause=auctions.c.id == 0)).first()
+    return connection.execute(auctions.select(whereclause=auctions.c.user_id == 0)).first()
 
 
 @pytest.fixture()
@@ -74,7 +74,7 @@ def auction_model_with_a_bid(
         )
     )
     connection.execute(bids.insert().values({"amount": winning_bid_amount, "auction_id": 1, "bidder_id": bidder_id}))
-    return connection.execute(auctions.select(whereclause=auctions.c.id == 1)).first()
+    return connection.execute(auctions.select(whereclause=auctions.c.user_id == 1)).first()
 
 
 @pytest.fixture()
@@ -125,7 +125,7 @@ def test_saves_auction_changes(
     SqlAlchemyAuctionsRepo(connection, event_bus_mock).save(auction)
 
     assert connection.execute(select([func.count()]).select_from(bids)).scalar() == 2
-    proxy = connection.execute(select([auctions]).where(auctions.c.id == auction_model_with_a_bid.id)).first()
+    proxy = connection.execute(select([auctions]).where(auctions.c.user_id == auction_model_with_a_bid.id)).first()
     assert proxy.current_price == new_bid_price.amount
     assert proxy.ended
 

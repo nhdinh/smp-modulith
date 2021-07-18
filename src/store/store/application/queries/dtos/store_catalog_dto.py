@@ -7,12 +7,12 @@ from typing import List, Union
 from sqlalchemy.engine.row import RowProxy
 
 from store.application.queries.dtos.store_collection_dto import StoreCollectionDto, _row_to_collection_dto
-from store.domain.entities.value_objects import StoreCatalogId
+from store.domain.entities.value_objects import ShopCatalogId
 
 
 @dataclass
 class StoreCatalogResponseCompactedDto:
-    catalog_id: StoreCatalogId
+    catalog_id: ShopCatalogId
     catalog_title: str
     catalog_image: str
     is_catalog_disabled: bool

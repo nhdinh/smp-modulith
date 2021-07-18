@@ -3,14 +3,13 @@
 import abc
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import List, Union, TYPE_CHECKING, Optional
+from typing import List, Union, TYPE_CHECKING
 
 from foundation.value_objects.address import LocationAddressId
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.inventory_uc_common import get_warehouse_by_owner_or_raise
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
-from store.domain.entities.collision import Collision
 from store.domain.entities.value_objects import StoreSupplierId, ShopProductId
 
 if TYPE_CHECKING:

@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 import factory
 
+from identity.application.usecases.log_user_in import LoggingUserInRequest
+
 
 @dataclass
 class CreatingUserRequest:
@@ -16,4 +18,12 @@ class CreatingUserRequestFactory(factory.Factory):
         model = CreatingUserRequest
 
     email = factory.Faker('email')
+    password = 'Abc123@'
+
+
+class CreatingLoginRequestFactory(factory.Factory):
+    class Meta:
+        model = LoggingUserInRequest
+
+    username = factory.Faker('email')
     password = 'Abc123@'

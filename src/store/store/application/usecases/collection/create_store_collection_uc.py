@@ -7,13 +7,13 @@ from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise, get_catalog_from_store_or_raise, \
     GenericStoreActionResponse
 from store.domain.entities.shop import Shop
-from store.domain.entities.value_objects import StoreCatalogId
+from store.domain.entities.value_objects import ShopCatalogId
 
 
 @dataclass
 class CreatingStoreCollectionRequest:
     current_user: str
-    catalog_id: StoreCatalogId
+    catalog_id: ShopCatalogId
     title: str
 
 

@@ -7,17 +7,16 @@ from typing import Set
 import email_validator
 from sqlalchemy import select
 
-from foundation.common_helpers import uuid_validate
-from foundation.database_setup import location_country_table, location_city_sub_division_table
 from foundation.uow import SqlAlchemyUnitOfWork
 from foundation.value_objects.address import LocationCountry, LocationCitySubDivision, LocationCitySubDivisionId
+from store.application.queries.get_shop_product_query import GetShopProductRequest
 from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_catalog import ShopCatalog
 from store.domain.entities.store_collection import ShopCollection
 from store.domain.entities.store_product import ShopProduct
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, ShopProductId, ShopId
+from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId, ShopProductId, ShopId
 
 
 @dataclass
@@ -83,7 +82,6 @@ def get_shop_or_raise(shop_id: ShopId,
 
         if active_only and is_store_disabled(shop):
             raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
-        
 
         return shop
     except email_validator.EmailSyntaxError as exc:
@@ -93,7 +91,7 @@ def get_shop_or_raise(shop_id: ShopId,
         raise exc
 
 
-def get_catalog_from_store_or_raise(catalog_id: StoreCatalogId, store: Shop) -> ShopCatalog:
+def get_catalog_from_store_or_raise(catalog_id: ShopCatalogId, store: Shop) -> ShopCatalog:
     """
     Fetch the catalog from specified store, by it reference or catalog_id
 
@@ -155,7 +153,7 @@ def list_countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
 def get_location(sub_division_id: LocationCitySubDivisionId, uow: SqlAlchemyUnitOfWork) -> LocationCitySubDivision:
     # TODO: Move to foundation Repository
     try:
-        location = uow.session.query(LocationCitySubDivision).filter(
+        location = uow.session.query(LocationCitySubDivision, GetShopProductRequest).filter(
             LocationCitySubDivision.sub_division_id == sub_division_id).first()
         return location
     except Exception as exc:

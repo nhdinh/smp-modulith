@@ -33,6 +33,28 @@ services:
       - nginx
       - rq_worker
 
+  test_app:
+    image: modulith_app
+    environment:
+      FLASK_ENV: 'testing'
+      DEBUG: 1
+      FLASK_DEBUG: 1
+      PAYMENTS_LOGIN: empty
+      PAYMENTS_PASSWORD: empty
+      EMAIL_HOST: smtp_server
+      EMAIL_PORT: 2525
+      EMAIL_USERNAME: none
+      EMAIL_PASSWORD: none
+      EMAIL_FROM_NAME: SMP
+      EMAIL_FROM_ADDRESS: admin@smp.io
+      REDIS_HOST: redis
+      MINIO_HOST: minio:9000
+      MINIO_ACCESS_KEY: Q3AM3UQ867
+      MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
+    depends_on:
+      - smtp_server
+      - redis
+
   database:
     image: postgres:12
     environment:
@@ -80,6 +102,7 @@ services:
     depends_on:
       - smtp_server
       - redis
+
 
   minio:
     image: minio/minio

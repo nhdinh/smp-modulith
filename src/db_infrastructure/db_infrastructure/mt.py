@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import uuid
+from typing import Tuple, Any, Optional
 
 import jsonpickle
 import nanoid
@@ -8,7 +9,6 @@ from sqlalchemy import MetaData, TypeDecorator, String
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
-from typing import Tuple, Any, Optional
 
 metadata = MetaData()
 Base = declarative_base(metadata=metadata)

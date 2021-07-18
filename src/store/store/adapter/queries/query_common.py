@@ -2,32 +2,38 @@
 # -*- coding: utf-8 -*-
 from typing import Optional
 
-import email_validator
 from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.engine import Connection
 
-from store.adapter.shop_db import system_user_table, shop_table, shop_catalog_table, shop_collection_table, \
+from store.adapter.shop_db import shop_table, shop_catalog_table, shop_collection_table, \
     shop_product_table, shop_product_collection_table, shop_users_table
 from store.domain.entities.shop import Shop
-from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.shop_supplier import ShopSupplier
-from store.domain.entities.value_objects import ShopId, StoreCatalogId, StoreCollectionId
+from store.domain.entities.shop_user import SystemUserId
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.value_objects import ShopId, ShopCatalogId, StoreCollectionId, ShopStatus
 
 
 def sql_get_store_id_by_owner(store_owner: str, conn: Connection, active_only: bool = True) -> Optional[ShopId]:
-    try:
-        email_validator.validate_email(store_owner)
+    raise NotImplementedError
 
+
+def sql_verify_shop_id_with_partner_id(shop_id: ShopId, partner_id: SystemUserId, conn: Connection,
+                                       active_only: bool = True) -> bool:
+    try:
         q = select(shop_table.c.shop_id) \
-            .join(shop_users_table, shop_table.c.shop_id == shop_users_table.c.shop_id) \
-            .join(system_user_table, shop_users_table.c.user_id == system_user_table.c.user_id) \
-            .where(system_user_table.c.email == store_owner)
+            .join(shop_users_table, shop_users_table.c.shop_id == shop_table.c.shop_id) \
+            .where(shop_users_table.c.user_id == partner_id)
 
         if active_only:
-            q = q.where(shop_table.c.disabled == False)  # type:ignore
-        store_id = conn.scalar(q)
+            q = q.where(shop_table.c.status == ShopStatus.NORMAL)
 
-        return store_id
+        shop_id = conn.scalar(q)
+
+        if shop_id:
+            return True
+        else:
+            return False
     except Exception as exc:
         raise exc
 
@@ -53,7 +59,7 @@ def sql_count_catalogs_in_store(store_id: ShopId, conn: Connection, active_only:
 
 def sql_count_collections_in_catalog(
         store_id: ShopId,
-        catalog_id: StoreCatalogId,
+        catalog_id: ShopCatalogId,
         conn: Connection,
         active_only: bool = False
 ) -> int:
@@ -67,7 +73,7 @@ def sql_count_collections_in_catalog(
 
 def sql_count_products_in_collection(
         store_id: ShopId,
-        catalog_id: StoreCatalogId,
+        catalog_id: ShopCatalogId,
         collection_id: StoreCollectionId,
         conn: Connection,
         active_only: bool = False

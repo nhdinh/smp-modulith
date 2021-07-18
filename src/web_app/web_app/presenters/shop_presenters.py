@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from flask import Response, make_response, jsonify
 
-from store import RegisteringShopResponseBoundary
-from store.application.usecases.initialize.register_shop_uc import RegisteringStoreResponse
+from store.application.usecases.initialize.register_shop_uc import RegisteringStoreResponse, \
+    RegisteringShopResponseBoundary
 
 
 class RegisteringShopPresenter(RegisteringShopResponseBoundary):

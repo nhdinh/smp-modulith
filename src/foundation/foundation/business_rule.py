@@ -12,7 +12,7 @@ class BusinessRuleValidationError(Exception):
         self._details = self._broken_rule.message
 
     @property
-    def details(self):
+    def args(self):
         return self._details
 
     def __repr__(self):

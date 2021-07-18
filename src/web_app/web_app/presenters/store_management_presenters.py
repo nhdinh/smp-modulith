@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 from flask import Response, make_response, jsonify
 
-from store import ResendingRegistrationConfirmationResponseBoundary, CreatingStoreWarehouseResponseBoundary, \
-    CreatingStoreAddressResponseBoundary
-from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse
+from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse, \
+    CreatingStoreWarehouseResponseBoundary
 from store.application.usecases.initialize.confirm_shop_registration_uc import \
     ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationResponse
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponse, \
     AddingStoreManagerResponseBoundary
-from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponse
+from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponse, \
+    CreatingStoreAddressResponseBoundary
 from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
-    ResendingRegistrationConfirmationResponse
+    ResendingRegistrationConfirmationResponse, ResendingRegistrationConfirmationResponseBoundary
 from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
     UpdatingStoreSettingsResponse
 from store.application.usecases.manage.upload_image_uc import UploadingImageResponseBoundary, UploadingImageResponse

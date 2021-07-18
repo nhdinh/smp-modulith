@@ -20,5 +20,4 @@ class CreatingCatalogRequestFactory(factory.Factory):
     class Meta:
         model = CreatingCatalogRequest
 
-    display_name = factory.Faker('name')
-    reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
+    name = factory.Faker('name')

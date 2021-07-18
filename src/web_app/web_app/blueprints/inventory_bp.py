@@ -19,6 +19,7 @@ from inventory.application.usecases.remove_draft_purchase_order_item_uc import R
     RemovingDraftPurchaseOrderItemResponseBoundary, RemovingDraftPurchaseOrderItemRequest
 from inventory.application.usecases.update_draft_purchase_order_uc import UpdateDraftPurchaseOrderUC, \
     UpdatingDraftPurchaseOrderResponseBoundary, UpdatingDraftPurchaseOrderRequest
+from web_app.presenters import log_error
 from web_app.presenters.inventory_presenters import CreatingDraftPurchaseOrderPresenter, \
     RemovingDraftPurchaseOrderItemPresenter, UpdatingDraftPurchaseOrderPresenter, ApprovingPurchaseOrderPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
@@ -96,73 +97,48 @@ def list_draft_purchase_orders(list_draft_purchase_orders_query: ListDraftPurcha
 
 @inventory_blueprint.route('/purchase_order', methods=['POST'])
 @jwt_required()
+@log_error()
 def create_draft_purchase_order(create_draft_purchase_order_uc: CreateDraftPurchaseOrderUC,
                                 presenter: CreatingDraftPurchaseOrderResponseBoundary) -> Response:
-    try:
-        dto = get_dto(request, CreatingDraftPurchaseOrderRequest, context={
-            'current_user': get_jwt_identity()
-        })
-        create_draft_purchase_order_uc.execute(dto)
-        return presenter.response, 201  # type:ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+    dto = get_dto(request, CreatingDraftPurchaseOrderRequest, context={'partner_id': get_jwt_identity()})
+    create_draft_purchase_order_uc.execute(dto)
+
+    return presenter.response, 201  # type:ignore
 
 
 @inventory_blueprint.route('/purchase_order', methods=['PATCH'])
 @jwt_required()
+@log_error()
 def add_draft_purchase_order_item(update_draft_purchase_order_uc: UpdateDraftPurchaseOrderUC,
                                   presenter: UpdatingDraftPurchaseOrderResponseBoundary) -> Response:
-    try:
-        dto = get_dto(request, UpdatingDraftPurchaseOrderRequest, context={
-            'current_user': get_jwt_identity()
-        })
-        update_draft_purchase_order_uc.execute(dto)
-        return presenter.response, 200  # type:ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+    dto = get_dto(request, UpdatingDraftPurchaseOrderRequest, context={
+        'current_user': get_jwt_identity()
+    })
+    update_draft_purchase_order_uc.execute(dto)
+    return presenter.response, 200  # type:ignore
 
 
 @inventory_blueprint.route('/purchase_order/item', methods=['DELETE'])
 @jwt_required()
+@log_error()
 def remove_draft_purchase_order_item(remove_draft_purchase_order_item_uc: RemoveDraftPurchaseOrderItemUC,
                                      presenter: RemovingDraftPurchaseOrderItemResponseBoundary) -> Response:
-    try:
-        dto = get_dto(request, RemovingDraftPurchaseOrderItemRequest, context={
-            'current_user': get_jwt_identity()
-        })
-        remove_draft_purchase_order_item_uc.execute(dto)
-        return presenter.response, 200  # type:ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+    dto = get_dto(request, RemovingDraftPurchaseOrderItemRequest, context={
+        'current_user': get_jwt_identity()
+    })
+    remove_draft_purchase_order_item_uc.execute(dto)
+    return presenter.response, 200  # type:ignore
 
 
 @inventory_blueprint.route('/purchase_order/<draft_purchase_order_id>', methods=['POST'])
 @jwt_required()
+@log_error()
 def approve_purchase_order(draft_purchase_order_id: str,
                            approve_purchase_order_uc: ApprovePurchaseOrderUC,
                            presenter: ApprovingPurchaseOrderResponseBoundary) -> Response:
-    try:
-        dto = get_dto(request, ApprovingPurchaseOrderRequest, context={
-            'draft_purchase_order_id': draft_purchase_order_id,
-            'current_user': get_jwt_identity()
-        })
-        approve_purchase_order_uc.execute(dto)
-        return presenter.response, 200  # type:ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
+    dto = get_dto(request, ApprovingPurchaseOrderRequest, context={
+        'draft_purchase_order_id': draft_purchase_order_id,
+        'current_user': get_jwt_identity()
+    })
+    approve_purchase_order_uc.execute(dto)
+    return presenter.response, 200  # type:ignore

@@ -5,7 +5,6 @@ import injector
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 
-from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
 from identity.application.queries.identity import GetAllUsersQuery, GetSingleUserQuery
 from identity.application.usecases.change_password_uc import ChangingPasswordResponseBoundary, ChangePasswordUC, \
@@ -19,6 +18,7 @@ from identity.application.usecases.request_to_change_password_uc import Requesti
     RequestingToChangePasswordResponse, RequestToChangePasswordUC, RequestingToChangePasswordRequest
 from identity.application.usecases.revoke_token import RevokingTokenUC
 from identity.domain.entities.revoked_token import RevokedToken
+from web_app.presenters import log_error
 from web_app.serialization.dto import get_dto
 
 auth_blueprint = Blueprint('auth_blueprint', __name__)
@@ -47,6 +47,7 @@ class AuthenticationAPI(injector.Module):
 
 
 @auth_blueprint.route('/register', methods=['POST'], strict_slashes=False)
+@log_error()
 def register_user(registering_user_uc: RegisteringUserUC, presenter: RegisteringUserResponseBoundary):
     """
     Register a new user account
@@ -55,33 +56,26 @@ def register_user(registering_user_uc: RegisteringUserUC, presenter: Registering
     :param presenter: the output present formatter
     :return:
     """
-    try:
-        dto = get_dto(request, RegisteringUserRequest, context={})
-        registering_user_uc.execute(dto)
+    # try:
+    dto = get_dto(request, RegisteringUserRequest, context={})
+    registering_user_uc.execute(dto)
 
-        return presenter.response, 201  # type: ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 400  # type:ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-
-        return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
+    return presenter.response, 201  # type: ignore
+    # except BusinessRuleValidationError as exc:
+    #     return make_response(jsonify({'message': exc.details})), 400  # type:ignore
+    # except Exception as exc:
+    #     raise exc
+    #     # return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
 
 @auth_blueprint.route('/login', methods=['POST'])
+@log_error()
 def user_login(logging_user_in_uc: LoggingUserInUC, presenter: LoggingUserInResponseBoundary) -> Response:
     # UserLogin
-    try:
-        dto = get_dto(request, LoggingUserInRequest, context={})
-        logging_user_in_uc.execute(dto)
+    dto = get_dto(request, LoggingUserInRequest, context={})
+    logging_user_in_uc.execute(dto)
 
-        return presenter.response, 200  # type:ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-
-        return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
+    return presenter.response, 200  # type:ignore
 
 
 @auth_blueprint.route('/logout', methods=['POST'])
@@ -94,9 +88,6 @@ def user_logout_access(revoking_token_uc: RevokingTokenUC):
 
         return make_response(jsonify({'message': 'Access token has been revoked'}))
     except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-
         return make_response(jsonify({'message': 'Something wrong'})), 500
 
 

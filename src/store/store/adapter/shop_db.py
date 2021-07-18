@@ -3,20 +3,15 @@
 from datetime import datetime
 
 import sqlalchemy as sa
-from sqlalchemy import event
 
 from db_infrastructure import metadata, JsonType
+from db_infrastructure.mt import GUID
 from foundation.database_setup import location_address_table
-from identity.adapters.identity_db import user_table, generate_user_id
-from store.adapter.id_generators import generate_shop_id, generate_warehouse_id, \
-    generate_product_price_id, generate_product_id, generate_supplier_id, generate_brand_id, generate_shop_address_id, \
-    generate_shop_catalog_id, generate_shop_collection_id
+from foundation.events import EventStatus
+from store.adapter.id_generators import *
 from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import AddressType
-from store.domain.entities.shop_user import SystemUserStatus
 from store.domain.entities.shop_user_type import ShopUserType
-from store.domain.entities.shop_registration import ShopRegistration
 from store.domain.entities.value_objects import ShopStatus
 
 shop_registration_table = sa.Table(
@@ -34,20 +29,21 @@ shop_registration_table = sa.Table(
     sa.Column('version', sa.Integer, default='0'),
     sa.Column('last_resend', sa.DateTime),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
-system_user_table = sa.Table(
-    'user',
-    metadata,
-    sa.Column('user_id', sa.String(40), primary_key=True, default=generate_user_id),
-    sa.Column('email', sa.String(255), unique=True),
-    sa.Column('mobile', sa.String(255), unique=True),
-    sa.Column('password', sa.String(255)),
-    sa.Column('status', sa.Enum(SystemUserStatus), nullable=False, default=SystemUserStatus.NORMAL),
-    sa.Column('confirmed_at', sa.DateTime),
-
-    extend_existing=True
-)  # extend of user table
+# system_user_table = sa.Table(
+#     'user',
+#     metadata,
+#     sa.Column('user_id', sa.String(40), primary_key=True, default=generate_user_id),
+#     sa.Column('email', sa.String(255), unique=True),
+#     sa.Column('mobile', sa.String(255), unique=True),
+#     sa.Column('password', sa.String(255)),
+#     sa.Column('status', sa.Enum(SystemUserStatus), nullable=False, default=SystemUserStatus.NORMAL),
+#     sa.Column('confirmed_at', sa.DateTime),
+#
+#     extend_existing=True
+# )  # extend of user table
 
 shop_table = sa.Table(
     'shop',
@@ -60,29 +56,24 @@ shop_table = sa.Table(
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
+shop_warehouse_table = sa.Table(
+    'shop_warehouse',
+    metadata,
+    sa.Column('warehouse_id', sa.String(40), nullable=False, primary_key=True),
+    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('warehouse_name', sa.String(100)),
+)
+
 shop_users_table = sa.Table(
     'shop_user',
     metadata,
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
-    sa.Column('user_id', sa.ForeignKey(system_user_table.c.user_id, ondelete='SET NULL', onupdate='SET NULL'),
-              unique=True),
+    sa.Column('user_id', sa.String(40), unique=True),
+    sa.Column('email', sa.String(255), unique=True, nullable=False),
+    sa.Column('mobile', sa.String(100)),
     sa.Column('shop_role', sa.Enum(ShopUserType), default=ShopUserType.MANAGER),
 
     sa.PrimaryKeyConstraint('shop_id', 'user_id', name='shop_users_pk'),
-)
-
-shop_warehouse_table = sa.Table(
-    'warehouse',
-    metadata,
-    sa.Column('warehouse_id', sa.String(40), primary_key=True, default=generate_warehouse_id()),
-    sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, onupdate='CASCADE', ondelete='CASCADE')),
-    sa.Column('warehouse_owner', sa.String(255), nullable=False, comment='For easy linking'),
-    sa.Column('warehouse_name', sa.String(255), nullable=False),
-    sa.Column('default', sa.Boolean, default='0'),
-    sa.Column('disabled', sa.Boolean, default='0'),
-    sa.Column('version', sa.Integer, nullable=False, default=0),
-    sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
 shop_settings_table = sa.Table(
@@ -307,24 +298,16 @@ shop_product_tag_table = sa.Table(
     sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
 )
 
-collision_test_table = sa.Table(
-    '__collision',
+shop_event_table = sa.Table(
+    'shop_events',
     metadata,
-    sa.Column('id', sa.String(40), primary_key=True),
-    sa.Column('name', sa.String(40))
+    sa.Column('event_id', GUID, primary_key=True),
+    sa.Column('event_data', JsonType, nullable=False),
+    sa.Column('result_data', JsonType, nullable=True),
+    sa.Column('failed_count', sa.Integer, default=0),
+    sa.Column('status', sa.Enum(EventStatus), default=EventStatus.PENDING),
+    sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+
+    # TODO: Added destination columns
 )
-
-
-@event.listens_for(ShopRegistration, 'load')
-def shop_registration_load(shop_registration, _):
-    shop_registration.domain_events = []
-
-
-@event.listens_for(Shop, 'load')
-def shop_load(store, connection):
-    store.domain_events = []
-
-    try:
-        store._admin = next(sm for sm in store._users if sm.shop_role == ShopUserType.ADMIN)
-    except StopIteration:
-        store._admin = None

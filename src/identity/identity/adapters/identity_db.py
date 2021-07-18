@@ -5,15 +5,11 @@ import sqlalchemy as sa
 from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
 
-from db_infrastructure import metadata, nanoid_generate
+from db_infrastructure import metadata
+from identity.adapters.id_generator import generate_user_id, role_id_generator
 from identity.domain.entities.revoked_token import RevokedToken
 from identity.domain.entities.role import Role
 from identity.domain.entities.user import User, UserStatus
-
-
-def generate_user_id():
-    return nanoid_generate(prefix='User')
-
 
 user_registration_table = sa.Table(
     'user_registration',
@@ -44,11 +40,6 @@ user_table = sa.Table(
     sa.Column('reset_password_token', sa.String(100)),
     sa.Column('request_reset_password_at', sa.DateTime)
 )
-
-
-def role_id_generator():
-    return nanoid_generate(prefix='Role')
-
 
 role_table = sa.Table(
     'role',

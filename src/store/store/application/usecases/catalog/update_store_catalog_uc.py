@@ -6,13 +6,13 @@ from typing import Optional
 
 from store.application.services.store_unit_of_work import ShopUnitOfWork
 from store.application.usecases.store_uc_common import get_shop_or_raise
-from store.domain.entities.value_objects import StoreCatalogId
+from store.domain.entities.value_objects import ShopCatalogId
 
 
 @dataclass
 class UpdatingStoreCatalogRequest:
     current_user: str
-    catalog_id: StoreCatalogId
+    catalog_id: ShopCatalogId
     title: Optional[str]
     disabled: Optional[bool]
     image: Optional[str]

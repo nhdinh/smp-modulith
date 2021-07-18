@@ -3,12 +3,11 @@
 import abc
 from dataclasses import dataclass
 from datetime import date
-
 from typing import List
 
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
-from store.application.queries.response_dtos import StoreAddressResponseDto
 from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
+from store.application.queries.response_dtos import StoreAddressResponseDto
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto
 
 

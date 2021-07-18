@@ -5,22 +5,25 @@ import dotenv
 import injector
 from sqlalchemy.engine import Engine, create_engine
 
-from auctions import Auctions
-from auctions_infrastructure import AuctionsInfrastructure
+# from auctions import Auctions
+# from auctions_infrastructure import AuctionsInfrastructure
 from customer_relationship import CustomerRelationship
 from db_infrastructure import metadata
 from foundation import FoundationModule
-from identity import IdentityModule
+from identity import IdentityEventHandlerModule
 from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
 from identity.auth_module import AuthenticationModule
 from inventory import InventoryModule, InventoryInfrastructureModule
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService, FileSystemProvider
-from payments import Payments
-from processes import Processes
+# from payments import Payments
+# from processes import Processes
 from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureModule
-from shipping import Shipping
-from shipping_infrastructure import ShippingInfrastructure
-from store import StoreInfrastructureModule, StoreModule
+from store import ShopEventHandlerModule
+from store.shop_infrastructure_module import ShopInfrastructureModule
+from store.store_module import ShopModule
+
+# from shipping import Shipping
+# from shipping_infrastructure import ShippingInfrastructure
 
 __all__ = ["bootstrap_app"]
 
@@ -55,7 +58,7 @@ def bootstrap_app() -> AppContext:
 
     db_echo = os.environ.get('DB_ECHO') in ('True', 'true', '1')
 
-    engine = create_engine(os.environ["DB_DSN"], isolation_level="REPEATABLE READ", echo=db_echo)
+    engine = create_engine(os.environ["DB_DSN"], echo=db_echo)
     dependency_injector = _setup_dependency_injection(settings, engine)
     _setup_orm_events(dependency_injector)
 
@@ -77,22 +80,25 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             FileSystemProvider(),
             Configs(settings),
             FoundationModule(),
-            IdentityModule(),
+
+            IdentityEventHandlerModule(),
+
             AuthenticationInfrastructureModule(),
             AuthenticationModule(),
-            Auctions(),
-            AuctionsInfrastructure(),
-            Shipping(),
-            ShippingInfrastructure(),
+            ShopEventHandlerModule(),
+            # Auctions(),
+            # AuctionsInfrastructure(),
+            # Shipping(),
+            # ShippingInfrastructure(),
             CustomerRelationship(),
             ProductCatalogModule(),
             ProductCatalogInfrastructureModule(),
-            StoreModule(),
-            StoreInfrastructureModule(),
+            ShopModule(),
+            ShopInfrastructureModule(),
             InventoryModule(),
             InventoryInfrastructureModule(),
-            Payments(),
-            Processes(),
+            # Payments(),
+            # Processes(),
         ],
         auto_bind=False,
     )
@@ -145,8 +151,8 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
 def _create_db_schema(engine: Engine) -> None:
     # Models has to be imported for metadata.create_all to discover them
     from product_catalog import catalog_table, product_table  # noqa
-    from auctions_infrastructure import auctions, bids  # noqa
-    from customer_relationship.models import customers  # noqa
+    # from auctions_infrastructure import auctions, bids  # noqa
+    # from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, user_role_table  # noqa
     from inventory.adapter.inventory_db import draft_purchase_order_table, inventory_product_balance_table  # noqa
 

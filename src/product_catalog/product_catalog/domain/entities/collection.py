@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Optional, Set
 
 from foundation.common_helpers import slugify
-
 from product_catalog.domain.entities.product import Product
 from product_catalog.domain.value_objects import CollectionReference
 

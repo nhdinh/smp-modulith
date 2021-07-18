@@ -6,10 +6,12 @@ from functools import singledispatchmethod
 from uuid import UUID
 
 from auctions import AuctionDto
+
 from foundation.value_objects import Money
 from identity.application.queries.identity import UserDto
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from product_catalog.application.queries.product_catalog import CatalogDto, CollectionDto, BrandDto
+from store.domain.entities.registration_status import RegistrationStatus
 from store.domain.entities.shop_address import AddressType
 
 
@@ -100,4 +102,8 @@ class JSONEncoder(json.JSONEncoder):
 
     @default.register(PurchaseOrderStatus)
     def serialize_purchase_order_status(self, obj: PurchaseOrderStatus) -> str:
+        return str(obj.value)
+
+    @default.register(RegistrationStatus)
+    def serialize_registration_status(self, obj: RegistrationStatus) -> str:
         return str(obj.value)

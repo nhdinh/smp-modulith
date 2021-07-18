@@ -8,7 +8,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
-from store import CreateStoreAddressUC, CreatingStoreAddressResponseBoundary
 from store.application.queries.store_queries import ListStoreSettingsQuery, ListStoreWarehousesQuery, \
     ListStoreAddressesQuery
 from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
@@ -19,7 +18,8 @@ from store.application.usecases.initialize.register_shop_uc import RegisterShopU
     RegisteringShopRequest
 from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
     AddStoreManagerUC
-from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressRequest
+from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressRequest, \
+    CreatingStoreAddressResponseBoundary, CreateStoreAddressUC
 from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
     ResendingRegistrationConfirmationRequest, ResendRegistrationConfirmationUC, \
     ResendingRegistrationConfirmationResponseBoundary
@@ -29,17 +29,17 @@ from store.application.usecases.manage.upload_image_uc import UploadingImageRequ
     UploadImageUC
 from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
     SelectingStorePlanRequest
+from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter, \
     SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
     ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter, CreatingStoreAddressPresenter
-from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.serialization.dto import get_dto
 
 STORE_MANAGEMENT_BLUEPRINT_NAME = 'store_management_blueprint'
 store_management_blueprint = Blueprint(STORE_MANAGEMENT_BLUEPRINT_NAME, __name__)
 
 
-class StoreAPI(injector.Module):
+class ShopAPI(injector.Module):
     @injector.provider
     @flask_injector.request
     def register_store_response_boundary(self) -> RegisteringShopResponseBoundary:

@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
 
 from db_infrastructure import metadata
 from inventory.adapter.id_generators import generate_draft_purchase_order_id, generate_purchase_order_id, \
-    generate_purchase_order_item_id, generate_delivery_order_id
+    generate_purchase_order_item_id, generate_delivery_order_id, generate_warehouse_id
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from store.adapter.shop_db import shop_product_table, shop_product_unit_table, shop_supplier_table, \
     shop_addresses_table, shop_warehouse_table
@@ -49,6 +48,19 @@ from store.adapter.shop_db import shop_product_table, shop_product_unit_table, s
 #
 #     extend_existing=True
 # )
+
+warehouse_table = sa.Table(
+    'warehouse',
+    metadata,
+    sa.Column('warehouse_id', sa.String(40), primary_key=True, default=generate_warehouse_id()),
+    sa.Column('admin_id', sa.String(40), nullable=False),
+    sa.Column('warehouse_name', sa.String(255), nullable=False),
+    sa.Column('default', sa.Boolean, default='0'),
+    sa.Column('disabled', sa.Boolean, default='0'),
+    sa.Column('version', sa.Integer, nullable=False, default=0),
+    sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+)
 
 purchase_order_table = sa.Table(
     'purchase_order',

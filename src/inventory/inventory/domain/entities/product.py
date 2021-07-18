@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from typing import NewType
-from uuid import UUID
 
 from foundation.events import EventMixin
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from foundation.events import EventMixin
-from inventory.domain.entities.product import InventoryProductId
 
 
 # class Inventory(EventMixin):

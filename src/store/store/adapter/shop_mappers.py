@@ -1,28 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
 
 from foundation.value_objects.address import LocationAddress
-from store.adapter.shop_db import shop_settings_table, shop_registration_table, system_user_table, shop_table, \
+from store.adapter.shop_db import shop_settings_table, shop_registration_table, shop_table, \
     shop_users_table, shop_catalog_table, shop_product_table, \
     shop_product_unit_table, shop_brand_table, shop_product_tag_table, shop_collection_table, \
-    shop_product_collection_table, shop_warehouse_table, shop_product_supplier_table, shop_supplier_table, \
-    shop_supplier_product_price_table, shop_addresses_table, collision_test_table
-from store.domain.entities.collision import Collision
+    shop_product_collection_table, shop_product_supplier_table, shop_supplier_table, \
+    shop_supplier_product_price_table, shop_addresses_table, shop_warehouse_table
 from store.domain.entities.purchase_price import ProductPurchasePrice
 from store.domain.entities.setting import Setting
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import ShopAddress
 from store.domain.entities.shop_catalog import ShopCatalog
-from store.domain.entities.store_collection import ShopCollection
-from store.domain.entities.shop_user import SystemUser, ShopUser
-from store.domain.entities.store_product import ShopProduct
-from store.domain.entities.store_product_brand import ShopProductBrand
-from store.domain.entities.store_product_tag import ShopProductTag
 from store.domain.entities.shop_registration import ShopRegistration
 from store.domain.entities.shop_supplier import ShopSupplier
 from store.domain.entities.shop_unit import ShopProductUnit
-from store.domain.entities.store_warehouse import Warehouse
+from store.domain.entities.shop_user import ShopUser
+from store.domain.entities.shop_user_type import ShopUserType
+from store.domain.entities.store_collection import ShopCollection
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.store_product_brand import ShopProductBrand
+from store.domain.entities.store_product_tag import ShopProductTag
+from store.domain.entities.store_warehouse import ShopWarehouse
 
 
 def start_mappers():
@@ -44,10 +45,10 @@ def start_mappers():
         }
     )
 
-    mapper(
-        SystemUser, system_user_table, properties={
-            'hashed_password': system_user_table.c.password
-        })
+    # mapper(
+    #     SystemUser, system_user_table, properties={
+    #         'hashed_password': system_user_table.c.password
+    #     })
 
     mapper(
         ShopProductUnit, shop_product_unit_table, properties={
@@ -137,8 +138,6 @@ def start_mappers():
                )
            })
 
-    mapper(Warehouse, shop_warehouse_table, properties={})
-
     mapper(ShopSupplier, shop_supplier_table, properties={})
 
     mapper(ShopAddress, shop_addresses_table, properties={
@@ -148,10 +147,12 @@ def start_mappers():
     })
 
     mapper(ShopUser, shop_users_table, properties={
-        '_system_user': relationship(
-            SystemUser
-        ),
+        # '_system_user': relationship(
+        #     SystemUser
+        # ),
     })
+
+    mapper(ShopWarehouse, shop_warehouse_table)
 
     mapper(
         Shop, shop_table,
@@ -171,7 +172,7 @@ def start_mappers():
             ),
 
             '_warehouses': relationship(
-                Warehouse,
+                ShopWarehouse,
                 collection_class=set,
             ),
 
@@ -210,6 +211,17 @@ def start_mappers():
             )
         })
 
-    mapper(
-        Collision, collision_test_table
-    )
+
+@event.listens_for(ShopRegistration, 'load')
+def shop_registration_load(shop_registration, _):
+    shop_registration.domain_events = []
+
+
+@event.listens_for(Shop, 'load')
+def shop_load(store, connection):
+    store.domain_events = []
+
+    try:
+        store._admin = next(sm for sm in store._users if sm.shop_role == ShopUserType.ADMIN)
+    except StopIteration:
+        store._admin = None

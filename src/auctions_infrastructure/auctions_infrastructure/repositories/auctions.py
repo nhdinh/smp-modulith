@@ -18,7 +18,7 @@ class SqlAlchemyAuctionsRepo(AuctionsRepository):
         self._event_bus = event_bus
 
     def get(self, auction_id: AuctionId) -> Auction:
-        row = self._conn.execute(auctions.select().where(auctions.c.id == auction_id)).first()
+        row = self._conn.execute(auctions.select().where(auctions.c.user_id == auction_id)).first()
         if not row:
             raise Exception("Not found")
 
@@ -44,7 +44,7 @@ class SqlAlchemyAuctionsRepo(AuctionsRepository):
             "ends_at": auction.ends_at,
             "ended": auction._ended,
         }
-        update_result = self._conn.execute(auctions.update(values=raw_auction, whereclause=auctions.c.id == auction.id))
+        update_result = self._conn.execute(auctions.update(values=raw_auction, whereclause=auctions.c.user_id == auction.id))
         if update_result.rowcount != 1:
             self._conn.execute(auctions.insert(values=dict(raw_auction, id=auction.id)))
 
@@ -57,7 +57,7 @@ class SqlAlchemyAuctionsRepo(AuctionsRepository):
             (bid.id,) = result.inserted_primary_key
 
         if auction.withdrawn_bids_ids:
-            self._conn.execute(bids.delete(whereclause=bids.c.id.in_(auction.withdrawn_bids_ids)))
+            self._conn.execute(bids.delete(whereclause=bids.c.user_id.in_(auction.withdrawn_bids_ids)))
 
         for event in auction.domain_events:
             self._event_bus.post(event)

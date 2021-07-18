@@ -7,7 +7,7 @@ from foundation import Event
 from store.domain.entities.value_objects import ShopProductId
 
 
-@dataclass
+@dataclass(frozen=True)
 class StoreProductCreatedEvent(Event):
     product_id: ShopProductId
     restock_threshold = -1
@@ -18,7 +18,7 @@ class StoreProductCreatedEvent(Event):
     first_stocks: List[int] = list
 
 
-@dataclass
+@dataclass(frozen=True)
 class StoreProductUpdatedEvent(Event):
     product_id: ShopProductId
     updated_keys: List[str] = list

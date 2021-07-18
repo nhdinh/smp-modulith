@@ -1,7 +1,5 @@
 import math
-import calendar
 from dataclasses import field
-from datetime import datetime
 from typing import Type, TypeVar, cast, List, Generic, Union, Optional
 
 import marshmallow as ma
@@ -28,8 +26,8 @@ class BaseInputDto:
 
 @dataclass
 class BaseShopInputDto(BaseInputDto):
-    partner_id: str
-    shop_id: str
+    partner_id: 'SystemUserId'
+    shop_id: 'ShopId'
 
 
 @dataclass
@@ -40,8 +38,8 @@ class PaginationInputDto:
 
 
 @dataclass
-class AuthorizedPaginationInputDto(PaginationInputDto):
-    current_user: str = ''
+class AuthorizedPaginationInputDto(PaginationInputDto, BaseShopInputDto):
+    ...
 
 
 @dataclass(frozen=True)
@@ -103,7 +101,7 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
         input_data.update(request_form)
 
         # parse them
-        dto = cast(TDto, schema.load(dict(context, **input_data), unknown=ma.EXCLUDE))
+        dto = cast(TDto, schema.load(dict(input_data, **context), unknown=ma.EXCLUDE))
 
         # clean input of pagination
         if isinstance(dto, AuthorizedPaginationInputDto) or isinstance(dto, PaginationInputDto):

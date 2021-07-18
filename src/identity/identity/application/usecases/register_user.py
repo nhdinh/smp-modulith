@@ -16,7 +16,7 @@ class RegisteringUserRequest:
 
 @dataclass
 class RegisteringUserResponse:
-    id: UserId
+    user_id: UserId
     email: UserEmail
 
 
@@ -36,12 +36,12 @@ class RegisteringUserUC:
     def execute(self, input_dto: RegisteringUserRequest) -> None:
         with self._uow as uow:  # type:AuthenticationUnitOfWork
             try:
-                user = User.create(email=input_dto.email, plain_password=input_dto.password)
+                user = User.create(email=input_dto.email, password=input_dto.password)
                 uow.identities.save(user)
 
                 # output
                 output_dto = RegisteringUserResponse(
-                    id=user.id,
+                    user_id=user.user_id,
                     email=user.email,
                 )
                 self._ob.present(output_dto)

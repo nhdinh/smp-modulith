@@ -4,10 +4,8 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
-
 from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.store_uc_common import get_shop_or_raise
+from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
 
 
 @dataclass
@@ -24,7 +22,7 @@ class RemovingStoreCollectionResponseBoundary(abc.ABC):
 @dataclass
 class RemovingStoreCollectionRequest:
     current_user: str
-    catalog_id: StoreCatalogId
+    catalog_id: ShopCatalogId
     collection_id: StoreCollectionId
     remove_completely: Optional[bool] = False
 

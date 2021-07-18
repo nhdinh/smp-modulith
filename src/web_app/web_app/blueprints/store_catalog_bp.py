@@ -9,21 +9,14 @@ import injector
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from store import RemovingStoreProductResponseBoundary
-from store.application.usecases.product.remove_store_product_attribute_uc import RemovingStoreProductAttributeRequest, \
-    RemoveStoreProductAttributeUC, RemovingStoreProductAttributeResponseBoundary
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId
-
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
-from store.application.queries.store_queries import ListStoreCatalogsQuery, ListStoreCollectionsQuery, \
-    ListProductsFromCollectionQuery, ListProductsQuery, GetStoreProductQuery, ListStoreProductsQuery, \
+from store.application.queries.store_queries import ListShopCatalogsQuery, ListStoreCollectionsQuery, \
+    ListProductsFromCollectionQuery, ListProductsQuery, ListStoreProductsQuery, \
     ListStoreSuppliersQuery
-from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary, \
-    AddShopCatalogUC, AddingShopCatalogRequest
+from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary
 from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
-from store.application.usecases.catalog.remove_store_catalog_uc import RemovingStoreCatalogRequest, \
-    RemoveStoreCatalogUC, RemovingStoreCatalogResponseBoundary
+from store.application.usecases.catalog.remove_shop_catalog_uc import RemovingShopCatalogResponseBoundary
 from store.application.usecases.catalog.systemize_store_catalog_uc import SystemizeStoreCatalogUC, \
     SystemizingStoreCatalogRequest
 from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
@@ -37,18 +30,21 @@ from store.application.usecases.collection.toggle_store_collection_uc import Tog
     ToggleStoreCollectionUC
 from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
     UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
-from store.application.usecases.const import ThingGoneInBlackHoleError
 from store.application.usecases.initialize.initialize_store_with_plan_uc import \
     InitializingStoreWithPlanResponseBoundary, \
     InitializeStoreWithPlanUC
 from store.application.usecases.product.create_store_product_uc import CreateStoreProductUC, \
-    CreatingStoreProductResponseBoundary, CreatingStoreProductRequest
+    AddingShopProductResponseBoundary, AddingShopProductRequest
+from store.application.usecases.product.remove_store_product_attribute_uc import RemovingStoreProductAttributeRequest, \
+    RemoveStoreProductAttributeUC, RemovingStoreProductAttributeResponseBoundary
+from store.application.usecases.product.remove_store_product_uc import RemovingStoreProductResponseBoundary
 from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductRequest, \
     UpdateStoreProductUC, UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
+from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
 from web_app.presenters.store_catalog_presenters import AddingShopCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
-    CreatingStoreCollectionPresenter, RemovingStoreCatalogPresenter, CreatingStoreProductPresenter, \
+    CreatingStoreCollectionPresenter, RemovingShopCatalogPresenter, AddingShopProductPresenter, \
     UpdatingStoreProductPresenter, RemovingStoreProductAttributePresenter, RemovingStoreProductPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
@@ -82,8 +78,8 @@ class StoreCatalogAPI(injector.Module):
 
     @injector.provider
     @flask_injector.request
-    def remove_store_catalog_response_boundary(self) -> RemovingStoreCatalogResponseBoundary:
-        return RemovingStoreCatalogPresenter()
+    def remove_store_catalog_response_boundary(self) -> RemovingShopCatalogResponseBoundary:
+        return RemovingShopCatalogPresenter()
 
     # endregion
 
@@ -105,8 +101,8 @@ class StoreCatalogAPI(injector.Module):
 
     @injector.provider
     @flask_injector.request
-    def create_store_product_response_boundary(self) -> CreatingStoreProductResponseBoundary:
-        return CreatingStoreProductPresenter()
+    def create_store_product_response_boundary(self) -> AddingShopProductResponseBoundary:
+        return AddingShopProductPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -150,7 +146,7 @@ store_catalog_blueprint_endpoint_callers.append(init_store_from_plan)
 
 @store_catalog_blueprint.route('/', methods=['GET'])
 @jwt_required()
-def fetch_store_catalogs(list_store_catalogs_query: ListStoreCatalogsQuery) -> Response:
+def fetch_store_catalogs(list_store_catalogs_query: ListShopCatalogsQuery) -> Response:
     """
     GET :5000/store-catalog/
     Fetch catalogs from store
@@ -220,7 +216,7 @@ def list_store_collections(
 
 @store_catalog_blueprint.route('/catalog/<string:catalog_id>', methods=['PATCH'])
 @jwt_required()
-def update_store_catalog(catalog_id: StoreCatalogId, update_store_catalog_uc: UpdateStoreCatalogUC,
+def update_store_catalog(catalog_id: ShopCatalogId, update_store_catalog_uc: UpdateStoreCatalogUC,
                          presenter: UpdatingStoreCatalogResponseBoundary) -> Response:
     """
     PATCH :5000/store-catalog/catalog/<catalog_id>
@@ -247,7 +243,7 @@ def update_store_catalog(catalog_id: StoreCatalogId, update_store_catalog_uc: Up
 
 @store_catalog_blueprint.route('/catalog/<string:catalog_reference>/toggle', methods=['PATCH'])
 @jwt_required()
-def toggle_store_catalog(catalog_reference: StoreCatalogId, toogle_store_catalog_uc: ToggleStoreCatalogUC,
+def toggle_store_catalog(catalog_reference: ShopCatalogId, toogle_store_catalog_uc: ToggleStoreCatalogUC,
                          presenter: UpdatingStoreCatalogResponseBoundary) -> Response:
     """
     PATCH :5000/store-catalog/catalog/<catalog_id>/toggle
@@ -291,35 +287,6 @@ def systemize_store_catalog(catalog_reference: str, systemize_store_catalog_uc: 
         })
         systemize_store_catalog_uc.execute(dto)
         return presenter.response, 201  # type: ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 400  # type: ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
-
-
-@store_catalog_blueprint.route('/catalog/<string:catalog_reference>', methods=['DELETE'])
-@jwt_required()
-def remove_store_catalog(catalog_reference: str,
-                         remove_store_catalog_uc: RemoveStoreCatalogUC,
-                         presenter: RemovingStoreCatalogResponseBoundary) -> Response:
-    """
-    DELETE :5000/store-catalog/catalog/<catalog_id>
-    Delete a catalog with or without its contents
-
-    :param presenter:
-    :param remove_store_catalog_uc:
-    :param catalog_reference:
-    """
-    try:
-        dto = get_dto(request, RemovingStoreCatalogRequest, context={
-            'catalog_reference': catalog_reference,
-            'current_user': get_jwt_identity()
-        })
-        remove_store_catalog_uc.execute(dto)
-
-        return presenter.response, 200  # type: ignore
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
     except Exception as exc:
@@ -508,7 +475,7 @@ def fetch_store_products(fetch_store_products_query: ListStoreProductsQuery):
 @jwt_required()
 def list_store_products_by_collection(
         collection_id: StoreCollectionId,
-        catalog_id: StoreCatalogId,
+        catalog_id: ShopCatalogId,
         list_store_products_by_collection_query: ListProductsFromCollectionQuery
 ) -> Response:
     """
@@ -534,21 +501,6 @@ def list_store_products_by_collection(
         )
 
         return make_response(jsonify(response)), 200  # type:ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'message': exc.args})), 400  # type:ignore
-
-
-@store_catalog_blueprint.route('/products/<string:product_id>', methods=['GET'])
-@jwt_required()
-def get_store_product_by_id(product_id: str, get_store_product_by_id_query: GetStoreProductQuery) -> Response:
-    try:
-        current_user = get_jwt_identity()
-        response = get_store_product_by_id_query.query(owner_email=current_user, product_id=product_id)
-        return make_response(jsonify(response)), 200  # type:ignore
-    except ThingGoneInBlackHoleError as exc:
-        return make_response(jsonify({'message': exc.args})), 404  # type:ignore
     except Exception as exc:
         if current_app.debug:
             logger.exception(exc)
@@ -582,9 +534,9 @@ def list_store_products(
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
 
 
-def create_store_product_common(dto: CreatingStoreProductRequest,
+def create_store_product_common(dto: AddingShopProductRequest,
                                 create_store_product_uc: CreateStoreProductUC,
-                                presenter: CreatingStoreProductResponseBoundary) -> Response:
+                                presenter: AddingShopProductResponseBoundary) -> Response:
     try:
         create_store_product_uc.execute(dto)
         return presenter.response, 201  # type: ignore
@@ -595,7 +547,7 @@ def create_store_product_common(dto: CreatingStoreProductRequest,
 @store_catalog_blueprint.route('/products', methods=['POST'])
 @jwt_required()
 def create_store_product_without_collection(create_store_product_uc: CreateStoreProductUC,
-                                            presenter: CreatingStoreProductResponseBoundary) -> Response:
+                                            presenter: AddingShopProductResponseBoundary) -> Response:
     """
     POST :5000/store-catalog/product
     Create new product free style
@@ -605,7 +557,7 @@ def create_store_product_without_collection(create_store_product_uc: CreateStore
     :return:
     """
     try:
-        dto = get_dto(request, CreatingStoreProductRequest, context={'current_user': get_jwt_identity()})
+        dto = get_dto(request, AddingShopProductRequest, context={'current_user': get_jwt_identity()})
         return create_store_product_common(dto, create_store_product_uc, presenter)
     except BusinessRuleValidationError as exc:
         return make_response(jsonify({'message': exc.details})), 400  # type: ignore
@@ -623,7 +575,7 @@ def create_store_product_without_collection(create_store_product_uc: CreateStore
 def create_store_product_with_collection(catalog_id: str,
                                          collection_id: str,
                                          create_store_product_uc: CreateStoreProductUC,
-                                         presenter: CreatingStoreProductResponseBoundary) -> Response:
+                                         presenter: AddingShopProductResponseBoundary) -> Response:
     """
     POST :5000/store-catalog/catalog/<catalog_id>/collection/<collection_reference>
     Create new product in catalog/ collection
@@ -634,7 +586,7 @@ def create_store_product_with_collection(catalog_id: str,
     :param collection_id:
     """
     try:
-        dto = get_dto(request, CreatingStoreProductRequest, context={
+        dto = get_dto(request, AddingShopProductRequest, context={
             'current_user': get_jwt_identity(),
             'catalog_id': catalog_id,
             'collection_id': collection_id

@@ -102,7 +102,7 @@ def test_should_emit_event_upon_overbid() -> None:
     new_bid_amount = get_money("20.00")
     auction.place_bid(bidder_id=2, amount=new_bid_amount)
 
-    expected_event = BidderHasBeenOverbid(auction.id, bid_that_will_lose.bidder_id, new_bid_amount,
+    expected_event = BidderHasBeenOverbid(auction.user_id, bid_that_will_lose.bidder_id, new_bid_amount,
                                           auction.title)
     assert expected_event in auction.domain_events
 
@@ -113,7 +113,7 @@ def test_should_emit_winning_event_if_the_first_offer() -> None:
 
     auction.place_bid(bidder_id=1, amount=winning_amount)
 
-    assert auction.domain_events == [WinningBidPlaced(auction.id, 1, winning_amount, auction.title)]
+    assert auction.domain_events == [WinningBidPlaced(auction.user_id, 1, winning_amount, auction.title)]
 
 
 def test_should_emit_winning_if_overbids() -> None:
@@ -122,8 +122,8 @@ def test_should_emit_winning_if_overbids() -> None:
 
     auction.place_bid(bidder_id=2, amount=winning_amount)
 
-    expected_winning_event = WinningBidPlaced(auction.id, 2, winning_amount, auction.title)
-    expected_overbid_event = BidderHasBeenOverbid(auction.id, 1, winning_amount, auction.title)
+    expected_winning_event = WinningBidPlaced(auction.user_id, 2, winning_amount, auction.title)
+    expected_overbid_event = BidderHasBeenOverbid(auction.user_id, 1, winning_amount, auction.title)
     assert auction.domain_events == [expected_winning_event, expected_overbid_event]
 
 
@@ -132,7 +132,7 @@ def test_should_emit_auction_ended(yesterday: datetime) -> None:
 
     auction.end_auction()
 
-    expected_event = AuctionEnded(auction.id, auction.winners[0], auction.current_price, auction.title)
+    expected_event = AuctionEnded(auction.user_id, auction.winners[0], auction.current_price, auction.title)
     assert auction.domain_events == [expected_event]
 
 
@@ -141,7 +141,7 @@ def test_should_emit_event_with_none_winner_if_no_winners(yesterday: datetime) -
 
     auction.end_auction()
 
-    expected_event = AuctionEnded(auction.id, None, auction.current_price, auction.title)
+    expected_event = AuctionEnded(auction.user_id, None, auction.current_price, auction.title)
     assert auction.domain_events == [expected_event]
 
 

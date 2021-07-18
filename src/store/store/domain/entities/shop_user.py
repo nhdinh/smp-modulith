@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-
 from typing import NewType
 
 from store.domain.entities.shop_user_type import ShopUserType
@@ -32,25 +31,7 @@ class SystemUser:
 
 @dataclass(unsafe_hash=True)
 class ShopUser:
-    _system_user: SystemUser
+    user_id: SystemUserId
+    email: str
+    mobile: str
     shop_role: ShopUserType
-
-    @property
-    def system_user_id(self) -> SystemUserId:
-        return self._system_user.user_id
-
-    @property
-    def email(self) -> str:
-        return self._system_user.email
-
-    @property
-    def mobile(self) -> str:
-        return self._system_user.mobile
-
-    @property
-    def confirmed_at(self) -> datetime:
-        return self._system_user.confirmed_at
-
-    @property
-    def status(self) -> SystemUserStatus:
-        return self._system_user.status

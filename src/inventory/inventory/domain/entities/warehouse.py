@@ -3,48 +3,53 @@
 import uuid
 from datetime import date, datetime
 from typing import NewType, Set, Union, List, Optional
-from uuid import UUID
 
 from dateutil.utils import today
 
+from foundation.domain_events.inventory_events import WarehouseCreatedEvent
+from foundation.events import EventMixin
 from inventory.adapter.inventory_db import generate_draft_purchase_order_id
-from inventory.domain.entities.purchase_order import PurchaseOrder
-from store.application.usecases.const import ThingGoneInBlackHoleError
-from store.domain.entities.store_product import ShopProduct
-from store.domain.entities.value_objects import StoreSupplierId, StoreAddressId, ShopProductId
-
-from foundation.events import EventMixin, Event
 from inventory.application.usecases.const import ExceptionMessages
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId, PurchaseOrderId
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
+from inventory.domain.entities.purchase_order import PurchaseOrder
 from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from inventory.domain.events.draft_purchase_order_events import DraftPurchaseOrderCreatedEvent, \
     DraftPurchasedOrderUpdatedEvent
+from store.application.usecases.const import ThingGoneInBlackHoleError
 from store.domain.entities.shop_unit import ShopProductUnit
+from store.domain.entities.store_product import ShopProduct
+from store.domain.entities.value_objects import StoreSupplierId, StoreAddressId, ShopProductId
 
 WarehouseId = NewType('WarehouseId', tp=str)
 
 
 class Warehouse(EventMixin):
     def __init__(self,
+                 warehouse_id: WarehouseId,
+                 admin_id: 'SystemUserId',
+                 warehouse_name: str,
                  version: int = 0):
         super(Warehouse, self).__init__()
+
+        self.warehouse_id = warehouse_id
+        self.admin_id = admin_id
+        self.warehouse_name = warehouse_name
 
         self._draft_purchase_orders = set()  # type:Set[DraftPurchaseOrder]
 
         # those following are approved purchase orders
         self._purchase_orders = set()  # type: Set[PurchaseOrder]
 
-        self._domain_events = []
         self.version = version
 
-    @property
-    def domain_events(self) -> List[Event]:
-        return self._domain_events
-
-    @property
-    def store(self) -> 'Store':
-        return self._store
+        self._record_event(WarehouseCreatedEvent(
+            event_id=uuid.uuid4(),
+            warehouse_id=self.warehouse_id,
+            admin_id=self.admin_id,
+            warehouse_name=self.warehouse_name,
+            warehouse_created_at=datetime.now(),
+        ))
 
     @property
     def draft_purchase_orders(self):
@@ -120,12 +125,14 @@ class Warehouse(EventMixin):
         # add event for record, notify to the owner
         if draft_po_id == new_guid:  # mean new DraftPO created
             self._record_event(DraftPurchaseOrderCreatedEvent(
+                event_id=uuid.uuid4(),
                 purchase_order_id=draft.purchase_order_id,
                 creator=draft.creator
             ))
         else:
             # add the event
             self._record_event(DraftPurchasedOrderUpdatedEvent(
+                event_id=uuid.uuid4(),
                 purchase_order_id=draft_po_id,
                 updated_by=draft.creator
             ))

@@ -1,14 +1,14 @@
 import injector
+from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from sqlalchemy.engine import Connection
 
-from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.facade import CustomerRelationshipFacade
 from customer_relationship.models import customers
+from foundation.domain_events.shop_events import ShopCreatedEvent, ShopRegisteredEvent, ShopRegistrationResendEvent
 from foundation.events import AsyncEventHandlerProvider, AsyncHandler
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
-from store import ShopRegisteredEvent, StoreCreatedEvent
 
 __all__ = [
     # module
@@ -19,8 +19,6 @@ __all__ = [
     # models
     "customers",
 ]
-
-from store.domain.events.shop_registered_event import ShopRegistrationResendEvent
 
 
 class CustomerRelationship(injector.Module):
@@ -33,7 +31,7 @@ class CustomerRelationship(injector.Module):
         binder.multibind(AsyncHandler[WinningBidPlaced], to=AsyncEventHandlerProvider(WinningBidPlacedHandler))
         binder.multibind(AsyncHandler[ShopRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
         binder.multibind(AsyncHandler[ShopRegistrationResendEvent], to=AsyncEventHandlerProvider(StoreRegistrationResendEventHandler))
-        binder.multibind(AsyncHandler[StoreCreatedEvent],
+        binder.multibind(AsyncHandler[ShopCreatedEvent],
                          to=AsyncEventHandlerProvider(StoreCreatedSuccessfullyEventHandler))
         binder.multibind(AsyncHandler[RequestPasswordChangeCreatedEvent],
                          to=AsyncEventHandlerProvider(RequestPasswordChangeCreatedEventHandler))
@@ -88,9 +86,9 @@ class StoreCreatedSuccessfullyEventHandler:
     def __init__(self, facade: CustomerRelationshipFacade) -> None:
         self._facade = facade
 
-    def __call__(self, event: StoreCreatedEvent) -> None:
+    def __call__(self, event: ShopCreatedEvent) -> None:
         self._facade.send_store_created_email(
-            store_name=event.store_name,
+            store_name=event.shop_name,
             owner_name=event.owner_name,
             owner_email=event.owner_email
         )

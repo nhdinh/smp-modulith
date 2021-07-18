@@ -12,10 +12,10 @@ from foundation.value_objects.factories import get_money
 from store.adapter.id_generators import generate_product_id
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.purchase_price import ProductPurchasePrice
-from store.domain.entities.store_product_brand import ShopProductBrand
-from store.domain.entities.store_product_tag import ShopProductTag
 from store.domain.entities.shop_supplier import ShopSupplier
 from store.domain.entities.shop_unit import ShopProductUnit
+from store.domain.entities.store_product_brand import ShopProductBrand
+from store.domain.entities.store_product_tag import ShopProductTag
 from store.domain.entities.value_objects import ShopProductId
 from store.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 

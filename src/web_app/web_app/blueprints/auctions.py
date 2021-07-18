@@ -1,8 +1,5 @@
 import flask_injector
 import injector
-from flask import Blueprint, Response, abort, jsonify, make_response, request
-from flask_login import current_user
-
 from auctions import (
     AuctionId,
     GetActiveAuctionsQuery,
@@ -12,6 +9,9 @@ from auctions import (
     PlacingBidOutputBoundary,
     PlacingBidOutputDto,
 )
+from flask import Blueprint, Response, abort, jsonify, make_response, request
+from flask_login import current_user
+
 from web_app.serialization.dto import get_dto
 
 auctions_blueprint = Blueprint("auctions_blueprint", __name__)
@@ -39,7 +39,7 @@ def place_bid(auction_id: AuctionId, placing_bid_uc: PlacingBid, presenter: Plac
     if not current_user.is_authenticated:
         abort(403)
 
-    dto = get_dto(request, PlacingBidInputDto, context={"auction_id": auction_id, "bidder_id": current_user.id})
+    dto = get_dto(request, PlacingBidInputDto, context={"auction_id": auction_id, "bidder_id": current_user.user_id})
 
     placing_bid_uc.execute(dto)
     return presenter.response  # type: ignore

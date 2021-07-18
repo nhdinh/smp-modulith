@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sqlalchemy as sa
+
 from db_infrastructure import GUID, metadata
 
 request_log_table = sa.Table(

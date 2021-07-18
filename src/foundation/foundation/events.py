@@ -1,12 +1,28 @@
 import abc
-from typing import Callable, Generic, List, Type, TypeVar, Tuple
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable, Generic, List, Type, TypeVar
+from uuid import UUID
+
 from injector import Injector, Provider, UnsatisfiedRequirement
 
 T = TypeVar("T")
 
 
+@dataclass(frozen=True)
 class Event:
-    pass
+    event_id: UUID
+
+
+@dataclass(frozen=True)
+class EveryModuleMustCatchThisEvent(Event):
+    ...
+
+
+class EventStatus(Enum):
+    PENDING = 'Pending'
+    FAILED = 'Failed'
+    SUCCESS = 'Success'
 
 
 class EventMixin:

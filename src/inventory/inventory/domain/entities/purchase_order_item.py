@@ -5,7 +5,6 @@ from decimal import Decimal
 
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-from inventory.adapter.id_generators import generate_purchase_order_item_id
 
 
 @dataclass(unsafe_hash=True)

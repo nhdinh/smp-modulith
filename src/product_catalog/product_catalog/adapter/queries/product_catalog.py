@@ -9,9 +9,9 @@ from db_infrastructure import SqlQuery
 from db_infrastructure.base import paginate
 from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
     brand_table
+from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, ListCatalogsQuery
 from product_catalog.application.queries.product_catalog import ListProductsQuery, ProductDto, GetProductQuery, \
     CollectionDto, BrandDto, ListProductBrandsQuery
-from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, ListCatalogsQuery
 from web_app.serialization.dto import PaginationOutputDto, paginate_response_factory
 
 

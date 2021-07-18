@@ -8,13 +8,13 @@ from store.application.usecases.catalog.update_store_catalog_uc import UpdatingS
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.application.usecases.store_uc_common import validate_store_ownership
 from store.domain.entities.shop import Shop
-from store.domain.entities.value_objects import StoreCatalogId
+from store.domain.entities.value_objects import ShopCatalogId
 
 
 @dataclass
 class TogglingStoreCatalogRequest:
     current_user: str
-    catalog_id: StoreCatalogId
+    catalog_id: ShopCatalogId
 
 
 class ToggleStoreCatalogUC:

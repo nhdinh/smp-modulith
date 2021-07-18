@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-
 from typing import Set, NewType
 
 from db_infrastructure import nanoid_generate

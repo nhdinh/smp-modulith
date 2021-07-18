@@ -9,11 +9,11 @@ from store.application.queries.dtos.store_product_dto import StoreProductCompact
 from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
 from store.application.queries.response_dtos import StoreInfoResponseDto, \
     StoreWarehouseResponseDto, StoreAddressResponseDto
-from store.domain.entities.value_objects import StoreCatalogId, StoreCollectionId, ShopProductId
+from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
 from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
 
 
-class ListStoreCatalogsQuery(abc.ABC):
+class ListShopCatalogsQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
         pass
@@ -23,7 +23,7 @@ class ListStoreCollectionsQuery(abc.ABC):
     @abc.abstractmethod
     def query(
             self,
-            catalog_id: StoreCatalogId,
+            catalog_id: ShopCatalogId,
             dto: AuthorizedPaginationInputDto
     ) -> PaginationOutputDto[StoreCollectionDto]:
         pass
@@ -34,7 +34,7 @@ class ListProductsFromCollectionQuery(abc.ABC):
     def query(
             self,
             collection_id: StoreCollectionId,
-            catalog_id: StoreCatalogId,
+            catalog_id: ShopCatalogId,
             dto: AuthorizedPaginationInputDto
     ) -> PaginationOutputDto[StoreProductCompactedDto]:
         pass
@@ -42,19 +42,13 @@ class ListProductsFromCollectionQuery(abc.ABC):
 
 class ListProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, owner_email: str, catalog_id: StoreCatalogId) -> StoreProductDto:
-        pass
-
-
-class GetStoreProductQuery(abc.ABC):
-    @abc.abstractmethod
-    def query(self, owner_email: str, product_id: ShopProductId, from_cache: bool = True) -> StoreProductDto:
+    def query(self, owner_email: str, catalog_id: ShopCatalogId) -> StoreProductDto:
         pass
 
 
 class ListStoreProductsByCatalogQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, catalog_id: StoreCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
+    def query(self, catalog_id: ShopCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
         StoreProductCompactedDto]:
         pass
 

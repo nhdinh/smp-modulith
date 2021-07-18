@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
 from sqlalchemy import event
 from sqlalchemy.orm import mapper, relationship, backref
 
 from inventory.adapter.inventory_db import draft_purchase_order_table, draft_purchase_order_item_table, \
-    purchase_order_table, purchase_order_item_table
+    purchase_order_table, purchase_order_item_table, warehouse_table
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.purchase_order import PurchaseOrder
+from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
 from inventory.domain.entities.warehouse import Warehouse
-from store.adapter.shop_db import shop_warehouse_table
-from store.domain.entities.shop import Shop
 from store.domain.entities.shop_address import ShopAddress
-from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.shop_supplier import ShopSupplier
 from store.domain.entities.shop_unit import ShopProductUnit
+from store.domain.entities.store_product import ShopProduct
 
 
 def start_mappers():
@@ -63,26 +61,21 @@ def start_mappers():
         )
     })
 
-    mapper(Warehouse, shop_warehouse_table,
-           version_id_col=shop_warehouse_table.c.version,
+    mapper(Warehouse, warehouse_table,
+           version_id_col=warehouse_table.c.version,
            version_id_generator=None,
            properties={
-               '_store': relationship(
-                   Shop,
-                   viewonly=True
-               ),
-
-               '_draft_purchase_orders': relationship(
-                   DraftPurchaseOrder,
-                   collection_class=set,
-                   backref=backref('_warehouse')
-               ),
-
-               '_purchase_orders': relationship(
-                   PurchaseOrder,
-                   collection_class=set,
-                   backref=backref('_warehouse')
-               )
+               # '_draft_purchase_orders': relationship(
+               #     DraftPurchaseOrder,
+               #     collection_class=set,
+               #     backref=backref('_warehouse')
+               # ),
+               #
+               # '_purchase_orders': relationship(
+               #     PurchaseOrder,
+               #     collection_class=set,
+               #     backref=backref('_warehouse')
+               # )
            })
 
 

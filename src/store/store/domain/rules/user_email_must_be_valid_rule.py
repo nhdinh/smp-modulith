@@ -7,7 +7,7 @@ from foundation.business_rule import BusinessRuleBase
 
 class UserEmailMustBeValidRule(BusinessRuleBase):
     def __init__(self, email: str):
-        message = self.__class__.__name__
+        message = f'Email "{email}" not a valid email address'
         super(UserEmailMustBeValidRule, self).__init__(message=message)
 
         self.email = email

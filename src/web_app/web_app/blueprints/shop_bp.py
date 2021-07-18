@@ -2,15 +2,13 @@
 # -*- coding: utf-8 -*-
 import flask_injector
 import injector
-from flask import Blueprint, request, current_app, Response, make_response, jsonify
+from flask import Blueprint, request, Response
 
-from foundation.business_rule import BusinessRuleValidationError
-from foundation.logger import logger
-from store import RegisterShopUC, RegisteringShopResponseBoundary
 from store.application.usecases.initialize.confirm_shop_registration_uc import ConfirmingShopRegistrationRequest, \
     ConfirmingShopRegistrationResponseBoundary, ConfirmShopRegistrationUC
-from store.application.usecases.initialize.register_shop_uc import RegisteringShopRequest
-from web_app.blueprints.store_management_bp import confirm_store_registration
+from store.application.usecases.initialize.register_shop_uc import RegisteringShopRequest, RegisterShopUC, \
+    RegisteringShopResponseBoundary
+from web_app.presenters import log_error
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.serialization.dto import get_dto
 
@@ -26,26 +24,18 @@ class ShopAPI(injector.Module):
 
 
 @shop_blueprint.route('/register', methods=['POST'])
-def register_new_store(register_shop_uc: RegisterShopUC, presenter: RegisteringShopResponseBoundary) -> Response:
-    try:
-        dto = get_dto(request, RegisteringShopRequest, context={})
-        register_shop_uc.execute(dto)
-        return presenter.response, 201  # type: ignore
-    except BusinessRuleValidationError as exc:
-        return make_response(jsonify({'message': exc.details})), 422  # type: ignore
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+@log_error()
+def register_new_shop(register_shop_uc: RegisterShopUC, presenter: RegisteringShopResponseBoundary) -> Response:
+    # try:
+    dto = get_dto(request, RegisteringShopRequest, context={})
+    register_shop_uc.execute(dto)
+    return presenter.response, 201  # type: ignore
 
 
 @shop_blueprint.route('/confirm', methods=['POST'])
+@log_error()
 def confirm_registration(confirm_registration_uc: ConfirmShopRegistrationUC,
                          presenter: ConfirmingShopRegistrationResponseBoundary) -> Response:
-    try:
-        dto = get_dto(request, ConfirmingShopRegistrationRequest, context={})
-        return confirm_store_registration(dto.confirmation_token, confirm_registration_uc, presenter)
-    except Exception as exc:
-        if current_app.debug:
-            logger.exception(exc)
-        return make_response(jsonify({'messages': exc.args})), 400  # type: ignore
+    dto = get_dto(request, ConfirmingShopRegistrationRequest, context={})
+    confirm_registration_uc.execute(dto)
+    return presenter.response, 201  # type: ignore

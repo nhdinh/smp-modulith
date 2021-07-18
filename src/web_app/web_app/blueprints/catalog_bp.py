@@ -91,7 +91,7 @@ def create_new_collection(catalog_query: str, create_collection_uc: CreateCollec
     try:
         dto = get_dto(request, CreatingCollectionRequest, context={
             'catalog_query': catalog_query,
-            'user_id': current_user.id
+            'user_id': current_user.user_id
         })
         create_collection_uc.execute(dto)
         return presenter.response, 201  # type:ignore

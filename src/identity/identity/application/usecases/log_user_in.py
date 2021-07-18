@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from identity.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
 from identity.domain.entities import User
 from identity.domain.value_objects import UserEmail, UserId
-from web_app.serialization.dto import BaseInputDto
 
 
 @dataclass
