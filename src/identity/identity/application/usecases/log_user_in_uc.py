@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from datetime import datetime
 
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User

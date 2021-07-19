@@ -5,9 +5,6 @@ import flask_injector
 import injector
 from flask import Blueprint, Response, request, current_app, jsonify, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
-from foundation.business_rule import BusinessRuleValidationError
-from foundation.logger import logger
 from store.application.queries.store_queries import ListStoreSettingsQuery, ListStoreWarehousesQuery, \
     ListStoreAddressesQuery
 from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
@@ -29,6 +26,9 @@ from store.application.usecases.manage.upload_image_uc import UploadingImageRequ
     UploadImageUC
 from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
     SelectingStorePlanRequest
+
+from foundation.business_rule import BusinessRuleValidationError
+from foundation.logger import logger
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter, \
     SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \

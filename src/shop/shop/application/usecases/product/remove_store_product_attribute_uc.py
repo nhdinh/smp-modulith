@@ -3,13 +3,12 @@
 import abc
 from dataclasses import dataclass
 
+from foundation.domain_events.shop_events import ShopProductUpdatedEvent
+from foundation.events import ThingGoneInBlackHoleError
 from foundation.fs import FileSystem
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.const import ThingGoneInBlackHoleError, ExceptionMessages
-from store.application.usecases.store_uc_common import get_shop_or_raise, get_product_by_id_or_raise
-from store.domain.entities.store_product import StoreProductAttributeTypes
-from store.domain.entities.value_objects import ShopProductId
-from store.domain.events.store_product_events import StoreProductUpdatedEvent
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import get_shop_or_raise, get_product_by_id_or_raise
+from shop.domain.entities.value_objects import ShopProductId, StoreProductAttributeTypes, ExceptionMessages
 
 
 @dataclass
@@ -68,7 +67,7 @@ class RemoveStoreProductAttributeUC:
                 self._ob.present(response_dto=response_dto)
 
                 # raise event
-                store.domain_events.append(StoreProductUpdatedEvent(product_id=product.product_id))
+                store.domain_events.append(ShopProductUpdatedEvent(product_id=product.product_id))
 
                 store.version += 1
                 uow.commit()

@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
-    UpdatingStoreCatalogResponse
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
-from store.application.usecases.store_uc_common import validate_store_ownership
-from store.domain.entities.shop import Shop
-from store.domain.entities.value_objects import ShopCatalogId
+from foundation.events import ThingGoneInBlackHoleError
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.catalog.update_shop_catalog_uc import UpdatingShopCatalogResponseBoundary
+from shop.application.usecases.shop_uc_common import validate_shop
+from shop.domain.entities.shop import Shop
+from shop.domain.entities.value_objects import ShopCatalogId, ExceptionMessages
 
 
 @dataclass
@@ -18,7 +17,7 @@ class TogglingStoreCatalogRequest:
 
 
 class ToggleStoreCatalogUC:
-    def __init__(self, ob: UpdatingStoreCatalogResponseBoundary, uow: ShopUnitOfWork):
+    def __init__(self, ob: UpdatingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
@@ -34,7 +33,7 @@ class ToggleStoreCatalogUC:
                 if ToggleStoreCatalogUC._is_store_disabled(store):
                     raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
 
-                if not validate_store_ownership(store=store, owner_email=input_dto.current_user):
+                if not validate_shop(store=store, owner_email=input_dto.current_user):
                     raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE)
 
                 raise NotImplementedError

@@ -4,10 +4,9 @@ import abc
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
-from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.shop_registration import ShopRegistration
+from foundation.events import ThingGoneInBlackHoleError
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.domain.entities.value_objects import RegistrationStatus, ExceptionMessages
 
 ALLOWABLE_RESEND_DURATION = timedelta(minutes=0)
 

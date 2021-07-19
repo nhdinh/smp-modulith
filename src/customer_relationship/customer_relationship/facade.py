@@ -49,9 +49,9 @@ class CustomerRelationshipFacade:
         email = emails.StoreRegistrationConfirmationEmail(store_name=store_name, confirmation_token=confirmation_token)
         self._send(owner_email, email)
 
-    def send_store_created_email(self, store_name, owner_name, owner_email):
-        email = emails.StoreCreatedSuccessfulEmail(store_name=store_name, owner_name=owner_name)
-        self._send(owner_email, email)
+    def send_shop_created_notification_email(self, shop_name: str, email: str):
+        email = emails.StoreCreatedSuccessfulEmail(shop_name=shop_name, admin_name=email)
+        self._send(email, email)
 
     def send_password_reset_token_email(self, username, user_email, token):
         email = emails.PasswordResetTokenEmail(username=username, token=token)

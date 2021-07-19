@@ -2,21 +2,20 @@
 # -*- coding: utf-8 -*-
 from flask import Response, make_response, jsonify
 
-from store.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse, \
+from shop.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse, \
     CreatingStoreWarehouseResponseBoundary
-from store.application.usecases.initialize.confirm_shop_registration_uc import \
+from shop.application.usecases.initialize.confirm_shop_registration_uc import \
     ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationResponse
-from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponse, \
-    AddingStoreManagerResponseBoundary
-from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressResponse, \
-    CreatingStoreAddressResponseBoundary
-from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
-    ResendingRegistrationConfirmationResponse, ResendingRegistrationConfirmationResponseBoundary
-from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
+from shop.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
+    AddingStoreManagerResponse
+from shop.application.usecases.manage.create_store_address_uc import CreatingShopAddressResponseBoundary, \
+    CreatingShopAddressResponse
+from shop.application.usecases.manage.resend_store_registration_confirmation_uc import \
+    ResendingRegistrationConfirmationResponseBoundary, ResendingRegistrationConfirmationResponse
+from shop.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
     UpdatingStoreSettingsResponse
-from store.application.usecases.manage.upload_image_uc import UploadingImageResponseBoundary, UploadingImageResponse
-from store.application.usecases.select_store_plan_uc import SelectingStorePlanResponseBoundary, \
-    SelectingStorePlanResponse
+from shop.application.usecases.manage.upload_image_uc import UploadingImageResponse, UploadingImageResponseBoundary
+from shop.application.usecases.select_store_plan_uc import SelectingShopPlanResponseBoundary, SelectingShopPlanResponse
 
 
 class ResendingRegistrationResponsePresenter(ResendingRegistrationConfirmationResponseBoundary):
@@ -33,10 +32,10 @@ class ConfirmingShopRegistrationPresenter(ConfirmingShopRegistrationResponseBoun
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class SelectingStorePlanPresenter(SelectingStorePlanResponseBoundary):
+class SelectingStorePlanPresenter(SelectingShopPlanResponseBoundary):
     response: Response
 
-    def present(self, response_dto: SelectingStorePlanResponse):
+    def present(self, response_dto: SelectingShopPlanResponse):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
@@ -68,8 +67,8 @@ class UploadingImagePresenter(UploadingImageResponseBoundary):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class CreatingStoreAddressPresenter(CreatingStoreAddressResponseBoundary):
+class CreatingStoreAddressPresenter(CreatingShopAddressResponseBoundary):
     response: Response
 
-    def present(self, response_dto: CreatingStoreAddressResponse):
+    def present(self, response_dto: CreatingShopAddressResponse):
         self.response = make_response(jsonify(response_dto.__dict__))

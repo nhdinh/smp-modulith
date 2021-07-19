@@ -8,9 +8,6 @@ import flask_injector
 import injector
 from flask import Blueprint, Response, make_response, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
-from foundation.business_rule import BusinessRuleValidationError
-from foundation.logger import logger
 from store.application.queries.store_queries import ListShopCatalogsQuery, ListStoreCollectionsQuery, \
     ListProductsFromCollectionQuery, ListProductsQuery, ListStoreProductsQuery, \
     ListStoreSuppliersQuery
@@ -42,6 +39,9 @@ from store.application.usecases.product.update_store_product_uc import UpdatingS
     UpdateStoreProductUC, UpdatingStoreProductResponseBoundary
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
+
+from foundation.business_rule import BusinessRuleValidationError
+from foundation.logger import logger
 from web_app.presenters.store_catalog_presenters import AddingShopCatalogPresenter, UpdatingStoreCatalogPresenter, \
     UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
     CreatingStoreCollectionPresenter, RemovingShopCatalogPresenter, AddingShopProductPresenter, \

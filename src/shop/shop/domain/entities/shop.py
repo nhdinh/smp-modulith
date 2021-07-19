@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Set, List, Union, Any, Optional
 
-from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductUpdatedEvent
+from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductUpdatedEvent, ShopProductCreatedEvent
 from foundation.events import EventMixin, ThingGoneInBlackHoleError
 from foundation.value_objects.address import LocationAddress
 from foundation.value_objects.factories import get_money
@@ -157,13 +157,15 @@ class Shop(EventMixin):
         )
 
         # raise event
-        shop._record_event(ShopCreatedEvent(event_id=uuid.uuid4(),
-                                            shop_id=shop.shop_id,
-                                            shop_name=shop.name,
-                                            admin_email=shop.shop_admin.email,
-                                            admin_id=shop.shop_admin.user_id,
-                                            shop_created_at=datetime.now(),
-                                            ))
+        shop._record_event(
+            ShopCreatedEvent(
+                event_id=uuid.uuid4(),
+                shop_id=shop.shop_id,
+                shop_name=shop.name,
+                admin_email=shop.shop_admin.email,
+                admin_id=shop.shop_admin.user_id,
+                shop_created_at=datetime.now(),
+            ))
 
         return shop
 
@@ -288,7 +290,7 @@ class Shop(EventMixin):
         first_stockings_input = {item['unit']: item['stocking'] for item in first_stockings_input}
 
         # raise event
-        self._record_event(StoreProductCreatedEvent(
+        self._record_event(ShopProductCreatedEvent(
             product_id=store_product.product_id,
             default_unit=store_product.default_unit.unit_name,
             units=units,

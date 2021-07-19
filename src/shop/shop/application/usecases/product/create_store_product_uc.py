@@ -10,9 +10,9 @@ from typing import Optional as Opt, List
 from dateutil.utils import today
 from sqlalchemy.exc import IntegrityError
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.store_uc_common import get_shop_or_raise
-from store.domain.entities.value_objects import ShopProductId
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import get_shop_or_raise
+from shop.domain.entities.value_objects import ShopProductId
 from web_app.serialization.dto import BaseShopInputDto
 
 

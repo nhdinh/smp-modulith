@@ -96,8 +96,8 @@ class StoreRegistrationConfirmationEmail(Email):
 
 @dataclass
 class StoreCreatedSuccessfulEmail(Email):
-    store_name: str
-    owner_name: str
+    shop_name: str
+    admin_name: str
 
     @property
     def title(self) -> str:
@@ -105,7 +105,7 @@ class StoreCreatedSuccessfulEmail(Email):
 
     @property
     def text(self) -> str:
-        return f'Your store {self.store_name} has been created successfully. Now you can login to manage it'
+        return f'Your store {self.shop_name} has been created successfully. Now you can login to manage it'
 
     @property
     def html(self) -> str:

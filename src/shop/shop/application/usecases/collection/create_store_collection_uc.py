@@ -3,11 +3,10 @@
 import abc
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.store_uc_common import get_shop_or_raise, get_catalog_from_store_or_raise, \
-    GenericStoreActionResponse
-from store.domain.entities.shop import Shop
-from store.domain.entities.value_objects import ShopCatalogId
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import GenericShopActionResponse, get_shop_or_raise, \
+    get_catalog_from_store_or_raise
+from shop.domain.entities.value_objects import ShopCatalogId
 
 
 @dataclass
@@ -19,7 +18,7 @@ class CreatingStoreCollectionRequest:
 
 class CreatingStoreCollectionResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, response_dto: GenericStoreActionResponse):
+    def present(self, response_dto: GenericShopActionResponse):
         raise NotImplementedError
 
 
@@ -38,7 +37,7 @@ class CreateStoreCollectionUC:
                 collection = store.make_collection(title=dto.title, parent_catalog=catalog)
 
                 # make response
-                response_dto = GenericStoreActionResponse(status=True)
+                response_dto = GenericShopActionResponse(status=True)
                 self._ob.present(response_dto=response_dto)
 
                 # increase version of aggregate

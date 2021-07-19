@@ -4,9 +4,9 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.store_uc_common import get_shop_or_raise
-from store.domain.entities.value_objects import ShopCatalogId
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import get_shop_or_raise
+from shop.domain.entities.value_objects import ShopCatalogId
 
 
 @dataclass
@@ -19,18 +19,18 @@ class UpdatingStoreCatalogRequest:
 
 
 @dataclass
-class UpdatingStoreCatalogResponse:
+class UpdatingShopCatalogResponse:
     status: bool
 
 
-class UpdatingStoreCatalogResponseBoundary(abc.ABC):
+class UpdatingShopCatalogResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, response_dto: UpdatingStoreCatalogResponse):
+    def present(self, response_dto: UpdatingShopCatalogResponse):
         raise NotImplementedError
 
 
 class UpdateStoreCatalogUC:
-    def __init__(self, ob: UpdatingStoreCatalogResponseBoundary, uow: ShopUnitOfWork):
+    def __init__(self, ob: UpdatingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
@@ -59,7 +59,7 @@ class UpdateStoreCatalogUC:
                 store.update_catalog(catalog_id=dto.catalog_id, **update_data)
 
                 # build the output
-                response_dto = UpdatingStoreCatalogResponse(status=True)
+                response_dto = UpdatingShopCatalogResponse(status=True)
                 self._ob.present(response_dto=response_dto)
 
                 # commit

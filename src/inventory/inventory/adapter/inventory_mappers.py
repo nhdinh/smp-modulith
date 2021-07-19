@@ -10,10 +10,10 @@ from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrd
 from inventory.domain.entities.purchase_order import PurchaseOrder
 from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
 from inventory.domain.entities.warehouse import Warehouse
-from store.domain.entities.shop_address import ShopAddress
-from store.domain.entities.shop_supplier import ShopSupplier
-from store.domain.entities.shop_unit import ShopProductUnit
-from store.domain.entities.store_product import ShopProduct
+from shop.domain.entities.shop_address import ShopAddress
+from shop.domain.entities.shop_supplier import ShopSupplier
+from shop.domain.entities.shop_unit import ShopProductUnit
+from shop.domain.entities.store_product import ShopProduct
 
 
 def start_mappers():

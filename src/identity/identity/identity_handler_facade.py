@@ -7,9 +7,9 @@ import injector
 from foundation.domain_events.shop_events import ShopRegistrationConfirmedEvent
 from foundation.events import EveryModuleMustCatchThisEvent
 from foundation.logger import logger
-from identity import UserRegistrationConfirmedEvent
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User
+from identity.domain.events.user_registration_confirmed_event import UserRegistrationConfirmedEvent
 
 
 class IdentityHandlerFacade:
@@ -20,7 +20,7 @@ class IdentityHandlerFacade:
         with self._uow as uow:  # type: IdentityUnitOfWork
             try:
                 user = User.create(email=email, password=hashed_password, is_plain_password=False, mobile=mobile)
-                self._uow.identities.save(user)
+                uow.identities.save(user)
 
                 uow.commit()
             except Exception as exc:
@@ -32,7 +32,7 @@ class UserRegistrationConfirmedEventHandler:
     def __init__(self, facade: IdentityHandlerFacade) -> None:
         self._facade = facade
 
-    def __call__(self, event: Union[UserRegistrationConfirmedEvent]) -> None:
+    def __call__(self, event: UserRegistrationConfirmedEvent) -> None:
         email = event.email
         mobile = event.mobile
         hashed_password = event.hashed_password
@@ -49,7 +49,7 @@ class CreateUserWhileShopRegistrationConfirmedEventHandler:
     def __init__(self, facade: IdentityHandlerFacade) -> None:
         self._facade = facade
 
-    def __call__(self, event: Union[ShopRegistrationConfirmedEvent]) -> None:
+    def __call__(self, event: ShopRegistrationConfirmedEvent) -> None:
         try:
             event_id = event.event_id
             registration_id = event.registration_id

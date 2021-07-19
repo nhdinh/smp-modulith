@@ -6,10 +6,10 @@ from sqlite3 import Connection
 import factory
 from flask import testing
 from sqlalchemy import select
-
 from store.adapter.shop_db import shop_registration_table
 from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogRequest
 from store.domain.entities.registration_status import RegistrationStatus
+
 from web_app.tests.shop.conftest import RegisteringShopRequestFactory, CreatedShopRegistration
 from web_app.tests.shop.models import CreatedShopAndAccount
 

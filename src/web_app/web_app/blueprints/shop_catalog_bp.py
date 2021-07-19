@@ -4,12 +4,12 @@ import flask_injector
 import injector
 from flask import Blueprint, Response, request, make_response, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
 from store.application.queries.store_queries import ListShopCatalogsQuery
 from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary, \
     AddShopCatalogUC, AddingShopCatalogRequest
 from store.application.usecases.catalog.remove_shop_catalog_uc import RemoveShopCatalogUC, \
     RemovingShopCatalogResponseBoundary, RemovingShopCatalogRequest
+
 from web_app.presenters import log_error
 from web_app.presenters.store_catalog_presenters import AddingShopCatalogPresenter, RemovingShopCatalogPresenter
 from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto

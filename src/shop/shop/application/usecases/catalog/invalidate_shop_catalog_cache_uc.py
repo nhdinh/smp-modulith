@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import GenericShopResponseBoundary, GenericShopActionRequest
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 
-
-class InvalidateStoreCatalogCacheUC:
-    def __init__(self, ob: GenericStoreResponseBoundary, uow: ShopUnitOfWork):
+class InvalidateShopCatalogCacheUC:
+    def __init__(self, ob: GenericShopResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
-    def execute(self, dto: GenericStoreActionRequest) -> None:
+    def execute(self, dto: GenericShopActionRequest) -> None:
         # with self._uow as uow:  # type: StoreUnitOfWork
         #     try:
         #         store = uow.stores.fetch_store_of_owner(dto.current_user)  # type:Store

@@ -6,11 +6,9 @@ from datetime import date
 from typing import List
 
 from inventory.domain.entities.value_objects import PurchaseOrderStatus
-from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
-from store.application.queries.response_dtos import StoreAddressResponseDto
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto
 
-
+"""
 @dataclass
 class ProductBalanceResponseDto:
     ...
@@ -51,3 +49,4 @@ class ListDraftPurchaseOrdersQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[DraftPurchaseOrderResponseDto]:
         pass
+"""

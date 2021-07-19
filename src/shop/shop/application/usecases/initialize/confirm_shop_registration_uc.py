@@ -3,9 +3,9 @@
 import abc
 from dataclasses import dataclass
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.shop_registration import ShopRegistration, ShopRegistrationId
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.domain.entities.value_objects import ShopRegistrationId, RegistrationStatus
+from web_app.presenters.shop_presenters import RegistrationStatusDto
 from web_app.serialization.dto import BaseInputDto
 
 
@@ -17,7 +17,7 @@ class ConfirmingShopRegistrationRequest(BaseInputDto):
 @dataclass
 class ConfirmingShopRegistrationResponse:
     registration_id: ShopRegistrationId
-    status: RegistrationStatus
+    status: RegistrationStatusDto
 
 
 class ConfirmingShopRegistrationResponseBoundary(abc.ABC):
@@ -61,7 +61,7 @@ class ConfirmShopRegistrationUC:
                 # persist into database
 
                 dto = ConfirmingShopRegistrationResponse(registration_id=shop_registration.registration_id,
-                                                         status=shop_registration.status)
+                                                         status=RegistrationStatusDto(shop_registration.status))
                 self._ob.present(dto)
 
                 shop_registration.version += 1

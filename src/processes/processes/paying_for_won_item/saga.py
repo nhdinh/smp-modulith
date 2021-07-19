@@ -5,7 +5,6 @@ from enum import Enum
 from typing import Any, Optional
 
 from auctions import AuctionEnded
-
 from customer_relationship import CustomerRelationshipFacade
 from foundation.method_dispatch import method_dispatch
 from foundation.value_objects import Money

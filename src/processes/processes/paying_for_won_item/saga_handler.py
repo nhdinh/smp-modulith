@@ -1,8 +1,8 @@
 import uuid
 
 import injector
-from auctions import AuctionEnded
 
+from auctions import AuctionEnded
 from foundation.events import Event
 from foundation.locks import LockFactory
 from foundation.method_dispatch import method_dispatch

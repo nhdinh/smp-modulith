@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from foundation.business_rule import BusinessRuleBase
 from store.domain.entities.registration_status import RegistrationStatus
+
+from foundation.business_rule import BusinessRuleBase
 
 
 class StoreRegistrationMustHaveValidTokenRule(BusinessRuleBase):

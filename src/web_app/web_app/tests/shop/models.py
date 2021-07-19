@@ -6,7 +6,6 @@ from datetime import datetime
 
 import factory
 import nanoid
-
 from store.application.usecases.initialize.register_shop_uc import RegisteringShopRequest
 from store.domain.entities.shop_registration import ShopRegistrationId
 from store.domain.entities.value_objects import ShopId

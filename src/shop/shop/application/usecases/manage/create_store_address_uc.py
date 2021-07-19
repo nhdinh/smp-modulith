@@ -4,24 +4,25 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
+
 from foundation.value_objects.address import LocationAddress, LocationCitySubDivision
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.store_uc_common import get_shop_or_raise, get_location
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import get_shop_or_raise, get_location
 
 
 @dataclass
-class CreatingStoreAddressResponse:
+class CreatingShopAddressResponse:
     status: bool
 
 
-class CreatingStoreAddressResponseBoundary(abc.ABC):
+class CreatingShopAddressResponseBoundary(abc.ABC):
     @abc.abstractmethod
-    def present(self, response_dto: CreatingStoreAddressResponse):
+    def present(self, response_dto: CreatingShopAddressResponse):
         raise NotImplementedError
 
 
 @dataclass
-class CreatingStoreAddressRequest:
+class CreatingShopAddressRequest:
     current_user: str
 
     recipient: str
@@ -36,15 +37,15 @@ class CreatingStoreAddressRequest:
     country_id: Optional[str] = ''
 
 
-class CreateStoreAddressUC:
-    def __init__(self, boundary: CreatingStoreAddressResponseBoundary, uow: ShopUnitOfWork):
+class CreateShopAddressUC:
+    def __init__(self, boundary: CreatingShopAddressResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow
 
-    def execute(self, dto: CreatingStoreAddressRequest) -> None:
+    def execute(self, dto: CreatingShopAddressRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
+                shop = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
                 sub_division = get_location(sub_division_id=dto.sub_division_id,
                                             uow=uow)  # type:LocationCitySubDivision
@@ -59,16 +60,16 @@ class CreateStoreAddressUC:
                     city=sub_division.city_division.city,
                     country=sub_division.city_division.city.country,
                 )
-                store_address_id = store.add_address(
+                shop_address_id = shop.add_address(
                     recipient=dto.recipient,
                     phone=dto.phone,
                     address=address
                 )
 
-                response = CreatingStoreAddressResponse(True)
+                response = CreatingShopAddressResponse(True)
                 self._ob.present(response_dto=response)
 
-                store.version += 1
+                shop.version += 1
                 uow.commit()
             except Exception as exc:
                 raise exc

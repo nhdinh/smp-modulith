@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, date
 from decimal import Decimal
-from typing import Optional, TYPE_CHECKING, Set, List, Tuple, Dict
+from typing import Optional, Set, List, Tuple, Dict
 
 from foundation.entity import Entity
 from foundation.events import EventMixin, ThingGoneInBlackHoleError

@@ -3,7 +3,6 @@
 import abc
 
 from flask import Response, make_response, jsonify
-
 from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary, \
     AddingShopCatalogResponse
 from store.application.usecases.catalog.remove_shop_catalog_uc import RemovingShopCatalogResponse, \

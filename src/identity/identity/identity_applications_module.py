@@ -14,7 +14,7 @@ from identity.application.usecases.request_to_change_password_uc import RequestT
 from identity.application.usecases.revoke_token_uc import RevokingTokenUC
 
 
-class IdentityModule(injector.Module):
+class IdentityApplicationModule(injector.Module):
     @injector.provider
     def register_user_uc(self, boundary: RegisteringUserResponseBoundary,
                          uow: IdentityUnitOfWork) -> RegisteringUserUC:

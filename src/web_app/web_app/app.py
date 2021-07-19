@@ -15,9 +15,10 @@ from sqlalchemy.orm import Session
 
 from main import bootstrap_app
 from main.modules import RequestScope
-from web_app.blueprints.identity_bp import auth_blueprint, IdentityAPI
 from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
+from web_app.blueprints.identity_bp import auth_blueprint, IdentityAPI
 from web_app.blueprints.product_bp import product_blueprint, ProductAPI
+from web_app.blueprints.shop_bp import shop_blueprint, ShopAPI
 from web_app.json_encoder import JSONEncoder
 
 
@@ -45,7 +46,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     # app.register_blueprint(shipping_blueprint, url_prefix="/shipping")
     # app.register_blueprint(store_management_blueprint, url_prefix='/manage-store')
     #
-    # app.register_blueprint(shop_blueprint, url_prefix='/shop')
+    app.register_blueprint(shop_blueprint, url_prefix='/shop')
     # app.register_blueprint(shop_catalog_blueprint, url_prefix='/shop/catalog')
     # app.register_blueprint(shop_product_blueprint, url_prefix='/shop/product')
     # app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
@@ -68,7 +69,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         CatalogAPI(),
         ProductAPI(),
 
-        # ShopAPI(),
+        ShopAPI(),
         #
         # ShopCatalogAPI(),
         # ShopProductAPI(),

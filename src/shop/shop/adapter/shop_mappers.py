@@ -9,6 +9,21 @@ from shop.adapter.shop_db import shop_settings_table, shop_registration_table, s
     shop_product_unit_table, shop_brand_table, shop_product_tag_table, shop_collection_table, \
     shop_product_collection_table, shop_product_supplier_table, shop_supplier_table, \
     shop_supplier_product_price_table, shop_addresses_table, shop_warehouse_table
+from shop.domain.entities.purchase_price import ProductPurchasePrice
+from shop.domain.entities.setting import Setting
+from shop.domain.entities.shop import Shop
+from shop.domain.entities.shop_address import ShopAddress
+from shop.domain.entities.shop_catalog import ShopCatalog
+from shop.domain.entities.shop_registration import ShopRegistration
+from shop.domain.entities.shop_supplier import ShopSupplier
+from shop.domain.entities.shop_unit import ShopProductUnit
+from shop.domain.entities.shop_user import ShopUser
+from shop.domain.entities.store_collection import ShopCollection
+from shop.domain.entities.store_product import ShopProduct
+from shop.domain.entities.store_product_brand import ShopProductBrand
+from shop.domain.entities.store_product_tag import ShopProductTag
+from shop.domain.entities.store_warehouse import ShopWarehouse
+from shop.domain.entities.value_objects import ShopUserType
 
 
 def start_mappers():

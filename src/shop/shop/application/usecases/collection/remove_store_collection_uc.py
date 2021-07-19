@@ -4,8 +4,8 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
 
 
 @dataclass

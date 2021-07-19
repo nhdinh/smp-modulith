@@ -1,7 +1,7 @@
 import injector
-from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from sqlalchemy.engine import Connection
 
+from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.facade import CustomerRelationshipFacade
 from customer_relationship.models import customers
@@ -91,10 +91,9 @@ class StoreCreatedSuccessfullyEventHandler:
         self._facade = facade
 
     def __call__(self, event: ShopCreatedEvent) -> None:
-        self._facade.send_store_created_email(
-            store_name=event.shop_name,
-            owner_name=event.owner_name,
-            owner_email=event.owner_email
+        self._facade.send_shop_created_notification_email(
+            shop_name=event.shop_name,
+            email=event.admin_email
         )
 
 

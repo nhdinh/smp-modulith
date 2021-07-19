@@ -153,7 +153,7 @@ def list_countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
 def get_location(sub_division_id: LocationCitySubDivisionId, uow: SqlAlchemyUnitOfWork) -> LocationCitySubDivision:
     # TODO: Move to foundation Repository
     try:
-        location = uow.session.query(LocationCitySubDivision, GetShopProductRequest).filter(
+        location = uow.session.query(LocationCitySubDivision).filter(
             LocationCitySubDivision.sub_division_id == sub_division_id).first()
         return location
     except Exception as exc:

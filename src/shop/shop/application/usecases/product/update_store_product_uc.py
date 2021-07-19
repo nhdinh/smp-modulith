@@ -4,11 +4,12 @@ import abc
 from dataclasses import dataclass
 from typing import Optional as Opt, List
 
+from foundation.events import ThingGoneInBlackHoleError
 from foundation.fs import FileSystem
-from store.application.services.store_unit_of_work import ShopUnitOfWork
-from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
-from store.application.usecases.store_uc_common import get_shop_or_raise, get_product_by_id_or_raise
-from store.domain.entities.value_objects import ShopProductId
+from inventory.application.usecases.const import ExceptionMessages
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import get_shop_or_raise, get_product_by_id_or_raise
+from shop.domain.entities.value_objects import ShopProductId
 
 
 @dataclass

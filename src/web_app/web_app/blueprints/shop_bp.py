@@ -4,12 +4,13 @@ import flask_injector
 import injector
 from flask import Blueprint, request, Response
 
-from store.application.usecases.initialize.confirm_shop_registration_uc import ConfirmingShopRegistrationRequest, \
-    ConfirmingShopRegistrationResponseBoundary, ConfirmShopRegistrationUC
-from store.application.usecases.initialize.register_shop_uc import RegisteringShopRequest, RegisterShopUC, \
-    RegisteringShopResponseBoundary
+from shop.application.usecases.initialize.confirm_shop_registration_uc import ConfirmShopRegistrationUC, \
+    ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationRequest
+from shop.application.usecases.initialize.register_shop_uc import RegisteringShopResponseBoundary, RegisterShopUC, \
+    RegisteringShopRequest
 from web_app.presenters import log_error
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
+from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_BLUEPRINT_NAME = 'shop_blueprint'
@@ -21,6 +22,11 @@ class ShopAPI(injector.Module):
     @flask_injector.request
     def register_shop_response_boundary(self) -> RegisteringShopResponseBoundary:
         return RegisteringShopPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def confirm_sho_registration_response_boundary(self) -> ConfirmingShopRegistrationResponseBoundary:
+        return ConfirmingShopRegistrationPresenter()
 
 
 @shop_blueprint.route('/register', methods=['POST'])

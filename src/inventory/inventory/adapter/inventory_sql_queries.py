@@ -10,18 +10,12 @@ from db_infrastructure import SqlQuery
 from inventory.adapter.common_queries import sql_count_draft_purchase_orders_in_warehouse
 from inventory.adapter.inventory_db import draft_purchase_order_item_table
 from inventory.adapter.sql_query_common import sql_get_warehouse_id_by_owner
-from inventory.application.inventory_queries import ListProductsBalanceQuery, ProductBalanceResponseDto, \
-    ListDraftPurchaseOrdersQuery, DraftPurchaseOrderResponseDto, PurchaseOrderItemResponseDto
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.value_objects import DraftPurchaseOrderId
 from inventory.domain.entities.warehouse import WarehouseId, Warehouse
-from store.adapter.queries.query_common import sql_get_store_id_by_owner, sql_count_products_in_store
-from store.application.queries.dto_factories import _row_to_address_dto
-from store.application.queries.dtos.store_supplier_dto import _row_to_supplier_dto
-from store.domain.entities.shop_address import ShopAddress
-from store.domain.entities.shop_supplier import ShopSupplier
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto, paginate_response_factory
 
+"""
 
 def fetch_inventory_product_balance_query_factory(warehouse_id) -> Query:
     pass
@@ -131,3 +125,4 @@ class SqlListDraftPurchaseOrdersQuery(ListDraftPurchaseOrdersQuery, SqlQuery):
             )
         except Exception as exc:
             raise exc
+"""

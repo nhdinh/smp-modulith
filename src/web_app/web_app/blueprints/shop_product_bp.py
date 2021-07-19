@@ -4,10 +4,10 @@ import flask_injector
 import injector
 from flask import Blueprint, Response, request, make_response, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
 from store.application.queries.get_shop_product_query import GetShopProductRequest, GetShopProductQuery
 from store.application.usecases.product.create_store_product_uc import CreateStoreProductUC, \
     AddingShopProductResponseBoundary, AddingShopProductRequest
+
 from web_app.presenters import log_error
 from web_app.presenters.store_catalog_presenters import AddingShopProductPresenter
 from web_app.serialization.dto import get_dto

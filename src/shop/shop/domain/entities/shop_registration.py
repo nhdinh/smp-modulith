@@ -14,7 +14,6 @@ from shop.adapter.id_generators import generate_shop_id, SHOP_ID_PREFIX
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_user import ShopUser
 from shop.domain.entities.store_warehouse import ShopWarehouse
-
 from shop.domain.entities.value_objects import ShopRegistrationId, SystemUserId, ShopUserType, ShopId, \
     RegistrationStatus
 from shop.domain.rules.shop_name_must_not_be_empty_rule import ShopNameMustNotBeEmptyRule
@@ -127,7 +126,7 @@ class ShopRegistration(EventMixin, Entity):
             mobile=self.owner_mobile
         ))
 
-        self._record_event(EveryModuleMustCatchThisEvent(event_id=uuid.uuid4()))
+        # self._record_event(EveryModuleMustCatchThisEvent(event_id=uuid.uuid4()))
 
         return self.registration_id
 

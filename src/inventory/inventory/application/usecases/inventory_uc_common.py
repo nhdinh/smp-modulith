@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING
 
 import email_validator
 
+from foundation.events import ThingGoneInBlackHoleError
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.value_objects import DraftPurchaseOrderId
-from store.application.usecases.const import ThingGoneInBlackHoleError
 
 if TYPE_CHECKING:
     from inventory.domain.entities.warehouse import Warehouse

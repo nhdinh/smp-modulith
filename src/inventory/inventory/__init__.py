@@ -5,10 +5,8 @@ import injector
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
-from foundation.domain_events.shop_events import ShopCreatedEvent
+from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent
 from foundation.events import EventBus, AsyncEventHandlerProvider, AsyncHandler, EveryModuleMustCatchThisEvent
-from inventory.adapter.inventory_sql_queries import SqlListProductsBalanceQuery, SqlListDraftPurchaseOrdersQuery
-from inventory.application.inventory_queries import ListProductsBalanceQuery, ListDraftPurchaseOrdersQuery
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.approve_purchase_order_uc import ApprovePurchaseOrderUC, \
     ApprovingPurchaseOrderResponseBoundary
@@ -18,23 +16,22 @@ from inventory.application.usecases.remove_draft_purchase_order_item_uc import R
     RemovingDraftPurchaseOrderItemResponseBoundary
 from inventory.application.usecases.update_draft_purchase_order_uc import UpdatingDraftPurchaseOrderResponseBoundary, \
     UpdateDraftPurchaseOrderUC
-from inventory.inventory_handler_facade import InventoryHandlerFacade, StoreProductCreatedEventHandler, \
+from inventory.inventory_handler_facade import InventoryHandlerFacade, ShopProductCreatedEventHandler, \
     ShopCreatedEventHandler, Inventory_CatchAllEventHandler
-from store.domain.events.store_product_events import StoreProductCreatedEvent
 
 
-class InventoryModule(injector.Module):
+class InventoryEventHandlerModule(injector.Module):
     @injector.provider
-    def facade(self, connection: Connection, uow: InventoryUnitOfWork) -> InventoryHandlerFacade:
-        return InventoryHandlerFacade(connection=connection, uow=uow)
+    def facade(self, uow: InventoryUnitOfWork) -> InventoryHandlerFacade:
+        return InventoryHandlerFacade(uow=uow)
 
     def configure(self, binder: injector.Binder) -> None:
         binder.multibind(AsyncHandler[EveryModuleMustCatchThisEvent],
                          to=AsyncEventHandlerProvider(Inventory_CatchAllEventHandler))
 
         binder.multibind(AsyncHandler[ShopCreatedEvent], to=AsyncEventHandlerProvider(ShopCreatedEventHandler))
-        binder.multibind(AsyncHandler[StoreProductCreatedEvent],
-                         to=AsyncEventHandlerProvider(StoreProductCreatedEventHandler))
+        binder.multibind(AsyncHandler[ShopProductCreatedEvent],
+                         to=AsyncEventHandlerProvider(ShopProductCreatedEventHandler))
 
     @injector.provider
     def create_draft_purchase_order(self, boundary: CreatingDraftPurchaseOrderResponseBoundary,
@@ -67,7 +64,7 @@ class InventoryInfrastructureModule(injector.Module):
     def get_uow(self, conn: Connection, event_bus: EventBus) -> InventoryUnitOfWork:
         sessfactory = sessionmaker(bind=conn)
         return InventoryUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
-
+"""
     @injector.provider
     def fetch_all_products_balance_query(self, conn: Connection) -> ListProductsBalanceQuery:
         return SqlListProductsBalanceQuery(connection=conn)
@@ -75,8 +72,8 @@ class InventoryInfrastructureModule(injector.Module):
     @injector.provider
     def list_draft_purchase_orders_query(self, conn: Connection) -> ListDraftPurchaseOrdersQuery:
         return SqlListDraftPurchaseOrdersQuery(connection=conn)
-
+"""
 
 __all__ = [
-    InventoryModule, InventoryInfrastructureModule
+    InventoryEventHandlerModule, InventoryInfrastructureModule
 ]

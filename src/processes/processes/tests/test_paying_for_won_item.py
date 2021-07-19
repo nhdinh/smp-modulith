@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 
 import freezegun
 import pytest
-from auctions import AuctionEnded
 
+from auctions import AuctionEnded
 from customer_relationship import CustomerRelationshipFacade
 from foundation.value_objects.factories import get_money
 from payments import PaymentCaptured, PaymentsFacade

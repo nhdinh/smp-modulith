@@ -3,8 +3,10 @@
 import abc
 from dataclasses import dataclass
 
+
+
 from foundation.fs import FileSystem
-from store.application.services.store_unit_of_work import ShopUnitOfWork
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
 
 @dataclass

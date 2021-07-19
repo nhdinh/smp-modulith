@@ -7,15 +7,14 @@ import injector
 from sqlalchemy import insert
 from sqlalchemy.engine import Connection
 
-from foundation.domain_events.shop_events import ShopCreatedEvent
+from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent
 from foundation.events import EveryModuleMustCatchThisEvent
 from foundation.logger import logger
 from inventory.adapter.id_generators import generate_warehouse_id
 from inventory.adapter.inventory_db import inventory_product_balance_table
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.domain.entities.warehouse import Warehouse
-from store.domain.entities.value_objects import ShopId, ShopProductId
-from store.domain.events.store_product_events import StoreProductCreatedEvent
+from shop.domain.entities.value_objects import ShopId, ShopProductId
 
 
 class InventoryHandlerFacade:
@@ -59,12 +58,12 @@ class InventoryHandlerFacade:
                 raise exc
 
 
-class StoreProductCreatedEventHandler:
+class ShopProductCreatedEventHandler:
     @injector.inject
     def __init__(self, facade: InventoryHandlerFacade) -> None:
         self._f = facade
 
-    def __call__(self, event: StoreProductCreatedEvent) -> None:
+    def __call__(self, event: ShopProductCreatedEvent) -> None:
         pass
         # self._f.update_inventory_first_stock(
         #     event.shop_id,

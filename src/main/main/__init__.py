@@ -10,9 +10,9 @@ from sqlalchemy.engine import Engine, create_engine
 from customer_relationship import CustomerRelationshipEventHandlerModule
 from db_infrastructure import metadata
 from foundation import FoundationModule
-from identity import IdentityEventHandlerModule
+from identity.identity_event_handler_module import IdentityEventHandlerModule
 from identity.identity_infrastructure_module import IdentityInfrastructureModule
-from identity.identity_module import IdentityModule
+from identity.identity_applications_module import IdentityApplicationModule
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService, FileSystemProvider
 # from payments import Payments
 # from processes import Processes
@@ -22,6 +22,8 @@ from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureMo
 # from shipping_infrastructure import ShippingInfrastructure
 
 __all__ = ["bootstrap_app"]
+
+from shop.shop_application_module import ShopApplicationModule
 
 from shop.shop_event_handler_module import ShopEventHandlerModule
 from shop.shop_infrastructure_module import ShopInfrastructureModule
@@ -83,7 +85,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             IdentityEventHandlerModule(),
 
             IdentityInfrastructureModule(),
-            IdentityModule(),
+            IdentityApplicationModule(),
             # Auctions(),
             # AuctionsInfrastructure(),
             # Shipping(),
@@ -100,6 +102,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
 
             ShopEventHandlerModule(),
             ShopInfrastructureModule(),
+            ShopApplicationModule(),
         ],
         auto_bind=False,
     )
@@ -136,11 +139,11 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     except Exception as exc:
         raise exc
 
-    # try:
-    #     from store.adapter import shop_mappers
-    #     shop_mappers.start_mappers()
-    # except Exception as exc:
-    #     raise exc
+    try:
+        from shop.adapter import shop_mappers
+        shop_mappers.start_mappers()
+    except Exception as exc:
+        raise exc
     #
     # try:
     #     from inventory.adapter import inventory_mappers
