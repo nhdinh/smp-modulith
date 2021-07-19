@@ -10,10 +10,10 @@ from foundation.domain_events.inventory_events import WarehouseCreatedEvent
 from foundation.events import EventMixin
 from inventory.adapter.inventory_db import generate_draft_purchase_order_id
 from inventory.application.usecases.const import ExceptionMessages
-from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId, PurchaseOrderId
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
+from inventory.domain.entities.value_objects import PurchaseOrderId, DraftPurchaseOrderId, PurchaseOrderStatus
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.purchase_order import PurchaseOrder
-from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
 from inventory.domain.events.draft_purchase_order_events import DraftPurchaseOrderCreatedEvent, \
     DraftPurchasedOrderUpdatedEvent
 from store.application.usecases.const import ThingGoneInBlackHoleError

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import factory
 
-from identity.application.usecases.log_user_in import LoggingUserInRequest
+from identity.application.usecases.log_user_in_uc import LoggingUserInRequest
 
 
 @dataclass

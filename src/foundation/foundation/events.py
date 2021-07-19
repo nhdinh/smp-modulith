@@ -124,3 +124,8 @@ class InjectorEventBus(EventBus):
             assert isinstance(async_handlers, list)
             for async_handler in async_handlers:
                 self._run_async_handler(async_handler, event)
+
+
+class ThingGoneInBlackHoleError(Exception):
+    # The 404 or Not_Found exception
+    pass

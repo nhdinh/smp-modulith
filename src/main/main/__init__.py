@@ -7,25 +7,24 @@ from sqlalchemy.engine import Engine, create_engine
 
 # from auctions import Auctions
 # from auctions_infrastructure import AuctionsInfrastructure
-from customer_relationship import CustomerRelationship
+from customer_relationship import CustomerRelationshipEventHandlerModule
 from db_infrastructure import metadata
 from foundation import FoundationModule
 from identity import IdentityEventHandlerModule
-from identity.auth_infrastructure_module import AuthenticationInfrastructureModule
-from identity.auth_module import AuthenticationModule
-from inventory import InventoryModule, InventoryInfrastructureModule
+from identity.identity_infrastructure_module import IdentityInfrastructureModule
+from identity.identity_module import IdentityModule
 from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService, FileSystemProvider
 # from payments import Payments
 # from processes import Processes
 from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureModule
-from store import ShopEventHandlerModule
-from store.shop_infrastructure_module import ShopInfrastructureModule
-from store.store_module import ShopModule
 
 # from shipping import Shipping
 # from shipping_infrastructure import ShippingInfrastructure
 
 __all__ = ["bootstrap_app"]
+
+from shop.shop_event_handler_module import ShopEventHandlerModule
+from shop.shop_infrastructure_module import ShopInfrastructureModule
 
 
 @dataclass
@@ -83,22 +82,24 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
 
             IdentityEventHandlerModule(),
 
-            AuthenticationInfrastructureModule(),
-            AuthenticationModule(),
-            ShopEventHandlerModule(),
+            IdentityInfrastructureModule(),
+            IdentityModule(),
             # Auctions(),
             # AuctionsInfrastructure(),
             # Shipping(),
             # ShippingInfrastructure(),
-            CustomerRelationship(),
+            CustomerRelationshipEventHandlerModule(),
             ProductCatalogModule(),
             ProductCatalogInfrastructureModule(),
-            ShopModule(),
-            ShopInfrastructureModule(),
-            InventoryModule(),
-            InventoryInfrastructureModule(),
+            # ShopModule(),
+            # ShopInfrastructureModule(),
+            # InventoryModule(),
+            # InventoryInfrastructureModule(),
             # Payments(),
             # Processes(),
+
+            ShopEventHandlerModule(),
+            ShopInfrastructureModule(),
         ],
         auto_bind=False,
     )
@@ -135,17 +136,17 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     except Exception as exc:
         raise exc
 
-    try:
-        from store.adapter import shop_mappers
-        shop_mappers.start_mappers()
-    except Exception as exc:
-        raise exc
-
-    try:
-        from inventory.adapter import inventory_mappers
-        inventory_mappers.start_mappers()
-    except Exception as exc:
-        raise exc
+    # try:
+    #     from store.adapter import shop_mappers
+    #     shop_mappers.start_mappers()
+    # except Exception as exc:
+    #     raise exc
+    #
+    # try:
+    #     from inventory.adapter import inventory_mappers
+    #     inventory_mappers.start_mappers()
+    # except Exception as exc:
+    #     raise exc
 
 
 def _create_db_schema(engine: Engine) -> None:
@@ -154,8 +155,7 @@ def _create_db_schema(engine: Engine) -> None:
     # from auctions_infrastructure import auctions, bids  # noqa
     # from customer_relationship.models import customers  # noqa
     from identity.adapters.identity_db import user_table, role_table, user_role_table  # noqa
-    from inventory.adapter.inventory_db import draft_purchase_order_table, inventory_product_balance_table  # noqa
-
+    # from inventory.adapter.inventory_db import draft_purchase_order_table, inventory_product_balance_table  # noqa
 
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)

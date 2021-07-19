@@ -5,7 +5,7 @@ from datetime import date
 from typing import NewType, Set
 
 from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
-from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
+from inventory.domain.entities.value_objects import PurchaseOrderStatus
 
 PurchaseOrderId = NewType('PurchaseOrderId', tp=str)
 

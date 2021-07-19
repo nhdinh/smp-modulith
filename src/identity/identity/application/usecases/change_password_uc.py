@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from datetime import timedelta, datetime
 
-from identity.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
+from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User
 from identity.domain.value_objects import UserEmail
 
@@ -44,12 +44,12 @@ class ChangingPasswordResponseBoundary(abc.ABC):
 
 
 class ChangePasswordUC:
-    def __init__(self, ob: ChangingPasswordResponseBoundary, uow: AuthenticationUnitOfWork):
+    def __init__(self, ob: ChangingPasswordResponseBoundary, uow: IdentityUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute_reset(self, input_dto: ResettingPasswordRequest) -> None:
-        with self._uow as uow:  # type:AuthenticationUnitOfWork
+        with self._uow as uow:  # type:IdentityUnitOfWork
             try:
                 user = uow.identities.fetch_user_by_token(reset_password_token=input_dto.reset_token)  # type:User
 
@@ -74,7 +74,7 @@ class ChangePasswordUC:
                 raise exc
 
     def execute_change(self, input_dto: ChangingPasswordRequest) -> None:
-        with self._uow as uow:  # type:AuthenticationUnitOfWork
+        with self._uow as uow:  # type:IdentityUnitOfWork
             try:
                 user = uow.identities.get_user(query=input_dto.current_user)
 

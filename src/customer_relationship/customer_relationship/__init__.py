@@ -6,13 +6,14 @@ from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.facade import CustomerRelationshipFacade
 from customer_relationship.models import customers
 from foundation.domain_events.shop_events import ShopCreatedEvent, ShopRegisteredEvent, ShopRegistrationResendEvent
-from foundation.events import AsyncEventHandlerProvider, AsyncHandler
+from foundation.events import AsyncEventHandlerProvider, AsyncHandler, EveryModuleMustCatchThisEvent
+from foundation.logger import logger
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
 
 __all__ = [
     # module
-    "CustomerRelationship",
+    "CustomerRelationshipEventHandlerModule",
     "CustomerRelationshipConfig",
     # facade
     "CustomerRelationshipFacade",
@@ -21,16 +22,19 @@ __all__ = [
 ]
 
 
-class CustomerRelationship(injector.Module):
+class CustomerRelationshipEventHandlerModule(injector.Module):
     @injector.provider
     def facade(self, config: CustomerRelationshipConfig, connection: Connection) -> CustomerRelationshipFacade:
         return CustomerRelationshipFacade(config, connection)
 
     def configure(self, binder: injector.Binder) -> None:
+        binder.multibind(AsyncHandler[EveryModuleMustCatchThisEvent],
+                         to=AsyncEventHandlerProvider(CRM_CatchAllEventHandler))
         binder.multibind(AsyncHandler[BidderHasBeenOverbid], to=AsyncEventHandlerProvider(BidderHasBeenOverbidHandler))
         binder.multibind(AsyncHandler[WinningBidPlaced], to=AsyncEventHandlerProvider(WinningBidPlacedHandler))
         binder.multibind(AsyncHandler[ShopRegisteredEvent], to=AsyncEventHandlerProvider(StoreRegisteredEventHandler))
-        binder.multibind(AsyncHandler[ShopRegistrationResendEvent], to=AsyncEventHandlerProvider(StoreRegistrationResendEventHandler))
+        binder.multibind(AsyncHandler[ShopRegistrationResendEvent],
+                         to=AsyncEventHandlerProvider(StoreRegistrationResendEventHandler))
         binder.multibind(AsyncHandler[ShopCreatedEvent],
                          to=AsyncEventHandlerProvider(StoreCreatedSuccessfullyEventHandler))
         binder.multibind(AsyncHandler[RequestPasswordChangeCreatedEvent],
@@ -117,3 +121,12 @@ class PasswordResettedEventHandler:
             username=event.username,
             user_email=event.email
         )
+
+
+class CRM_CatchAllEventHandler:
+    @injector.inject
+    def __init__(self):
+        ...
+
+    def __call__(self, event: EveryModuleMustCatchThisEvent):
+        logger.debug(f'Identity_{event.event_id}')

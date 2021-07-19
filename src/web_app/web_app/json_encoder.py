@@ -5,14 +5,7 @@ from decimal import Decimal
 from functools import singledispatchmethod
 from uuid import UUID
 
-from auctions import AuctionDto
-
 from foundation.value_objects import Money
-from identity.application.queries.identity import UserDto
-from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
-from product_catalog.application.queries.product_catalog import CatalogDto, CollectionDto, BrandDto
-from store.domain.entities.registration_status import RegistrationStatus
-from store.domain.entities.shop_address import AddressType
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -32,49 +25,6 @@ class JSONEncoder(json.JSONEncoder):
                 raise TypeError(f"Cannot serialize {type(obj)}")
         except:
             raise TypeError(f"Cannot serialize {type(obj)}")
-
-    @default.register(AuctionDto)  # noqa: F811
-    def serialize_auction_dto(self, obj: AuctionDto) -> object:
-        return {
-            "id": obj.id,
-            "title": obj.title,
-            "current_price": obj.current_price,
-            "starting_price": obj.starting_price,
-            "ends_at": obj.ends_at,
-        }
-
-    @default.register(CollectionDto)  # noga: F811
-    def serialize_collection_dto(self, obj: CollectionDto) -> object:
-        return {
-            'reference': obj.collection_reference,
-            'display_name': obj.collection_display_name,
-            'default': obj.collection_default,
-        }
-
-    @default.register(BrandDto)  # noga: F881
-    def serialize_brand_dto(self, obj: BrandDto) -> object:
-        return {
-            'reference': obj.brand_reference,
-            'display_name': obj.brand_display_name,
-            'logo': obj.brand_logo,
-        }
-
-    @default.register(CatalogDto)  # noqa: F811
-    def serialize_catalog_dto(self, obj: CatalogDto) -> object:
-        return {
-            'reference': obj.reference,
-            'display_name': obj.display_name,
-            'disabled': obj.disabled,
-            'collection': obj.collections,
-            'system': obj.system,
-        }
-
-    @default.register(UserDto)  # noqa: F811
-    def serialize_user_dto(self, obj: UserDto) -> object:
-        return {
-            'id': obj.id,
-            'email': obj.email
-        }
 
     @default.register(Money)  # noqa: F811
     def serialize_money(self, obj: Money) -> object:
@@ -96,14 +46,14 @@ class JSONEncoder(json.JSONEncoder):
     def serialize_decimal(self, obj: Decimal) -> str:
         return json.dumps(obj, cls=DecimalEncoder).replace("\"`", '').replace("`\"", '')
 
-    @default.register(AddressType)
-    def serialize_store_address_type(self, obj: AddressType) -> str:
-        return str(obj.value)
+    # @default.register(AddressType)
+    # def serialize_store_address_type(self, obj: AddressType) -> str:
+    #     return str(obj.value)
 
-    @default.register(PurchaseOrderStatus)
-    def serialize_purchase_order_status(self, obj: PurchaseOrderStatus) -> str:
-        return str(obj.value)
-
-    @default.register(RegistrationStatus)
-    def serialize_registration_status(self, obj: RegistrationStatus) -> str:
-        return str(obj.value)
+    # @default.register(PurchaseOrderStatus)
+    # def serialize_purchase_order_status(self, obj: PurchaseOrderStatus) -> str:
+    #     return str(obj.value)
+    #
+    # @default.register(RegistrationStatus)
+    # def serialize_registration_status(self, obj: RegistrationStatus) -> str:
+    #     return str(obj.value)

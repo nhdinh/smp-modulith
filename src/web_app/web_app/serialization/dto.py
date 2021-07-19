@@ -26,8 +26,8 @@ class BaseInputDto:
 
 @dataclass
 class BaseShopInputDto(BaseInputDto):
-    partner_id: 'SystemUserId'
-    shop_id: 'ShopId'
+    partner_id: str
+    shop_id: str
 
 
 @dataclass

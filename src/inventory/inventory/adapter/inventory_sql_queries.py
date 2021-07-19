@@ -12,7 +12,8 @@ from inventory.adapter.inventory_db import draft_purchase_order_item_table
 from inventory.adapter.sql_query_common import sql_get_warehouse_id_by_owner
 from inventory.application.inventory_queries import ListProductsBalanceQuery, ProductBalanceResponseDto, \
     ListDraftPurchaseOrdersQuery, DraftPurchaseOrderResponseDto, PurchaseOrderItemResponseDto
-from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder, DraftPurchaseOrderId
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
+from inventory.domain.entities.value_objects import DraftPurchaseOrderId
 from inventory.domain.entities.warehouse import WarehouseId, Warehouse
 from store.adapter.queries.query_common import sql_get_store_id_by_owner, sql_count_products_in_store
 from store.application.queries.dto_factories import _row_to_address_dto

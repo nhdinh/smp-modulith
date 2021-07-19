@@ -6,7 +6,7 @@ from datetime import date
 from typing import Optional
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
-from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrderId
+from inventory.domain.entities.value_objects import DraftPurchaseOrderId
 from store.domain.entities.value_objects import StoreAddressId
 
 

@@ -11,7 +11,7 @@ from passlib.hash import pbkdf2_sha256 as sha256
 
 from foundation.domain_events.identity_events import UserCreatedEvent
 from foundation.entity import Entity
-from foundation.events import EventMixin
+from foundation.events import EventMixin, EveryModuleMustCatchThisEvent
 from identity.adapters.id_generator import generate_user_id
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
@@ -76,8 +76,8 @@ class User(EventMixin, Entity):
     @staticmethod
     def create(
             email: str,
-            mobile: str,
             password: str,
+            mobile: str = '',
             is_plain_password: bool = True,
     ) -> User:
         if is_plain_password:
@@ -150,3 +150,9 @@ class User(EventMixin, Entity):
             username=self.email,
             email=self.email
         ))
+
+    def update_login_status(self, remote_address: str):
+        self.current_login_ip = remote_address
+        self.login_count += 1
+
+        self._record_event(EveryModuleMustCatchThisEvent(event_id=uuid.uuid4()))

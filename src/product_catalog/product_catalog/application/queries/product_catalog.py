@@ -15,12 +15,26 @@ class CollectionDto:
     collection_display_name: str
     collection_default: bool
 
+    def serialize(self):
+        return {
+            'reference': self.collection_reference,
+            'display_name': self.collection_display_name,
+            'default': self.collection_default,
+        }
+
 
 @dataclass
 class BrandDto:
     brand_reference: str
     brand_display_name: str
     brand_logo: str
+
+    def serialize(self) -> object:
+        return {
+            'reference': self.brand_reference,
+            'display_name': self.brand_display_name,
+            'logo': self.brand_logo,
+        }
 
 
 @dataclass
@@ -30,6 +44,15 @@ class CatalogDto:
     disabled: bool
     collections: List[CollectionDto]
     system: bool
+
+    def serialize(self) -> object:
+        return {
+            'reference': self.reference,
+            'display_name': self.display_name,
+            'disabled': self.disabled,
+            'collection': self.collections,
+            'system': self.system,
+        }
 
 
 @dataclass

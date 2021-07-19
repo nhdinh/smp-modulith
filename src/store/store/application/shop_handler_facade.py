@@ -241,12 +241,3 @@ class CreateShopAndUpdateRegistrationWhileUserCreatedEventHandler:
             # do something with this exception
             logger.exception(exc)
             raise exc
-
-
-class Shop_CatchAllEventHandler:
-    @injector.inject
-    def __init__(self):
-        ...
-
-    def __call__(self, event: EveryModuleMustCatchThisEvent):
-        logger.debug(f'Shop_{event.event_id}')

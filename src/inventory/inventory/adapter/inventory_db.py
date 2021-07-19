@@ -7,7 +7,7 @@ import sqlalchemy as sa
 from db_infrastructure import metadata
 from inventory.adapter.id_generators import generate_draft_purchase_order_id, generate_purchase_order_id, \
     generate_purchase_order_item_id, generate_delivery_order_id, generate_warehouse_id
-from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
+from inventory.domain.entities.value_objects import PurchaseOrderStatus
 from store.adapter.shop_db import shop_product_table, shop_product_unit_table, shop_supplier_table, \
     shop_addresses_table, shop_warehouse_table
 

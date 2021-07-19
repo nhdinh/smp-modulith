@@ -50,7 +50,6 @@ from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
 
 STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'
 store_catalog_blueprint = Blueprint(STORE_CATALOG_BLUEPRINT_NAME, __name__)
-store_catalog_blueprint_endpoint_callers = []
 
 
 class StoreCatalogAPI(injector.Module):
@@ -136,9 +135,6 @@ def init_store_from_plan(initialize_store_with_plan_uc: InitializeStoreWithPlanU
     raise NotImplementedError
 
 
-store_catalog_blueprint_endpoint_callers.append(init_store_from_plan)
-
-
 # endregion
 
 # region ## StoreCatalog Operation Endpoints ##
@@ -160,9 +156,6 @@ def fetch_store_catalogs(list_store_catalogs_query: ListShopCatalogsQuery) -> Re
         if current_app.debug:
             logger.exception(exc)
         return make_response(jsonify({'message': exc.args})), 400  # type:ignore
-
-
-store_catalog_blueprint_endpoint_callers.append(fetch_store_catalogs)
 
 
 @store_catalog_blueprint.route('/cache-invalidate', methods=['POST'])

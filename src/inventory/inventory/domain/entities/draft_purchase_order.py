@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, date
-from typing import NewType, List, Tuple
+from typing import List, Tuple
 
 from dateutil.utils import today
 
@@ -13,23 +13,17 @@ from inventory.adapter.id_generators import generate_purchase_order_id
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.purchase_order import PurchaseOrder
 from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
-from inventory.domain.entities.purchase_order_status import PurchaseOrderStatus
+from inventory.domain.entities.value_objects import DraftPurchaseOrderId, PurchaseOrderStatus
 from inventory.domain.rules.draft_purchase_order_must_be_unconfirmed_status import \
     DraftPurchaseOrderMustBeUnconfirmedStatusRule
-from store.domain.entities.shop_address import ShopAddress
-from store.domain.entities.shop_supplier import ShopSupplier
-
-DraftPurchaseOrderId = NewType('DraftPurchaseOrderId', tp=str)
-PurchaseOrderId = NewType('PurchaseOrderId', tp=str)
-PurchaseOrderReference = NewType('PurchaseOrderReference', tp=str)
 
 
 class DraftPurchaseOrder(EventMixin, Entity):
     def __init__(
             self,
             purchase_order_id: DraftPurchaseOrderId,
-            supplier: ShopSupplier,
-            delivery_address: ShopAddress,
+            supplier: 'ShopSupplier',
+            delivery_address: 'ShopAddress',
             note: str,
             due_date: date,
             creator: str,

@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from identity.application.services.authentication_unit_of_work import AuthenticationUnitOfWork
+from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.value_objects import UserEmail
 
 
@@ -29,12 +29,12 @@ class RequestingToChangePasswordResponseBoundary(abc.ABC):
 
 
 class RequestToChangePasswordUC:
-    def __init__(self, ob: RequestingToChangePasswordResponseBoundary, uow: AuthenticationUnitOfWork):
+    def __init__(self, ob: RequestingToChangePasswordResponseBoundary, uow: IdentityUnitOfWork):
         self._ob = ob
         self._uow = uow
 
     def execute(self, input_dto: RequestingToChangePasswordRequest) -> None:
-        with self._uow as uow:  # type: AuthenticationUnitOfWork
+        with self._uow as uow:  # type: IdentityUnitOfWork
             try:
                 user = uow.identities.get_user(query=input_dto.email)
                 if not user:
