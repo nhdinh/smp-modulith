@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import List, Optional
 
 from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
 from product_catalog.domain.entities.catalog import Catalog

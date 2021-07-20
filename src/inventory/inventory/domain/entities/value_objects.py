@@ -3,9 +3,11 @@
 from enum import Enum
 from typing import NewType
 
+WarehouseId = NewType('WarehouseId', tp=str)
 PurchaseOrderId = NewType('PurchaseOrderId', tp=str)
 DraftPurchaseOrderId = NewType('DraftPurchaseOrderId', tp=str)
 PurchaseOrderReference = NewType('PurchaseOrderReference', tp=str)
+SystemUserId = NewType("SystemUserId", tp=str)
 
 
 class PurchaseOrderStatus(Enum):
@@ -16,3 +18,25 @@ class PurchaseOrderStatus(Enum):
     COMPLETED = 'COMPLETED'
     COMPLETED_PARTLY = 'COMPLETED_PARTLY'
     FAILED = 'FAILED'
+
+
+class WarehouseStatus(Enum):
+    NORMAL = 'Normal'
+    DISABLED = 'Disabled'
+    DELETED = 'Deleted'
+
+
+class WarehouseUserType(Enum):
+    MANAGER = 'Manager'
+    ADMIN = 'Admin'
+
+
+class SystemUserStatus(Enum):
+    NORMAL = 'NORMAL'
+    DISABLED = 'DISABLED'
+    DELETED = 'DELETED'
+
+
+class AddressType(Enum):
+    SHOP_ADDRESS = 'SHOP_ADDRESS'
+    WAREHOUSE_ADDRESS = 'WAREHOUSE_ADDRESS'

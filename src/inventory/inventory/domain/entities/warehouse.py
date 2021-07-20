@@ -1,51 +1,67 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
+from __future__ import annotations
+
 from datetime import date, datetime
-from typing import NewType, Set, Union, List, Optional
+from typing import Set
+import uuid
 
 from dateutil.utils import today
 
 from foundation.domain_events.inventory_events import WarehouseCreatedEvent
-from foundation.events import EventMixin, ThingGoneInBlackHoleError
-from inventory.adapter.inventory_db import generate_draft_purchase_order_id
-from inventory.application.usecases.const import ExceptionMessages
-from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
-from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
-from inventory.domain.entities.purchase_order import PurchaseOrder
-from inventory.domain.entities.value_objects import PurchaseOrderId, DraftPurchaseOrderId, PurchaseOrderStatus
-from inventory.domain.events.draft_purchase_order_events import DraftPurchaseOrderCreatedEvent, \
-    DraftPurchasedOrderUpdatedEvent
-from shop.domain.entities.store_product import ShopProduct
-from shop.domain.entities.value_objects import StoreSupplierId, StoreAddressId, ShopProductId
+from foundation.events import EventMixin, new_event_id
 
-WarehouseId = NewType('WarehouseId', tp=str)
+from inventory.adapter.id_generators import generate_warehouse_id
+from inventory.adapter.inventory_db import generate_draft_purchase_order_id
+from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
+from inventory.domain.entities.purchase_order import PurchaseOrder
+from inventory.domain.entities.value_objects import (
+    DraftPurchaseOrderId,
+    PurchaseOrderId,
+    SystemUserId,
+    WarehouseId,
+    WarehouseUserType,
+)
+from inventory.domain.entities.warehouse_user import WarehouseUser
 
 
 class Warehouse(EventMixin):
-    def __init__(self,
-                 warehouse_id: WarehouseId,
-                 admin_id: 'SystemUserId',
-                 warehouse_name: str,
-                 version: int = 0):
+    def __init__(
+            self,
+            warehouse_id: WarehouseId,
+            name: str,
+            first_user: WarehouseUser,
+            version: int = 0
+    ) -> None:
         super(Warehouse, self).__init__()
 
         self.warehouse_id = warehouse_id
-        self.admin_id = admin_id
-        self.warehouse_name = warehouse_name
+        self.name = name
+        self.version = version
 
+        # setup _users
+        self._users = set()  # type: Set[WarehouseUser]
+        warehouse_admin = None
+        if first_user is not None:
+            warehouse_admin = first_user
+            warehouse_admin.warehouse_role = WarehouseUserType.ADMIN
+
+        if warehouse_admin:
+            self._users.add(warehouse_admin)
+            self._admin = warehouse_admin
+
+        # setup inner content
         self._draft_purchase_orders = set()  # type:Set[DraftPurchaseOrder]
 
         # those following are approved purchase orders
         self._purchase_orders = set()  # type: Set[PurchaseOrder]
 
-        self.version = version
-
+        # raise event
         self._record_event(WarehouseCreatedEvent(
-            event_id=uuid.uuid4(),
+            event_id=new_event_id(),
             warehouse_id=self.warehouse_id,
-            admin_id=self.admin_id,
-            warehouse_name=self.warehouse_name,
+            admin_id=self._admin.user_id,
+            warehouse_name=self.name,
             warehouse_created_at=datetime.now(),
         ))
 
@@ -61,88 +77,88 @@ class Warehouse(EventMixin):
     def completed_purchase_orders(self) -> Set:
         raise NotImplementedError
 
-    def create_draft_purchase_order(
-            self,
-            supplier_id_or_name: Union[StoreSupplierId, str],
-            delivery_address: StoreAddressId,
-            note: str,
-            due_date: date,
-            creator: str,
-            items: List = None
-    ) -> DraftPurchaseOrder:
-        new_guid = generate_draft_purchase_order_id()
-        supplier = self.store.get_supplier(supplier_id_or_name)
-        if not supplier:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.SUPPLIER_NOT_FOUND)
-
-        delivery_address = self.store.get_address(delivery_address)
-        if not delivery_address:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.ADDRESS_NOT_FOUND)
-
-        draft = DraftPurchaseOrder(
-            purchase_order_id=new_guid,
-            supplier=supplier,
-            delivery_address=delivery_address,
-            note=note,
-            due_date=due_date,
-            creator=creator,
-            status=PurchaseOrderStatus.DRAFT
-        )
-
-        # process items
-        if items:
-            for item in items:
-                loaded_product = self._get_product_from_store(product_id=item['product_id'])  # type:ShopProduct
-                if loaded_product is None:
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_NOT_FOUND)
-                elif supplier not in loaded_product.suppliers:
-                    raise Exception(ExceptionMessages.PRODUCT_NOT_BELONGED_TO_SELECTED_SUPPLIER)
-
-                try:
-                    loaded_unit = next(
-                        u for u in loaded_product.units if u.unit_name == item['unit'])  # type:ShopProductUnit
-                except StopIteration:
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.UNIT_NOT_FOUND)
-
-                if item['quantity'] <= 0:
-                    raise ValueError(item['quantity'])
-
-                # create item and attached to PO
-                purchase_order_item = DraftPurchaseOrderItem(
-                    product=loaded_product,
-                    unit=loaded_unit,
-                    quantity=item['quantity'],
-                    description=item['description']
-                )
-
-                draft.items.add(purchase_order_item)
-
-        # add draft purchase order into stack
-        draft_po_id = self._add_draft_purchase_order(draft)
-
-        # add event for record, notify to the owner
-        if draft_po_id == new_guid:  # mean new DraftPO created
-            self._record_event(DraftPurchaseOrderCreatedEvent(
-                event_id=uuid.uuid4(),
-                purchase_order_id=draft.purchase_order_id,
-                creator=draft.creator
-            ))
-        else:
-            # add the event
-            self._record_event(DraftPurchasedOrderUpdatedEvent(
-                event_id=uuid.uuid4(),
-                purchase_order_id=draft_po_id,
-                updated_by=draft.creator
-            ))
-
-        return draft_po_id
-
-    def _get_product_from_store(self, product_id: ShopProductId) -> Optional[ShopProduct]:
-        try:
-            product = next(p for p in self.store.products if p.product_id == product_id)
-            return product
-        except StopIteration as exc:
-            return None
+    # def create_draft_purchase_order(
+    #         self,
+    #         supplier_id_or_name: Union[StoreSupplierId, str],
+    #         delivery_address: StoreAddressId,
+    #         note: str,
+    #         due_date: date,
+    #         creator: str,
+    #         items: List = None
+    # ) -> DraftPurchaseOrder:
+    #     new_guid = generate_draft_purchase_order_id()
+    #     supplier = self.store.get_supplier(supplier_id_or_name)
+    #     if not supplier:
+    #         raise ThingGoneInBlackHoleError(ExceptionMessages.SUPPLIER_NOT_FOUND)
+    #
+    #     delivery_address = self.store.get_address(delivery_address)
+    #     if not delivery_address:
+    #         raise ThingGoneInBlackHoleError(ExceptionMessages.ADDRESS_NOT_FOUND)
+    #
+    #     draft = DraftPurchaseOrder(
+    #         purchase_order_id=new_guid,
+    #         supplier=supplier,
+    #         delivery_address=delivery_address,
+    #         note=note,
+    #         due_date=due_date,
+    #         creator=creator,
+    #         status=PurchaseOrderStatus.DRAFT
+    #     )
+    #
+    #     # process items
+    #     if items:
+    #         for item in items:
+    #             loaded_product = self._get_product_from_store(product_id=item['product_id'])  # type:ShopProduct
+    #             if loaded_product is None:
+    #                 raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_NOT_FOUND)
+    #             elif supplier not in loaded_product.suppliers:
+    #                 raise Exception(ExceptionMessages.PRODUCT_NOT_BELONGED_TO_SELECTED_SUPPLIER)
+    #
+    #             try:
+    #                 loaded_unit = next(
+    #                     u for u in loaded_product.units if u.unit_name == item['unit'])  # type:ShopProductUnit
+    #             except StopIteration:
+    #                 raise ThingGoneInBlackHoleError(ExceptionMessages.UNIT_NOT_FOUND)
+    #
+    #             if item['quantity'] <= 0:
+    #                 raise ValueError(item['quantity'])
+    #
+    #             # create item and attached to PO
+    #             purchase_order_item = DraftPurchaseOrderItem(
+    #                 product=loaded_product,
+    #                 unit=loaded_unit,
+    #                 quantity=item['quantity'],
+    #                 description=item['description']
+    #             )
+    #
+    #             draft.items.add(purchase_order_item)
+    #
+    #     # add draft purchase order into stack
+    #     draft_po_id = self._add_draft_purchase_order(draft)
+    #
+    #     # add event for record, notify to the owner
+    #     if draft_po_id == new_guid:  # mean new DraftPO created
+    #         self._record_event(DraftPurchaseOrderCreatedEvent(
+    #             event_id=new_event_id(),
+    #             purchase_order_id=draft.purchase_order_id,
+    #             creator=draft.creator
+    #         ))
+    #     else:
+    #         # add the event
+    #         self._record_event(DraftPurchasedOrderUpdatedEvent(
+    #             event_id=new_event_id(),
+    #             purchase_order_id=draft_po_id,
+    #             updated_by=draft.creator
+    #         ))
+    #
+    #     return draft_po_id
+    #
+    # def _get_product_from_store(self, product_id: ShopProductId) -> Optional[ShopProduct]:
+    #     try:
+    #         product = next(p for p in self.store.products if p.product_id == product_id)
+    #         return product
+    #     except StopIteration as exc:
+    #         return None
 
     def _add_draft_purchase_order(self, draft: DraftPurchaseOrder) -> DraftPurchaseOrderId:
         try:
@@ -190,3 +206,15 @@ class Warehouse(EventMixin):
         self._purchase_orders.add(purchase_order)
 
         return purchase_order.purchase_order_id
+
+    @classmethod
+    def generate_warehouse_admin(cls, user_id: SystemUserId, email: str) -> WarehouseUser:
+        return WarehouseUser(user_id=user_id, email=email, warehouse_role=WarehouseUserType.ADMIN)
+
+    @classmethod
+    def create(cls, warehouse_admin: WarehouseUser) -> Warehouse:
+        return Warehouse(
+            warehouse_id=generate_warehouse_id(),
+            name='Default',
+            first_user=warehouse_admin
+        )

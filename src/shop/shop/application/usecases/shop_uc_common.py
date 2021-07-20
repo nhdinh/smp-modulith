@@ -9,14 +9,14 @@ from sqlalchemy import select
 
 from foundation.events import ThingGoneInBlackHoleError
 from foundation.uow import SqlAlchemyUnitOfWork
-from foundation.value_objects.address import LocationCountry, LocationCitySubDivision, LocationCitySubDivisionId
+from foundation.value_objects.address import LocationCitySubDivision, LocationCitySubDivisionId, LocationCountry
+
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_catalog import ShopCatalog
-from shop.domain.entities.store_collection import ShopCollection
-from shop.domain.entities.store_product import ShopProduct
-from shop.domain.entities.value_objects import ShopId, ExceptionMessages, ShopCatalogId, StoreCollectionId, \
-    ShopProductId
+from shop.domain.entities.shop_collection import ShopCollection
+from shop.domain.entities.shop_product import ShopProduct
+from shop.domain.entities.value_objects import ExceptionMessages, ShopCatalogId, ShopCollectionId, ShopId, ShopProductId
 
 
 @dataclass
@@ -71,7 +71,7 @@ def get_shop_or_raise(shop_id: ShopId,
     """
     # validate input
     try:
-        shop = uow.shops.fetch_shop(shop_id=shop_id)
+        shop = uow.shops.get(shop_id_to_find=shop_id)
         if not shop:
             raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
@@ -112,7 +112,7 @@ def get_catalog_from_store_or_raise(catalog_id: ShopCatalogId, store: Shop) -> S
         raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
 
 
-def get_collection_from_catalog_or_raise(collection_id: StoreCollectionId, catalog: ShopCatalog) -> ShopCollection:
+def get_collection_from_catalog_or_raise(collection_id: ShopCollectionId, catalog: ShopCatalog) -> ShopCollection:
     try:
         # validate catalog
         if not catalog or not isinstance(catalog, ShopCatalog) or getattr(catalog, 'catalog_id') is None:
@@ -134,7 +134,7 @@ def get_product_by_id_or_raise(product_id: ShopProductId, uow: ShopUnitOfWork) -
         product = uow.shops.get_product_by_id(product_id=product_id)
 
         if not product:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
 
         return product
     except Exception as exc:

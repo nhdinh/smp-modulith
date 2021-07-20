@@ -12,3 +12,11 @@ class UserCreatedEvent(Event):
     email: str
     mobile: str
     created_at: datetime
+
+
+@dataclass(frozen=True)
+class ShopAdminCreatedEvent(Event):
+    user_id: 'UserId'
+    email: str
+    mobile: str
+    created_at: datetime

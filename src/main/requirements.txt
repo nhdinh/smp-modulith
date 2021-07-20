@@ -4,3 +4,4 @@ injector
 python-dotenv>=0.10.3
 SQLAlchemy==1.4.14
 minio==7.0.4
+rq-dashboard

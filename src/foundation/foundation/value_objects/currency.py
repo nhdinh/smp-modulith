@@ -1,4 +1,4 @@
-from typing import Type, Dict
+from typing import Dict, Type
 
 
 class Currency:

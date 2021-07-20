@@ -1,10 +1,11 @@
 from datetime import datetime
 
+from _pytest.fixtures import SubRequest
 import pytest
 import requests
-from _pytest.fixtures import SubRequest
 
 from foundation.value_objects.factories import get_money
+
 from payments.api import ApiConsumer
 from payments.api.requests import Request
 

@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shop.domain.entities.shop_catalog import ShopCatalog
 
 
 @dataclass(unsafe_hash=True)
@@ -13,7 +17,7 @@ class ShopCollection:
     deleted: bool = False
 
     @property
-    def catalog(self) -> 'StoreCatalog':
+    def catalog(self) -> 'ShopCatalog':
         return getattr(self, '_catalog')
 
     def __str__(self):

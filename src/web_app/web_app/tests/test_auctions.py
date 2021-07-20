@@ -1,10 +1,11 @@
 import factory
+from flask.testing import FlaskClient
 import injector
 import pytest
-from flask.testing import FlaskClient
+
+from foundation.value_objects.factories import get_money
 
 from auctions import BeginningAuction, BeginningAuctionInputDto
-from foundation.value_objects.factories import get_money
 from main.modules import RequestScope
 
 

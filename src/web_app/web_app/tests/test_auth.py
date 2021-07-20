@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
+from flask import testing
 import pytest
 import sqlalchemy.exc
-from flask import testing
 
 from identity.domain.value_objects import UserId
-from web_app.tests.models import CreatingUserRequestFactory, CreatingLoginRequestFactory
+from web_app.tests.models import CreatingLoginRequestFactory, CreatingUserRequestFactory
 
 
 def test_register_returns_details_with_auth_token(client: testing.FlaskClient) -> None:

@@ -2,18 +2,19 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
 from foundation.common_helpers import slugify
+
 from product_catalog import CatalogUnitOfWork
 from product_catalog.domain.entities.brand import Brand
 from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
-from product_catalog.domain.entities.product_unit import ProductUnit, DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR
-from product_catalog.domain.value_objects import ProductReference, CatalogReference, CollectionReference
+from product_catalog.domain.entities.product_unit import DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR, ProductUnit
+from product_catalog.domain.value_objects import CatalogReference, CollectionReference, ProductReference
 
 
 @dataclass(frozen=True)

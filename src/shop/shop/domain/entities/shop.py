@@ -1,35 +1,51 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 from datetime import datetime
-from typing import Set, List, Union, Any, Optional
+from typing import Any, List, Optional, Set, Union
+import uuid
 
-from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductUpdatedEvent, ShopProductCreatedEvent
-from foundation.events import EventMixin, ThingGoneInBlackHoleError
+from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent, ShopProductUpdatedEvent
+from foundation.events import EventMixin, ThingGoneInBlackHoleError, new_event_id
 from foundation.value_objects.address import LocationAddress
 from foundation.value_objects.factories import get_money
-from shop.adapter.id_generators import generate_shop_catalog_id, SHOP_SUPPLIER_ID_PREFIX
+
+from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX, generate_shop_catalog_id
 from shop.domain.entities.setting import Setting
 from shop.domain.entities.shop_address import ShopAddress
 from shop.domain.entities.shop_catalog import ShopCatalog
+from shop.domain.entities.shop_collection import ShopCollection
+from shop.domain.entities.shop_product import ShopProduct
+from shop.domain.entities.shop_product_brand import ShopProductBrand
+from shop.domain.entities.shop_product_tag import ShopProductTag
 from shop.domain.entities.shop_supplier import ShopSupplier
 from shop.domain.entities.shop_user import ShopUser, SystemUser
-from shop.domain.entities.store_collection import ShopCollection
-from shop.domain.entities.store_product import ShopProduct
-from shop.domain.entities.store_product_brand import ShopProductBrand
-from shop.domain.entities.store_product_tag import ShopProductTag
-from shop.domain.entities.store_warehouse import ShopWarehouse
-from shop.domain.entities.value_objects import ShopId, ShopUserType, ExceptionMessages, ShopCatalogId, StoreAddressId, \
-    StoreSupplierId, AddressType
+from shop.domain.entities.shop_warehouse import ShopWarehouse
+from shop.domain.entities.value_objects import (
+    AddressType,
+    ExceptionMessages,
+    ShopAddressId,
+    ShopCatalogId,
+    ShopId,
+    ShopStatus,
+    ShopSupplierId,
+    ShopUserType,
+)
 
 
 class Shop(EventMixin):
-    def __init__(self, shop_id: ShopId, name: str, first_user: Union[SystemUser, ShopUser], version: int = 0,
-                 settings: List[Setting] = None) -> None:
+    def __init__(
+            self,
+            shop_id: ShopId,
+            name: str,
+            first_user: ShopUser,
+            status: ShopStatus = ShopStatus.WAREHOUSE_YET_CREATED,
+            version: int = 0,
+            settings: List[Setting] = None
+    ) -> None:
         super(Shop, self).__init__()
-
         self.shop_id = shop_id
         self.name = name
+        self.status = status
         self.version = version
 
         if settings:
@@ -46,13 +62,19 @@ class Shop(EventMixin):
                 shop_admin = first_user
                 shop_admin.shop_role = ShopUserType.ADMIN
             elif isinstance(first_user, SystemUser):
-                shop_admin = ShopUser(_system_user=first_user, shop_role=ShopUserType.ADMIN)
+                # this is only the back up case, should never happens
+                shop_admin = ShopUser(
+                    user_id=first_user.user_id,
+                    email=first_user.email,
+                    mobile=first_user.mobile,
+                    shop_role=ShopUserType.ADMIN
+                )
 
         if shop_admin:
             self._users.add(shop_admin)
             self._admin = shop_admin
         else:
-            raise Exception(ExceptionMessages.FAILED_TO_CREATE_STORE_NO_OWNER)
+            raise Exception(ExceptionMessages.FAILED_TO_CREATE_SHOP_NO_OWNER)
 
         # create default catalot
         self._catalogs = set()  # type: Set[ShopCatalog]
@@ -68,6 +90,7 @@ class Shop(EventMixin):
         self._products = set()  # type: Set[ShopProduct]
 
     # region ## Properties ##
+
     @property
     def users(self) -> Set[ShopUser]:
         return self._users
@@ -148,7 +171,7 @@ class Shop(EventMixin):
     # region ## Creating new store ##
     @classmethod
     def create_shop_from_registration(cls, shop_id: ShopId, shop_name: str,
-                                      first_user: Union[SystemUser, ShopUser]) -> "Shop":
+                                      first_user: ShopUser) -> "Shop":
         # create the store from registration data
         shop = Shop(
             shop_id=shop_id,
@@ -159,7 +182,7 @@ class Shop(EventMixin):
         # raise event
         shop._record_event(
             ShopCreatedEvent(
-                event_id=uuid.uuid4(),
+                event_id=new_event_id(),
                 shop_id=shop.shop_id,
                 shop_name=shop.name,
                 admin_email=shop.shop_admin.email,
@@ -181,7 +204,7 @@ class Shop(EventMixin):
         try:
             product_with_such_title = next(p for p in self._products if p.title.lower() == title.strip().lower())
             if product_with_such_title:
-                raise Exception(ExceptionMessages.STORE_PRODUCT_EXISTED)
+                raise Exception(ExceptionMessages.SHOP_PRODUCT_EXISTED)
         except StopIteration:
             pass
 
@@ -253,7 +276,7 @@ class Shop(EventMixin):
             default_unit=default_unit,
             restock_threshold=restock_threshold,
             max_stock_threshold=max_stock_threshold,
-            store=self,
+            shop=self,
             brand=brand,
             catalog=catalog,
             collections=collections,
@@ -291,6 +314,7 @@ class Shop(EventMixin):
 
         # raise event
         self._record_event(ShopProductCreatedEvent(
+            event_id=new_event_id(),
             product_id=store_product.product_id,
             default_unit=store_product.default_unit.unit_name,
             units=units,
@@ -424,6 +448,9 @@ class Shop(EventMixin):
 
         return self.create_catalog(title=catalog_title, default=is_default)
 
+    def create_default_catalog(self) -> ShopCatalog:
+        return self._create_default_catalog()
+
     def turn_on_default_catalog(self, catalog_id: ShopCatalogId) -> bool:
         try:
             catalog = next(c for c in self.catalogs if c.catalog_id == catalog_id)
@@ -504,14 +531,14 @@ class Shop(EventMixin):
         except Exception as exc:
             raise exc
 
-    def get_address(self, address_id: StoreAddressId):
+    def get_address(self, address_id: ShopAddressId):
         try:
             address = next(a for a in self._addresses if a.shop_address_id == address_id)
             return address
         except StopIteration:
             return None
 
-    def get_supplier(self, supplier_id_or_name: Union[StoreSupplierId, str]):
+    def get_supplier(self, supplier_id_or_name: Union[ShopSupplierId, str]) -> Optional[ShopSupplier]:
         try:
             if isinstance(supplier_id_or_name, str) and supplier_id_or_name.startswith(SHOP_SUPPLIER_ID_PREFIX):
                 supplier = next(s for s in self._suppliers if s.supplier_id == supplier_id_or_name)

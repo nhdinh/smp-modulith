@@ -3,11 +3,12 @@
 from dataclasses import dataclass
 
 from foundation.events import ThingGoneInBlackHoleError
+
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.catalog.update_shop_catalog_uc import UpdatingShopCatalogResponseBoundary
 from shop.application.usecases.shop_uc_common import validate_shop
 from shop.domain.entities.shop import Shop
-from shop.domain.entities.value_objects import ShopCatalogId, ExceptionMessages
+from shop.domain.entities.value_objects import ExceptionMessages, ShopCatalogId
 
 
 @dataclass
@@ -34,7 +35,7 @@ class ToggleStoreCatalogUC:
                     raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
 
                 if not validate_shop(store=store, owner_email=input_dto.current_user):
-                    raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE)
+                    raise Exception(ExceptionMessages.CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_SHOP)
 
                 raise NotImplementedError
 

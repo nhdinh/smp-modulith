@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-
 # from typing import NewType, Set
 
 # StoreProductBrandReference = NewType('StoreProductBrandReference', tp=str)

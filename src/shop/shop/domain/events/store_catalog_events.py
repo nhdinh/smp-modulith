@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from store.domain.entities.value_objects import ShopId, ShopCatalogId, StoreCollectionId
-
 from foundation import Event
+
+from store.domain.entities.value_objects import ShopCatalogId, ShopId, StoreCollectionId
 
 
 @dataclass(frozen=True)

@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 #
 # -*- coding: utf-8 -*-
-import string
 from datetime import datetime
+import string
 
 import factory
-import nanoid
 from flask import testing
-from store.application.usecases.product.create_store_product_uc import AddingShopProductRequest
+import nanoid
 
+from store.application.usecases.product.create_store_product_uc import AddingShopProductRequest
 from web_app.tests.shop.models import CreatedShopAndAccount
 
 

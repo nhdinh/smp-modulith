@@ -3,14 +3,20 @@
 import injector
 from sqlalchemy.engine import Connection
 
-from identity.application.queries.identity_queries import SqlCountRevokedTokenByJTIQuery, SqlGetSingleUserQuery, \
-    GetSingleUserQuery, CountRevokedTokenByJTIQuery
+from identity.application.queries.identity_queries import (
+    CountRevokedTokenByJTIQuery,
+    GetSingleUserQuery,
+    SqlCountRevokedTokenByJTIQuery,
+    SqlGetSingleUserQuery,
+)
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.application.usecases.change_password_uc import ChangePasswordUC, ChangingPasswordResponseBoundary
-from identity.application.usecases.log_user_in_uc import LoggingUserInUC, LoggingUserInResponseBoundary
-from identity.application.usecases.register_user_uc import RegisteringUserUC, RegisteringUserResponseBoundary
-from identity.application.usecases.request_to_change_password_uc import RequestToChangePasswordUC, \
-    RequestingToChangePasswordResponseBoundary
+from identity.application.usecases.log_user_in_uc import LoggingUserInResponseBoundary, LoggingUserInUC
+from identity.application.usecases.register_user_uc import RegisteringUserResponseBoundary, RegisteringUserUC
+from identity.application.usecases.request_to_change_password_uc import (
+    RequestingToChangePasswordResponseBoundary,
+    RequestToChangePasswordUC,
+)
 from identity.application.usecases.revoke_token_uc import RevokingTokenUC
 
 

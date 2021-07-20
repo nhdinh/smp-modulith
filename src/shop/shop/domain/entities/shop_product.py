@@ -1,20 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime, date
-from decimal import Decimal
-from typing import Optional, Set, List, Tuple, Dict
+from __future__ import annotations
 
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Dict, List, Optional, Set, Tuple
+
+from foundation.domain_events.shop_events import ShopProductUpdatedEvent
 from foundation.entity import Entity
-from foundation.events import EventMixin, ThingGoneInBlackHoleError
+from foundation.events import EventMixin, ThingGoneInBlackHoleError, new_event_id
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
+
 from shop.adapter.id_generators import generate_product_id
 from shop.domain.entities.purchase_price import ProductPurchasePrice
+from shop.domain.entities.shop_catalog import ShopCatalog
+from shop.domain.entities.shop_collection import ShopCollection
+from shop.domain.entities.shop_product_brand import ShopProductBrand
+from shop.domain.entities.shop_product_tag import ShopProductTag
+from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_supplier import ShopSupplier
-from shop.domain.entities.shop_unit import ShopProductUnit
-from shop.domain.entities.store_product_brand import ShopProductBrand
-from shop.domain.entities.store_product_tag import ShopProductTag
-from shop.domain.entities.value_objects import ShopProductId, ExceptionMessages
+from shop.domain.entities.value_objects import ExceptionMessages, ShopProductId
 from shop.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
 
@@ -36,6 +42,7 @@ class ShopProduct(EventMixin, Entity):
             suppliers: Set['ShopSupplier'],
             restock_threshold: int = -1,
             max_stock_threshold: int = -1,
+            version: int = 0,
     ):
         super(ShopProduct, self).__init__()
 
@@ -45,8 +52,9 @@ class ShopProduct(EventMixin, Entity):
         self.title = title
         self.sku = sku
         self.barcode = 'NoBarCode applied yet'
+        self.version = version
 
-        self._shop = shop  # type:Shop
+        self._shop = shop  # type:'Shop'
         self.image = image
 
         self._brand = brand  # type:ShopProductBrand
@@ -78,7 +86,7 @@ class ShopProduct(EventMixin, Entity):
             default_unit: str,
             restock_threshold: int,
             max_stock_threshold: int,
-            store: 'Shop',
+            shop: 'Shop',
             brand: ShopProductBrand,
             catalog: 'ShopCatalog',
             collections: List['ShopCollection'],
@@ -92,7 +100,7 @@ class ShopProduct(EventMixin, Entity):
             title=title,
             sku=sku,
             image=image,
-            shop=store,
+            shop=shop,
             brand=brand,
             catalog=catalog,
             collections=set(collections),
@@ -145,8 +153,21 @@ class ShopProduct(EventMixin, Entity):
     def tags(self) -> Set[ShopProductTag]:
         return self._tags
 
-    def is_belong_to_store(self, store: 'Shop') -> bool:
-        return self._shop is store
+    def is_belong_to_shop(self, shop: 'Shop') -> bool:
+        return self._shop is shop
+
+    def add_supplier(self, supplier: ShopSupplier):
+        try:
+            self._suppliers.add(supplier)
+
+            # emit the UpdateEvent
+            self._record_event(ShopProductUpdatedEvent(
+                event_id=new_event_id(),
+                product_id=self.product_id,
+                updated_keys=['suppliers']
+            ))
+        except Exception as exc:
+            raise exc
 
     def get_unit(self, unit: str) -> Optional[ShopProductUnit]:
         try:
@@ -186,6 +207,13 @@ class ShopProduct(EventMixin, Entity):
 
             if can_be_delete:
                 self._units.remove(unit_to_delete)
+
+                # emit the UpdateEvent
+                self._record_event(ShopProductUpdatedEvent(
+                    event_id=new_event_id(),
+                    product_id=self.product_id,
+                    updated_keys=['units']
+                ))
             else:
                 raise Exception(ExceptionMessages.CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT)
         except Exception as exc:
@@ -217,6 +245,15 @@ class ShopProduct(EventMixin, Entity):
             unit = ShopProductUnit(unit_name=unit_name, conversion_factor=conversion_factor, default=is_default,
                                    disabled=False, referenced_unit=_base_unit)
             self._units.add(unit)
+
+            # emit the UpdateEvent
+            self._record_event(ShopProductUpdatedEvent(
+                event_id=new_event_id(),
+                product_id=self.product_id,
+                updated_keys=['units']
+            ))
+
+            # return the new unit
             return unit
         except StopIteration:
             raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
@@ -243,8 +280,33 @@ class ShopProduct(EventMixin, Entity):
         else:
             unit.deleted = True
 
-    def __repr__(self):
-        return f'<StoreProduct ref={self.reference}>'
+    def update_unit(self, target_unit_name: str, new_unit_name: str, new_conversion_factor: float):
+        try:
+            target_unit = self.get_unit(unit=target_unit_name)
+            if not target_unit:
+                raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+
+            if new_conversion_factor <= 0:
+                raise ValueError('new_conversion_factor')
+
+            # update target_unit
+            target_unit.unit_name = new_unit_name
+            target_unit.conversion_factor = new_conversion_factor
+
+            # TODO: fixme
+            # update price(s)
+            self._purchase_prices = set(
+                [(lambda x: setattr(x, 'product_unit', target_unit))(pprice) for pprice in self._purchase_prices if
+                 pprice.product_unit.unit_name == target_unit_name])
+
+            # emit the UpdateEvent
+            self._record_event(ShopProductUpdatedEvent(
+                event_id=new_event_id(),
+                product_id=self.product_id,
+                updated_keys=['units']
+            ))
+        except Exception as exc:
+            raise exc
 
     def create_purchase_price_by_supplier(self, **kwargs):
         supplier = kwargs.get('supplier')
@@ -292,3 +354,6 @@ class ShopProduct(EventMixin, Entity):
 
         for price in prices:  # type:ProductPurchasePrice
             return_data[price.product_unit.unit_name] = tuple(price.price, price.tax, price.effective_from)
+
+    def __repr__(self):
+        return f'<ShopProduct ref={self.product_id}>'

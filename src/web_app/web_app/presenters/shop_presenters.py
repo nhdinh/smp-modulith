@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
 
-from flask import Response, make_response, jsonify
+from flask import Response, jsonify, make_response
 
-from shop.application.usecases.initialize.register_shop_uc import RegisteringShopResponseBoundary, \
-    RegisteringShopResponse
+from shop.application.usecases.initialize.register_shop_uc import (
+    RegisteringShopResponse,
+    RegisteringShopResponseBoundary,
+)
 from shop.domain.entities.value_objects import RegistrationStatus
 
 

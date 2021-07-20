@@ -7,10 +7,13 @@ from store.application.queries.dtos.store_catalog_dto import StoreCatalogRespons
 from store.application.queries.dtos.store_collection_dto import StoreCollectionDto
 from store.application.queries.dtos.store_product_dto import StoreProductCompactedDto, StoreProductDto
 from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto
-from store.application.queries.response_dtos import StoreInfoResponseDto, \
-    StoreWarehouseResponseDto, StoreAddressResponseDto
+from store.application.queries.response_dtos import (
+    StoreAddressResponseDto,
+    StoreInfoResponseDto,
+    StoreWarehouseResponseDto,
+)
 from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
-from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto
+from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto
 
 
 class ListShopCatalogsQuery(abc.ABC):

@@ -4,10 +4,10 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
-
 from foundation.value_objects.address import LocationAddress, LocationCitySubDivision
+
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.application.usecases.shop_uc_common import get_shop_or_raise, get_location
+from shop.application.usecases.shop_uc_common import get_location, get_shop_or_raise
 
 
 @dataclass

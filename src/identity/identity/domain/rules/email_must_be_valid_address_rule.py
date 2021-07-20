@@ -3,6 +3,7 @@
 from email_validator import EmailNotValidError, validate_email
 
 from foundation.business_rule import BusinessRuleBase
+
 from identity.domain.value_objects import UserEmail
 
 

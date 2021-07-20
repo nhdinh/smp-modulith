@@ -4,7 +4,8 @@ import abc
 from dataclasses import dataclass
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.domain.entities.value_objects import ShopRegistrationId, RegistrationStatus
+from shop.domain.entities.shop_registration import ShopRegistration
+from shop.domain.entities.value_objects import RegistrationStatus, ShopRegistrationId
 from web_app.presenters.shop_presenters import RegistrationStatusDto
 from web_app.serialization.dto import BaseInputDto
 
@@ -17,7 +18,7 @@ class ConfirmingShopRegistrationRequest(BaseInputDto):
 @dataclass
 class ConfirmingShopRegistrationResponse:
     registration_id: ShopRegistrationId
-    status: RegistrationStatusDto
+    status: str
 
 
 class ConfirmingShopRegistrationResponseBoundary(abc.ABC):
@@ -27,11 +28,7 @@ class ConfirmingShopRegistrationResponseBoundary(abc.ABC):
 
 
 class ConfirmShopRegistrationUC:
-    def __init__(
-            self,
-            ob: ConfirmingShopRegistrationResponseBoundary,
-            uow: ShopUnitOfWork
-    ):
+    def __init__(self, ob: ConfirmingShopRegistrationResponseBoundary, uow: ShopUnitOfWork):
         self._ob = ob
         self._uow = uow
 
@@ -44,12 +41,9 @@ class ConfirmShopRegistrationUC:
                 if not shop_registration:
                     raise Exception('Registration not existed')
 
-                # TODO: Remove this
-                # if shop_registration.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION:
-                #     raise Exception('Invalid registration')
-
-                # create the entity
-                shop_registration.confirm()
+                if shop_registration.status == RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION:
+                    # create the entity
+                    shop_registration.confirm()
 
                 # owner = shop_registration.generate_shop_admin()
                 # shop = shop_registration.create_shop(shop_admin=owner)
@@ -61,7 +55,7 @@ class ConfirmShopRegistrationUC:
                 # persist into database
 
                 dto = ConfirmingShopRegistrationResponse(registration_id=shop_registration.registration_id,
-                                                         status=RegistrationStatusDto(shop_registration.status))
+                                                         status=shop_registration.status.value)
                 self._ob.present(dto)
 
                 shop_registration.version += 1

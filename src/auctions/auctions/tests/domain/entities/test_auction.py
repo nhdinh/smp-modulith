@@ -2,11 +2,12 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from foundation.value_objects.factories import get_money
+
 from auctions.domain.entities import Bid
 from auctions.domain.events import AuctionEnded, BidderHasBeenOverbid, WinningBidPlaced
 from auctions.domain.exceptions import AuctionAlreadyEnded, AuctionHasNotEnded, BidOnEndedAuction
 from auctions.tests.factories import AuctionFactory
-from foundation.value_objects.factories import get_money
 
 
 @pytest.fixture()

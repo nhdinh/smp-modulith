@@ -5,7 +5,7 @@ from datetime import datetime
 import injector
 from sqlalchemy.engine import Connection
 
-from foundation.events import AsyncHandler, Event, AsyncEventHandlerProvider
+from foundation.events import AsyncEventHandlerProvider, AsyncHandler, Event
 
 
 class FoundationHandlerFacade:

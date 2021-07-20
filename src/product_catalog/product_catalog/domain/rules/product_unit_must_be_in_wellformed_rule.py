@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from foundation.business_rule import BusinessRuleBase
-from product_catalog.domain.entities.product_unit import ProductUnit, DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR
+
+from product_catalog.domain.entities.product_unit import DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR, ProductUnit
 
 
 class ProductUnitMustBeInWellformedRule(BusinessRuleBase):

@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from foundation import Event
+
 from identity.domain.value_objects import UserEmail
 
 

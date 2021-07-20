@@ -3,6 +3,7 @@
 from typing import Set
 
 from foundation.business_rule import BusinessRuleBase
+
 from product_catalog.domain.entities.product_unit import ProductUnit
 
 

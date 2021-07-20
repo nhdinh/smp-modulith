@@ -2,16 +2,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import secrets
-import uuid
 from datetime import datetime
 from enum import Enum
+import secrets
+import uuid
 
 from passlib.hash import pbkdf2_sha256 as sha256
 
-from foundation.domain_events.identity_events import UserCreatedEvent
+from foundation.domain_events.identity_events import ShopAdminCreatedEvent, UserCreatedEvent
 from foundation.entity import Entity
-from foundation.events import EventMixin, EveryModuleMustCatchThisEvent
+from foundation.events import EventMixin, EveryModuleMustCatchThisEvent, new_event_id
+
 from identity.adapters.id_generator import generate_user_id
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
@@ -38,6 +39,13 @@ class User(EventMixin, Entity):
             hashed_password: str,
             **kwargs
     ):
+        """
+
+        :param user_id:
+        :param email:
+        :param hashed_password:
+        :param emit_shop_creation_event: bool flag to indicate that the new shop will be created after this user creation.
+        """
         super(User, self).__init__()
 
         # check rules
@@ -66,12 +74,21 @@ class User(EventMixin, Entity):
         self.request_reset_password_at = None
 
         self._record_event(UserCreatedEvent(
-            event_id=uuid.uuid4(),
+            event_id=new_event_id(),
             user_id=self.user_id,
             email=self.email,
             mobile=self.mobile,
             created_at=datetime.now(),
         ))
+
+        if kwargs.get('emit_shop_creation_event'):
+            self._record_event(ShopAdminCreatedEvent(
+                event_id=new_event_id(),
+                user_id=self.user_id,
+                email=self.email,
+                mobile=self.mobile,
+                created_at=datetime.now(),
+            ))
 
     @staticmethod
     def create(
@@ -79,7 +96,19 @@ class User(EventMixin, Entity):
             password: str,
             mobile: str = '',
             is_plain_password: bool = True,
+            on_shop_confirmation: bool = False,
     ) -> User:
+        """
+        Create an instance of SystemUser
+
+        :param email:
+        :param password:
+        :param mobile:
+        :param is_plain_password:
+        :param on_shop_confirmation: a flag that indicates whether the new shop will be created upon this user creation.
+
+        :return:
+        """
         if is_plain_password:
             password = User.generate_hash(password)
 
@@ -88,6 +117,7 @@ class User(EventMixin, Entity):
             email=email,
             hashed_password=password,
             mobile=mobile,
+            emit_shop_creation_event=on_shop_confirmation,
         )
 
     @staticmethod

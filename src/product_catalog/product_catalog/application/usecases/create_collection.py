@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from product_catalog import CollectionReference, CatalogReference, CatalogUnitOfWork
+from product_catalog import CatalogReference, CatalogUnitOfWork, CollectionReference
 
 
 @dataclass

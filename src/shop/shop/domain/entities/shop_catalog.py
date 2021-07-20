@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Set, Optional
+from typing import Optional, Set
 
-from shop.domain.entities.store_collection import ShopCollection
-from shop.domain.entities.value_objects import StoreCollectionId
+from shop.domain.entities.shop_collection import ShopCollection
+from shop.domain.entities.value_objects import ShopCollectionId
 
 
 @dataclass(unsafe_hash=True)
@@ -17,8 +17,8 @@ class ShopCatalog:
     default: bool = False
 
     @property
-    def store(self) -> 'Store':
-        return getattr(self, '_store')
+    def shop(self) -> 'Shop':
+        return getattr(self, '_shop')
 
     @property
     def collections(self) -> Set[ShopCollection]:
@@ -33,7 +33,7 @@ class ShopCatalog:
 
         return self.title == other.title or self.catalog_id == other.catalog_id
 
-    def get_collection_by_id(self, collection_id: StoreCollectionId) -> Optional[ShopCollection]:
+    def get_collection_by_id(self, collection_id: ShopCollectionId) -> Optional[ShopCollection]:
         collections = getattr(self, '_collections')
         if isinstance(collections, Set) and len(collections):
             try:

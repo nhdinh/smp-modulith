@@ -3,9 +3,12 @@
 
 from sqlalchemy.engine.row import RowProxy
 
-from store.application.queries.response_dtos import StoreSettingResponseDto, StoreInfoResponseDto, \
-    StoreWarehouseResponseDto, \
-    StoreAddressResponseDto
+from store.application.queries.response_dtos import (
+    StoreAddressResponseDto,
+    StoreInfoResponseDto,
+    StoreSettingResponseDto,
+    StoreWarehouseResponseDto,
+)
 
 
 def _row_to_store_settings_dto(row: RowProxy) -> StoreSettingResponseDto:

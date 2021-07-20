@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import functools
 
-from flask import current_app, make_response, jsonify
+from flask import current_app, jsonify, make_response
 
 from foundation.logger import logger
 

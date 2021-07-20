@@ -5,8 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from foundation.events import ThingGoneInBlackHoleError
+
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.domain.entities.value_objects import RegistrationStatus, ExceptionMessages
+from shop.domain.entities.value_objects import ExceptionMessages, RegistrationStatus
 
 ALLOWABLE_RESEND_DURATION = timedelta(minutes=0)
 

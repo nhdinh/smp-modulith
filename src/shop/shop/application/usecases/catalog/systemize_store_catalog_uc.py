@@ -3,8 +3,10 @@
 from dataclasses import dataclass
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.application.usecases.catalog.update_shop_catalog_uc import UpdatingShopCatalogResponseBoundary, \
-    UpdatingShopCatalogResponse
+from shop.application.usecases.catalog.update_shop_catalog_uc import (
+    UpdatingShopCatalogResponse,
+    UpdatingShopCatalogResponseBoundary,
+)
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ShopCatalogId
 

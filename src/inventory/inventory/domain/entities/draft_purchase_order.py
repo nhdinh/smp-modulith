@@ -2,20 +2,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import List, Tuple
 
 from dateutil.utils import today
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
+
 from inventory.adapter.id_generators import generate_purchase_order_id
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem
 from inventory.domain.entities.purchase_order import PurchaseOrder
 from inventory.domain.entities.purchase_order_item import PurchaseOrderItem
 from inventory.domain.entities.value_objects import DraftPurchaseOrderId, PurchaseOrderStatus
-from inventory.domain.rules.draft_purchase_order_must_be_unconfirmed_status import \
-    DraftPurchaseOrderMustBeUnconfirmedStatusRule
+from inventory.domain.rules.draft_purchase_order_must_be_unconfirmed_status import (
+    DraftPurchaseOrderMustBeUnconfirmedStatusRule,
+)
 
 
 class DraftPurchaseOrder(EventMixin, Entity):

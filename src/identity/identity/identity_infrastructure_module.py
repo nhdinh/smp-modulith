@@ -5,6 +5,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus
+
 from identity.adapters import identity_db
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 

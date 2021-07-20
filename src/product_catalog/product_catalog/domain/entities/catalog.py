@@ -10,6 +10,7 @@ from sqlalchemy.orm.collections import InstrumentedSet
 from foundation.common_helpers import slugify
 from foundation.entity import Entity
 from foundation.events import EventMixin
+
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product
 from product_catalog.domain.events.collection_created_event import CollectionCreatedEvent

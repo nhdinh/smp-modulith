@@ -1,5 +1,5 @@
 # order of libs is meaningful. First, we install libs without internal dependencies that other libs depend on.
-libs := foundation db_infrastructure identity auctions shipping web_app_models auctions_infrastructure shipping_infrastructure customer_relationship payments processes product_catalog store inventory main web_app
+libs := foundation db_infrastructure identity auctions shipping web_app_models auctions_infrastructure shipping_infrastructure customer_relationship payments processes product_catalog shop inventory main web_app
 
 define install_dev
 	pip install -e $(1)

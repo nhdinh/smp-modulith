@@ -1,5 +1,5 @@
-import uuid
 from dataclasses import dataclass
+import uuid
 
 
 @dataclass

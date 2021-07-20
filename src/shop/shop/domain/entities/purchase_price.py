@@ -6,8 +6,9 @@ from typing import Optional
 
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
+
+from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_supplier import ShopSupplier
-from shop.domain.entities.shop_unit import ShopProductUnit
 
 
 @dataclass(unsafe_hash=True)

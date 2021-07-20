@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from foundation.business_rule import BusinessRuleBase
+
 from inventory.domain.entities.value_objects import PurchaseOrderStatus
 
 

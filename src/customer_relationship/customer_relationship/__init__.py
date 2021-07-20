@@ -1,13 +1,14 @@
 import injector
 from sqlalchemy.engine import Connection
 
+from foundation.domain_events.shop_events import ShopCreatedEvent, ShopRegisteredEvent, ShopRegistrationResendEvent
+from foundation.events import AsyncEventHandlerProvider, AsyncHandler, EveryModuleMustCatchThisEvent
+from foundation.logger import logger
+
 from auctions import BidderHasBeenOverbid, WinningBidPlaced
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.facade import CustomerRelationshipFacade
 from customer_relationship.models import customers
-from foundation.domain_events.shop_events import ShopCreatedEvent, ShopRegisteredEvent, ShopRegistrationResendEvent
-from foundation.events import AsyncEventHandlerProvider, AsyncHandler, EveryModuleMustCatchThisEvent
-from foundation.logger import logger
 from identity.domain.events.password_resetted_event import PasswordResettedEvent
 from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
 
@@ -93,7 +94,7 @@ class StoreCreatedSuccessfullyEventHandler:
     def __call__(self, event: ShopCreatedEvent) -> None:
         self._facade.send_shop_created_notification_email(
             shop_name=event.shop_name,
-            email=event.admin_email
+            email_address=event.admin_email
         )
 
 

@@ -1,17 +1,26 @@
 import abc
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Callable, Generic, List, Type, TypeVar
-from uuid import UUID
 
 from injector import Injector, Provider, UnsatisfiedRequirement
 
+from db_infrastructure import nanoid_generate
+
 T = TypeVar("T")
+
+EVENT_ID_PREFIX = 'EVENT'
+EVENT_ID_KEYSIZE = (30, 10)
+
+
+def new_event_id() -> str:
+    return nanoid_generate(prefix=EVENT_ID_PREFIX, key_size=EVENT_ID_KEYSIZE)
 
 
 @dataclass(frozen=True)
 class Event:
-    event_id: UUID
+    event_id: str
 
 
 @dataclass(frozen=True)
@@ -27,6 +36,9 @@ class EventStatus(Enum):
 
 class EventMixin:
     def __init__(self) -> None:
+        self.created_at = datetime.now()
+        self.last_updated = datetime.now()
+
         self.domain_events: List[Event] = []
 
     def _record_event(self, event: Event) -> None:

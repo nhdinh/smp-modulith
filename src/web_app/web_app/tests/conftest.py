@@ -1,11 +1,11 @@
 import os
 from typing import Dict
 
-import injector
-import pytest
 from _pytest.tmpdir import TempPathFactory
 from flask import Flask, testing
 from flask.testing import FlaskClient
+import injector
+import pytest
 from sqlalchemy.engine import Connection, create_engine
 
 from web_app.app import create_app

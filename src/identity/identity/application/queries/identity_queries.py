@@ -8,7 +8,7 @@ from uuid import UUID
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
-from identity.adapters.identity_db import user_table, revoked_token_table
+from identity.adapters.identity_db import revoked_token_table, user_table
 from identity.domain.value_objects import UserEmail
 
 

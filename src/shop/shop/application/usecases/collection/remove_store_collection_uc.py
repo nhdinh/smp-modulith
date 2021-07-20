@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
+from shop.domain.entities.value_objects import ShopCatalogId, ShopCollectionId
 
 
 @dataclass
@@ -23,7 +23,7 @@ class RemovingStoreCollectionResponseBoundary(abc.ABC):
 class RemovingStoreCollectionRequest:
     current_user: str
     catalog_id: ShopCatalogId
-    collection_id: StoreCollectionId
+    collection_id: ShopCollectionId
     remove_completely: Optional[bool] = False
 
 

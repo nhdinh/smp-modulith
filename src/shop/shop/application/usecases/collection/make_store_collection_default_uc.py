@@ -4,13 +4,13 @@ from dataclasses import dataclass
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary
-from shop.domain.entities.value_objects import StoreCollectionId
+from shop.domain.entities.value_objects import ShopCollectionId
 
 
 @dataclass
 class MakingStoreCollectionDefaultRequest:
     current_user: str
-    collection_reference: StoreCollectionId
+    collection_reference: ShopCollectionId
 
 
 class MakeStoreCollectionDefaultUC:

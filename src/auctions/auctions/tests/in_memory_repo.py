@@ -1,9 +1,10 @@
 from typing import Dict
 
+from foundation.events import EventBus
+
 from auctions.application.repositories import AuctionsRepository
 from auctions.domain.entities import Auction
 from auctions.domain.value_objects import AuctionId
-from foundation.events import EventBus
 
 
 class InMemoryAuctionsRepo(AuctionsRepository):

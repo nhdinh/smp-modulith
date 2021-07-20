@@ -5,18 +5,37 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus
+
 from store import ShopUnitOfWork
 from store.adapter import shop_db
 from store.adapter.queries.sql_get_shop_product_query import SqlGetShopProductQuery
-from store.adapter.queries.sql_store_queries import SqlListStoreSettingsQuery, SqlListStoreAddressesQuery, \
-    SqlListStoreWarehousesQuery, SqlCountStoreOwnerByEmailQuery, SqlListShopCatalogsQuery, SqlListStoreCollectionsQuery, \
-    SqlListProductsFromCollectionQuery, SqlListProductsQuery, SqlListStoreProductsByCatalogQuery, \
-    SqlListStoreProductsQuery, SqlListStoreSuppliersQuery
+from store.adapter.queries.sql_store_queries import (
+    SqlCountStoreOwnerByEmailQuery,
+    SqlListProductsFromCollectionQuery,
+    SqlListProductsQuery,
+    SqlListShopCatalogsQuery,
+    SqlListStoreAddressesQuery,
+    SqlListStoreCollectionsQuery,
+    SqlListStoreProductsByCatalogQuery,
+    SqlListStoreProductsQuery,
+    SqlListStoreSettingsQuery,
+    SqlListStoreSuppliersQuery,
+    SqlListStoreWarehousesQuery,
+)
 from store.application.queries.get_shop_product_query import GetShopProductQuery
-from store.application.queries.store_queries import ListStoreSettingsQuery, ListStoreAddressesQuery, \
-    ListStoreWarehousesQuery, CountStoreOwnerByEmailQuery, ListShopCatalogsQuery, ListStoreCollectionsQuery, \
-    ListProductsFromCollectionQuery, ListProductsQuery, ListStoreProductsByCatalogQuery, ListStoreProductsQuery, \
-    ListStoreSuppliersQuery
+from store.application.queries.store_queries import (
+    CountStoreOwnerByEmailQuery,
+    ListProductsFromCollectionQuery,
+    ListProductsQuery,
+    ListShopCatalogsQuery,
+    ListStoreAddressesQuery,
+    ListStoreCollectionsQuery,
+    ListStoreProductsByCatalogQuery,
+    ListStoreProductsQuery,
+    ListStoreSettingsQuery,
+    ListStoreSuppliersQuery,
+    ListStoreWarehousesQuery,
+)
 from store.application.services.user_counter_services import UserCounters
 
 

@@ -1,8 +1,8 @@
 version: '3.1'
 
 services:
-  app:
-    image: modulith_app
+  api:
+    image: master-image
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,47 +10,32 @@ services:
       - ./src/:/usr/src/app
     ports:
       - "5000:5000"
-    environment:
-      FLASK_ENV: 'development'
-      DEBUG: 1
-      FLASK_DEBUG: 1
-      PAYMENTS_LOGIN: empty
-      PAYMENTS_PASSWORD: empty
-      EMAIL_HOST: smtp_server
-      EMAIL_PORT: 2525
-      EMAIL_USERNAME: none
-      EMAIL_PASSWORD: none
-      EMAIL_FROM_NAME: SMP
-      EMAIL_FROM_ADDRESS: admin@smp.io
-      DB_DSN: postgresql://postgres:clone@database:5432/smp_db
-      REDIS_HOST: redis
-      MINIO_HOST: minio:9000
-      MINIO_ACCESS_KEY: Q3AM3UQ867
-      MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
+    env_file: ./master_image.env
+    command: /usr/local/bin/flask run --host=0.0.0.0 --reload --with-threads --eager-loading
     depends_on:
       - database
       - redis
       - nginx
-      - rq_worker
+
+  rq_worker:
+    image: master-image
+    command: /usr/local/bin/rqworker -n worker1 -u redis://redis:6379/0 -v
+    env_file: ./master_image.env
+    depends_on:
+      - smtp_server
+      - redis
+
+  rq_dashboard:
+    image: master-image
+    ports:
+      - 5555:5555
+    depends_on:
+      - redis
+    command: /usr/local/bin/rq-dashboard --port 5555 --redis-url redis://redis:6379/0
 
   test_app:
-    image: modulith_app
-    environment:
-      FLASK_ENV: 'testing'
-      DEBUG: 1
-      FLASK_DEBUG: 1
-      PAYMENTS_LOGIN: empty
-      PAYMENTS_PASSWORD: empty
-      EMAIL_HOST: smtp_server
-      EMAIL_PORT: 2525
-      EMAIL_USERNAME: none
-      EMAIL_PASSWORD: none
-      EMAIL_FROM_NAME: SMP
-      EMAIL_FROM_ADDRESS: admin@smp.io
-      REDIS_HOST: redis
-      MINIO_HOST: minio:9000
-      MINIO_ACCESS_KEY: Q3AM3UQ867
-      MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
+    image: master-image
+    env_file: ./master_image.env
     depends_on:
       - smtp_server
       - redis
@@ -77,32 +62,6 @@ services:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
-
-  rq_worker:
-    image: modulith_app
-    command: [ "/usr/local/bin/rq", "worker", "-u", "redis://redis:6379" ]
-    environment:
-      FLASK_ENV: 'development'
-      DEBUG: 1
-      FLASK_DEBUG: 1
-      PAYMENTS_LOGIN: empty
-      PAYMENTS_PASSWORD: empty
-      EMAIL_HOST: smtp_server
-      EMAIL_PORT: 2525
-      EMAIL_USERNAME: none
-      EMAIL_PASSWORD: none
-      EMAIL_FROM_NAME: SMP
-      EMAIL_FROM_ADDRESS: admin@smp.io
-      DB_DSN: postgresql://postgres:clone@database:5432/smp_db
-      REDIS_HOST: redis
-      DB_ECHO: 'false'
-      MINIO_HOST: minio:9000
-      MINIO_ACCESS_KEY: Q3AM3UQ867
-      MINIO_SECRET_KEY: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
-    depends_on:
-      - smtp_server
-      - redis
-
 
   minio:
     image: minio/minio

@@ -3,14 +3,14 @@
 from datetime import datetime
 from sqlite3 import Connection
 
-import pytest
 from flask import testing
+import pytest
 from sqlalchemy import select
+
 from store.adapter.shop_db import shop_registration_table
 from store.application.usecases.initialize.register_shop_uc import RegisteringShopRequest
 from store.domain.entities.registration_status import RegistrationStatus
-
-from web_app.tests.shop.models import CreatedShopRegistration, RegisteringShopRequestFactory, CreatedShopAndAccount
+from web_app.tests.shop.models import CreatedShopAndAccount, CreatedShopRegistration, RegisteringShopRequestFactory
 
 
 @pytest.fixture

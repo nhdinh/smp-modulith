@@ -1,9 +1,9 @@
-import inspect
 from decimal import Decimal, DecimalException
 from functools import total_ordering
+import inspect
 from typing import Any, Type, Union
 
-from foundation.value_objects.currency import _get_registered_currency_or_default, Currency
+from foundation.value_objects.currency import Currency, _get_registered_currency_or_default
 
 
 @total_ordering

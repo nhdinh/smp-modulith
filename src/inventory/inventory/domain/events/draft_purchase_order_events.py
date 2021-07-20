@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from foundation import Event
+
 from inventory.domain.entities.value_objects import DraftPurchaseOrderId
 
 

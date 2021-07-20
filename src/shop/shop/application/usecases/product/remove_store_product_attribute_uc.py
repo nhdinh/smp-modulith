@@ -6,16 +6,17 @@ from dataclasses import dataclass
 from foundation.domain_events.shop_events import ShopProductUpdatedEvent
 from foundation.events import ThingGoneInBlackHoleError
 from foundation.fs import FileSystem
+
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.application.usecases.shop_uc_common import get_shop_or_raise, get_product_by_id_or_raise
-from shop.domain.entities.value_objects import ShopProductId, StoreProductAttributeTypes, ExceptionMessages
+from shop.application.usecases.shop_uc_common import get_product_by_id_or_raise, get_shop_or_raise
+from shop.domain.entities.value_objects import ExceptionMessages, ShopProductAttributeTypes, ShopProductId
 
 
 @dataclass
 class RemovingStoreProductAttributeRequest:
     current_user: str
     product_id: ShopProductId
-    attribute_type: StoreProductAttributeTypes
+    attribute_type: ShopProductAttributeTypes
     attribute_id: str
 
 
@@ -42,11 +43,11 @@ class RemoveStoreProductAttributeUC:
                 store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
                 product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
 
-                if not product.is_belong_to_store(store):
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+                if not product.is_belong_to_shop(store):
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
 
                 # remove collection
-                if dto.attribute_type == StoreProductAttributeTypes.COLLECTIONS:
+                if dto.attribute_type == ShopProductAttributeTypes.COLLECTIONS:
                     try:
                         collection = next(c for c in product.collections if c.collection_id == dto.attribute_id)
                         product.collections.remove(collection)
@@ -54,14 +55,14 @@ class RemoveStoreProductAttributeUC:
                         raise ValueError(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
 
                 # remove supplier
-                if dto.attribute_type == StoreProductAttributeTypes.SUPPLIERS:
+                if dto.attribute_type == ShopProductAttributeTypes.SUPPLIERS:
                     try:
                         supplier = next(s for s in product.suppliers if s.supplier_id == dto.attribute_id)
 
                         product_prices = product.get_prices(by_supplier=supplier)
                         product.suppliers.remove(supplier)
                     except StopIteration:
-                        raise ValueError(ExceptionMessages.STORE_SUPPLIER_NOT_FOUND)
+                        raise ValueError(ExceptionMessages.SHOP_SUPPLIER_NOT_FOUND)
 
                 response_dto = RemovingStoreProductAttributeResponse(status=True)
                 self._ob.present(response_dto=response_dto)

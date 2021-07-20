@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, Set, Optional
+from typing import TYPE_CHECKING, Optional, Set
+import uuid
 
 from foundation.entity import Entity
 from foundation.events import EventMixin
+
 from product_catalog.domain.entities.product_unit import ProductUnit
 from product_catalog.domain.events.product_unit_created_event import ProductUnitCreatedEvent
 from product_catalog.domain.rules.display_name_must_not_be_empty_rule import DisplayNameMustNotBeEmptyRule
 from product_catalog.domain.rules.product_must_have_base_unit_rule import ProductMustHaveBaseUnitRule
 from product_catalog.domain.rules.product_unit_must_be_in_wellformed_rule import ProductUnitMustBeInWellformedRule
 from product_catalog.domain.rules.reference_must_not_be_empty_rule import ReferenceMustNotBeEmptyRule
-from product_catalog.domain.rules.unit_must_be_calculated_to_default_unit_rule import \
-    UnitMustBeCalculatedToDefaultUnitRule
-from product_catalog.domain.rules.unit_with_same_configuration_has_been_existed_rule import \
-    UnitWithSameConfigurationHasBeenExistedRule
+from product_catalog.domain.rules.unit_must_be_calculated_to_default_unit_rule import (
+    UnitMustBeCalculatedToDefaultUnitRule,
+)
+from product_catalog.domain.rules.unit_with_same_configuration_has_been_existed_rule import (
+    UnitWithSameConfigurationHasBeenExistedRule,
+)
 from product_catalog.domain.value_objects import ProductId
 
 if TYPE_CHECKING:

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import Any, Optional, Tuple
 import uuid
-from typing import Tuple, Any, Optional
 
 import jsonpickle
 import nanoid
-from sqlalchemy import MetaData, TypeDecorator, String
+from sqlalchemy import MetaData, String, TypeDecorator
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base

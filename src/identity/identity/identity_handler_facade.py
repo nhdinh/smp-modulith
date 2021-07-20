@@ -7,6 +7,7 @@ import injector
 from foundation.domain_events.shop_events import ShopRegistrationConfirmedEvent
 from foundation.events import EveryModuleMustCatchThisEvent
 from foundation.logger import logger
+
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User
 from identity.domain.events.user_registration_confirmed_event import UserRegistrationConfirmedEvent
@@ -16,10 +17,19 @@ class IdentityHandlerFacade:
     def __init__(self, uow: IdentityUnitOfWork):
         self._uow = uow
 
-    def create_user(self, email: str, mobile: str, hashed_password: str):
+    def create_user(self, email: str, mobile: str, hashed_password: str, on_shop_confirmation: bool = False):
+        """
+        Create SystemUser
+
+        :param email:
+        :param mobile:
+        :param hashed_password:
+        :param on_shop_confirmation: boolean flag to indicates that this user creation is upon shop confirmation or not.
+        """
         with self._uow as uow:  # type: IdentityUnitOfWork
             try:
-                user = User.create(email=email, password=hashed_password, is_plain_password=False, mobile=mobile)
+                user = User.create(email=email, password=hashed_password, is_plain_password=False, mobile=mobile,
+                                   on_shop_confirmation=on_shop_confirmation)
                 uow.identities.save(user)
 
                 uow.commit()
@@ -44,7 +54,7 @@ class UserRegistrationConfirmedEventHandler:
         )
 
 
-class CreateUserWhileShopRegistrationConfirmedEventHandler:
+class CreateUserUponShopRegistrationConfirmedHandler:
     @injector.inject
     def __init__(self, facade: IdentityHandlerFacade) -> None:
         self._facade = facade
@@ -60,7 +70,8 @@ class CreateUserWhileShopRegistrationConfirmedEventHandler:
             self._facade.create_user(
                 email=user_email,
                 mobile=mobile,
-                hashed_password=user_hashed_password
+                hashed_password=user_hashed_password,
+                on_shop_confirmation=True
             )
         except Exception as exc:
             # do something

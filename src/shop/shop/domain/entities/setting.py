@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-
 from typing import Any
 
 
@@ -22,8 +21,8 @@ class Setting:
             return self.value
 
     @property
-    def store(self):
-        return getattr(self, '_store')
+    def shop(self):
+        return getattr(self, '_shop')
 
     def __eq__(self, other):
         if not isinstance(other, Setting):

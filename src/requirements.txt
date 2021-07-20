@@ -209,6 +209,7 @@ requests==2.22.0
     #   -r ./payments/requirements.txt
     #   stripe
 rq==1.5.2
+rq-dashboard
     # via -r ./main/requirements.txt
 six==1.15.0
     # via

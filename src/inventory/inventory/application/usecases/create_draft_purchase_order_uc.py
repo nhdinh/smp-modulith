@@ -3,14 +3,15 @@
 import abc
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import List, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Union
 
 from foundation.value_objects.address import LocationAddressId
+
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.application.usecases.inventory_uc_common import get_warehouse_by_owner_or_raise
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.value_objects import PurchaseOrderStatus
-from shop.domain.entities.value_objects import ShopProductId, StoreSupplierId
+from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
 
 if TYPE_CHECKING:
     from inventory.domain.entities.warehouse import Warehouse
@@ -29,7 +30,7 @@ class CreatingDraftPurchaseOrderRequest:
     current_user: str
     creator: str
 
-    supplier_id_or_name: Union[StoreSupplierId, str]
+    supplier_id_or_name: Union[ShopSupplierId, str]
 
     delivery_address: LocationAddressId
     note: str

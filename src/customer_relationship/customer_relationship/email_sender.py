@@ -1,10 +1,11 @@
-import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import smtplib
+
+from foundation.logger import logger
 
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.emails import Email
-from foundation.logger import logger
 
 
 class EmailSender:

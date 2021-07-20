@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
-import random
-import string
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Optional as Opt, List
+import random
+import string
+from typing import List, Optional as Opt
 
 from dateutil.utils import today
 from sqlalchemy.exc import IntegrityError
@@ -95,7 +95,7 @@ class AddingShopProductResponseBoundary(abc.ABC):
         raise NotImplementedError
 
 
-class CreateStoreProductUC:
+class AddShopProductUC:
     def __init__(self, boundary: AddingShopProductResponseBoundary, uow: ShopUnitOfWork):
         self._ob = boundary
         self._uow = uow

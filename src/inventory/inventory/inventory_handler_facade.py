@@ -1,61 +1,59 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from typing import List
 
 import injector
-from sqlalchemy import insert
-from sqlalchemy.engine import Connection
 
-from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent
+from foundation.domain_events.identity_events import ShopAdminCreatedEvent
+from foundation.domain_events.shop_events import ShopProductCreatedEvent
 from foundation.events import EveryModuleMustCatchThisEvent
 from foundation.logger import logger
-from inventory.adapter.id_generators import generate_warehouse_id
-from inventory.adapter.inventory_db import inventory_product_balance_table
+
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.domain.entities.warehouse import Warehouse
-from shop.domain.entities.value_objects import ShopId, ShopProductId
 
 
 class InventoryHandlerFacade:
-    def __init__(self, connection: Connection, uow: InventoryUnitOfWork):
-        self._conn = connection
+    def __init__(self, uow: InventoryUnitOfWork):
         self._uow = uow
 
-    def update_inventory_first_stock(
-            self,
-            store_id: ShopId,
-            product_id: ShopProductId,
-            default_unit: str,
-            units: List[str],
-            first_stocks: List[int]
-    ) -> None:
-        values_to_insert = []
-        for cnt in range(0, len(units)):
-            if first_stocks[cnt] != 0:
-                values_to_insert.append({
-                    'product_id': product_id,
-                    'unit': units[cnt],
-                    'stocking_quantity': first_stocks[cnt]
-                })
-
-        query = insert(inventory_product_balance_table).values(values_to_insert)
-        self._conn.execute(query)
-
-    def create_warehouse(self, shop_id: str, admin_id: str, admin_email: str, shop_created_at: datetime):
+    def create_warehouse(self, user_id: str, email: str, user_created_at: datetime):
         with self._uow as uow:  # type:InventoryUnitOfWork
             try:
-                warehouse = Warehouse(
-                    warehouse_id=generate_warehouse_id(),
-                    store_id=shop_id,
-                    warehouse_owner=admin_email
-                )
+                any_warehouse = uow.inventory.get_warehouse_by_admin_id(user_id=user_id)
+                if any_warehouse:
+                    logger.debug(
+                        f'Warehouse and WarehouseAdmin both created but ShopAdminCreatedEvent emitted. WarehouseId={any_warehouse.warehouse_id}. AdminId={user_id}')
+                    return
+
+                warehouse_admin = Warehouse.generate_warehouse_admin(user_id=user_id, email=email)
+                warehouse = Warehouse.create(warehouse_admin=warehouse_admin)
 
                 uow.inventory.save(warehouse)
 
                 uow.commit()
             except Exception as exc:
                 raise exc
+
+    # def update_inventory_first_stock(
+    #         self,
+    #         store_id: ShopId,
+    #         product_id: ShopProductId,
+    #         default_unit: str,
+    #         units: List[str],
+    #         first_stocks: List[int]
+    # ) -> None:
+    #     values_to_insert = []
+    #     for cnt in range(0, len(units)):
+    #         if first_stocks[cnt] != 0:
+    #             values_to_insert.append({
+    #                 'product_id': product_id,
+    #                 'unit': units[cnt],
+    #                 'stocking_quantity': first_stocks[cnt]
+    #             })
+    #
+    #     query = insert(inventory_product_balance_table).values(values_to_insert)
+    #     self._conn.execute(query)
 
 
 class ShopProductCreatedEventHandler:
@@ -74,18 +72,23 @@ class ShopProductCreatedEventHandler:
         # )
 
 
-class ShopCreatedEventHandler:
+class CreateWarehouseUponShopCreatedHandler:
     @injector.inject
     def __init__(self, facade: InventoryHandlerFacade) -> None:
         self._f = facade
 
-    def __call__(self, event: ShopCreatedEvent):
+    def __call__(self, event: ShopAdminCreatedEvent):
         try:
+            event_id = event.event_id
+            user_id = event.user_id
+            email = event.email
+            mobile = event.mobile
+            created_at = event.created_at
+
             self._f.create_warehouse(
-                event.shop_id,
-                event.admin_id,
-                event.admin_email,
-                event.shop_created_at,
+                user_id=user_id,
+                email=email,
+                user_created_at=created_at
             )
         except Exception as exc:
             # do something

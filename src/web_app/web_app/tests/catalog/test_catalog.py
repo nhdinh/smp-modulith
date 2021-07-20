@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from typing import Dict
 
-import pytest
 from flask.testing import FlaskClient
+import pytest
 
 from product_catalog.domain.value_objects import CatalogReference
 from web_app.tests.catalog.models import CreatingCatalogRequestFactory

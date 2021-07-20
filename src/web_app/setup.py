@@ -17,6 +17,8 @@ setup(
         "main",
         "foundation",
         "auctions",
+        "shop",
+        "inventory"
     ],
     extras_require={"dev": ["pytest"]},
 )

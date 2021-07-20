@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from foundation.value_objects.address import LocationAddress
+
 from shop.domain.entities.value_objects import AddressType
 
 

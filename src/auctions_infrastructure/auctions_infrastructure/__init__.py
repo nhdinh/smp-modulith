@@ -1,11 +1,12 @@
 import injector
 from sqlalchemy.engine import Connection
 
+from foundation.events import EventBus
+
 from auctions import AuctionsRepository, GetActiveAuctionsQuery, GetSingleAuctionQuery
 from auctions_infrastructure.models import auctions, bids
 from auctions_infrastructure.queries import SqlGetActiveAuctionsQuery, SqlGetSingleAuctionQuery
 from auctions_infrastructure.repositories import SqlAlchemyAuctionsRepo
-from foundation.events import EventBus
 
 __all__ = [
     # module

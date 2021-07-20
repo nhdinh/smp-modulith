@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import injector
-from store.application.services.user_counter_services import UserCounters
 
 from foundation.business_rule import BusinessRuleBase
+
+from store.application.services.user_counter_services import UserCounters
 
 
 class UserEmailMustBeUniqueRule(BusinessRuleBase):

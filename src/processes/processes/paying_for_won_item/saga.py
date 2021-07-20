@@ -1,13 +1,14 @@
-import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
+import uuid
+
+from foundation.method_dispatch import method_dispatch
+from foundation.value_objects import Money
 
 from auctions import AuctionEnded
 from customer_relationship import CustomerRelationshipFacade
-from foundation.method_dispatch import method_dispatch
-from foundation.value_objects import Money
 from payments import PaymentCaptured, PaymentsFacade
 
 

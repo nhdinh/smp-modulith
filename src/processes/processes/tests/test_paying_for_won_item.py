@@ -1,14 +1,15 @@
-import uuid
 from datetime import datetime, timedelta
 from typing import Generator
 from unittest.mock import Mock, patch
+import uuid
 
 import freezegun
 import pytest
 
+from foundation.value_objects.factories import get_money
+
 from auctions import AuctionEnded
 from customer_relationship import CustomerRelationshipFacade
-from foundation.value_objects.factories import get_money
 from payments import PaymentCaptured, PaymentsFacade
 from processes.paying_for_won_item import PayingForWonItem
 from processes.paying_for_won_item.saga import PayingForWonItemData, State

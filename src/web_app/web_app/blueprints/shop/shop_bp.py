@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from flask import Blueprint, Response, request
 import flask_injector
 import injector
-from flask import Blueprint, request, Response
 
-from shop.application.usecases.initialize.confirm_shop_registration_uc import ConfirmShopRegistrationUC, \
-    ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationRequest
-from shop.application.usecases.initialize.register_shop_uc import RegisteringShopResponseBoundary, RegisterShopUC, \
-    RegisteringShopRequest
+from shop.application.usecases.initialize.confirm_shop_registration_uc import (
+    ConfirmingShopRegistrationRequest,
+    ConfirmingShopRegistrationResponseBoundary,
+    ConfirmShopRegistrationUC,
+)
+from shop.application.usecases.initialize.register_shop_uc import (
+    RegisteringShopRequest,
+    RegisteringShopResponseBoundary,
+    RegisterShopUC,
+)
 from web_app.presenters import log_error
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter

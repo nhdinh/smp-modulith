@@ -1,24 +1,27 @@
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timedelta, timezone
 from json import JSONDecodeError
 from typing import Optional
 
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
-from flask import Flask, Response, request, make_response
+from flask import Flask, Response, make_response, request
 from flask_cors import CORS
 from flask_injector import FlaskInjector
-from flask_jwt_extended import JWTManager, get_jwt, create_access_token, get_jwt_identity, set_access_cookies
-from flask_log_request_id import current_request_id, RequestID
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt, get_jwt_identity, set_access_cookies
+from flask_log_request_id import RequestID, current_request_id
 from jsonpickle import json
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
 from main import bootstrap_app
 from main.modules import RequestScope
-from web_app.blueprints.catalog_bp import catalog_blueprint, CatalogAPI
-from web_app.blueprints.identity_bp import auth_blueprint, IdentityAPI
-from web_app.blueprints.product_bp import product_blueprint, ProductAPI
-from web_app.blueprints.shop_bp import shop_blueprint, ShopAPI
+from web_app.blueprints.catalog_bp import CatalogAPI, catalog_blueprint
+from web_app.blueprints.identity_bp import IdentityAPI, auth_blueprint
+from web_app.blueprints.product_bp import ProductAPI, product_blueprint
+from web_app.blueprints.shop.shop_bp import ShopAPI, shop_blueprint
+from web_app.blueprints.shop.shop_catalog_bp import ShopCatalogAPI, shop_catalog_blueprint
+from web_app.blueprints.shop.shop_product_bp import ShopProductAPI, shop_product_blueprint
+from web_app.blueprints.shop.shop_supplier_bp import ShopSupplierAPI, shop_supplier_blueprint
 from web_app.json_encoder import JSONEncoder
 
 
@@ -47,8 +50,9 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     # app.register_blueprint(store_management_blueprint, url_prefix='/manage-store')
     #
     app.register_blueprint(shop_blueprint, url_prefix='/shop')
-    # app.register_blueprint(shop_catalog_blueprint, url_prefix='/shop/catalog')
-    # app.register_blueprint(shop_product_blueprint, url_prefix='/shop/product')
+    app.register_blueprint(shop_catalog_blueprint, url_prefix='/shop/catalog')
+    app.register_blueprint(shop_supplier_blueprint, url_prefix='/shop/supplier')
+    app.register_blueprint(shop_product_blueprint, url_prefix='/shop/product')
     # app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
     # app.register_blueprint(inventory_blueprint, url_prefix='/inventory')
 
@@ -70,10 +74,10 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         ProductAPI(),
 
         ShopAPI(),
-        #
-        # ShopCatalogAPI(),
-        # ShopProductAPI(),
-        #
+        ShopCatalogAPI(),
+        ShopProductAPI(),
+        ShopSupplierAPI(),
+
         # StoreCatalogAPI(),
         # InventoryAPI(),
     ], injector=app_context.injector)
@@ -161,7 +165,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     # enable CORS
     CORS(app)
 
-    @app.route('/health/live')
+    @app.route('/status', methods=['GET', 'POST'])
     def health_check():
         return make_response({'status': True}), 200
 

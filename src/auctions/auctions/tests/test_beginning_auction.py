@@ -3,12 +3,13 @@ from unittest.mock import Mock
 
 import pytest
 
+from foundation.events import EventBus
+from foundation.value_objects.factories import get_money
+
 from auctions import AuctionBegan, BeginningAuction
 from auctions.application.use_cases.beginning_auction import BeginningAuctionInputDto
 from auctions.domain.exceptions import AuctionEndingInThePast
 from auctions.tests.in_memory_repo import InMemoryAuctionsRepo
-from foundation.events import EventBus
-from foundation.value_objects.factories import get_money
 
 
 @pytest.fixture()

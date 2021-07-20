@@ -1,28 +1,48 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
+from flask_jwt_extended import get_jwt_identity, jwt_required
 import injector
-from flask import Blueprint, Response, request, current_app, make_response, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
+
 from inventory import ListProductsBalanceQuery
 from inventory.application.inventory_queries import ListDraftPurchaseOrdersQuery
-from inventory.application.usecases.approve_purchase_order_uc import ApprovingPurchaseOrderResponseBoundary, \
-    ApprovingPurchaseOrderRequest, ApprovePurchaseOrderUC
-from inventory.application.usecases.create_draft_purchase_order_uc import CreateDraftPurchaseOrderUC, \
-    CreatingDraftPurchaseOrderResponseBoundary, CreatingDraftPurchaseOrderRequest
-from inventory.application.usecases.initialize_first_stock_uc import InitializingFirstStockResponseBoundary, \
-    InitializeFirstStockUC, InitializingFirstStockRequest
-from inventory.application.usecases.remove_draft_purchase_order_item_uc import RemoveDraftPurchaseOrderItemUC, \
-    RemovingDraftPurchaseOrderItemResponseBoundary, RemovingDraftPurchaseOrderItemRequest
-from inventory.application.usecases.update_draft_purchase_order_uc import UpdateDraftPurchaseOrderUC, \
-    UpdatingDraftPurchaseOrderResponseBoundary, UpdatingDraftPurchaseOrderRequest
+from inventory.application.usecases.approve_purchase_order_uc import (
+    ApprovePurchaseOrderUC,
+    ApprovingPurchaseOrderRequest,
+    ApprovingPurchaseOrderResponseBoundary,
+)
+from inventory.application.usecases.create_draft_purchase_order_uc import (
+    CreateDraftPurchaseOrderUC,
+    CreatingDraftPurchaseOrderRequest,
+    CreatingDraftPurchaseOrderResponseBoundary,
+)
+from inventory.application.usecases.initialize_first_stock_uc import (
+    InitializeFirstStockUC,
+    InitializingFirstStockRequest,
+    InitializingFirstStockResponseBoundary,
+)
+from inventory.application.usecases.remove_draft_purchase_order_item_uc import (
+    RemoveDraftPurchaseOrderItemUC,
+    RemovingDraftPurchaseOrderItemRequest,
+    RemovingDraftPurchaseOrderItemResponseBoundary,
+)
+from inventory.application.usecases.update_draft_purchase_order_uc import (
+    UpdateDraftPurchaseOrderUC,
+    UpdatingDraftPurchaseOrderRequest,
+    UpdatingDraftPurchaseOrderResponseBoundary,
+)
 from web_app.presenters import log_error
-from web_app.presenters.inventory_presenters import CreatingDraftPurchaseOrderPresenter, \
-    RemovingDraftPurchaseOrderItemPresenter, UpdatingDraftPurchaseOrderPresenter, ApprovingPurchaseOrderPresenter
-from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
+from web_app.presenters.inventory_presenters import (
+    ApprovingPurchaseOrderPresenter,
+    CreatingDraftPurchaseOrderPresenter,
+    RemovingDraftPurchaseOrderItemPresenter,
+    UpdatingDraftPurchaseOrderPresenter,
+)
+from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
 
 INVENTORY_BLUEPRINT_NAME = 'inventory_blueprint'
 inventory_blueprint = Blueprint(INVENTORY_BLUEPRINT_NAME, __name__)

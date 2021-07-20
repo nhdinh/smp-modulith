@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import decimal
 from dataclasses import dataclass
+import decimal
 # set the default multiplier factor for the default product_unit
 from typing import TYPE_CHECKING
 

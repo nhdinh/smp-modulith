@@ -1,28 +1,45 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import event
-from sqlalchemy.orm import mapper, relationship, backref
+from sqlalchemy import event, insert, select
+from sqlalchemy.orm import backref, mapper, relationship
+from sqlalchemy.sql.functions import count
 
 from foundation.value_objects.address import LocationAddress
-from shop.adapter.shop_db import shop_settings_table, shop_registration_table, shop_table, \
-    shop_users_table, shop_catalog_table, shop_product_table, \
-    shop_product_unit_table, shop_brand_table, shop_product_tag_table, shop_collection_table, \
-    shop_product_collection_table, shop_product_supplier_table, shop_supplier_table, \
-    shop_supplier_product_price_table, shop_addresses_table, shop_warehouse_table
+
+from shop.adapter.shop_db import (
+    shop_addresses_table,
+    shop_brand_table,
+    shop_catalog_table,
+    shop_collection_table,
+    shop_product_collection_table,
+    shop_product_supplier_table,
+    shop_product_table,
+    shop_product_tag_table,
+    shop_product_unit_table,
+    shop_product_view_cache_table,
+    shop_registration_table,
+    shop_settings_table,
+    shop_supplier_product_price_table,
+    shop_supplier_table,
+    shop_table,
+    shop_users_table,
+    shop_warehouse_table,
+)
 from shop.domain.entities.purchase_price import ProductPurchasePrice
 from shop.domain.entities.setting import Setting
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_address import ShopAddress
 from shop.domain.entities.shop_catalog import ShopCatalog
+from shop.domain.entities.shop_collection import ShopCollection
+from shop.domain.entities.shop_product import ShopProduct
+from shop.domain.entities.shop_product_brand import ShopProductBrand
+from shop.domain.entities.shop_product_cache import ShopProductCache
+from shop.domain.entities.shop_product_tag import ShopProductTag
+from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_registration import ShopRegistration
 from shop.domain.entities.shop_supplier import ShopSupplier
-from shop.domain.entities.shop_unit import ShopProductUnit
 from shop.domain.entities.shop_user import ShopUser
-from shop.domain.entities.store_collection import ShopCollection
-from shop.domain.entities.store_product import ShopProduct
-from shop.domain.entities.store_product_brand import ShopProductBrand
-from shop.domain.entities.store_product_tag import ShopProductTag
-from shop.domain.entities.store_warehouse import ShopWarehouse
+from shop.domain.entities.shop_warehouse import ShopWarehouse
 from shop.domain.entities.value_objects import ShopUserType
 
 
@@ -45,14 +62,9 @@ def start_mappers():
         }
     )
 
-    # mapper(
-    #     SystemUser, system_user_table, properties={
-    #         'hashed_password': system_user_table.c.password
-    #     })
-
     mapper(
         ShopProductUnit, shop_product_unit_table, properties={
-            '_referenced_unit': relationship(
+            'referenced_unit': relationship(
                 ShopProductUnit,
                 foreign_keys=[shop_product_unit_table.c.product_id, shop_product_unit_table.c.referenced_unit_name],
                 remote_side=[shop_product_unit_table.c.product_id, shop_product_unit_table.c.unit_name],
@@ -78,13 +90,20 @@ def start_mappers():
                )
            })
 
+    mapper(ShopProductCache, shop_product_view_cache_table)
+
     mapper(
-        ShopProduct, shop_product_table, properties={
+        ShopProduct, shop_product_table,
+        version_id_col=shop_product_table.c.version,
+        version_id_generator=None,
+        properties={
             '_shop_id': shop_product_table.c.shop_id,
             '_brand_id': shop_product_table.c.brand_id,
             '_catalog_id': shop_product_table.c.catalog_id,
 
-            '_store': relationship(Shop),
+            '_cache': relationship(ShopProductCache, lazy='select'),
+
+            '_shop': relationship(Shop),
 
             '_brand': relationship(
                 ShopProductBrand
@@ -162,13 +181,13 @@ def start_mappers():
             '_settings': relationship(
                 Setting,
                 collection_class=set,
-                backref=backref('_store')
+                backref=backref('_shop')
             ),
 
             '_addresses': relationship(
                 ShopAddress,
                 collection_class=set,
-                backref=backref('_store'),
+                backref=backref('_shop'),
             ),
 
             '_warehouses': relationship(
@@ -189,20 +208,20 @@ def start_mappers():
             '_catalogs': relationship(
                 ShopCatalog,
                 collection_class=set,
-                backref=backref('_store')
+                backref=backref('_shop')
             ),
 
             '_collections': relationship(
                 ShopCollection,
                 collection_class=set,
-                backref=backref('_store'),
+                backref=backref('_shop'),
             ),
 
             '_products': relationship(
                 ShopProduct,
                 collection_class=set,
                 cascade='all, delete-orphan',
-                back_populates='_store',
+                back_populates='_shop',
             ),
 
             '_brands': relationship(
@@ -212,16 +231,45 @@ def start_mappers():
         })
 
 
+def install_first_data(engine, admin_id: str, admin_email: str, central_db_repo: str, default_repo_cat: str):
+    try:
+        if engine.execute(select(count(shop_table.c.shop_id))).scalar() == 0:
+            first_shop = {
+                'shop_id': central_db_repo,
+                'name': 'CentralDB',
+            }
+
+            first_catalog = {
+                'catalog_id': default_repo_cat,
+                'shop_id': central_db_repo,
+                'title': 'DefaultCatalog',
+                'default': True
+            }
+
+            engine.execute(insert(shop_table).values(**first_shop))
+            engine.execute(insert(shop_catalog_table).values(**first_catalog))
+            engine.execute(
+                insert(shop_users_table).values(shop_id=central_db_repo, user_id=admin_id, email=admin_email,
+                                                shop_role=ShopUserType.ADMIN))
+    except Exception as exc:
+        raise exc
+
+
 @event.listens_for(ShopRegistration, 'load')
 def shop_registration_load(shop_registration, _):
     shop_registration.domain_events = []
 
 
+@event.listens_for(ShopProduct, 'load')
+def shop_product_load(shop_product, _):
+    shop_product.domain_events = []
+
+
 @event.listens_for(Shop, 'load')
-def shop_load(store, connection):
-    store.domain_events = []
+def shop_load(shop, connection):
+    shop.domain_events = []
 
     try:
-        store._admin = next(sm for sm in store._users if sm.shop_role == ShopUserType.ADMIN)
+        shop._admin = next(sm for sm in shop._users if sm.shop_role == ShopUserType.ADMIN)
     except StopIteration:
-        store._admin = None
+        shop._admin = None

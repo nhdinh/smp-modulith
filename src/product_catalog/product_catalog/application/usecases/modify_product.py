@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import List, Optional
 
 from product_catalog import CatalogUnitOfWork
 from product_catalog.domain.entities.product import Product
 from product_catalog.domain.entities.product_unit import ProductUnit
-from product_catalog.domain.value_objects import ProductReference, CollectionReference, CatalogReference
+from product_catalog.domain.value_objects import CatalogReference, CollectionReference, ProductReference
 
 
 @dataclass

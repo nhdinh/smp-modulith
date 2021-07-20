@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import abc
-import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+import uuid
 
 from minio import Minio
 from werkzeug.datastructures import FileStorage
 
 from foundation.fs import FileSystem
+
 from inventory.application.usecases.const import ExceptionMessages
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise

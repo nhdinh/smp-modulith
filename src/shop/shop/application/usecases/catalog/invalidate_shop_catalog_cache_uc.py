@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.application.usecases.shop_uc_common import GenericShopResponseBoundary, GenericShopActionRequest
+from shop.application.usecases.shop_uc_common import GenericShopActionRequest, GenericShopResponseBoundary
 
 
 class InvalidateShopCatalogCacheUC:

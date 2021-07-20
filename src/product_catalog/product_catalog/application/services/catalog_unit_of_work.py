@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from foundation.uow import SqlAlchemyUnitOfWork
+
 from product_catalog import SqlAlchemyCatalogRepository
 
 

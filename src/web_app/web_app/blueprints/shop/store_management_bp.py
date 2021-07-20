@@ -1,38 +1,71 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
+from flask_jwt_extended import get_jwt_identity, jwt_required
 import injector
-from flask import Blueprint, Response, request, current_app, jsonify, make_response
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from store.application.queries.store_queries import ListStoreSettingsQuery, ListStoreWarehousesQuery, \
-    ListStoreAddressesQuery
-from store.application.usecases.create_store_warehouse_uc import CreateStoreWarehouseUC, \
-    CreatingStoreWarehouseResponseBoundary, CreatingStoreWarehouseRequest
-from store.application.usecases.initialize.confirm_shop_registration_uc import ConfirmShopRegistrationUC, \
-    ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationRequest
-from store.application.usecases.initialize.register_shop_uc import RegisterShopUC, RegisteringShopResponseBoundary, \
-    RegisteringShopRequest
-from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
-    AddStoreManagerUC
-from store.application.usecases.manage.create_store_address_uc import CreatingStoreAddressRequest, \
-    CreatingStoreAddressResponseBoundary, CreateStoreAddressUC
-from store.application.usecases.manage.resend_store_registration_confirmation_uc import \
-    ResendingRegistrationConfirmationRequest, ResendRegistrationConfirmationUC, \
-    ResendingRegistrationConfirmationResponseBoundary
-from store.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
-    UpdatingStoreSettingsRequest, UpdateStoreSettingsUC
-from store.application.usecases.manage.upload_image_uc import UploadingImageRequest, UploadingImageResponseBoundary, \
-    UploadImageUC
-from store.application.usecases.select_store_plan_uc import SelectStorePlanUC, SelectingStorePlanResponseBoundary, \
-    SelectingStorePlanRequest
 
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
+
+from store.application.queries.store_queries import (
+    ListStoreAddressesQuery,
+    ListStoreSettingsQuery,
+    ListStoreWarehousesQuery,
+)
+from store.application.usecases.create_store_warehouse_uc import (
+    CreateStoreWarehouseUC,
+    CreatingStoreWarehouseRequest,
+    CreatingStoreWarehouseResponseBoundary,
+)
+from store.application.usecases.initialize.confirm_shop_registration_uc import (
+    ConfirmingShopRegistrationRequest,
+    ConfirmingShopRegistrationResponseBoundary,
+    ConfirmShopRegistrationUC,
+)
+from store.application.usecases.initialize.register_shop_uc import (
+    RegisteringShopRequest,
+    RegisteringShopResponseBoundary,
+    RegisterShopUC,
+)
+from store.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, AddStoreManagerUC
+from store.application.usecases.manage.create_store_address_uc import (
+    CreateStoreAddressUC,
+    CreatingStoreAddressRequest,
+    CreatingStoreAddressResponseBoundary,
+)
+from store.application.usecases.manage.resend_store_registration_confirmation_uc import (
+    ResendingRegistrationConfirmationRequest,
+    ResendingRegistrationConfirmationResponseBoundary,
+    ResendRegistrationConfirmationUC,
+)
+from store.application.usecases.manage.update_store_settings_uc import (
+    UpdateStoreSettingsUC,
+    UpdatingStoreSettingsRequest,
+    UpdatingStoreSettingsResponseBoundary,
+)
+from store.application.usecases.manage.upload_image_uc import (
+    UploadImageUC,
+    UploadingImageRequest,
+    UploadingImageResponseBoundary,
+)
+from store.application.usecases.select_store_plan_uc import (
+    SelectingStorePlanRequest,
+    SelectingStorePlanResponseBoundary,
+    SelectStorePlanUC,
+)
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
-from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter, \
-    SelectingStorePlanPresenter, AddingStoreManagerPresenter, UpdatingStoreSettingsPresenter, UploadingImagePresenter, \
-    ResendingRegistrationResponsePresenter, CreatingStoreWarehousePresenter, CreatingStoreAddressPresenter
+from web_app.presenters.store_management_presenters import (
+    AddingStoreManagerPresenter,
+    ConfirmingShopRegistrationPresenter,
+    CreatingStoreAddressPresenter,
+    CreatingStoreWarehousePresenter,
+    ResendingRegistrationResponsePresenter,
+    SelectingStorePlanPresenter,
+    UpdatingStoreSettingsPresenter,
+    UploadingImagePresenter,
+)
 from web_app.serialization.dto import get_dto
 
 STORE_MANAGEMENT_BLUEPRINT_NAME = 'store_management_blueprint'

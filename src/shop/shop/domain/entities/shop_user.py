@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from shop.domain.entities.value_objects import SystemUserId, SystemUserStatus, ShopUserType
+from shop.domain.entities.value_objects import ShopUserType, SystemUserId, SystemUserStatus
 
 
 @dataclass

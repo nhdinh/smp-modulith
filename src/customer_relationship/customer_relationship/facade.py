@@ -3,11 +3,12 @@ from uuid import UUID
 
 from sqlalchemy.engine import Connection
 
+from foundation.value_objects import Money
+
 from customer_relationship import emails
 from customer_relationship.config import CustomerRelationshipConfig
 from customer_relationship.email_sender import EmailSender
 from customer_relationship.models import customers
-from foundation.value_objects import Money
 
 CustomerId = UUID
 
@@ -45,13 +46,13 @@ class CustomerRelationshipFacade:
     def _send(self, recipient: str, email: emails.Email) -> None:
         self._sender.send(recipient, email)
 
-    def send_store_registration_confirmation_token_email(self, store_name, confirmation_token, owner_email):
-        email = emails.StoreRegistrationConfirmationEmail(store_name=store_name, confirmation_token=confirmation_token)
+    def send_store_registration_confirmation_token_email(self, shop_name, confirmation_token, owner_email):
+        email = emails.StoreRegistrationConfirmationEmail(shop_name=shop_name, confirmation_token=confirmation_token)
         self._send(owner_email, email)
 
-    def send_shop_created_notification_email(self, shop_name: str, email: str):
-        email = emails.StoreCreatedSuccessfulEmail(shop_name=shop_name, admin_name=email)
-        self._send(email, email)
+    def send_shop_created_notification_email(self, shop_name: str, email_address: str):
+        email = emails.StoreCreatedSuccessfulEmail(shop_name=shop_name, admin_name=email_address)
+        self._send(email_address, email)
 
     def send_password_reset_token_email(self, username, user_email, token):
         email = emails.PasswordResetTokenEmail(username=username, token=token)

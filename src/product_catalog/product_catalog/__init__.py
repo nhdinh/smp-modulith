@@ -5,23 +5,40 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus
+
 from product_catalog.adapter import catalog_db
 from product_catalog.adapter.catalog_db import catalog_table, product_table
-from product_catalog.adapter.queries.product_catalog import SqlGetCatalogQuery, SqlListCatalogsQuery, \
-    SqlListProductsQuery, SqlGetProductQuery, SqlListProductBrandsQuery
-from product_catalog.application.queries.product_catalog import ListProductsQuery, ListCatalogsQuery, \
-    GetCatalogQuery, GetProductQuery, ListProductBrandsQuery
+from product_catalog.adapter.queries.product_catalog import (
+    SqlGetCatalogQuery,
+    SqlGetProductQuery,
+    SqlListCatalogsQuery,
+    SqlListProductBrandsQuery,
+    SqlListProductsQuery,
+)
+from product_catalog.application.queries.product_catalog import (
+    GetCatalogQuery,
+    GetProductQuery,
+    ListCatalogsQuery,
+    ListProductBrandsQuery,
+    ListProductsQuery,
+)
 from product_catalog.application.repositories.catalog_repository import SqlAlchemyCatalogRepository
 from product_catalog.application.services.catalog_unit_of_work import CatalogUnitOfWork
-from product_catalog.application.usecases.begin_catalog import MakeTestSampleCatalogUC, TestSampleCatalog, \
-    MakeDefaultCatalogUC
-from product_catalog.application.usecases.create_catalog import CreateCatalogUC, CreatingCatalogResponseBoundary, \
-    CreateDefaultCatalogUC
-from product_catalog.application.usecases.create_product import CreatingProductResponseBoundary, CreateProductUC
-from product_catalog.application.usecases.delete_catalog import DeletingCatalogResponseBoundary, DeleteCatalogUC
+from product_catalog.application.usecases.begin_catalog import (
+    MakeDefaultCatalogUC,
+    MakeTestSampleCatalogUC,
+    TestSampleCatalog,
+)
+from product_catalog.application.usecases.create_catalog import (
+    CreateCatalogUC,
+    CreateDefaultCatalogUC,
+    CreatingCatalogResponseBoundary,
+)
+from product_catalog.application.usecases.create_product import CreateProductUC, CreatingProductResponseBoundary
+from product_catalog.application.usecases.delete_catalog import DeleteCatalogUC, DeletingCatalogResponseBoundary
 from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC
-from product_catalog.application.usecases.toggle_catalog import TogglingCatalogResponseBoundary, ToggleCatalogUC
-from product_catalog.domain.value_objects import CollectionReference, CatalogId, CatalogReference
+from product_catalog.application.usecases.toggle_catalog import ToggleCatalogUC, TogglingCatalogResponseBoundary
+from product_catalog.domain.value_objects import CatalogId, CatalogReference, CollectionReference
 
 __all__ = [
     # module

@@ -7,7 +7,7 @@ from typing import Optional
 
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.domain.entities.value_objects import DraftPurchaseOrderId
-from shop.domain.entities.value_objects import StoreAddressId
+from shop.domain.entities.value_objects import ShopAddressId
 
 
 @dataclass
@@ -15,7 +15,7 @@ class UpdatingDraftPurchaseOrderRequest:
     draft_purchase_order_id: DraftPurchaseOrderId
     due_date: Optional[date]
     note: Optional[str]
-    delivery_address: Optional[StoreAddressId]
+    delivery_address: Optional[ShopAddressId]
 
 
 @dataclass

@@ -3,7 +3,7 @@
 from db_infrastructure import nanoid_generate
 
 SHOP_ID_PREFIX = 'Shop'
-ADDRESS_ID_PREFIX = 'Address'
+ADDRESS_ID_PREFIX = 'SAddress'
 SHOP_CATALOG_ID_PREFIX = 'Cat'
 SHOP_COLLECTION_ID_PREFIX = 'Coll'
 SHOP_SUPPLIER_ID_PREFIX = 'Supplier'

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
-from shop.domain.entities.value_objects import StoreWarehouseId
+from shop.domain.entities.value_objects import ShopWarehouseId
 
 
 @dataclass
@@ -16,7 +16,7 @@ class CreatingStoreWarehouseRequest:
 
 @dataclass
 class CreatingStoreWarehouseResponse:
-    warehouse_id: StoreWarehouseId
+    warehouse_id: ShopWarehouseId
 
 
 class CreatingStoreWarehouseResponseBoundary(abc.ABC):

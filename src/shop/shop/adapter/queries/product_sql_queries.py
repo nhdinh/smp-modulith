@@ -2,28 +2,30 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import select
 
-from db_infrastructure import SqlQuery
-from store.adapter.queries.query_common import sql_verify_shop_id_with_partner_id
-from store.adapter.queries.query_factories import get_product_query_factory, list_product_collections_query_factory
-from store.application.queries.dtos.store_product_dto import _row_to_product_dto
-from store.application.queries.get_shop_product_query import GetShopProductRequest, GetShopProductQuery
-from store.application.usecases.const import ThingGoneInBlackHoleError, ExceptionMessages
-from store.domain.entities.shop_unit import ShopProductUnit
-from store.domain.entities.store_product import ShopProduct
-from store.domain.entities.store_product_tag import ShopProductTag
+from foundation.events import ThingGoneInBlackHoleError
+
+from db_infrastructure.base import SqlQuery
+from shop.adapter.queries.query_common import sql_verify_shop_id
+from shop.adapter.queries.query_factories import get_shop_product_query_factory, list_product_collections_query_factory
+from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest
+from shop.domain.dtos.product_dtos import _row_to_product_dto
+from shop.domain.entities.shop_product import ShopProduct
+from shop.domain.entities.shop_product_tag import ShopProductTag
+from shop.domain.entities.shop_product_unit import ShopProductUnit
+from shop.domain.entities.value_objects import ExceptionMessages
 
 
 class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
-    def query(self, dto: GetShopProductRequest, from_cache: bool = True):
+    def query(self, dto: GetShopProductRequest, use_view_cache: bool = False):
         try:
-            valid_store = sql_verify_shop_id_with_partner_id(shop_id=dto.shop_id, partner_id=dto.partner_id,
-                                                             conn=self._conn)
+            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.partner_id,
+                                             conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 
             # get the product by id
             product_id = dto.product_id
-            query = get_product_query_factory(product_id=product_id)
+            query = get_shop_product_query_factory(product_id=product_id)
             product = self._conn.execute(query).first()
 
             if product:
@@ -31,6 +33,7 @@ class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
                 list_collections_query = list_product_collections_query_factory(product_id=product_id)
                 collections = self._conn.execute(list_collections_query).all()
 
+                # FIXME
                 # list units
                 fetch_units_query = select(ShopProductUnit) \
                     .join(ShopProduct) \
@@ -45,6 +48,6 @@ class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
                 return _row_to_product_dto(product, unit_rows=units, tag_rows=tags, collection_rows=collections,
                                            compacted=False)
             else:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
         except Exception as exc:
             raise exc

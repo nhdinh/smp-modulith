@@ -44,8 +44,8 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork, abc.ABC):
         self._session = None  # type:Optional[Session]
         self._event_bus = event_bus  # type:Optional[EventBus]
 
-    def __exit__(self, *kwargs):
-        super(SqlAlchemyUnitOfWork, self).__exit__(*kwargs)
+    def __exit__(self, *args):
+        super(SqlAlchemyUnitOfWork, self).__exit__(*args)
         self._session.close()
 
     @property
@@ -54,7 +54,8 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork, abc.ABC):
 
     def __enter__(self) -> AbstractUnitOfWork:
         # make session
-        self._session = self._sf()  # type:Session
+        if self._session is None:
+            self._session = self._sf()  # type:Session
 
         @event.listens_for(self._session, 'after_commit')
         def receive_after_commit(session):

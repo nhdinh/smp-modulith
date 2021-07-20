@@ -1,13 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uuid
 from datetime import datetime
+import uuid
 
-from sqlalchemy import Table, String, Column, Boolean, DateTime, ForeignKey, event, func, Numeric, \
-    PrimaryKeyConstraint, ForeignKeyConstraint
-from sqlalchemy.orm import mapper, relationship, backref
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Numeric,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    event,
+    func,
+)
+from sqlalchemy.orm import backref, mapper, relationship
 
-from db_infrastructure import metadata, GUID
+from db_infrastructure import GUID, metadata
 from product_catalog.domain.entities.brand import Brand
 from product_catalog.domain.entities.catalog import Catalog
 from product_catalog.domain.entities.collection import Collection

@@ -1,17 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Optional, List
+from typing import List, Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import SqlQuery
 from db_infrastructure.base import paginate
-from product_catalog.adapter.catalog_db import catalog_table, product_table, collection_table, \
-    brand_table
-from product_catalog.application.queries.product_catalog import GetCatalogQuery, CatalogDto, ListCatalogsQuery
-from product_catalog.application.queries.product_catalog import ListProductsQuery, ProductDto, GetProductQuery, \
-    CollectionDto, BrandDto, ListProductBrandsQuery
+from product_catalog.adapter.catalog_db import brand_table, catalog_table, collection_table, product_table
+from product_catalog.application.queries.product_catalog import (
+    BrandDto,
+    CatalogDto,
+    CollectionDto,
+    GetCatalogQuery,
+    GetProductQuery,
+    ListCatalogsQuery,
+    ListProductBrandsQuery,
+    ListProductsQuery,
+    ProductDto,
+)
 from web_app.serialization.dto import PaginationOutputDto, paginate_response_factory
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy.engine import Connection
 
-from inventory.domain.entities.warehouse import WarehouseId
+from inventory.domain.entities.value_objects import WarehouseId
 
 
 def sql_get_warehouse_id_by_owner(warehouse_owner: str, conn: Connection, active_only: bool = True) -> WarehouseId:

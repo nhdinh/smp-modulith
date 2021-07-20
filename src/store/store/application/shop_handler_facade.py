@@ -11,10 +11,13 @@ from foundation.domain_events.identity_events import UserCreatedEvent
 from foundation.domain_events.inventory_events import WarehouseCreatedEvent
 from foundation.events import EveryModuleMustCatchThisEvent
 from foundation.logger import logger
-from store.adapter.queries.query_factories import get_product_query_factory, list_product_collections_query_factory, \
-    get_suppliers_bound_to_product_query
-from store.adapter.shop_db import shop_catalog_table, \
-    shop_collection_table, shop_product_data_cache_table
+
+from store.adapter.queries.query_factories import (
+    get_product_query_factory,
+    get_suppliers_bound_to_product_query,
+    list_product_collections_query_factory,
+)
+from store.adapter.shop_db import shop_catalog_table, shop_collection_table, shop_product_data_cache_table
 from store.application.queries.dtos.store_catalog_dto import _row_to_catalog_dto
 from store.application.queries.dtos.store_collection_dto import _row_to_collection_dto
 from store.application.queries.dtos.store_product_brand_dto import _row_to_brand_dto

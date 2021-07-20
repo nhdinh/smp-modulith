@@ -4,12 +4,13 @@ import pytz
 from sqlalchemy.engine import Connection
 from sqlalchemy.engine.row import RowProxy
 
+from foundation.events import EventBus
+from foundation.value_objects.factories import get_money
+
 from auctions.application.repositories import AuctionsRepository
 from auctions.domain.entities import Auction, Bid
 from auctions.domain.value_objects import AuctionId
 from auctions_infrastructure import auctions, bids
-from foundation.events import EventBus
-from foundation.value_objects.factories import get_money
 
 
 class SqlAlchemyAuctionsRepo(AuctionsRepository):

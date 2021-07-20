@@ -11,8 +11,8 @@ from inventory.adapter.common_queries import sql_count_draft_purchase_orders_in_
 from inventory.adapter.inventory_db import draft_purchase_order_item_table
 from inventory.adapter.sql_query_common import sql_get_warehouse_id_by_owner
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
-from inventory.domain.entities.value_objects import DraftPurchaseOrderId
-from inventory.domain.entities.warehouse import WarehouseId, Warehouse
+from inventory.domain.entities.value_objects import DraftPurchaseOrderId, WarehouseId
+from inventory.domain.entities.warehouse import Warehouse
 from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto, paginate_response_factory
 
 """

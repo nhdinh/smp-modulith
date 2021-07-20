@@ -1,12 +1,14 @@
-import math
 from dataclasses import field
-from typing import Type, TypeVar, cast, List, Generic, Union, Optional
+import math
+from typing import Generic, List, Optional, Type, TypeVar, Union, cast
 
-import marshmallow as ma
 from flask import Request
+import marshmallow as ma
 from marshmallow_dataclass import class_schema, dataclass
+import werkzeug.exceptions
 
 from foundation.value_objects import Money
+
 from web_app.serialization.fields import Dollars
 
 T = TypeVar("T")

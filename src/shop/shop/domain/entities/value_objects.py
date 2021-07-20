@@ -3,15 +3,16 @@
 from enum import Enum
 from typing import NewType
 
-ShopId = NewType('StoreId', tp=str)
-ShopCatalogId = NewType("StoreCatalogId", tp=str)
-StoreCollectionId = NewType('StoreCollectionId', tp=str)
-StoreSupplierId = NewType('StoreSupplierId', tp=str)
-StoreAddressId = NewType('StoreAddressId', tp=str)
-ShopProductId = NewType('StoreProductId', tp=str)
-StoreWarehouseId = NewType('StoreWarehouseId', tp=str)
+ShopId = NewType('ShopId', tp=str)
+ShopCatalogId = NewType("ShopCatalogId", tp=str)
+ShopCollectionId = NewType('ShopCollectionId', tp=str)
+ShopSupplierId = NewType('ShopSupplierId', tp=str)
+ShopAddressId = NewType('ShopAddressId', tp=str)
+ShopProductId = NewType('ShopProductId', tp=str)
+ShopWarehouseId = NewType('ShopWarehouseId', tp=str)
 ShopRegistrationId = NewType("ShopRegistrationId", tp=str)
 SystemUserId = NewType("SystemUserId", tp=str)
+ShopBrandId = NewType("ShopBrandId", tp=str)
 
 
 class ShopStatus(Enum):
@@ -21,7 +22,13 @@ class ShopStatus(Enum):
     WAREHOUSE_YET_CREATED = 'Warehouse_yet_created'
 
 
-class StoreProductAttributeTypes(Enum):
+class ShopItemStatus(Enum):
+    NORMAL = 'NORMAL'
+    DISABLED = 'DISABLED'
+    DELETED = 'DELETED'
+
+
+class ShopProductAttributeTypes(Enum):
     COLLECTIONS = 'COLLECTIONS'
     BRAND = 'BRAND'
     SUPPLIERS = 'SUPPLIERS'
@@ -52,20 +59,20 @@ class RegistrationStatus(Enum):
 
 class ExceptionMessages(Enum):
     SHOP_OWNERSHIP_NOT_FOUND = 'Shop Ownership not found'
-    FAILED_TO_CREATE_STORE_NO_OWNER = 'Store creating failed. No owner.'
-    REGISTRATION_HAS_BEEN_EXPIRED = 'Store registration confirmation link has been expired'
-    REGISTRATION_HAS_BEEN_CONFIRMED = 'Store registration has been confirmed'
+    FAILED_TO_CREATE_SHOP_NO_OWNER = 'Shop creating failed. No owner.'
+    REGISTRATION_HAS_BEEN_EXPIRED = 'Shop registration confirmation link has been expired'
+    REGISTRATION_HAS_BEEN_CONFIRMED = 'Shop registration has been confirmed'
     REGISTRATION_NOT_FOUND = 'No registration found'
 
     INVALID_FILE_TYPE = 'Upload invalid file type'
 
-    CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_STORE = 'Current user do not have permission on this store'
-    SHOP_NOT_FOUND = 'Store not existed or current user do not have any store created'
-    SHOP_NOT_AVAILABLE = 'Store not available'
+    CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_SHOP = 'Current user do not have permission on this shop'
+    SHOP_NOT_FOUND = 'Shop not existed or current user do not have any shop created'
+    SHOP_NOT_AVAILABLE = 'Shop not available'
 
     INVALID_STORE_CATALOG_REFERENCE_FORMAT = 'CatalogReference not in corrected format'
     STORE_CATALOG_NOT_FOUND = 'Catalog not existed'
-    STORE_CATALOG_EXISTED = 'Store already contains the catalog with same reference'
+    STORE_CATALOG_EXISTED = 'Shop already contains the catalog with same reference'
     SYSTEM_STORE_CATALOG_CANNOT_BE_DISABLED = 'Cannot disable system catalog'
     SYSTEM_STORE_CATALOG_CANNOT_BE_REMOVED = 'Cannot delete default catalog'
 
@@ -79,8 +86,8 @@ class ExceptionMessages(Enum):
     DUPLICATED_COLLECTION_REFERENCE_WHEN_COPYING = 'Destination catalog already has collection with this reference'
     DEFAULT_STORE_COLLECTION_CANNOT_BE_DELETED = 'Cannot delete default collection'
 
-    STORE_PRODUCT_EXISTED = 'Store has contains this product already'
-    STORE_PRODUCT_NOT_FOUND = 'Product not existed'
+    SHOP_PRODUCT_EXISTED = 'Shop has contains this product already'
+    SHOP_PRODUCT_NOT_FOUND = 'Product not existed'
     PRODUCT_UNIT_NOT_FOUND = 'Product unit not existed'
     PRODUCT_UNIT_EXISTED = 'Product unit has been existed'
     PRODUCT_BASE_UNIT_NOT_FOUND = 'Product unit to use as base not existed'
@@ -88,4 +95,4 @@ class ExceptionMessages(Enum):
     CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT = 'This product unit cannot be delete due to another unit is being depends on'
     REGISTRATION_RESEND_TOO_MUCH = 'Too much request, try again later'
 
-    STORE_SUPPLIER_NOT_FOUND = 'Supplier not existed'
+    SHOP_SUPPLIER_NOT_FOUND = 'Supplier not existed'

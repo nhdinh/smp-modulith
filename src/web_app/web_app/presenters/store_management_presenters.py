@@ -1,21 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from flask import Response, make_response, jsonify
+from flask import Response, jsonify, make_response
 
-from shop.application.usecases.create_store_warehouse_uc import CreatingStoreWarehouseResponse, \
-    CreatingStoreWarehouseResponseBoundary
-from shop.application.usecases.initialize.confirm_shop_registration_uc import \
-    ConfirmingShopRegistrationResponseBoundary, ConfirmingShopRegistrationResponse
-from shop.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, \
-    AddingStoreManagerResponse
-from shop.application.usecases.manage.create_store_address_uc import CreatingShopAddressResponseBoundary, \
-    CreatingShopAddressResponse
-from shop.application.usecases.manage.resend_store_registration_confirmation_uc import \
-    ResendingRegistrationConfirmationResponseBoundary, ResendingRegistrationConfirmationResponse
-from shop.application.usecases.manage.update_store_settings_uc import UpdatingStoreSettingsResponseBoundary, \
-    UpdatingStoreSettingsResponse
+from shop.application.usecases.create_store_warehouse_uc import (
+    CreatingStoreWarehouseResponse,
+    CreatingStoreWarehouseResponseBoundary,
+)
+from shop.application.usecases.initialize.confirm_shop_registration_uc import (
+    ConfirmingShopRegistrationResponse,
+    ConfirmingShopRegistrationResponseBoundary,
+)
+from shop.application.usecases.manage.add_store_manager import (
+    AddingStoreManagerResponse,
+    AddingStoreManagerResponseBoundary,
+)
+from shop.application.usecases.manage.create_store_address_uc import (
+    CreatingShopAddressResponse,
+    CreatingShopAddressResponseBoundary,
+)
+from shop.application.usecases.manage.resend_store_registration_confirmation_uc import (
+    ResendingRegistrationConfirmationResponse,
+    ResendingRegistrationConfirmationResponseBoundary,
+)
+from shop.application.usecases.manage.update_store_settings_uc import (
+    UpdatingStoreSettingsResponse,
+    UpdatingStoreSettingsResponseBoundary,
+)
 from shop.application.usecases.manage.upload_image_uc import UploadingImageResponse, UploadingImageResponseBoundary
-from shop.application.usecases.select_store_plan_uc import SelectingShopPlanResponseBoundary, SelectingShopPlanResponse
+from shop.application.usecases.select_store_plan_uc import SelectingShopPlanResponse, SelectingShopPlanResponseBoundary
 
 
 class ResendingRegistrationResponsePresenter(ResendingRegistrationConfirmationResponseBoundary):

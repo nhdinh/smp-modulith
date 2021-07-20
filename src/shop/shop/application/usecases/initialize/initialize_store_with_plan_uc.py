@@ -4,7 +4,7 @@ import abc
 from dataclasses import dataclass
 from uuid import UUID
 
-from store import ShopUnitOfWork
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
 
 @dataclass(unsafe_hash=True)

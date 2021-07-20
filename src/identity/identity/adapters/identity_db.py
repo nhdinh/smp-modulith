@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
 
 import sqlalchemy as sa
-from sqlalchemy import event
-from sqlalchemy.orm import mapper, relationship, backref
+from sqlalchemy import event, insert, select
+from sqlalchemy.orm import backref, mapper, relationship
+from sqlalchemy.sql.functions import count
 
 from db_infrastructure import metadata
 from identity.adapters.id_generator import generate_user_id, role_id_generator
@@ -38,7 +40,9 @@ user_table = sa.Table(
     sa.Column('current_login_ip', sa.String(100)),
     sa.Column('login_count', sa.Integer, default=0),
     sa.Column('reset_password_token', sa.String(100)),
-    sa.Column('request_reset_password_at', sa.DateTime)
+    sa.Column('request_reset_password_at', sa.DateTime),
+    sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 )
 
 role_table = sa.Table(
@@ -52,8 +56,8 @@ role_table = sa.Table(
 user_role_table = sa.Table(
     'roles_users',
     metadata,
-    sa.Column('user_id', sa.ForeignKey(user_table.c.user_id)),
-    sa.Column('role_id', sa.ForeignKey(role_table.c.role_id)),
+    sa.Column('user_id', sa.ForeignKey(user_table.c.user_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('role_id', sa.ForeignKey(role_table.c.role_id, ondelete='CASCADE', onupdate='CASCADE')),
 
     sa.UniqueConstraint('user_id', 'role_id', name='user_role_uix'),
     sa.PrimaryKeyConstraint('user_id', 'role_id', name='user_role_pk'),
@@ -92,6 +96,29 @@ def start_mappers():
             )
         }
     )
+
+
+def install_first_data(engine, admin_id: str, first_role_id: str, admin_email: str, admin_password: str):
+    try:
+        if engine.execute(select(count(user_table.c.user_id))).scalar() == 0:
+            first_role = {
+                'role_id': first_role_id,
+                'name': 'SystemAdmin',
+                'description': 'SystemAdmin Role'
+            }
+
+            first_user = {
+                'user_id': admin_id,
+                'email': admin_email,
+                'mobile': '',
+                'password': User.generate_hash(admin_password)
+            }
+
+            engine.execute(insert(role_table).values(**first_role))
+            engine.execute(insert(user_table).values(**first_user))
+            engine.execute(insert(user_role_table).values(user_id=admin_id, role_id=first_role_id))
+    except Exception as e:
+        raise e
 
 
 @event.listens_for(RevokedToken, 'load')

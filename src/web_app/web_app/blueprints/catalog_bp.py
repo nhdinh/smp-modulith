@@ -1,22 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
-import injector
-from flask import Blueprint, jsonify, make_response, Response, request, current_app
 from flask_jwt_extended import jwt_required
 from flask_login import current_user
+import injector
 
 from foundation.business_rule import BusinessRuleValidationError
-from product_catalog.application.queries.product_catalog import ListCatalogsQuery, GetCatalogQuery
-from product_catalog.application.usecases.create_catalog import CreatingCatalogResponseBoundary, \
-    CreatingCatalogResponse, \
-    CreatingCatalogRequest, CreateCatalogUC
-from product_catalog.application.usecases.create_collection import CreatingCollectionRequest, CreateCollectionUC, \
-    CreatingCollectionResponseBoundary, CreatingCollectionResponse
-from product_catalog.application.usecases.delete_catalog import DeleteCatalogUC, DeletingCatalogResponseBoundary, \
-    DeletingCatalogResponse
-from product_catalog.application.usecases.toggle_catalog import TogglingCatalogResponseBoundary, ToggleCatalogUC
+
+from product_catalog.application.queries.product_catalog import GetCatalogQuery, ListCatalogsQuery
+from product_catalog.application.usecases.create_catalog import (
+    CreateCatalogUC,
+    CreatingCatalogRequest,
+    CreatingCatalogResponse,
+    CreatingCatalogResponseBoundary,
+)
+from product_catalog.application.usecases.create_collection import (
+    CreateCollectionUC,
+    CreatingCollectionRequest,
+    CreatingCollectionResponse,
+    CreatingCollectionResponseBoundary,
+)
+from product_catalog.application.usecases.delete_catalog import (
+    DeleteCatalogUC,
+    DeletingCatalogResponse,
+    DeletingCatalogResponseBoundary,
+)
+from product_catalog.application.usecases.toggle_catalog import ToggleCatalogUC, TogglingCatalogResponseBoundary
 from web_app.serialization.dto import get_dto
 
 catalog_blueprint = Blueprint('catalog_blueprint', __name__)

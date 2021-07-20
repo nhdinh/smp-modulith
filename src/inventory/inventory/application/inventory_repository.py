@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Union
+import abc
+from typing import Optional
 
-from foundation.entity import Entity
-from foundation.events import EventMixin
 from foundation.repository import AbstractRepository
+
 from inventory.domain.entities.warehouse import Warehouse
+from inventory.domain.entities.warehouse_user import WarehouseUser
 
 
-class AbstractInventoryRepository(AbstractRepository):
-    def _save(self, model: Union[EventMixin, Entity]):
-        pass
+class SqlAlchemyInventoryRepository(AbstractRepository):
+    def get_warehouse_by_admin_id(self, user_id: str) -> Optional[Warehouse]:
+        return self._sess.query(Warehouse) \
+            .join(WarehouseUser, Warehouse._users).filter(WarehouseUser.user_id == user_id).first()
 
 
-class SqlAlchemyInventoryRepository(AbstractInventoryRepository):
-    def _save(self, model: Warehouse) -> None:
-        self._sess.add(model)
-
-    def fetch_warehouse_of_owner(self, owner: str):
-        return self._sess.query(Warehouse).where(Warehouse.warehouse_owner == owner).first()
+    def _save(self, warehouse: Warehouse) -> None:
+        self._sess.add(warehouse)

@@ -1,17 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
-import injector
-from flask import Response, Blueprint, jsonify, make_response, request, current_app
 from flask_jwt_extended import jwt_required
+import injector
 
 from foundation.business_rule import BusinessRuleValidationError
-from product_catalog.application.queries.product_catalog import ListProductsQuery, GetProductQuery
-from product_catalog.application.usecases.create_product import CreatingProductResponse, CreatingProductRequest, \
-    CreateProductUC, CreatingProductResponseBoundary
-from product_catalog.application.usecases.modify_product import ModifyingProductResponseBoundary, ModifyProductUC, \
-    ModifyingProductResponse, ModifyingProductRequest
+
+from product_catalog.application.queries.product_catalog import GetProductQuery, ListProductsQuery
+from product_catalog.application.usecases.create_product import (
+    CreateProductUC,
+    CreatingProductRequest,
+    CreatingProductResponse,
+    CreatingProductResponseBoundary,
+)
+from product_catalog.application.usecases.modify_product import (
+    ModifyingProductRequest,
+    ModifyingProductResponse,
+    ModifyingProductResponseBoundary,
+    ModifyProductUC,
+)
 from web_app.serialization.dto import get_dto
 
 product_blueprint = Blueprint('product_blueprint', __name__)

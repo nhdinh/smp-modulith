@@ -1,32 +1,38 @@
-import os
 from dataclasses import dataclass
+import os
+# from auctions import Auctions
+# from auctions_infrastructure import AuctionsInfrastructure
+from typing import Dict
 
 import dotenv
+from flask import current_app
 import injector
 from sqlalchemy.engine import Engine, create_engine
 
-# from auctions import Auctions
-# from auctions_infrastructure import AuctionsInfrastructure
+from foundation import FoundationModule
+
 from customer_relationship import CustomerRelationshipEventHandlerModule
 from db_infrastructure import metadata
-from foundation import FoundationModule
+from identity.identity_applications_module import IdentityApplicationModule
 from identity.identity_event_handler_module import IdentityEventHandlerModule
 from identity.identity_infrastructure_module import IdentityInfrastructureModule
-from identity.identity_applications_module import IdentityApplicationModule
-from main.modules import Configs, Db, EventBusMod, RedisMod, Rq, MinIOService, FileSystemProvider
+# from inventory.inventory_application_module import InventoryApplicationModule
+# from inventory.inventory_event_handler_module import InventoryEventHandlerModule
+# from inventory.inventory_infrastructure_module import InventoryInfrastructureModule
+from main.modules import Configs, Db, EventBusMod, FileSystemProvider, MinIOService, RedisMod, Rq
 # from payments import Payments
 # from processes import Processes
-from product_catalog import ProductCatalogModule, ProductCatalogInfrastructureModule
+from product_catalog import ProductCatalogInfrastructureModule, ProductCatalogModule
+from shop.shop_application_module import ShopApplicationModule
+from shop.shop_event_handler_module import ShopEventHandlerModule
+from shop.shop_infrastructure_module import ShopInfrastructureModule
 
 # from shipping import Shipping
 # from shipping_infrastructure import ShippingInfrastructure
 
+
+
 __all__ = ["bootstrap_app"]
-
-from shop.shop_application_module import ShopApplicationModule
-
-from shop.shop_event_handler_module import ShopEventHandlerModule
-from shop.shop_infrastructure_module import ShopInfrastructureModule
 
 
 @dataclass
@@ -43,29 +49,38 @@ def bootstrap_app() -> AppContext:
     )
     dotenv.load_dotenv(config_path)
     settings = {
-        "payments.login": os.environ["PAYMENTS_LOGIN"],
-        "payments.password": os.environ["PAYMENTS_PASSWORD"],
-        "email.host": os.environ["EMAIL_HOST"],
-        "email.port": os.environ["EMAIL_PORT"],
-        "email.username": os.environ["EMAIL_USERNAME"],
-        "email.password": os.environ["EMAIL_PASSWORD"],
-        "email.from.name": os.environ["EMAIL_FROM_NAME"],
-        "email.from.address": os.environ["EMAIL_FROM_ADDRESS"],
-        "redis.host": os.environ["REDIS_HOST"],
-        "minio.host": os.environ["MINIO_HOST"],
-        "minio.access_key": os.environ["MINIO_ACCESS_KEY"],
-        "minio.secret_key": os.environ["MINIO_SECRET_KEY"],
+        'payments.login': os.environ['PAYMENTS_LOGIN'],
+        'payments.password': os.environ['PAYMENTS_PASSWORD'],
+        'email.host': os.environ['EMAIL_HOST'],
+        'email.port': os.environ['EMAIL_PORT'],
+        'email.username': os.environ['EMAIL_USERNAME'],
+        'email.password': os.environ['EMAIL_PASSWORD'],
+        'email.from.name': os.environ['EMAIL_FROM_NAME'],
+        'email.from.address': os.environ['EMAIL_FROM_ADDRESS'],
+        'redis.host': os.environ['REDIS_HOST'],
+        'minio.host': os.environ['MINIO_HOST'],
+        'minio.access_key': os.environ['MINIO_ACCESS_KEY'],
+        'minio.secret_key': os.environ['MINIO_SECRET_KEY'],
+        'debug': os.environ['DEBUG'],
+        'db_echo': os.environ.get('DB_ECHO') in ('True', 'true', '1'),
+
+        # first data
+        'admin_id': os.environ.get('admin_id') or 'User_00000000000000000000.FiRsT',
+        'first_role': os.environ.get('first_role') or 'Role_00000000000000000000.FiRsT',
+        'central_db_repo': os.environ.get('central_db_repo') or 'Shop_00000000000000000000.FiRsT',
+        'default_repo_cat': os.environ.get('default_repo_cat') or 'Cat_00000000000000000000.FiRsT',
+        'admin_email': os.environ.get('admin_email') or 'admin@smp.io',
+        'admin_password': os.environ.get('admin_password') or 'aDmIn_P@55w0rd'
     }
 
-    db_echo = os.environ.get('DB_ECHO') in ('True', 'true', '1')
-
-    engine = create_engine(os.environ["DB_DSN"], echo=db_echo)
+    engine = create_engine(os.environ["DB_DSN"], echo=settings['db_echo'])
     dependency_injector = _setup_dependency_injection(settings, engine)
     _setup_orm_events(dependency_injector)
 
-    _create_db_schema(engine)  # TEMPORARY
-
     _setup_orm_mappings(dependency_injector)
+
+    if settings['debug']:
+        _create_db_schema(engine=engine, settings=settings)  # TEMPORARY
 
     return AppContext(dependency_injector)
 
@@ -83,26 +98,20 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             FoundationModule(),
 
             IdentityEventHandlerModule(),
-
             IdentityInfrastructureModule(),
             IdentityApplicationModule(),
-            # Auctions(),
-            # AuctionsInfrastructure(),
-            # Shipping(),
-            # ShippingInfrastructure(),
+
             CustomerRelationshipEventHandlerModule(),
             ProductCatalogModule(),
             ProductCatalogInfrastructureModule(),
-            # ShopModule(),
-            # ShopInfrastructureModule(),
-            # InventoryModule(),
-            # InventoryInfrastructureModule(),
-            # Payments(),
-            # Processes(),
 
             ShopEventHandlerModule(),
             ShopInfrastructureModule(),
             ShopApplicationModule(),
+
+            # InventoryEventHandlerModule(),
+            # InventoryInfrastructureModule(),
+            # InventoryApplicationModule(),
         ],
         auto_bind=False,
     )
@@ -144,23 +153,35 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
         shop_mappers.start_mappers()
     except Exception as exc:
         raise exc
-    #
-    # try:
-    #     from inventory.adapter import inventory_mappers
-    #     inventory_mappers.start_mappers()
-    # except Exception as exc:
-    #     raise exc
+
+    try:
+        from inventory.adapter import inventory_mappers
+        inventory_mappers.start_mappers()
+    except Exception as exc:
+        raise exc
 
 
-def _create_db_schema(engine: Engine) -> None:
-    # Models has to be imported for metadata.create_all to discover them
-    from product_catalog import catalog_table, product_table  # noqa
-    # from auctions_infrastructure import auctions, bids  # noqa
-    # from customer_relationship.models import customers  # noqa
-    from identity.adapters.identity_db import user_table, role_table, user_role_table  # noqa
-    # from inventory.adapter.inventory_db import draft_purchase_order_table, inventory_product_balance_table  # noqa
-
+def _create_db_schema(settings: Dict, engine: Engine) -> None:
     # TODO: Use migrations for that
     metadata.create_all(bind=engine)
 
-    pass
+    try:
+        from identity.adapters import identity_db
+        identity_db.install_first_data(
+            engine=engine,
+            admin_id=settings['admin_id'],
+            first_role_id=settings['first_role'],
+            admin_email=settings['admin_email'],
+            admin_password=settings['admin_password']
+        )
+
+        from shop.adapter import shop_mappers
+        shop_mappers.install_first_data(
+            engine=engine,
+            admin_id=settings['admin_id'],
+            admin_email=settings['admin_email'],
+            central_db_repo=settings['central_db_repo'],
+            default_repo_cat=settings['default_repo_cat'],
+        )
+    except Exception as exc:
+        raise exc

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from foundation.uow import SqlAlchemyUnitOfWork
+
 from shop.application.shop_repository import SqlAlchemyShopRepository
 
 

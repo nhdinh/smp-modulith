@@ -6,11 +6,17 @@ from typing import List, Union
 from sqlalchemy.engine.row import RowProxy
 
 from db_infrastructure import GUID
-from store.application.queries.dtos.store_catalog_dto import StoreCatalogResponseCompactedDto, _row_to_catalog_dto, \
-    StoreCatalogResponseDto
+from store.application.queries.dtos.store_catalog_dto import (
+    StoreCatalogResponseCompactedDto,
+    StoreCatalogResponseDto,
+    _row_to_catalog_dto,
+)
 from store.application.queries.dtos.store_collection_dto import StoreCollectionDto, _row_to_collection_dto
-from store.application.queries.dtos.store_product_brand_dto import StoreProductBrandDto, _row_to_brand_dto, \
-    StoreProductBrandCompactedDto
+from store.application.queries.dtos.store_product_brand_dto import (
+    StoreProductBrandCompactedDto,
+    StoreProductBrandDto,
+    _row_to_brand_dto,
+)
 from store.application.queries.dtos.store_product_tag_dto import StoreProductTagDto, _row_to_tag_dto
 from store.application.queries.dtos.store_product_unit_dto import StoreProductUnitDto, _row_to_unit_dto
 from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto, _row_to_supplier_dto

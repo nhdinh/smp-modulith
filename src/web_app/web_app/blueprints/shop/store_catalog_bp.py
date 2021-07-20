@@ -1,52 +1,92 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import smtplib
 
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
+from flask_jwt_extended import get_jwt_identity, jwt_required
 import injector
-from flask import Blueprint, Response, make_response, jsonify, request, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from store.application.queries.store_queries import ListShopCatalogsQuery, ListStoreCollectionsQuery, \
-    ListProductsFromCollectionQuery, ListProductsQuery, ListStoreProductsQuery, \
-    ListStoreSuppliersQuery
-from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary
-from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
-from store.application.usecases.catalog.remove_shop_catalog_uc import RemovingShopCatalogResponseBoundary
-from store.application.usecases.catalog.systemize_store_catalog_uc import SystemizeStoreCatalogUC, \
-    SystemizingStoreCatalogRequest
-from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
-from store.application.usecases.catalog.update_store_catalog_uc import UpdatingStoreCatalogResponseBoundary, \
-    UpdatingStoreCatalogRequest, UpdateStoreCatalogUC
-from store.application.usecases.collection.create_store_collection_uc import CreateStoreCollectionUC, \
-    CreatingStoreCollectionResponseBoundary, CreatingStoreCollectionRequest
-from store.application.usecases.collection.make_store_collection_default_uc import MakingStoreCollectionDefaultRequest, \
-    MakeStoreCollectionDefaultUC
-from store.application.usecases.collection.toggle_store_collection_uc import TogglingStoreCollectionRequest, \
-    ToggleStoreCollectionUC
-from store.application.usecases.collection.update_store_collection_uc import UpdatingStoreCollectionResponseBoundary, \
-    UpdateStoreCollectionUC, UpdatingStoreCollectionRequest
-from store.application.usecases.initialize.initialize_store_with_plan_uc import \
-    InitializingStoreWithPlanResponseBoundary, \
-    InitializeStoreWithPlanUC
-from store.application.usecases.product.create_store_product_uc import CreateStoreProductUC, \
-    AddingShopProductResponseBoundary, AddingShopProductRequest
-from store.application.usecases.product.remove_store_product_attribute_uc import RemovingStoreProductAttributeRequest, \
-    RemoveStoreProductAttributeUC, RemovingStoreProductAttributeResponseBoundary
-from store.application.usecases.product.remove_store_product_uc import RemovingStoreProductResponseBoundary
-from store.application.usecases.product.update_store_product_uc import UpdatingStoreProductRequest, \
-    UpdateStoreProductUC, UpdatingStoreProductResponseBoundary
-from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
-from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
 
 from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
-from web_app.presenters.store_catalog_presenters import AddingShopCatalogPresenter, UpdatingStoreCatalogPresenter, \
-    UpdatingStoreCollectionPresenter, InitializingStoreWithPlanResponsePresenter, GenericStoreResponsePresenter, \
-    CreatingStoreCollectionPresenter, RemovingShopCatalogPresenter, AddingShopProductPresenter, \
-    UpdatingStoreProductPresenter, RemovingStoreProductAttributePresenter, RemovingStoreProductPresenter
-from web_app.serialization.dto import get_dto, AuthorizedPaginationInputDto
+
+from store.application.queries.store_queries import (
+    ListProductsFromCollectionQuery,
+    ListProductsQuery,
+    ListShopCatalogsQuery,
+    ListStoreCollectionsQuery,
+    ListStoreProductsQuery,
+    ListStoreSuppliersQuery,
+)
+from store.application.usecases.catalog.create_store_catalog_uc import AddingShopCatalogResponseBoundary
+from store.application.usecases.catalog.invalidate_store_catalog_cache_uc import InvalidateStoreCatalogCacheUC
+from store.application.usecases.catalog.remove_shop_catalog_uc import RemovingShopCatalogResponseBoundary
+from store.application.usecases.catalog.systemize_store_catalog_uc import (
+    SystemizeStoreCatalogUC,
+    SystemizingStoreCatalogRequest,
+)
+from store.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC, TogglingStoreCatalogRequest
+from store.application.usecases.catalog.update_store_catalog_uc import (
+    UpdateStoreCatalogUC,
+    UpdatingStoreCatalogRequest,
+    UpdatingStoreCatalogResponseBoundary,
+)
+from store.application.usecases.collection.create_store_collection_uc import (
+    CreateStoreCollectionUC,
+    CreatingStoreCollectionRequest,
+    CreatingStoreCollectionResponseBoundary,
+)
+from store.application.usecases.collection.make_store_collection_default_uc import (
+    MakeStoreCollectionDefaultUC,
+    MakingStoreCollectionDefaultRequest,
+)
+from store.application.usecases.collection.toggle_store_collection_uc import (
+    ToggleStoreCollectionUC,
+    TogglingStoreCollectionRequest,
+)
+from store.application.usecases.collection.update_store_collection_uc import (
+    UpdateStoreCollectionUC,
+    UpdatingStoreCollectionRequest,
+    UpdatingStoreCollectionResponseBoundary,
+)
+from store.application.usecases.initialize.initialize_store_with_plan_uc import (
+    InitializeStoreWithPlanUC,
+    InitializingStoreWithPlanResponseBoundary,
+)
+from store.application.usecases.product.create_store_product_uc import (
+    AddingShopProductRequest,
+    AddingShopProductResponseBoundary,
+    CreateStoreProductUC,
+)
+from store.application.usecases.product.remove_store_product_attribute_uc import (
+    RemoveStoreProductAttributeUC,
+    RemovingStoreProductAttributeRequest,
+    RemovingStoreProductAttributeResponseBoundary,
+)
+from store.application.usecases.product.remove_store_product_uc import RemovingStoreProductResponseBoundary
+from store.application.usecases.product.update_store_product_uc import (
+    UpdateStoreProductUC,
+    UpdatingStoreProductRequest,
+    UpdatingStoreProductResponseBoundary,
+)
+from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
+from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
+from web_app.presenters.store_catalog_presenters import (
+    AddingShopCatalogPresenter,
+    AddingShopProductPresenter,
+    CreatingStoreCollectionPresenter,
+    GenericStoreResponsePresenter,
+    InitializingStoreWithPlanResponsePresenter,
+    RemovingShopCatalogPresenter,
+    RemovingStoreProductAttributePresenter,
+    RemovingStoreProductPresenter,
+    UpdatingStoreCatalogPresenter,
+    UpdatingStoreCollectionPresenter,
+    UpdatingStoreProductPresenter,
+)
+from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
 
 STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'
 store_catalog_blueprint = Blueprint(STORE_CATALOG_BLUEPRINT_NAME, __name__)

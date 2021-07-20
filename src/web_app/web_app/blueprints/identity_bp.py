@@ -1,21 +1,38 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
 import injector
-from flask import Blueprint, Response, make_response, jsonify, request, current_app
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 
 from foundation.logger import logger
+
 from identity.application.queries.identity_queries import GetAllUsersQuery, GetSingleUserQuery
-from identity.application.usecases.change_password_uc import ChangingPasswordResponseBoundary, ChangePasswordUC, \
-    ResettingPasswordRequest, ChangingPasswordResponse, ChangingPasswordRequest
-from identity.application.usecases.log_user_in_uc import LoggingUserInUC, LoggingUserInResponseBoundary, \
-    LoggedUserResponse, \
-    LoggingUserInRequest
-from identity.application.usecases.register_user_uc import RegisteringUserUC, RegisteringUserResponseBoundary, \
-    RegisteringUserRequest, RegisteringUserResponse
-from identity.application.usecases.request_to_change_password_uc import RequestingToChangePasswordResponseBoundary, \
-    RequestingToChangePasswordResponse, RequestToChangePasswordUC, RequestingToChangePasswordRequest
+from identity.application.usecases.change_password_uc import (
+    ChangePasswordUC,
+    ChangingPasswordRequest,
+    ChangingPasswordResponse,
+    ChangingPasswordResponseBoundary,
+    ResettingPasswordRequest,
+)
+from identity.application.usecases.log_user_in_uc import (
+    LoggedUserResponse,
+    LoggingUserInRequest,
+    LoggingUserInResponseBoundary,
+    LoggingUserInUC,
+)
+from identity.application.usecases.register_user_uc import (
+    RegisteringUserRequest,
+    RegisteringUserResponse,
+    RegisteringUserResponseBoundary,
+    RegisteringUserUC,
+)
+from identity.application.usecases.request_to_change_password_uc import (
+    RequestingToChangePasswordRequest,
+    RequestingToChangePasswordResponse,
+    RequestingToChangePasswordResponseBoundary,
+    RequestToChangePasswordUC,
+)
 from identity.application.usecases.revoke_token_uc import RevokingTokenUC
 from identity.domain.entities.revoked_token import RevokedToken
 from web_app.presenters import log_error

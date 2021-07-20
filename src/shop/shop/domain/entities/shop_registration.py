@@ -2,20 +2,29 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 import secrets
 import uuid
-from datetime import datetime, timedelta
 
-from foundation.domain_events.shop_events import ShopRegistrationConfirmedEvent, ShopRegisteredEvent, \
-    ShopRegistrationResendEvent
+from foundation.domain_events.shop_events import (
+    ShopRegisteredEvent,
+    ShopRegistrationConfirmedEvent,
+    ShopRegistrationResendEvent,
+)
 from foundation.entity import Entity
-from foundation.events import EventMixin, EveryModuleMustCatchThisEvent
-from shop.adapter.id_generators import generate_shop_id, SHOP_ID_PREFIX
+from foundation.events import EventMixin, EveryModuleMustCatchThisEvent, new_event_id
+
+from shop.adapter.id_generators import SHOP_ID_PREFIX, generate_shop_id
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_user import ShopUser
-from shop.domain.entities.store_warehouse import ShopWarehouse
-from shop.domain.entities.value_objects import ShopRegistrationId, SystemUserId, ShopUserType, ShopId, \
-    RegistrationStatus
+from shop.domain.entities.shop_warehouse import ShopWarehouse
+from shop.domain.entities.value_objects import (
+    RegistrationStatus,
+    ShopId,
+    ShopRegistrationId,
+    ShopUserType,
+    SystemUserId,
+)
 from shop.domain.rules.shop_name_must_not_be_empty_rule import ShopNameMustNotBeEmptyRule
 from shop.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
 from shop.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
@@ -62,7 +71,7 @@ class ShopRegistration(EventMixin, Entity):
 
         # add domain event
         self._record_event(ShopRegisteredEvent(
-            event_id=uuid.uuid4(),
+            event_id=new_event_id(),
             registration_id=self.registration_id,
             shop_name=self.shop_name,
             owner_email=self.owner_email,
@@ -119,14 +128,12 @@ class ShopRegistration(EventMixin, Entity):
 
         # emit the event
         self._record_event(ShopRegistrationConfirmedEvent(
-            event_id=uuid.uuid4(),
+            event_id=new_event_id(),
             registration_id=self.registration_id,
             user_email=self.owner_email,
             user_hashed_password=self.owner_password,
             mobile=self.owner_mobile
         ))
-
-        # self._record_event(EveryModuleMustCatchThisEvent(event_id=uuid.uuid4()))
 
         return self.registration_id
 

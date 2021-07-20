@@ -2,32 +2,63 @@
 # -*- coding: utf-8 -*-
 from typing import List
 
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from db_infrastructure import SqlQuery
-from store.adapter.queries.query_common import sql_get_store_id_by_owner, \
-    sql_count_products_in_collection, sql_count_collections_in_catalog, \
-    sql_count_catalogs_in_store, sql_count_products_in_store, sql_count_suppliers_in_store, \
-    sql_verify_shop_id_with_partner_id
-from store.adapter.queries.query_factories import list_store_product_query_factory, store_catalog_query_factory, \
-    get_store_query_factory
-from store.adapter.shop_db import shop_catalog_table, shop_collection_table, shop_warehouse_table, \
-    shop_settings_table, shop_addresses_table, shop_table
-from store.application.queries.dto_factories import _row_to_store_settings_dto, _row_to_store_info_dto, \
-    _row_to_warehouse_dto, _row_to_address_dto
+from store.adapter.queries.query_common import (
+    sql_count_catalogs_in_store,
+    sql_count_collections_in_catalog,
+    sql_count_products_in_collection,
+    sql_count_products_in_store,
+    sql_count_suppliers_in_store,
+    sql_get_store_id_by_owner,
+    sql_verify_shop_id_with_partner_id,
+)
+from store.adapter.queries.query_factories import (
+    get_store_query_factory,
+    list_store_product_query_factory,
+    store_catalog_query_factory,
+)
+from store.adapter.shop_db import (
+    shop_addresses_table,
+    shop_catalog_table,
+    shop_collection_table,
+    shop_settings_table,
+    shop_table,
+    shop_warehouse_table,
+)
+from store.application.queries.dto_factories import (
+    _row_to_address_dto,
+    _row_to_store_info_dto,
+    _row_to_store_settings_dto,
+    _row_to_warehouse_dto,
+)
 from store.application.queries.dtos.store_catalog_dto import StoreCatalogResponseDto, _row_to_catalog_dto
 from store.application.queries.dtos.store_collection_dto import _row_to_collection_dto
-from store.application.queries.dtos.store_product_dto import StoreProductCompactedDto, StoreProductDto, \
-    _row_to_product_dto
-from store.application.queries.dtos.store_supplier_dto import _row_to_supplier_dto, StoreSupplierDto
-from store.application.queries.response_dtos import StoreInfoResponseDto, StoreWarehouseResponseDto, \
-    StoreAddressResponseDto
-from store.application.queries.store_queries import ListProductsFromCollectionQuery, ListStoreCollectionsQuery, \
-    ListShopCatalogsQuery, \
-    ListProductsQuery, \
-    ListStoreProductsQuery, ListStoreProductsByCatalogQuery, \
-    ListStoreWarehousesQuery, ListStoreAddressesQuery, ListStoreSuppliersQuery
-from store.application.queries.store_queries import ListStoreSettingsQuery, CountStoreOwnerByEmailQuery
+from store.application.queries.dtos.store_product_dto import (
+    StoreProductCompactedDto,
+    StoreProductDto,
+    _row_to_product_dto,
+)
+from store.application.queries.dtos.store_supplier_dto import StoreSupplierDto, _row_to_supplier_dto
+from store.application.queries.response_dtos import (
+    StoreAddressResponseDto,
+    StoreInfoResponseDto,
+    StoreWarehouseResponseDto,
+)
+from store.application.queries.store_queries import (
+    CountStoreOwnerByEmailQuery,
+    ListProductsFromCollectionQuery,
+    ListProductsQuery,
+    ListShopCatalogsQuery,
+    ListStoreAddressesQuery,
+    ListStoreCollectionsQuery,
+    ListStoreProductsByCatalogQuery,
+    ListStoreProductsQuery,
+    ListStoreSettingsQuery,
+    ListStoreSuppliersQuery,
+    ListStoreWarehousesQuery,
+)
 from store.application.usecases.const import ExceptionMessages, ThingGoneInBlackHoleError
 from store.domain.entities.shop import Shop
 from store.domain.entities.shop_catalog import ShopCatalog
@@ -36,7 +67,7 @@ from store.domain.entities.store_collection import ShopCollection
 from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.store_product_brand import ShopProductBrand
 from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
-from web_app.serialization.dto import PaginationOutputDto, AuthorizedPaginationInputDto, paginate_response_factory
+from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto, paginate_response_factory
 
 
 class SqlListStoreSettingsQuery(ListStoreSettingsQuery, SqlQuery):
@@ -115,55 +146,7 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
             raise exc
 
 
-class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreCatalogResponseDto]:
-        try:
-            valid_store = sql_verify_shop_id_with_partner_id(shop_id=dto.shop_id, partner_id=dto.partner_id,
-                                                             conn=self._conn)
-            if not valid_store:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 
-            # count number of catalogs of this store
-            shop_id = dto.shop_id
-            catalog_count = sql_count_catalogs_in_store(store_id=shop_id, conn=self._conn)
-            if not catalog_count:
-                return paginate_response_factory(
-                    input_dto=dto,
-                    total_items=catalog_count,
-                    items=[]
-                )
-
-            # get all catalogs limit by page and offset
-            fetch_catalogs_query = store_catalog_query_factory(store_id=shop_id) \
-                .order_by(shop_catalog_table.c.created_at) \
-                .limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
-
-            catalogs = self._conn.execute(fetch_catalogs_query).all()
-
-            # else, continue to load collection
-            catalog_indices = set()
-            for catalog in catalogs:
-                catalog_indices.add(catalog.catalog_id)
-
-            # get all collection with catalog_id in the list of catalog_indices
-            collection_query = select([
-                shop_collection_table,
-                shop_collection_table.c.disabled.label('is_collection_disabled')
-            ]).join(shop_catalog_table, shop_catalog_table.c.catalog_id == shop_collection_table.c.catalog_id) \
-                .where(and_(shop_catalog_table.c.catalog_id.in_(catalog_indices),
-                            shop_catalog_table.c.shop_id == shop_id))
-
-            collections = self._conn.execute(collection_query).all()
-
-            return paginate_response_factory(
-                input_dto=dto,
-                total_items=catalog_count,
-                items=[
-                    _row_to_catalog_dto(row, collections=[c for c in collections if c.catalog_id == row.catalog_id])
-                    for row in catalogs]
-            )
-        except Exception as exc:
-            raise exc
 
 
 class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
@@ -305,31 +288,3 @@ class SqlListStoreAddressesQuery(ListStoreAddressesQuery, SqlQuery):
         addresses = self._conn.execute(query).all()
 
         return [_row_to_address_dto(row) for row in addresses]
-
-
-class SqlListStoreSuppliersQuery(ListStoreSuppliersQuery, SqlQuery):
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreSupplierDto]:
-        try:
-            store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
-            if not store_id:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
-
-            # get supplier counts
-            count_suppliers = sql_count_suppliers_in_store(store_id=store_id, conn=self._conn)
-
-            # build supplier query
-            query = select(ShopSupplier).join(Shop).where(Shop.shop_id == store_id)
-            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
-
-            # query products
-            suppliers = self._conn.execute(query).all()
-
-            return paginate_response_factory(
-                input_dto=dto,
-                total_items=count_suppliers,
-                items=[
-                    _row_to_supplier_dto(row) for row in suppliers
-                ]
-            )
-        except Exception as exc:
-            raise exc

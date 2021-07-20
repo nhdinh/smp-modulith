@@ -5,13 +5,13 @@ from dataclasses import dataclass
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
-from shop.domain.entities.value_objects import StoreCollectionId
+from shop.domain.entities.value_objects import ShopCollectionId
 
 
 @dataclass
 class UpdatingStoreCollectionRequest:
     current_user: str
-    collection_id: StoreCollectionId
+    collection_id: ShopCollectionId
     title: str
     disabled: bool
 

@@ -1,9 +1,12 @@
+from datetime import date, datetime
 import decimal
-import json
-from datetime import datetime, date
 from decimal import Decimal
+from enum import Enum
 from functools import singledispatchmethod
+import json
 from uuid import UUID
+
+from flask import current_app
 
 from foundation.value_objects import Money
 
@@ -25,6 +28,13 @@ class JSONEncoder(json.JSONEncoder):
                 raise TypeError(f"Cannot serialize {type(obj)}")
         except:
             raise TypeError(f"Cannot serialize {type(obj)}")
+
+    @default.register(Enum)  # noqa: F811
+    def serialize_enum(self, obj: Enum) -> object:
+        if current_app.debug:
+            return str(obj)
+        else:
+            return str(obj.value)
 
     @default.register(Money)  # noqa: F811
     def serialize_money(self, obj: Money) -> object:

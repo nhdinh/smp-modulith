@@ -4,7 +4,7 @@
 from decimal import Decimal
 from typing import Union
 
-from foundation.value_objects import Money, Currency
+from foundation.value_objects import Currency, Money
 from foundation.value_objects.currency import _get_registered_currency_or_default
 
 
