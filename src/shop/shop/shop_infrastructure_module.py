@@ -9,9 +9,11 @@ from foundation.events import EventBus
 from shop.adapter import shop_db
 from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, SqlListShopProductsByCatalogQuery
 from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery, SqlListShopProductsQuery
+from shop.adapter.queries.shop_sql_queries import SqlListShopAddressesQuery
 from shop.adapter.queries.supplier_sql_queries import SqlListShopProductsBySupplierQuery, SqlListShopSuppliersQuery
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery
 from shop.application.queries.product_queries import GetShopProductQuery, ListShopProductsQuery
+from shop.application.queries.shop_queries import ListShopAddressesQuery
 from shop.application.queries.supplier_queries import ListShopProductsBySupplierQuery, ListShopSuppliersQuery
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
@@ -30,9 +32,9 @@ class ShopInfrastructureModule(injector.Module):
     # def fetch_store_settings_query(self, conn: Connection) -> ListShopSettingsQuery:
     #     return ListShopSettingsQuery(conn)
 
-    # @injector.provider
-    # def fetch_store_address_query(self, conn: Connection) -> ListStoreAddressesQuery:
-    #     return SqlListStoreAddressesQuery(conn)
+    @injector.provider
+    def list_shop_addresses_query(self, conn: Connection) -> ListShopAddressesQuery:
+        return SqlListShopAddressesQuery(conn)
 
     # @injector.provider
     # def fetch_store_warehouses_query(self, conn: Connection) -> ListStoreWarehousesQuery:

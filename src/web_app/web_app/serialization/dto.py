@@ -64,6 +64,16 @@ class PaginationOutputDto(Generic[T]):
         }
 
 
+@dataclass(frozen=True)
+class ListOutputDto(Generic[T]):
+    items: List[T] = field(metadata={"marshmallow_field": ma.fields.Raw()}, default_factory=list)
+
+    def serialize(self):
+        return {
+            'items': self.items
+        }
+
+
 def paginate_response_factory(
         items: List[T],
         total_items: int,

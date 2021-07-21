@@ -39,7 +39,8 @@ class SqlListShopSuppliersQuery(ListShopSuppliersQuery, SqlQuery):
                 shop_supplier_table,
                 shop_supplier_table.c.status.label('supplier_status')
             ]).where(shop_supplier_table.c.shop_id == dto.shop_id)
-            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
+            query = query.limit(dto.pagination_entries_per_page).offset(
+                (dto.pagination_offset - 1) * dto.pagination_offset)
 
             # query products
             suppliers = self._conn.execute(query).all()

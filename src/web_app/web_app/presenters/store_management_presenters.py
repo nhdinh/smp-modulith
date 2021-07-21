@@ -28,6 +28,8 @@ from shop.application.usecases.manage.update_store_settings_uc import (
 )
 from shop.application.usecases.manage.upload_image_uc import UploadingImageResponse, UploadingImageResponseBoundary
 from shop.application.usecases.select_store_plan_uc import SelectingShopPlanResponse, SelectingShopPlanResponseBoundary
+from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, \
+    AddingShopAddressResponse
 
 
 class ResendingRegistrationResponsePresenter(ResendingRegistrationConfirmationResponseBoundary):
@@ -79,8 +81,8 @@ class UploadingImagePresenter(UploadingImageResponseBoundary):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class CreatingStoreAddressPresenter(CreatingShopAddressResponseBoundary):
+class AddingShopAddressPresenter(AddingShopAddressResponseBoundary):
     response: Response
 
-    def present(self, response_dto: CreatingShopAddressResponse):
+    def present(self, response_dto: AddingShopAddressResponse):
         self.response = make_response(jsonify(response_dto.__dict__))

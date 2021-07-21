@@ -272,19 +272,3 @@ class SqlListStoreWarehousesQuery(ListStoreWarehousesQuery, SqlQuery):
 
         warehouses = self._conn.execute(query)
         return [_row_to_warehouse_dto(row) for row in warehouses]
-
-
-class SqlListStoreAddressesQuery(ListStoreAddressesQuery, SqlQuery):
-    def query(self, store_owner: str) -> List[StoreAddressResponseDto]:
-        store_id = sql_get_store_id_by_owner(store_owner=store_owner, conn=self._conn)
-        if not store_id:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
-
-        # query = select(StoreAddress).join(Store, StoreAddress._store).where(Store.shop_id == store_id)
-        query = select(shop_addresses_table).join(shop_table,
-                                                  shop_addresses_table.c.shop_id == shop_table.c.shop_id).where(
-            shop_table.c.shop_id == store_id)
-
-        addresses = self._conn.execute(query).all()
-
-        return [_row_to_address_dto(row) for row in addresses]

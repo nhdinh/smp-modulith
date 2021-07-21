@@ -43,7 +43,7 @@ class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
             # get all catalogs limit by page and offset
             fetch_catalogs_query = shop_catalog_query_factory(store_id=shop_id) \
                 .order_by(shop_catalog_table.c.created_at) \
-                .limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
+                .limit(dto.pagination_entries_per_page).offset((dto.pagination_offset - 1) * dto.pagination_offset)
 
             catalogs = self._conn.execute(fetch_catalogs_query).all()
 
@@ -76,24 +76,29 @@ class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
 class SqlListShopProductsByCatalogQuery(ListShopProductsByCatalogQuery, SqlQuery):
     def query(self, dto: ListShopProductsByCatalogRequest) -> PaginationOutputDto[ShopProductCompactedDto]:
         try:
-            valid_store = sql_verify_shop_id(shop_id=dto.shop_id,
-                                             partner_id=dto.partner_id,
-                                             conn=self._conn)
-            if not valid_store:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+            products = []
+            product_counts = 0
 
-            # get product counts
-            counting_q = count_products_query_factory(shop_id=dto.shop_id).where(
-                shop_product_table.c.catalog_id == dto.catalog_id)
-            product_counts = self._conn.scalar(counting_q)
+            if dto.catalog_id:
+                valid_store = sql_verify_shop_id(shop_id=dto.shop_id,
+                                                 partner_id=dto.partner_id,
+                                                 conn=self._conn)
+                if not valid_store:
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 
-            # build product query
-            query = list_shop_products_query_factory(shop_id=dto.shop_id) \
-                .where(shop_product_table.c.catalog_id == dto.catalog_id) \
-                .limit(dto.pagination_entries_per_page).offset((dto.pagination_offset - 1) * dto.pagination_entries_per_page)
+                # get product counts
+                counting_q = count_products_query_factory(shop_id=dto.shop_id).where(
+                    shop_product_table.c.catalog_id == dto.catalog_id)
+                product_counts = self._conn.scalar(counting_q)
 
-            # query products
-            products = self._conn.execute(query).all()
+                # build product query
+                query = list_shop_products_query_factory(shop_id=dto.shop_id) \
+                    .where(shop_product_table.c.catalog_id == dto.catalog_id) \
+                    .limit(dto.pagination_entries_per_page).offset(
+                    (dto.pagination_offset - 1) * dto.pagination_entries_per_page)
+
+                # query products
+                products = self._conn.execute(query).all()
 
             return paginate_response_factory(
                 input_dto=dto,
