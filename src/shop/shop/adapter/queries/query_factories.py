@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import select
+from sqlalchemy import select, func, distinct
 from sqlalchemy.sql import Select
 
 from shop.adapter.shop_db import (
@@ -60,8 +60,8 @@ def list_shop_products_query_factory(shop_id: ShopId, use_view_cache: bool = Tru
             shop_product_view_cache_table
         ]) \
             .join(shop_product_view_cache_table,
-                  shop_product_table.c.product_id == shop_product_view_cache_table.c.product_cache_id) \
-            .where(shop_product_view_cache_table.c.shop_id == shop_id)
+                  shop_product_table.c.product_id == shop_product_view_cache_table.c.product_cache_id, isouter=True) \
+            .where(shop_product_table.c.shop_id == shop_id)
 
         return query
 
@@ -83,6 +83,13 @@ def list_shop_products_query_factory(shop_id: ShopId, use_view_cache: bool = Tru
         .where(shop_product_table.c.shop_id == shop_id)
 
     return query
+
+
+def count_products_query_factory(shop_id: ShopId) -> Select:
+    q = select([func.count(distinct(shop_product_table.c.product_id))]) \
+        .where(shop_product_table.c.shop_id == shop_id)
+
+    return q
 
 
 def get_shop_product_query_factory(product_id: ShopProductId) -> Select:

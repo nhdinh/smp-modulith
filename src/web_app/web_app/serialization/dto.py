@@ -34,9 +34,8 @@ class BaseShopInputDto(BaseInputDto):
 
 @dataclass
 class PaginationInputDto:
-    page: Optional[int] = 1
-    page_size: Optional[int] = 10
-    current_page: int = 1
+    pagination_offset: Optional[int] = 1
+    pagination_entries_per_page: Optional[int] = 10
 
 
 @dataclass
@@ -46,8 +45,8 @@ class AuthorizedPaginationInputDto(PaginationInputDto, BaseShopInputDto):
 
 @dataclass(frozen=True)
 class PaginationOutputDto(Generic[T]):
-    current_page: int
-    page_size: int
+    pagination_offset: int
+    pagination_entries_per_page: int
     total_items: int
     total_pages: int
     # items: List[T] = field(default_factory=list)
@@ -57,8 +56,8 @@ class PaginationOutputDto(Generic[T]):
 
     def serialize(self):
         return {
-            'current_page': self.current_page,
-            'page_size': self.page_size,
+            'pagination_offset': self.pagination_offset,
+            'pagination_entries_per_page': self.pagination_entries_per_page,
             'total_pages': self.total_pages,
             'total_items': self.total_items,
             'items': self.items
@@ -79,10 +78,10 @@ def paginate_response_factory(
     :return:
     """
     return PaginationOutputDto(
-        input_dto.current_page,
-        input_dto.page_size,
+        input_dto.pagination_entries_per_page,
+        input_dto.pagination_offset,
         total_items,
-        math.ceil(total_items / input_dto.page_size),
+        math.ceil(total_items / input_dto.pagination_offset),
         items
     )
 
@@ -108,11 +107,12 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
         # clean input of pagination
         if isinstance(dto, AuthorizedPaginationInputDto) or isinstance(dto, PaginationInputDto):
             try:
-                dto.page = int(dto.page) if int(dto.page) > 0 else 1
-                dto.page_size = int(dto.page_size) if int(dto.page_size) > 0 else 10
+                dto.pagination_offset = int(dto.pagination_offset) if int(dto.pagination_offset) > 0 else 1
+                dto.pagination_entries_per_page = int(dto.pagination_entries_per_page) if int(
+                    dto.pagination_entries_per_page) > 0 else 10
             except:
-                dto.page = 1
-                dto.page_size = 10
+                dto.pagination_offset = 1
+                dto.pagination_entries_per_page = 10
 
         return dto
     except ma.exceptions.ValidationError as exc:

@@ -7,11 +7,11 @@ from sqlalchemy.orm import sessionmaker
 from foundation.events import EventBus
 
 from shop.adapter import shop_db
-from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery
-from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery
+from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, SqlListShopProductsByCatalogQuery
+from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery, SqlListShopProductsQuery
 from shop.adapter.queries.supplier_sql_queries import SqlListShopProductsBySupplierQuery, SqlListShopSuppliersQuery
-from shop.application.queries.catalog_queries import ListShopCatalogsQuery
-from shop.application.queries.product_queries import GetShopProductQuery
+from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery
+from shop.application.queries.product_queries import GetShopProductQuery, ListShopProductsQuery
 from shop.application.queries.supplier_queries import ListShopProductsBySupplierQuery, ListShopSuppliersQuery
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
@@ -59,21 +59,21 @@ class ShopInfrastructureModule(injector.Module):
     #     return SqlListProductsQuery(conn)
     #
     @injector.provider
-    def get_product_by_id_query(self, conn: Connection) -> GetShopProductQuery:
+    def get_product_query(self, conn: Connection) -> GetShopProductQuery:
         return SqlGetShopProductQuery(conn)
 
-    # @injector.provider
-    # def list_products_in_catalog(self, conn: Connection) -> ListStoreProductsByCatalogQuery:
-    #     return SqlListStoreProductsByCatalogQuery(conn)
-    #
-    # @injector.provider
-    # def list_products_in_store(self, conn: Connection) -> ListStoreProductsQuery:
-    #     return SqlListStoreProductsQuery(conn)
+    @injector.provider
+    def list_products_by_catalog_query(self, conn: Connection) -> ListShopProductsByCatalogQuery:
+        return SqlListShopProductsByCatalogQuery(conn)
 
     @injector.provider
-    def list_suppliers_in_store(self, conn: Connection) -> ListShopSuppliersQuery:
+    def list_shop_products_query(self, conn: Connection) -> ListShopProductsQuery:
+        return SqlListShopProductsQuery(conn)
+
+    @injector.provider
+    def list_suppliers_query(self, conn: Connection) -> ListShopSuppliersQuery:
         return SqlListShopSuppliersQuery(conn)
 
     @injector.provider
-    def list_products_by_suppliers(self, conn: Connection) -> ListShopProductsBySupplierQuery:
+    def list_products_by_suppliers_query(self, conn: Connection) -> ListShopProductsBySupplierQuery:
         return SqlListShopProductsBySupplierQuery(conn)

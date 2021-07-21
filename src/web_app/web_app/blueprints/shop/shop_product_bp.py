@@ -5,7 +5,8 @@ import flask_injector
 from flask_jwt_extended import get_jwt_identity, jwt_required
 import injector
 
-from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest
+from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest, ListShopProductsQuery, \
+    ListShopProductsRequest
 from shop.application.usecases.product.add_shop_product_uc import (
     AddingShopProductRequest,
     AddingShopProductResponseBoundary,
@@ -55,6 +56,16 @@ def add_shop_product(add_shop_item_uc: AddShopProductUC, presenter: AddingShopPr
     add_shop_item_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
+
+
+@shop_product_blueprint.route('/list', methods=['GET', 'POST'])
+@jwt_required()
+@log_error()
+def list_shop_products(list_shop_products_query: ListShopProductsQuery) -> Response:
+    dto = get_dto(request, ListShopProductsRequest, context={'partner_id': get_jwt_identity()})
+    product = list_shop_products_query.query(dto)
+
+    return make_response(jsonify(product)), 200  # type:ignore
 
 
 @shop_product_blueprint.route('/get', methods=['GET', 'POST'])

@@ -25,7 +25,7 @@ class ShopCatalog:
         return getattr(self, '_collections')
 
     def __str__(self):
-        return f'<StoreCatalog #{self.catalog_id}>'
+        return f'<ShopCatalog #{self.catalog_id}>'
 
     def __eq__(self, other):
         if not other or not isinstance(other, ShopCatalog):

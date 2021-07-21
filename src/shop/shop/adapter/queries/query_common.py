@@ -15,8 +15,6 @@ from shop.adapter.shop_db import (
     shop_table,
     shop_users_table,
 )
-from shop.domain.entities.shop import Shop
-from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.value_objects import (
     ShopCatalogId,
     ShopCollectionId,
@@ -94,12 +92,6 @@ def sql_count_products_in_collection(
                     shop_catalog_table.c.catalog_id == catalog_id,
                     shop_catalog_table.c.shop_id == store_id))
 
-    return conn.scalar(q)
-
-
-def sql_count_products_in_store(store_id: ShopId, conn: Connection) -> int:
-    q = select([func.count(distinct(shop_product_table.c.product_id))]) \
-        .where(shop_product_table.c.shop_id == store_id)
     return conn.scalar(q)
 
 

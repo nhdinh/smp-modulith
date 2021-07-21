@@ -21,7 +21,7 @@ class ShopCollection:
         return getattr(self, '_catalog')
 
     def __str__(self):
-        return f'<StoreCollection #{self.collection_id} catalog="{self.catalog.title}">'
+        return f'<ShopCollection #{self.collection_id} catalog="{self.catalog.title}">'
 
     def __eq__(self, other):
         if not other or not isinstance(other, ShopCollection):

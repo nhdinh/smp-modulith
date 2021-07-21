@@ -69,6 +69,7 @@ class AddingShopProductRequest(BaseShopInputDto):
     seller_contact_name: Opt[str] = None
 
     # catalog & collection (optional)
+    catalog_id: Opt[str] = None
     catalog: Opt[str] = None
     collections: Opt[List[str]] = field(default_factory=list)
 
@@ -129,6 +130,7 @@ class AddShopProductUC:
                     'suppliers',
 
                     # catalog
+                    'catalog_id',
                     'catalog',
 
                     # collection

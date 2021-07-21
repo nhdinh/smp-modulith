@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from flask import Blueprint, Response, jsonify, make_response, request
 import flask_injector
-from flask_jwt_extended import get_jwt_identity, jwt_required
-from web_app.helpers import validate_request_timestamp
 import injector
+from flask import Blueprint, Response, jsonify, make_response, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from shop.application.queries.catalog_queries import ListShopCatalogsQuery
+from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
+    ListShopProductsByCatalogRequest
 from shop.application.usecases.catalog.add_shop_catalog_uc import (
     AddingShopCatalogRequest,
     AddingShopCatalogResponseBoundary,
@@ -17,6 +17,7 @@ from shop.application.usecases.catalog.remove_shop_catalog_uc import (
     RemovingShopCatalogRequest,
     RemovingShopCatalogResponseBoundary,
 )
+from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
 from web_app.presenters.store_catalog_presenters import AddingShopCatalogPresenter, RemovingShopCatalogPresenter
 from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
@@ -49,6 +50,16 @@ class ShopCatalogAPI(injector.Module):
 def list_shop_catalogs(list_shop_catalog_query: ListShopCatalogsQuery) -> Response:
     dto = get_dto(request, AuthorizedPaginationInputDto, context={'partner_id': get_jwt_identity()})
     response = list_shop_catalog_query.query(dto)
+    return make_response(jsonify(response)), 200  # type:ignore
+
+
+@shop_catalog_blueprint.route('/list_products', methods=['GET', 'POST'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def list_shop_products_by_catalog(list_shop_products_by_catalog_query: ListShopProductsByCatalogQuery) -> Response:
+    dto = get_dto(request, ListShopProductsByCatalogRequest, context={'partner_id': get_jwt_identity()})
+    response = list_shop_products_by_catalog_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 
 

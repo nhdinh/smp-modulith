@@ -236,10 +236,17 @@ class Shop(EventMixin):
                 suppliers.append(supplier)
 
         # process input data: StoreCatalog
-        catalog_str = kwargs.get('catalog')
-        if catalog_str:
-            catalog = self._make_catalog(title=catalog_str)
-        else:
+        catalog = None
+        catalog_id_str = kwargs.get('catalog_id')
+        if catalog_id_str:
+            try:
+                catalog = next(c for c in self._catalogs if c.catalog_id == catalog_id_str)
+            except StopIteration:
+                catalog_str = kwargs.get('catalog')
+                if catalog_str:
+                    catalog = self._make_catalog(title=catalog_str)
+
+        if not catalog:
             catalog = self._default_catalog_factory()
 
         # process input data: StoreCollections

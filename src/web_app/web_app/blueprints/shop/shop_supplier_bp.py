@@ -45,9 +45,9 @@ def list_shop_suppliers(list_shop_suppliers_query: ListShopSuppliersQuery) -> Re
 @validate_request_timestamp
 @jwt_required()
 @log_error()
-def list_shop_product_by_supplier(list_shop_suppliers_query: ListShopProductsBySupplierQuery) -> Response:
+def list_shop_products_by_supplier(list_shop_products_by_supplier_query: ListShopProductsBySupplierQuery) -> Response:
     dto = get_dto(request, ListShopProductsBySupplierRequest, context={'partner_id': get_jwt_identity()})
-    response = list_shop_suppliers_query.query(dto)
+    response = list_shop_products_by_supplier_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 
 
