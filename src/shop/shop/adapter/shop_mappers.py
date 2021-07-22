@@ -4,8 +4,7 @@ from sqlalchemy import event, insert, select
 from sqlalchemy.orm import backref, mapper, relationship
 from sqlalchemy.sql.functions import count
 
-from foundation.value_objects.address import LocationAddress
-
+from foundation.value_objects.address import Address
 from shop.adapter.shop_db import (
     shop_addresses_table,
     shop_brand_table,
@@ -160,8 +159,8 @@ def start_mappers():
     mapper(ShopSupplier, shop_supplier_table, properties={})
 
     mapper(ShopAddress, shop_addresses_table, properties={
-        'location_address': relationship(
-            LocationAddress
+        'address': relationship(
+            Address
         )
     })
 

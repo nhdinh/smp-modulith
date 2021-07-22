@@ -4,7 +4,6 @@ import injector
 from minio import Minio
 
 from foundation.fs import FileSystem
-
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.catalog.add_shop_catalog_uc import AddingShopCatalogResponseBoundary, AddShopCatalogUC
 from shop.application.usecases.catalog.invalidate_shop_catalog_cache_uc import InvalidateShopCatalogCacheUC
@@ -18,10 +17,8 @@ from shop.application.usecases.catalog.update_shop_catalog_uc import (
     UpdateStoreCatalogUC,
     UpdatingShopCatalogResponseBoundary,
 )
-from shop.application.usecases.collection.create_store_collection_uc import (
-    CreateStoreCollectionUC,
-    CreatingStoreCollectionResponseBoundary,
-)
+from shop.application.usecases.catalog.add_shop_collection_uc import AddShopCollectionUC, \
+    AddingShopCollectionResponseBoundary
 from shop.application.usecases.collection.make_store_collection_default_uc import MakeStoreCollectionDefaultUC
 from shop.application.usecases.collection.toggle_store_collection_uc import ToggleStoreCollectionUC
 from shop.application.usecases.collection.update_store_collection_uc import (
@@ -37,20 +34,6 @@ from shop.application.usecases.initialize.confirm_shop_registration_uc import (
     ConfirmShopRegistrationUC,
 )
 from shop.application.usecases.initialize.register_shop_uc import RegisteringShopResponseBoundary, RegisterShopUC
-from shop.application.usecases.manage.add_store_manager import AddingStoreManagerResponseBoundary, AddStoreManagerUC
-from shop.application.usecases.manage.create_store_address_uc import (
-    CreateShopAddressUC,
-    CreatingShopAddressResponseBoundary,
-)
-from shop.application.usecases.manage.resend_store_registration_confirmation_uc import (
-    ResendingRegistrationConfirmationResponseBoundary,
-    ResendRegistrationConfirmationUC,
-)
-from shop.application.usecases.manage.update_store_settings_uc import (
-    UpdateStoreSettingsUC,
-    UpdatingStoreSettingsResponseBoundary,
-)
-from shop.application.usecases.manage.upload_image_uc import UploadImageUC, UploadingImageResponseBoundary
 from shop.application.usecases.product.add_shop_product_to_supplier_uc import (
     AddingShopProductToSupplierResponseBoundary,
     AddShopProductToSupplierUC,
@@ -76,6 +59,17 @@ from shop.application.usecases.product.update_store_product_uc import (
     UpdateStoreProductUC,
     UpdatingStoreProductResponseBoundary,
 )
+from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC
+from shop.application.usecases.shop.add_shop_manager import AddingStoreManagerResponseBoundary, AddStoreManagerUC
+from shop.application.usecases.shop.resend_store_registration_confirmation_uc import (
+    ResendingRegistrationConfirmationResponseBoundary,
+    ResendRegistrationConfirmationUC,
+)
+from shop.application.usecases.shop.update_store_settings_uc import (
+    UpdateStoreSettingsUC,
+    UpdatingStoreSettingsResponseBoundary,
+)
+from shop.application.usecases.shop.upload_image_uc import UploadImageUC, UploadingImageResponseBoundary
 from shop.application.usecases.shop_uc_common import GenericShopResponseBoundary
 
 
@@ -101,9 +95,9 @@ class ShopApplicationModule(injector.Module):
         return AddStoreManagerUC(boundary, uow)
 
     @injector.provider
-    def create_store_address_uc(self, boundary: CreatingShopAddressResponseBoundary,
-                                uow: ShopUnitOfWork) -> CreateShopAddressUC:
-        return CreateShopAddressUC(boundary, uow)
+    def add_store_address_uc(self, boundary: AddingShopAddressResponseBoundary,
+                             uow: ShopUnitOfWork) -> AddShopAddressUC:
+        return AddShopAddressUC(boundary, uow)
 
     @injector.provider
     def update_store_settings_uc(self, boundary: UpdatingStoreSettingsResponseBoundary,
@@ -116,8 +110,8 @@ class ShopApplicationModule(injector.Module):
         return CreateStoreWarehouseUC(boundary, uow)
 
     @injector.provider
-    def invalidate_store_catalog_cache_uc(self, boundary: GenericShopResponseBoundary,
-                                          uow: ShopUnitOfWork) -> InvalidateShopCatalogCacheUC:
+    def invalidate_shop_catalog_cache_uc(self, boundary: GenericShopResponseBoundary,
+                                         uow: ShopUnitOfWork) -> InvalidateShopCatalogCacheUC:
         return InvalidateShopCatalogCacheUC(boundary, uow)
 
     @injector.provider
@@ -128,28 +122,28 @@ class ShopApplicationModule(injector.Module):
     # region ## StoreCatalog Operations ##
 
     @injector.provider
-    def create_store_catalog_uc(self, boundary: AddingShopCatalogResponseBoundary,
-                                uow: ShopUnitOfWork) -> AddShopCatalogUC:
+    def add_shop_catalog_uc(self, boundary: AddingShopCatalogResponseBoundary,
+                            uow: ShopUnitOfWork) -> AddShopCatalogUC:
         return AddShopCatalogUC(boundary, uow)
 
     @injector.provider
-    def toggle_store_catalog_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
-                                uow: ShopUnitOfWork) -> ToggleStoreCatalogUC:
+    def toggle_shop_catalog_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
+                               uow: ShopUnitOfWork) -> ToggleStoreCatalogUC:
         return ToggleStoreCatalogUC(boundary, uow)
 
     @injector.provider
-    def remove_store_catalog_uc(self, boundary: RemovingShopCatalogResponseBoundary,
-                                uow: ShopUnitOfWork) -> RemoveShopCatalogUC:
+    def remove_shop_catalog_uc(self, boundary: RemovingShopCatalogResponseBoundary,
+                               uow: ShopUnitOfWork) -> RemoveShopCatalogUC:
         return RemoveShopCatalogUC(boundary, uow)
 
     @injector.provider
-    def update_store_catalog_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
-                                uow: ShopUnitOfWork) -> UpdateStoreCatalogUC:
+    def update_shop_catalog_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
+                               uow: ShopUnitOfWork) -> UpdateStoreCatalogUC:
         return UpdateStoreCatalogUC(boundary, uow)
 
     @injector.provider
-    def make_store_catalog_system_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
-                                     uow: ShopUnitOfWork) -> SystemizeShopCatalogUC:
+    def make_shop_catalog_system_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
+                                    uow: ShopUnitOfWork) -> SystemizeShopCatalogUC:
         return SystemizeShopCatalogUC(boundary, uow)
 
     # endregion
@@ -157,23 +151,23 @@ class ShopApplicationModule(injector.Module):
     # region ## StoreCollection Operations ##
 
     @injector.provider
-    def create_store_collection_uc(self, boundary: CreatingStoreCollectionResponseBoundary,
-                                   uow: ShopUnitOfWork) -> CreateStoreCollectionUC:
-        return CreateStoreCollectionUC(boundary, uow)
+    def add_shop_collection_uc(self, boundary: AddingShopCollectionResponseBoundary,
+                               uow: ShopUnitOfWork) -> AddShopCollectionUC:
+        return AddShopCollectionUC(boundary, uow)
 
     @injector.provider
-    def update_store_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
-                                   uow: ShopUnitOfWork) -> UpdateStoreCollectionUC:
+    def update_shop_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
+                                  uow: ShopUnitOfWork) -> UpdateStoreCollectionUC:
         return UpdateStoreCollectionUC(boundary, uow)
 
     @injector.provider
-    def toggle_store_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
-                                   uow: ShopUnitOfWork) -> ToggleStoreCollectionUC:
+    def toggle_shop_collection_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
+                                  uow: ShopUnitOfWork) -> ToggleStoreCollectionUC:
         return ToggleStoreCollectionUC(boundary, uow)
 
     @injector.provider
-    def make_store_collection_default_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
-                                         uow: ShopUnitOfWork) -> MakeStoreCollectionDefaultUC:
+    def make_shop_collection_default_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
+                                        uow: ShopUnitOfWork) -> MakeStoreCollectionDefaultUC:
         return MakeStoreCollectionDefaultUC(boundary, uow)
 
     # endregion

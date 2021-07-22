@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from foundation.value_objects.address import Address
 from sqlalchemy import event
 from sqlalchemy.orm import backref, mapper, relationship
-
-from foundation.value_objects.address import LocationAddress
-
 from inventory.adapter.inventory_db import (
     purchase_order_item_table,
     purchase_order_table,
@@ -22,8 +20,8 @@ from inventory.domain.entities.warehouse_user import WarehouseUser
 
 def start_mappers():
     mapper(WarehouseAddress, warehouse_addresses_table, properties={
-        'location_address': relationship(
-            LocationAddress
+        'address': relationship(
+            Address
         )
     })
 

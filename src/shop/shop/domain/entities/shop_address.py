@@ -1,56 +1,55 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 from dataclasses import dataclass
 
-from foundation.value_objects.address import LocationAddress
+from vietnam_provinces import Province, Ward, District
 
+from foundation.value_objects.address import Address
 from shop.domain.entities.value_objects import AddressType
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class ShopAddress:
     recipient: str
     phone: str
     address_type: AddressType
-    location_address: LocationAddress
+    address: Address
 
     @property
     def street_address(self):
-        return self._street_address
+        return self.address.street_address
 
     @property
-    def sub_division_name(self):
-        return self._sub_division_name
+    def ward_code(self):
+        return self.address.ward_code if self.address else None
 
     @property
-    def division_name(self):
-        return self._division_name
+    def ward(self) -> Ward:
+        return self.address.ward if self.address else None
 
     @property
-    def city_name(self):
-        return self._city_name
+    def district_code(self):
+        return self.address.district_code if self.address else None
 
     @property
-    def country_name(self):
-        return self._country_name
+    def district(self) -> District:
+        return self.address.district if self.address else None
 
     @property
-    def iso_code(self):
-        return self._iso_code
+    def province_code(self):
+        return self.address.province_code if self.address else None
+
+    @property
+    def province(self) -> Province:
+        return self.address.province if self.address else None
 
     @property
     def postal_code(self):
-        return self._postal_code
-
-    @property
-    def full_address(self):
-        return f"{self._street_address}, {self._sub_division_name}, {self._division_name}, {self._city_name}, {self._country_name}"
+        return self.address.postal_code
 
     def __eq__(self, other):
-        if other is None or not isinstance(other, ShopAddress):
+        if not isinstance(other, ShopAddress):
             return False
-
-        return self.full_address == other.full_address and self.recipient == other.recipient and self.phone == other.phone and self._postal_code == other._postal_code
-
-    def __hash__(self):
-        return hash(self.full_address + self.recipient + self.phone + self.postal_code)
+        else:
+            return self.address == other.address and self.recipient == other.recipient and self.phone == other.phone and self.address_type == other.address_type

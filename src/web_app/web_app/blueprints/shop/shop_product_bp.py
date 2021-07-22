@@ -24,7 +24,7 @@ from shop.application.usecases.product.update_shop_product_unit_uc import (
 )
 from web_app.presenters import log_error
 from web_app.presenters.shop_product_presenters import AddingShopProductUnitPresenter, UpdatingShopProductUnitPresenter
-from web_app.presenters.store_catalog_presenters import AddingShopProductPresenter
+from web_app.presenters.shop_catalog_presenters import AddingShopProductPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_ITEM_BLUEPRINT_NAME = 'shop_product_blueprint'

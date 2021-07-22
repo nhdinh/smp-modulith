@@ -12,6 +12,8 @@ from shop.application.usecases.catalog.add_shop_catalog_uc import (
     AddingShopCatalogResponseBoundary,
     AddShopCatalogUC,
 )
+from shop.application.usecases.catalog.add_shop_collection_uc import AddShopCollectionUC, \
+    AddingShopCollectionResponseBoundary, AddingShopCollectionRequest
 from shop.application.usecases.catalog.remove_shop_catalog_uc import (
     RemoveShopCatalogUC,
     RemovingShopCatalogRequest,
@@ -19,7 +21,8 @@ from shop.application.usecases.catalog.remove_shop_catalog_uc import (
 )
 from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
-from web_app.presenters.store_catalog_presenters import AddingShopCatalogPresenter, RemovingShopCatalogPresenter
+from web_app.presenters.shop_catalog_presenters import AddingShopCatalogPresenter, RemovingShopCatalogPresenter, \
+    AddingShopCollectionPresenter
 from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
 
 SHOP_CATALOG_BLUEPRINT_NAME = 'shop_catalog_blueprint'
@@ -41,6 +44,11 @@ class ShopCatalogAPI(injector.Module):
     @flask_injector.request
     def add_shop_catalog_response_boundary(self) -> AddingShopCatalogResponseBoundary:
         return AddingShopCatalogPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def add_shop_collection_response_boundary(self) -> AddingShopCollectionResponseBoundary:
+        return AddingShopCollectionPresenter()
 
 
 @shop_catalog_blueprint.route('/list', methods=['GET', 'POST'])
@@ -84,3 +92,14 @@ def remove_store_catalog(remove_store_catalog_uc: RemoveShopCatalogUC,
     remove_store_catalog_uc.execute(dto)
 
     return presenter.response, 200  # type:ignore
+
+
+@shop_catalog_blueprint.route('/add_collection', methods=['POST'])
+@jwt_required()
+@log_error()
+def add_shop_collection(add_shop_collection_uc: AddShopCollectionUC,
+                        presenter: AddingShopCollectionResponseBoundary) -> Response:
+    dto = get_dto(request, AddingShopCollectionRequest, context={'partner_id': get_jwt_identity()})
+    add_shop_collection_uc.execute(dto)
+
+    return presenter.response, 201  # type:ignore

@@ -16,6 +16,7 @@ class ShopCatalogResponseCompactedDto:
     catalog_title: str
     catalog_image: str
     catalog_status: str
+    is_default_catalog: bool
 
     def serialize(self):
         return self.__dict__
@@ -23,7 +24,6 @@ class ShopCatalogResponseCompactedDto:
 
 @dataclass
 class ShopCatalogResponseDto(ShopCatalogResponseCompactedDto):
-    is_default_catalog: bool
     created_at: datetime
     updated_at: datetime
     collections: List[ShopCollectionDto]
@@ -38,6 +38,7 @@ def _row_to_catalog_dto(
             catalog_title=row.catalog_title,
             catalog_image=row.catalog_image,
             catalog_status=row.catalog_status,
+            is_default_catalog=row.is_default_catalog
         )
     else:
         return ShopCatalogResponseDto(

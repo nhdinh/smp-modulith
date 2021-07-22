@@ -4,21 +4,12 @@
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 
+from db_infrastructure import metadata
 from foundation.value_objects.address import (
-    LocationAddress,
-    LocationCity,
-    LocationCityDivision,
-    LocationCitySubDivision,
-    LocationCountry,
-    generate_address_id,
-    generate_city_id,
-    generate_country_id,
-    generate_division_id,
-    generate_sub_division_id,
+    generate_address_id, Address,
 )
 
-from db_infrastructure import metadata
-
+"""
 location_country_table = sa.Table(
     'location_country',
     metadata,
@@ -59,18 +50,22 @@ location_city_sub_division_table = sa.Table(
                         name='location_country_city_division_sub_division_uix'),
 )
 
+"""
+
 location_address_table = sa.Table(
     'location_address',
     metadata,
     sa.Column('address_id', sa.String(40), primary_key=True, default=generate_address_id),
     sa.Column('street_address', sa.String(255)),
-    sa.Column('sub_division_id', sa.ForeignKey(location_city_sub_division_table.c.sub_division_id)),
-    sa.Column('postal_code', sa.String(100))
-
+    sa.Column('postal_code', sa.String(100)),
+    sa.Column('ward_code', sa.String(20), nullable=False),
+    sa.Column('created_at', sa.DateTime, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
 
 
 def start_mappers():
+    """
     orm.mapper(LocationCountry, location_country_table, properties={
         'cities': orm.relationship(
             LocationCity,
@@ -93,7 +88,6 @@ def start_mappers():
     })
 
     orm.mapper(LocationCitySubDivision, location_city_sub_division_table, properties={})
+    """
 
-    orm.mapper(LocationAddress, location_address_table, properties={
-        'sub_division': orm.relationship(LocationCitySubDivision)
-    })
+    orm.mapper(Address, location_address_table)

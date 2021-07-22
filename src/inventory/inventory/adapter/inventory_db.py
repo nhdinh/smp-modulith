@@ -68,7 +68,7 @@ warehouse_table = sa.Table(
 )
 
 warehouse_addresses_table = sa.Table(
-    'shop_addresses',
+    'warehouse_addresses',
     metadata,
     sa.Column('shop_address_id', sa.String(40), primary_key=True, default=generate_warehouse_address_id),
     sa.Column('address_id',
@@ -77,15 +77,15 @@ warehouse_addresses_table = sa.Table(
     sa.Column('recipient', sa.String(100), nullable=False),
     sa.Column('phone', sa.String(100)),
     sa.Column('address_type', sa.Enum(AddressType), nullable=False, default=AddressType.WAREHOUSE_ADDRESS),
-    sa.Column('_street_address', sa.String(255)),
-    sa.Column('_postal_code', sa.String(255)),
-    sa.Column('_sub_division_name', sa.String(255)),
-    sa.Column('_division_name', sa.String(255)),
-    sa.Column('_city_name', sa.String(255)),
-    sa.Column('_country_name', sa.String(255)),
-    sa.Column('_iso_code', sa.String(255)),
+    # sa.Column('_street_address', sa.String(255)),
+    # sa.Column('_postal_code', sa.String(255)),
+    # sa.Column('_sub_division_name', sa.String(255)),
+    # sa.Column('_division_name', sa.String(255)),
+    # sa.Column('_city_name', sa.String(255)),
+    # sa.Column('_country_name', sa.String(255)),
+    # sa.Column('_iso_code', sa.String(255)),
 
-    extend_existing=True,
+    # extend_existing=True,
 )
 
 warehouse_users_table = sa.Table(

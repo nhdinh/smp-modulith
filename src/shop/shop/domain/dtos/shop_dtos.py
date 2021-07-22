@@ -5,6 +5,9 @@ from typing import List
 
 import marshmallow as ma
 from sqlalchemy.engine.row import RowProxy
+from vietnam_provinces import Ward, District, Province
+from vietnam_provinces.enums import DistrictEnum, ProvinceEnum
+from vietnam_provinces.enums.wards import WardEnum
 
 from shop.domain.entities.value_objects import ShopId, ShopWarehouseId, AddressType
 
@@ -22,7 +25,7 @@ class ShopSettingResponseDto:
 @dataclass
 class ShopInfoResponseDto:
     shop_id: ShopId
-    store_name: str
+    shop_name: str
     # settings: List[ShopSettingResponseDto] = field(default_factory=list)
     settings: List[ShopSettingResponseDto] = field(metadata={"marshmallow_field": ma.fields.Raw()},
                                                    default_factory=list)
@@ -30,7 +33,7 @@ class ShopInfoResponseDto:
     def serialize(self):
         return {
             'store_id': str(self.shop_id),
-            'store_name': self.store_name,
+            'store_name': self.shop_name,
             'settings': [setting.serialize() for setting in self.settings]
         }
 
@@ -50,19 +53,28 @@ class ShopWarehouseResponseDto:
 class ShopAddressResponseDto:
     store_address_id: str
     full_address: str
+
     street_address: str
-    sub_division_name: str
-    division_name: str
-    city_name: str
-    country_name: str
-    iso_code: str
-    address_type: AddressType
+    postal_code: str
+    ward_code: str
+
     recipient: str
     phone: str
-    postal_code: str
+    address_type: AddressType
 
     def serialize(self):
-        return self.__dict__
+        ward = WardEnum[self.ward_code].value  # type:Ward
+        district = DistrictEnum[f"D_{ward.district_code}"].value  # type:District
+        province = ProvinceEnum[f"P_{district.province_code}"].value  # type:Province
+
+        _d = self.__dict__
+        _d.update({
+            'ward': ward.name,
+            'district': district.name,
+            'province': province.name
+        })
+
+        return _d
 
 
 def _row_to_store_settings_dto(row: RowProxy) -> ShopSettingResponseDto:
@@ -75,8 +87,8 @@ def _row_to_store_settings_dto(row: RowProxy) -> ShopSettingResponseDto:
 
 def _row_to_store_info_dto(store_row_proxy: RowProxy) -> ShopInfoResponseDto:
     return ShopInfoResponseDto(
-        store_id=store_row_proxy.shop_id,
-        store_name=store_row_proxy.name,
+        shop_id=store_row_proxy.shop_id,
+        shop_name=store_row_proxy.name,
         settings=[]
     )
 
@@ -93,15 +105,11 @@ def _row_to_warehouse_dto(row: RowProxy) -> ShopWarehouseResponseDto:
 def _row_to_address_dto(row: RowProxy) -> ShopAddressResponseDto:
     return ShopAddressResponseDto(
         store_address_id=row.shop_address_id,
-        full_address=f"{row._street_address}, {row._sub_division_name}, {row._division_name}, {row._city_name}, {row._country_name}",
-        street_address=row._street_address,
-        sub_division_name=row._sub_division_name,
-        division_name=row._division_name,
-        city_name=row._city_name,
-        country_name=row._country_name,
-        iso_code=row._iso_code,
+        full_address=f"{row.street_address}",
+        street_address=row.street_address,
+        postal_code=row.postal_code,
+        ward_code=row.ward_code,
         address_type=row.address_type,
         recipient=row.recipient,
         phone=row.phone,
-        postal_code=row._postal_code,
     )

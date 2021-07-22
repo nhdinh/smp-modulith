@@ -2,15 +2,10 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
-from typing import Set
 
 import email_validator
-from sqlalchemy import select
 
 from foundation.events import ThingGoneInBlackHoleError
-from foundation.uow import SqlAlchemyUnitOfWork
-from foundation.value_objects.address import LocationCitySubDivision, LocationCitySubDivisionId, LocationCountry
-
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_catalog import ShopCatalog
@@ -67,7 +62,7 @@ def get_shop_or_raise(shop_id: ShopId,
     :param partner_id:
     :param uow: injected StoreUnitOfWork
     :param active_only: Search for active store only (the inactive store means that the store was disabled by admins)
-    :return: instance of `Store` or None
+    :return: instance of `Shop` or None
     """
     # validate input
     try:
@@ -91,37 +86,37 @@ def get_shop_or_raise(shop_id: ShopId,
         raise exc
 
 
-def get_catalog_from_store_or_raise(catalog_id: ShopCatalogId, store: Shop) -> ShopCatalog:
+def get_catalog_from_shop_or_raise(catalog_id: ShopCatalogId, shop: Shop) -> ShopCatalog:
     """
-    Fetch the catalog from specified store, by it reference or catalog_id
+    Fetch the catalog from specified shop, by it reference or catalog_id
 
     :param catalog_id: reference or catalog_id, the catalog which is want to fetch, in str
-    :param store: instance of `Store`
+    :param shop: instance of `Shop`
 
-    :return: instance of `StoreCatalog` or raise Exception if not existed
+    :return: instance of `ShopCatalog` or raise Exception if not existed
     """
 
-    if not store or getattr(store, 'store_id') is None:
+    if not shop or getattr(shop, 'shop_id') is None:
         raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
     # catalog = store.fetch_catalog_by_id_or_reference(search_term=catalog_id)
     try:
-        catalog = next(c for c in store.catalogs if c.catalog_id == catalog_id)
+        catalog = next(c for c in shop.catalogs if c.catalog_id == catalog_id)
         return catalog
     except StopIteration:
-        raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+        raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
 
 
 def get_collection_from_catalog_or_raise(collection_id: ShopCollectionId, catalog: ShopCatalog) -> ShopCollection:
     try:
         # validate catalog
         if not catalog or not isinstance(catalog, ShopCatalog) or getattr(catalog, 'catalog_id') is None:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
 
         collection = catalog.get_collection_by_id(collection_id=collection_id)
 
         if not collection:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_COLLECTION_NOT_FOUND)
 
         return collection
     except Exception as exc:
@@ -141,6 +136,7 @@ def get_product_by_id_or_raise(product_id: ShopProductId, uow: ShopUnitOfWork) -
         raise exc
 
 
+"""
 def list_countries(uow: SqlAlchemyUnitOfWork) -> Set[LocationCountry]:
     try:
         query = select(LocationCountry)
@@ -158,3 +154,4 @@ def get_location(sub_division_id: LocationCitySubDivisionId, uow: SqlAlchemyUnit
         return location
     except Exception as exc:
         raise exc
+"""

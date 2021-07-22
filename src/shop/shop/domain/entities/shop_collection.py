@@ -25,6 +25,6 @@ class ShopCollection:
 
     def __eq__(self, other):
         if not other or not isinstance(other, ShopCollection):
-            raise TypeError
+            return False
 
-        return self.collection_id == other.collection_id or self.title == other.title
+        return self.title == other.title

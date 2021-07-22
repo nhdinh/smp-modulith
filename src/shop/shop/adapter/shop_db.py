@@ -107,13 +107,15 @@ shop_addresses_table = sa.Table(
     sa.Column('recipient', sa.String(100), nullable=False),
     sa.Column('phone', sa.String(100)),
     sa.Column('address_type', sa.Enum(AddressType), nullable=False, default=AddressType.SHOP_ADDRESS),
-    sa.Column('_street_address', sa.String(255)),
-    sa.Column('_postal_code', sa.String(255)),
-    sa.Column('_sub_division_name', sa.String(255)),
-    sa.Column('_division_name', sa.String(255)),
-    sa.Column('_city_name', sa.String(255)),
-    sa.Column('_country_name', sa.String(255)),
-    sa.Column('_iso_code', sa.String(255)),
+    # sa.Column('_street_address', sa.String(255)),
+    # sa.Column('_postal_code', sa.String(255)),
+    # sa.Column('_sub_division_name', sa.String(255)),
+    # sa.Column('_division_name', sa.String(255)),
+    # sa.Column('_city_name', sa.String(255)),
+    # sa.Column('_country_name', sa.String(255)),
+    # sa.Column('_iso_code', sa.String(255)),
+    sa.Column('created_at', sa.DateTime, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
 
 shop_catalog_table = sa.Table(

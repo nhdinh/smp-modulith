@@ -10,26 +10,22 @@ from shop.application.usecases.initialize.confirm_shop_registration_uc import (
     ConfirmingShopRegistrationResponse,
     ConfirmingShopRegistrationResponseBoundary,
 )
-from shop.application.usecases.manage.add_store_manager import (
-    AddingStoreManagerResponse,
-    AddingStoreManagerResponseBoundary,
-)
-from shop.application.usecases.manage.create_store_address_uc import (
-    CreatingShopAddressResponse,
-    CreatingShopAddressResponseBoundary,
-)
-from shop.application.usecases.manage.resend_store_registration_confirmation_uc import (
-    ResendingRegistrationConfirmationResponse,
-    ResendingRegistrationConfirmationResponseBoundary,
-)
-from shop.application.usecases.manage.update_store_settings_uc import (
-    UpdatingStoreSettingsResponse,
-    UpdatingStoreSettingsResponseBoundary,
-)
-from shop.application.usecases.manage.upload_image_uc import UploadingImageResponse, UploadingImageResponseBoundary
 from shop.application.usecases.select_store_plan_uc import SelectingShopPlanResponse, SelectingShopPlanResponseBoundary
 from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, \
     AddingShopAddressResponse
+from shop.application.usecases.shop.add_shop_manager import (
+    AddingStoreManagerResponse,
+    AddingStoreManagerResponseBoundary,
+)
+from shop.application.usecases.shop.resend_store_registration_confirmation_uc import (
+    ResendingRegistrationConfirmationResponse,
+    ResendingRegistrationConfirmationResponseBoundary,
+)
+from shop.application.usecases.shop.update_store_settings_uc import (
+    UpdatingStoreSettingsResponse,
+    UpdatingStoreSettingsResponseBoundary,
+)
+from shop.application.usecases.shop.upload_image_uc import UploadingImageResponse, UploadingImageResponseBoundary
 
 
 class ResendingRegistrationResponsePresenter(ResendingRegistrationConfirmationResponseBoundary):

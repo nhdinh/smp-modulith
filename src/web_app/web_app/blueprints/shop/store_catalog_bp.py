@@ -73,7 +73,7 @@ from store.application.usecases.product.update_store_product_uc import (
 )
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
-from web_app.presenters.store_catalog_presenters import (
+from web_app.presenters.shop_catalog_presenters import (
     AddingShopCatalogPresenter,
     AddingShopProductPresenter,
     CreatingStoreCollectionPresenter,

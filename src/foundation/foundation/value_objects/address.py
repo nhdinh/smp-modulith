@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import NewType, Set
+
+from vietnam_provinces import Ward, Province, District
+from vietnam_provinces.enums import DistrictEnum, ProvinceEnum
+from vietnam_provinces.enums.wards import WardEnum
 
 from db_infrastructure import nanoid_generate
 
@@ -38,6 +44,7 @@ def generate_address_id():
     return nanoid_generate(prefix=ADDRESS_ID_PREFIX)
 
 
+"""
 @dataclass
 class LocationCitySubDivision:
     sub_division_name: str
@@ -148,3 +155,37 @@ class LocationAddress:
 
     def __hash__(self):
         return hash(self.address_id)
+"""
+
+
+@dataclass(unsafe_hash=True)
+class Address:
+    street_address: str
+    postal_code: str
+    ward_code: str
+
+    @property
+    def ward(self) -> Ward:
+        return WardEnum[self.ward_code].value  # type:Ward
+
+    @property
+    def district_code(self):
+        return self.ward.district_code
+
+    @property
+    def district(self) -> District:
+        return DistrictEnum[f"D_{self.ward.district_code}"].value  # type:District
+
+    @property
+    def province_code(self):
+        return self.district.province_code
+
+    @property
+    def province(self) -> Province:
+        return ProvinceEnum[f"P_{self.district.province_code}"].value  # type:Province
+
+    def __eq__(self, other: 'Address'):
+        if not isinstance(other, Address):
+            return False
+        else:
+            return self.street_address == other.street_address and self.postal_code == other.postal_code and self.ward_code == other.ward_code

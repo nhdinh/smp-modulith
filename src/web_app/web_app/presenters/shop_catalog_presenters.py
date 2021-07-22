@@ -8,6 +8,8 @@ from shop.application.usecases.catalog.add_shop_catalog_uc import (
     AddingShopCatalogResponse,
     AddingShopCatalogResponseBoundary,
 )
+from shop.application.usecases.catalog.add_shop_collection_uc import AddingShopCollectionResponseBoundary, \
+    AddingShopCollectionResponse
 from shop.application.usecases.catalog.remove_shop_catalog_uc import (
     RemovingShopCatalogResponse,
     RemovingShopCatalogResponseBoundary,
@@ -16,7 +18,6 @@ from shop.application.usecases.catalog.update_shop_catalog_uc import (
     UpdatingShopCatalogResponse,
     UpdatingShopCatalogResponseBoundary,
 )
-from shop.application.usecases.collection.create_store_collection_uc import CreatingStoreCollectionResponseBoundary
 from shop.application.usecases.collection.update_store_collection_uc import (
     UpdatingStoreCollectionResponse,
     UpdatingStoreCollectionResponseBoundary,
@@ -87,10 +88,10 @@ class RemovingShopCatalogPresenter(RemovingShopCatalogResponseBoundary):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class CreatingStoreCollectionPresenter(CreatingStoreCollectionResponseBoundary):
+class AddingShopCollectionPresenter(AddingShopCollectionResponseBoundary):
     response: Response
 
-    def present(self, response_dto: GenericShopActionResponse) -> None:
+    def present(self, response_dto: AddingShopCollectionResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
 
 

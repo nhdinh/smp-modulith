@@ -25,13 +25,13 @@ class ShopCatalog:
         return getattr(self, '_collections')
 
     def __str__(self):
-        return f'<ShopCatalog #{self.catalog_id}>'
+        return f'<ShopCatalog #{self.title}>'
 
     def __eq__(self, other):
         if not other or not isinstance(other, ShopCatalog):
             raise TypeError
 
-        return self.title == other.title or self.catalog_id == other.catalog_id
+        return self.title == other.title
 
     def get_collection_by_id(self, collection_id: ShopCollectionId) -> Optional[ShopCollection]:
         collections = getattr(self, '_collections')
@@ -43,3 +43,9 @@ class ShopCatalog:
                 return None
 
         return None
+
+    def is_collection_exists(self, collection_title: str):
+        try:
+            collection = next(col for col in self._collections if col.title == collection_title)
+        except StopIteration:
+            return False

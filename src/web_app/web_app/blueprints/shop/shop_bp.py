@@ -4,6 +4,8 @@ import flask_injector
 import injector
 from flask import Blueprint, Response, request, make_response, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC, \
+    AddingShopAddressRequest
 
 from shop.application.queries.shop_queries import ListShopAddressesQuery, ListShopAddressesRequest
 from shop.application.usecases.initialize.confirm_shop_registration_uc import (
@@ -16,8 +18,6 @@ from shop.application.usecases.initialize.register_shop_uc import (
     RegisteringShopResponseBoundary,
     RegisterShopUC,
 )
-from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC, \
-    AddingShopAddressRequest
 from web_app.presenters import log_error
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter, \

@@ -52,7 +52,7 @@ class RemoveStoreProductAttributeUC:
                         collection = next(c for c in product.collections if c.collection_id == dto.attribute_id)
                         product.collections.remove(collection)
                     except StopIteration:
-                        raise ValueError(ExceptionMessages.STORE_COLLECTION_NOT_FOUND)
+                        raise ValueError(ExceptionMessages.SHOP_COLLECTION_NOT_FOUND)
 
                 # remove supplier
                 if dto.attribute_type == ShopProductAttributeTypes.SUPPLIERS:

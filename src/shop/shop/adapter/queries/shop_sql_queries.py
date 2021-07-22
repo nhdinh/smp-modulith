@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from foundation.database_setup import location_address_table
 from sqlalchemy import select
 
 from db_infrastructure import SqlQuery
@@ -21,10 +21,12 @@ class SqlListShopAddressesQuery(ListShopAddressesQuery, SqlQuery):
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 
-            # query = select(StoreAddress).join(Store, StoreAddress._store).where(Store.shop_id == store_id)
-            query = select(shop_addresses_table) \
-                .join(shop_table, shop_addresses_table.c.shop_id == shop_table.c.shop_id).where(
-                shop_table.c.shop_id == dto.shop_id)
+            query = select([
+                shop_addresses_table,
+                location_address_table,
+            ]) \
+                .join(location_address_table, location_address_table.c.address_id == shop_addresses_table.c.address_id) \
+                .where(shop_table.c.shop_id == dto.shop_id)
 
             addresses = self._conn.execute(query).all()
 

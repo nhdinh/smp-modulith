@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from typing import Any, List, Optional, Set, Union
-import uuid
 
 from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent, ShopProductUpdatedEvent
 from foundation.events import EventMixin, ThingGoneInBlackHoleError, new_event_id
-from foundation.value_objects.address import LocationAddress
+from foundation.value_objects.address import Address
 from foundation.value_objects.factories import get_money
-
-from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX, generate_shop_catalog_id
+from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX, generate_shop_catalog_id, generate_shop_collection_id
 from shop.domain.entities.setting import Setting
 from shop.domain.entities.shop_address import ShopAddress
 from shop.domain.entities.shop_catalog import ShopCatalog
@@ -396,6 +394,7 @@ class Shop(EventMixin):
                 is_default = False
 
             collection = ShopCollection(title=title, default=is_default)
+            collection.collection_id = generate_shop_collection_id()
             parent_catalog.collections.add(collection)
             self._collections.add(collection)
 
@@ -466,10 +465,10 @@ class Shop(EventMixin):
         except StopIteration:
             return False
 
-    def is_catalog_exists(self, title: str) -> bool:
-        title = title.strip()
+    def is_catalog_exists(self, catalog_title: str) -> bool:
+        catalog_title = catalog_title.strip()
         try:
-            c = next(c for c in self._catalogs if c.title.lower() == title.lower())
+            c = next(c for c in self._catalogs if c.title.lower() == catalog_title.lower())
             if c:
                 return True
         except StopIteration:
@@ -516,25 +515,17 @@ class Shop(EventMixin):
     #     except StopIteration:
     #         return False
 
-    def add_address(self, recipient: str, phone: str, address: LocationAddress):
+    def add_address(self, recipient: str, phone: str, address: Address):
         try:
-            store_address = ShopAddress(
+            shop_address = ShopAddress(
                 recipient=recipient,
                 phone=phone,
                 address_type=AddressType.SHOP_ADDRESS,
-                location_address=address,
+                address=address,
             )
 
-            # set cache attributes, use ORM event when persistence is better
-            setattr(store_address, '_street_address', address.street_address)
-            setattr(store_address, '_sub_division_name', address.sub_division.sub_division_name)
-            setattr(store_address, '_division_name', address.division.division_name)
-            setattr(store_address, '_city_name', address.city.city_name)
-            setattr(store_address, '_country_name', address.country.country_name)
-            setattr(store_address, '_iso_code', address.country.iso_code)
-            setattr(store_address, '_postal_code', address.postal_code)
-
-            self.addresses.add(store_address)
+            if shop_address not in self._addresses:
+                self._addresses.add(shop_address)
         except Exception as exc:
             raise exc
 
@@ -594,7 +585,7 @@ class Shop(EventMixin):
             if 'image' in kwargs.keys():
                 catalog.image = kwargs.get('image')
         except StopIteration:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
         except Exception as exc:
             raise exc
 
@@ -605,7 +596,7 @@ class Shop(EventMixin):
 
             return catalog
         except StopIteration:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_CATALOG_NOT_FOUND)
+            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
         except Exception as exc:
             raise exc
 
