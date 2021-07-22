@@ -7,6 +7,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
     ListShopProductsByCatalogRequest, ListShopCatalogsRequest
+from shop.application.usecases.catalog.add_shop_brand_uc import AddingShopBrandRequest, AddShopBrandUC, \
+    AddingShopBrandResponseBoundary
 from shop.application.usecases.catalog.add_shop_catalog_uc import (
     AddingShopCatalogRequest,
     AddingShopCatalogResponseBoundary,
@@ -103,6 +105,7 @@ def add_shop_collection(add_shop_collection_uc: AddShopCollectionUC,
     add_shop_collection_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
+
 
 @shop_catalog_blueprint.route('/add_brand', methods=['POST'])
 @jwt_required()
