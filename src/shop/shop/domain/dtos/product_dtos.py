@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import datetime
 from dataclasses import dataclass
+from datetime import date
 from typing import List, Union
 
 from sqlalchemy.engine.row import RowProxy
 
+from foundation.value_objects import Money
+from foundation.value_objects.currency import _get_registered_currency_or_default
 from shop.domain.dtos.catalog_dtos import ShopCatalogResponseCompactedDto, ShopCatalogResponseDto, _row_to_catalog_dto
 from shop.domain.dtos.collection_dtos import ShopCollectionDto, _row_to_collection_dto
 from shop.domain.dtos.product_brand_dtos import StoreProductBrandCompactedDto, StoreProductBrandDto, _row_to_brand_dto
 from shop.domain.dtos.product_tag_dtos import StoreProductTagDto, _row_to_tag_dto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
 from shop.domain.dtos.supplier_dtos import StoreSupplierResponseDto, _row_to_supplier_dto
-from shop.domain.entities.value_objects import ShopProductId
+from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
 
 
 @dataclass
@@ -50,6 +54,17 @@ class ShopProductDto(ShopProductCompactedDto):
     collections: List[ShopCollectionDto]
 
 
+@dataclass
+class ShopProductPriceDto:
+    product_id: ShopProductId
+    unit_name: str
+    supplier_id: ShopSupplierId
+    price: Money
+    tax: float
+    effective_from: date
+    effective_status: str
+
+
 def _row_to_product_dto(
         row: RowProxy,
         unit_rows: List[RowProxy] = None,
@@ -60,7 +75,7 @@ def _row_to_product_dto(
 ) -> Union[ShopProductCompactedDto, ShopProductDto]:
     if hasattr(row, 'product_cache_id'):  # use cache
         product_data = {
-            'product_id': row.product_cache_id,
+            'product_id': row.product_id,
             'title': row.title,
             'sku': row.sku,
             'image': row.image,
@@ -101,3 +116,15 @@ def _row_to_product_dto(
         }
         product_data.update(full_product_data)
         return ShopProductDto(**product_data)
+
+
+def _row_to_product_price_dto(row: RowProxy) -> ShopProductPriceDto:
+    return ShopProductPriceDto(
+        product_id=row.product_id,
+        unit_name=row.unit_name,
+        supplier_id=row.supplier_id,
+        price=Money(currency=_get_registered_currency_or_default(row.currency), amount=row.price),
+        tax=row.tax,
+        effective_from=row.effective_from,
+        effective_status=''
+    )

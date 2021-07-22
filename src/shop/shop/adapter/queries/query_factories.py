@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import select, func, distinct
+from sqlalchemy import select, func, distinct, and_
 from sqlalchemy.sql import Select
 
 from shop.adapter.shop_db import (
@@ -12,22 +12,23 @@ from shop.adapter.shop_db import (
     shop_product_supplier_table,
     shop_product_table,
     shop_product_view_cache_table,
-    shop_supplier_table,
+    shop_supplier_table, shop_product_unit_table,
 )
+from shop.domain.entities.shop import Shop
 from shop.domain.entities.value_objects import ShopId, ShopProductId
 
 
-def shop_catalog_query_factory(store_id: ShopId) -> Select:
+def get_shop_catalog_query_factory(shop_id: ShopId) -> Select:
     return select([
         shop_catalog_table.c.catalog_id,
         shop_catalog_table.c.title.label('catalog_title'),
         shop_catalog_table.c.default.label('is_default_catalog'),
         shop_catalog_table.c.image.label('catalog_image'),
         shop_catalog_table.c.status.label('catalog_status'),
-    ]).where(shop_catalog_table.c.shop_id == store_id)
+    ]).where(shop_catalog_table.c.shop_id == shop_id)
 
 
-def shop_collection_query_factory() -> Select:
+def list_shop_collection_query_factory() -> Select:
     query = select([
         shop_collection_table.c.collection_id,
         shop_collection_table.c.title,
@@ -58,7 +59,7 @@ def list_shop_products_query_factory(shop_id: ShopId, use_view_cache: bool = Tru
         query = select([
             shop_product_table,
             shop_product_view_cache_table
-        ]) \
+        ]).select_from(shop_product_table).select_from(shop_product_view_cache_table) \
             .join(shop_product_view_cache_table,
                   shop_product_table.c.product_id == shop_product_view_cache_table.c.product_cache_id, isouter=True) \
             .where(shop_product_table.c.shop_id == shop_id)
@@ -72,7 +73,7 @@ def list_shop_products_query_factory(shop_id: ShopId, use_view_cache: bool = Tru
         shop_catalog_table.c.title.label('catalog_title'),
         shop_catalog_table.c.default.label('is_default_catalog'),
         shop_catalog_table.c.image.label('catalog_image'),
-        shop_catalog_table.c.disabled.label('is_catalog_disabled'),
+        shop_catalog_table.c.status.label('catalog_status'),
 
         shop_brand_table.c.brand_id,
         shop_brand_table.c.name.label('brand_name'),
@@ -93,6 +94,12 @@ def count_products_query_factory(shop_id: ShopId) -> Select:
 
 
 def get_shop_product_query_factory(product_id: ShopProductId) -> Select:
+    """
+    Return a Select query of selecting all data from shop_product_table by product_id
+
+    :param product_id: specified a product id
+    :return: product row
+    """
     query = select([
         shop_product_table,
 
@@ -113,8 +120,17 @@ def get_shop_product_query_factory(product_id: ShopProductId) -> Select:
     return query
 
 
-def list_product_collections_query_factory(product_id: ShopProductId):
-    query = shop_collection_query_factory() \
+def get_shop_query_factory(store_owner_email: str):
+    raise NotImplementedError
+    # query = select(shop_table) \
+    #     .join(shop_users_table, shop_table.c.shop_id == shop_users_table.c.shop_id) \
+    #     .join(system_user_table, shop_users_table.c.user_id == system_user_table.c.user_id) \
+    #     .where(system_user_table.c.email == store_owner_email)
+    # return query
+
+
+def list_shop_collections_bound_to_product_query_factory(product_id: ShopProductId):
+    query = list_shop_collection_query_factory() \
         .join(shop_product_collection_table,
               shop_product_table.c.product_id == shop_product_collection_table.c.product_id) \
         .join(shop_collection_table,
@@ -124,16 +140,7 @@ def list_product_collections_query_factory(product_id: ShopProductId):
     return query
 
 
-def get_store_query_factory(store_owner_email: str):
-    raise NotImplementedError
-    # query = select(shop_table) \
-    #     .join(shop_users_table, shop_table.c.shop_id == shop_users_table.c.shop_id) \
-    #     .join(system_user_table, shop_users_table.c.user_id == system_user_table.c.user_id) \
-    #     .where(system_user_table.c.email == store_owner_email)
-    # return query
-
-
-def get_suppliers_bound_to_product_query(product_id: ShopProductId):
+def list_suppliers_bound_to_product_query(product_id: ShopProductId):
     query = select([
         shop_supplier_table,
         shop_supplier_table.c.status.label('supplier_status')
@@ -141,4 +148,12 @@ def get_suppliers_bound_to_product_query(product_id: ShopProductId):
         .join(shop_product_supplier_table,
               shop_product_supplier_table.c.supplier_id == shop_supplier_table.c.supplier_id) \
         .where(shop_product_supplier_table.c.product_id == product_id)
+    return query
+
+
+def list_units_bound_to_product_query(product_id: ShopProductId):
+    query = select([
+        shop_product_unit_table
+    ]).where(shop_product_unit_table.c.product_id == product_id)
+
     return query

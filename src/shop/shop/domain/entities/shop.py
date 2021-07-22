@@ -537,6 +537,13 @@ class Shop(EventMixin):
             return None
 
     def get_supplier(self, supplier_id_or_name: Union[ShopSupplierId, str]) -> Optional[ShopSupplier]:
+        """
+        Return an instance of ShopSupplier specified by its id and which is a child of this shop. If no children with this id found, then return None
+
+        :param supplier_id_or_name: Id or Name of the supplier
+
+        :return: an instance of ShopSupplier, or None
+        """
         try:
             if isinstance(supplier_id_or_name, str) and supplier_id_or_name.startswith(SHOP_SUPPLIER_ID_PREFIX):
                 supplier = next(s for s in self._suppliers if s.supplier_id == supplier_id_or_name)

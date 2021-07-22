@@ -12,7 +12,7 @@ from db_infrastructure.mt import GUID
 from shop.adapter.id_generators import (
     generate_brand_id,
     generate_product_id,
-    generate_product_price_id,
+    generate_product_purchase_price_id,
     generate_shop_address_id,
     generate_shop_catalog_id,
     generate_shop_collection_id,
@@ -263,10 +263,10 @@ shop_product_supplier_table = sa.Table(
     sa.PrimaryKeyConstraint('product_id', 'supplier_id', name='product_supplier_pk')
 )
 
-shop_supplier_product_price_table = sa.Table(
+shop_product_purchase_price_table = sa.Table(
     'shop_supplier_product_price',
     metadata,
-    sa.Column('product_price_id', sa.String(40), primary_key=True, default=generate_product_price_id),
+    sa.Column('product_price_id', sa.String(40), primary_key=True, default=generate_product_purchase_price_id),
     sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, onupdate='CASCADE', ondelete='CASCADE'),
               nullable=False),
     sa.Column('supplier_id', sa.ForeignKey(shop_supplier_table.c.supplier_id, onupdate='CASCADE', ondelete='CASCADE'),

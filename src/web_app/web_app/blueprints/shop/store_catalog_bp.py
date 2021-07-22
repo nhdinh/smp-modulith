@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import smtplib
 
-from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
-from flask_jwt_extended import get_jwt_identity, jwt_required
 import injector
-
-from foundation.business_rule import BusinessRuleValidationError
-from foundation.logger import logger
-
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from store.application.queries.store_queries import (
     ListProductsFromCollectionQuery,
     ListProductsQuery,
@@ -73,6 +69,9 @@ from store.application.usecases.product.update_store_product_uc import (
 )
 from store.application.usecases.store_uc_common import GenericStoreActionRequest, GenericStoreResponseBoundary
 from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
+
+from foundation.business_rule import BusinessRuleValidationError
+from foundation.logger import logger
 from web_app.presenters.shop_catalog_presenters import (
     AddingShopCatalogPresenter,
     AddingShopProductPresenter,

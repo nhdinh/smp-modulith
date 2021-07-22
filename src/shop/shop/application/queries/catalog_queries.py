@@ -23,6 +23,7 @@ class ListShopCatalogsQuery(abc.ABC):
 @dataclass
 class ListShopProductsByCatalogRequest(AuthorizedPaginationInputDto):
     catalog_id: ShopCatalogId = ''
+    use_view_cache: bool = True
 
 
 class ListShopProductsByCatalogQuery(abc.ABC):

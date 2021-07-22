@@ -34,6 +34,8 @@ from shop.application.usecases.initialize.confirm_shop_registration_uc import (
     ConfirmShopRegistrationUC,
 )
 from shop.application.usecases.initialize.register_shop_uc import RegisteringShopResponseBoundary, RegisterShopUC
+from shop.application.usecases.product.add_shop_product_purchase_price_uc import \
+    AddingShopProductPurchasePriceResponseBoundary, AddShopProductPurchasePriceUC
 from shop.application.usecases.product.add_shop_product_to_supplier_uc import (
     AddingShopProductToSupplierResponseBoundary,
     AddShopProductToSupplierUC,
@@ -208,5 +210,10 @@ class ShopApplicationModule(injector.Module):
     def add_shop_product_to_supplier_uc(self, boundary: AddingShopProductToSupplierResponseBoundary,
                                         uow: ShopUnitOfWork) -> AddShopProductToSupplierUC:
         return AddShopProductToSupplierUC(boundary, uow)
+
+    @injector.provider
+    def add_shop_product_purchase_price_uc(self, boundary: AddingShopProductPurchasePriceResponseBoundary,
+                                           uow: ShopUnitOfWork, ) -> AddShopProductPurchasePriceUC:
+        return AddShopProductPurchasePriceUC(boundary, uow)
 
     # endregion

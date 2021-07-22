@@ -6,7 +6,7 @@ from db_infrastructure.base import SqlQuery
 from foundation.events import ThingGoneInBlackHoleError
 from shop.adapter.queries.query_common import sql_count_catalogs_in_shop, sql_verify_shop_id
 from shop.adapter.queries.query_factories import (
-    shop_catalog_query_factory,
+    get_shop_catalog_query_factory,
     list_shop_products_query_factory,
     count_products_query_factory)
 from shop.adapter.shop_db import shop_catalog_table, shop_collection_table, shop_product_table
@@ -41,7 +41,7 @@ class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
                 )
 
             # get all catalogs limit by page and offset
-            fetch_catalogs_query = shop_catalog_query_factory(store_id=shop_id) \
+            fetch_catalogs_query = get_shop_catalog_query_factory(shop_id=shop_id) \
                 .order_by(shop_catalog_table.c.created_at) \
                 .limit(dto.pagination_entries_per_page).offset((dto.pagination_offset - 1) * dto.pagination_offset)
 
@@ -92,7 +92,7 @@ class SqlListShopProductsByCatalogQuery(ListShopProductsByCatalogQuery, SqlQuery
                 product_counts = self._conn.scalar(counting_q)
 
                 # build product query
-                query = list_shop_products_query_factory(shop_id=dto.shop_id) \
+                query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=dto.use_view_cache) \
                     .where(shop_product_table.c.catalog_id == dto.catalog_id) \
                     .limit(dto.pagination_entries_per_page).offset(
                     (dto.pagination_offset - 1) * dto.pagination_entries_per_page)

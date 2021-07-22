@@ -57,6 +57,12 @@ class RegistrationStatus(Enum):
     REGISTRATION_EXPIRED = 'Expired'
 
 
+class ProductPriceStatus(Enum):
+    FUTURE_EFFECT = 'EffectInFuture'
+    IN_EFFECT = 'InEffect'
+    EXPIRED = 'Expired'
+
+
 class ExceptionMessages(Enum):
     SHOP_OWNERSHIP_NOT_FOUND = 'Shop Ownership not found'
     FAILED_TO_CREATE_SHOP_NO_OWNER = 'Shop creating failed. No owner.'
@@ -95,3 +101,8 @@ class ExceptionMessages(Enum):
     REGISTRATION_RESEND_TOO_MUCH = 'Too much request, try again later'
 
     SHOP_SUPPLIER_NOT_FOUND = 'Supplier not existed'
+    CURRENCY_NOT_REGISTERED = 'Currency is not registered'
+
+    WRONG_DATA_TYPE_FOR_COMPARISON = 'Cannot compare two objects of different types'
+    WRONG_DATA_TYPE_FOR_OPERATE = 'Cannot operate math on two objects of different types'
+    UNSUPPORTED_OPERATION = 'Unsupported operation'

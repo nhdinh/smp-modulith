@@ -23,3 +23,7 @@ class ShopSupplier:
 
     # contacts: FrozenSet[SupplierContact] = frozenset()
     disabled: bool = False
+
+    @property
+    def products(self):
+        return self._products if hasattr(self, '_products') else []

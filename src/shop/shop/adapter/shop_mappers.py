@@ -18,7 +18,7 @@ from shop.adapter.shop_db import (
     shop_product_view_cache_table,
     shop_registration_table,
     shop_settings_table,
-    shop_supplier_product_price_table,
+    shop_product_purchase_price_table,
     shop_supplier_table,
     shop_table,
     shop_users_table,
@@ -75,9 +75,9 @@ def start_mappers():
     mapper(ShopProductBrand, shop_brand_table)
     mapper(ShopProductTag, shop_product_tag_table)
     mapper(ShopCollection, shop_collection_table)
-    mapper(ProductPurchasePrice, shop_supplier_product_price_table,
+    mapper(ProductPurchasePrice, shop_product_purchase_price_table,
            properties={
-               '_price': shop_supplier_product_price_table.c.price,
+               '_price': shop_product_purchase_price_table.c.price,
 
                'supplier': relationship(
                    ShopSupplier
@@ -132,7 +132,8 @@ def start_mappers():
                 ShopProductUnit,
                 # backref=backref('_product', cascade='all', single_parent=True),
                 collection_class=set,
-                overlaps="_inherited_units, product_id"
+                overlaps="_inherited_units, product_id",
+                backref=backref('_product')
             ),
 
             '_tags': relationship(

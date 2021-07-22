@@ -11,11 +11,10 @@ from foundation.domain_events.inventory_events import WarehouseCreatedEvent
 from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent
 from foundation.events import EveryModuleMustCatchThisEvent
 from foundation.logger import logger
-
 from shop.adapter.queries.query_factories import (
     get_shop_product_query_factory,
-    get_suppliers_bound_to_product_query,
-    list_product_collections_query_factory,
+    list_suppliers_bound_to_product_query,
+    list_shop_collections_bound_to_product_query_factory,
 )
 from shop.adapter.shop_db import shop_product_view_cache_table
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
@@ -24,7 +23,7 @@ from shop.domain.dtos.collection_dtos import _row_to_collection_dto
 from shop.domain.dtos.product_brand_dtos import _row_to_brand_dto
 from shop.domain.dtos.supplier_dtos import _row_to_supplier_dto
 from shop.domain.entities.shop import Shop
-from shop.domain.entities.value_objects import RegistrationStatus, ShopId, ShopProductId, ShopStatus
+from shop.domain.entities.value_objects import RegistrationStatus, ShopId, ShopStatus
 
 
 class ShopHandlerFacade:
@@ -194,12 +193,12 @@ class GenerateViewCacheUponProductModificationHandler:
             brand_json = _row_to_brand_dto(product_data) if product_data.brand_id else None
 
             # get collections
-            query = list_product_collections_query_factory(product_id=product_id)
+            query = list_shop_collections_bound_to_product_query_factory(product_id=product_id)
             collections_data = current_connection.execute(query).all()
             collections_json = [_row_to_collection_dto(r) for r in collections_data]
 
             # get suppliers
-            query = get_suppliers_bound_to_product_query(product_id=product_id)
+            query = list_suppliers_bound_to_product_query(product_id=product_id)
             suppliers_data = current_connection.execute(query).all()
             suppliers_json = [_row_to_supplier_dto(r) for r in suppliers_data]
 

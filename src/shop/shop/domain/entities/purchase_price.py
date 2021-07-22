@@ -6,21 +6,22 @@ from typing import Optional
 
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-
 from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_supplier import ShopSupplier
+from shop.domain.entities.value_objects import ProductPriceStatus
 
 
 @dataclass(unsafe_hash=True)
 class ProductPurchasePrice:
     def __init__(self, supplier: ShopSupplier, product_unit: ShopProductUnit, price: Money, tax: Optional[float],
-                 effective_from: date):
+                 effective_from: date, expired_on: date):
         self.supplier = supplier
         self.product_unit = product_unit
         self._price = price.amount
         self.currency = price.currency.iso_code
         self.tax = tax
         self.effective_from = effective_from
+        self.expired_on = expired_on
 
     @property
     def price(self) -> Money:

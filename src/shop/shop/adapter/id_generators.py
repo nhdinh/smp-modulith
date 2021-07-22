@@ -41,5 +41,5 @@ def generate_product_id():
     return nanoid_generate(prefix=SHOP_PRODUCT_ID_PREFIX, key_size=SHOP_PRODUCT_ID_KEYSIZE)
 
 
-def generate_product_price_id():
+def generate_product_purchase_price_id():
     return nanoid_generate(prefix=SHOP_PRODUCT_PRICE_PREFIX)

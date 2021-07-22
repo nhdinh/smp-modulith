@@ -12,7 +12,7 @@ from foundation.events import EventMixin, ThingGoneInBlackHoleError, new_event_i
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
 
-from shop.adapter.id_generators import generate_product_id
+from shop.adapter.id_generators import generate_product_id, generate_product_purchase_price_id
 from shop.domain.entities.purchase_price import ProductPurchasePrice
 from shop.domain.entities.shop_catalog import ShopCatalog
 from shop.domain.entities.shop_collection import ShopCollection
@@ -169,9 +169,15 @@ class ShopProduct(EventMixin, Entity):
         except Exception as exc:
             raise exc
 
-    def get_unit(self, unit: str) -> Optional[ShopProductUnit]:
+    def get_unit(self, unit_name: str) -> Optional[ShopProductUnit]:
+        """
+        Get a child unit of this product. Search by name, caseless
+
+        :rtype: instance of ShopProductUnit or None
+        """
         try:
-            return next(product_unit for product_unit in self._units if product_unit.unit_name == unit)
+            return next(
+                product_unit for product_unit in self._units if product_unit.unit_name.lower() == unit_name.lower())
         except StopIteration:
             return None
 
@@ -180,6 +186,18 @@ class ShopProduct(EventMixin, Entity):
             return next(product_unit for product_unit in self._units if product_unit.default)
         except StopIteration:
             return None
+
+    def get_equivalent_unit(self, unit: ShopProductUnit) -> Optional[ShopProductUnit]:
+        """
+        Get a child unit of this product which is equivalent to the input param.
+
+        :param unit: an unit to find
+        :return: instance of ShopProductUnit or None
+        """
+        if unit in self._units:
+            return next(product_unit for product_unit in self._units if product_unit == unit)
+
+        return None
 
     def try_to_make_unit(self, unit: str, base_unit: str, conversion_factor: float):
         try:
@@ -195,7 +213,7 @@ class ShopProduct(EventMixin, Entity):
 
     def delete_unit(self, unit: str):
         try:
-            unit_to_delete = self.get_unit(unit=unit)
+            unit_to_delete = self.get_unit(unit_name=unit)
             if not unit_to_delete:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
 
@@ -270,7 +288,7 @@ class ShopProduct(EventMixin, Entity):
             return False
 
     def remove_unit(self, unit_name: str):
-        unit = self.get_unit(unit=unit_name)
+        unit = self.get_unit(unit_name=unit_name)
         if not unit:
             raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
         elif unit.default and len(self._units) > 1:
@@ -282,7 +300,7 @@ class ShopProduct(EventMixin, Entity):
 
     def update_unit(self, target_unit_name: str, new_unit_name: str, new_conversion_factor: float):
         try:
-            target_unit = self.get_unit(unit=target_unit_name)
+            target_unit = self.get_unit(unit_name=target_unit_name)
             if not target_unit:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
 
@@ -329,8 +347,11 @@ class ShopProduct(EventMixin, Entity):
                 product_unit=unit,
                 price=price,
                 tax=kwargs.get('tax'),
-                effective_from=kwargs.get('effective_from')
+                effective_from=kwargs.get('effective_from'),
+                expired_on=kwargs.get('expired_on'),
             )
+
+            purchase_price.product_price_id = generate_product_purchase_price_id()
 
             self._purchase_prices.add(purchase_price)
 

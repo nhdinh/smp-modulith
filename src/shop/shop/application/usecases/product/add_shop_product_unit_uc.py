@@ -26,9 +26,6 @@ class AddingShopProductUnitResponse:
     product_id: ShopProductId
     unit_name: str
 
-    # def serialize(self):
-    #     return self.__dict__
-
 
 class AddingShopProductUnitResponseBoundary(abc.ABC):
     @abc.abstractmethod

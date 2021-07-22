@@ -7,7 +7,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC, \
     AddingShopAddressRequest
 
-from shop.application.queries.shop_queries import ListShopAddressesQuery, ListShopAddressesRequest
+from shop.application.queries.shop_queries import ListShopAddressesQuery, ListShopAddressesRequest, GetShopInfoQuery, \
+    GetShopInfoRequest
 from shop.application.usecases.initialize.confirm_shop_registration_uc import (
     ConfirmingShopRegistrationRequest,
     ConfirmingShopRegistrationResponseBoundary,
@@ -61,6 +62,16 @@ def confirm_registration(confirm_registration_uc: ConfirmShopRegistrationUC,
     dto = get_dto(request, ConfirmingShopRegistrationRequest, context={})
     confirm_registration_uc.execute(dto)
     return presenter.response, 201  # type: ignore
+
+
+@shop_blueprint.route('/get_info', methods=['POST'])
+@jwt_required()
+@log_error()
+def get_shop_info(get_shop_info_query: GetShopInfoQuery) -> Response:
+    dto = get_dto(request, GetShopInfoRequest, context={'partner_id': get_jwt_identity()})
+    shop_info = get_shop_info_query.query(dto)
+
+    return make_response(jsonify(shop_info)), 200  # type:ignore
 
 
 @shop_blueprint.route('/list_addresses', methods=['GET', 'POST'])
