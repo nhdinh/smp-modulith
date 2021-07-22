@@ -17,13 +17,13 @@ services:
       - redis
       - nginx
 
-  rq_worker:
-    image: master-image
-    command: /usr/local/bin/rqworker -n extra_worker_001 -u redis://redis:6379/0 -v
-    env_file: ./master_image.env
-    depends_on:
-      - smtp_server
-      - redis
+#  rq_worker:
+  #    image: master-image
+  #    command: /usr/local/bin/rqworker -n extra_worker_001 -u redis://redis:6379/0 -v
+  #    env_file: ./master_image.env
+  #    depends_on:
+  #      - smtp_server
+  #      - redis
 
   rq_dashboard:
     image: master-image
