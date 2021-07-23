@@ -14,6 +14,9 @@ class SupplierContactResponseDto:
     contact_phone: str
     contact_status: GenericShopItemStatus
 
+    def serialize(self):
+        return self.__dict__
+
 
 @dataclass
 class StoreSupplierResponseDto:
@@ -38,6 +41,6 @@ def _row_to_supplier_dto(row: RowProxy, contact_rows: List[RowProxy] = []) -> St
     return StoreSupplierResponseDto(
         supplier_id=row.supplier_id,
         supplier_name=row.supplier_name,
-        contacts=[_row_to_supplier_contact_dto(cr for cr in contact_rows)] if contact_rows else [],
+        contacts=[_row_to_supplier_contact_dto(cr) for cr in contact_rows] if contact_rows else [],
         supplier_status=row.supplier_status
     )

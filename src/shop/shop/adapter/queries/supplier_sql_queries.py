@@ -52,16 +52,16 @@ class SqlListShopSuppliersQuery(ListShopSuppliersQuery, SqlQuery):
                 shop_supplier_contact_table.c.supplier_id.in_(supplier_indice))
             contacts = self._conn.execute(list_contact_query).all()
 
-            s = [(supplier_row,
-                  [contact_row for contact_row in contacts if contact_row.supplier_id == supplier_row.supplier_id]) for
-                 supplier_row in suppliers]
+            # build response items
+            items = []
+            for supplier in suppliers:
+                contact_rows = [row for row in contacts if row.supplier_id == supplier.supplier_id]
+                items.append(_row_to_supplier_dto(supplier, contact_rows=contact_rows))
 
             return paginate_response_factory(
                 input_dto=dto,
                 total_items=count_suppliers,
-                items=[
-                    _row_to_supplier_dto(supplier_row, []) for supplier_row in suppliers
-                ]
+                items=items
             )
         except Exception as exc:
             raise exc
