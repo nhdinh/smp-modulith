@@ -12,11 +12,11 @@ from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId, ExceptionMessages
-from web_app.serialization.dto import BaseShopInputDto
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
-class AddingShopProductPurchasePriceRequest(BaseShopInputDto):
+class AddingShopProductPurchasePriceRequest(BaseAuthorizedShopUserRequest):
     product_id: ShopProductId
     supplier_id: ShopSupplierId
     unit_name: str
@@ -51,7 +51,7 @@ class AddShopProductPurchasePriceUC:
                 if not currency:
                     raise TypeError(ExceptionMessages.CURRENCY_NOT_REGISTERED)
 
-                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
                 product = uow.shops.get_product_by_id(product_id=dto.product_id)  # type:ShopProduct
 
                 if not product:

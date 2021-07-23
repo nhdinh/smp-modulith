@@ -9,7 +9,7 @@ from foundation.value_objects.address import Address
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ShopAddressId
-from web_app.serialization.dto import BaseShopInputDto
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
@@ -24,7 +24,7 @@ class AddingShopAddressResponseBoundary(abc.ABC):
 
 
 @dataclass
-class AddingShopAddressRequest(BaseShopInputDto):
+class AddingShopAddressRequest(BaseAuthorizedShopUserRequest):
     recipient: str
     phone: str
     postal_code: str
@@ -41,7 +41,7 @@ class AddShopAddressUC:
     def execute(self, dto: AddingShopAddressRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
                 ward = WardEnum[f'{dto.ward_code}'].value
                 if not ward:

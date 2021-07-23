@@ -12,13 +12,13 @@ from shop.application.queries.shop_queries import ListShopAddressesQuery, ListSh
 from shop.domain.dtos.shop_dtos import ShopAddressResponseDto, _row_to_address_dto, ShopInfoResponseDto, \
     _row_to_shop_info_dto
 from shop.domain.entities.value_objects import ExceptionMessages
-from web_app.serialization.dto import ListOutputDto
+from web_app.serialization.dto import SimpleListTypedResponse
 
 
 class SqlListShopAddressesQuery(ListShopAddressesQuery, SqlQuery):
-    def query(self, dto: ListShopAddressesRequest) -> ListOutputDto[ShopAddressResponseDto]:
+    def query(self, dto: ListShopAddressesRequest) -> SimpleListTypedResponse[ShopAddressResponseDto]:
         try:
-            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.partner_id,
+            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.current_user_id,
                                              conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
@@ -32,13 +32,13 @@ class SqlListShopAddressesQuery(ListShopAddressesQuery, SqlQuery):
 
             addresses = self._conn.execute(query).all()
 
-            return ListOutputDto([_row_to_address_dto(row) for row in addresses])
+            return SimpleListTypedResponse([_row_to_address_dto(row) for row in addresses])
         except Exception as exc:
             raise exc
 
 
 class SqlGetShopInfoQuery(GetShopInfoQuery, SqlQuery):
-    def query(self, dto: GetShopInfoRequest) -> ListOutputDto[ShopInfoResponseDto]:
+    def query(self, dto: GetShopInfoRequest) -> SimpleListTypedResponse[ShopInfoResponseDto]:
         try:
             query = select([shop_table]) \
                 .join(shop_users_table, shop_users_table.c.shop_id == shop_table.c.shop_id).where(
@@ -46,6 +46,6 @@ class SqlGetShopInfoQuery(GetShopInfoQuery, SqlQuery):
 
             shops = self._conn.execute(query).all()
 
-            return ListOutputDto([_row_to_shop_info_dto(row) for row in shops])
+            return SimpleListTypedResponse([_row_to_shop_info_dto(row) for row in shops])
         except Exception as exc:
             raise exc

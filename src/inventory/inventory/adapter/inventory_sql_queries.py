@@ -13,7 +13,7 @@ from inventory.adapter.sql_query_common import sql_get_warehouse_id_by_owner
 from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
 from inventory.domain.entities.value_objects import DraftPurchaseOrderId, WarehouseId
 from inventory.domain.entities.warehouse import Warehouse
-from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto, paginate_response_factory
+from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse, paginate_response_factory
 
 """
 

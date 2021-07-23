@@ -6,7 +6,8 @@ from flask import Blueprint, Response, current_app, jsonify, make_response, requ
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
 
 from foundation.logger import logger
-from identity.application.queries.identity_queries import GetAllUsersQuery, GetSingleUserQuery
+from identity.application.queries.identity_sql_queries import GetAllUsersQuery, GetSingleUserQuery, \
+    GetSingleUserRequest, GetCurrentUserRequest
 from identity.application.usecases.change_password_uc import (
     ChangePasswordUC,
     ChangingPasswordRequest,
@@ -148,11 +149,22 @@ def list_all_users(query: GetAllUsersQuery) -> Response:
     return make_response(jsonify(query.query()))
 
 
-@identity_blueprint.route('/', methods=['GET'])
+@identity_blueprint.route('/', methods=['GET', 'POST'])
 @jwt_required()
-def get_current_user(query: GetSingleUserQuery) -> Response:
-    current_user = get_jwt_identity()
-    return make_response(jsonify(query.query(user_q=current_user)))
+@log_error()
+def get_current_user(get_single_user_query: GetSingleUserQuery) -> Response:
+    dto = get_dto(request, GetCurrentUserRequest, context={'partner_id': get_jwt_identity()})
+    response = get_single_user_query.query(dto)
+    return make_response(jsonify(response)), 200  # type:ignore
+
+
+@identity_blueprint.route('/get', methods=['GET', 'POST'])
+@jwt_required()
+@log_error()
+def get_user(get_single_user_query: GetSingleUserQuery) -> Response:
+    dto = get_dto(request, GetSingleUserRequest, context={'partner_id': get_jwt_identity()})
+    response = get_single_user_query.query(dto)
+    return make_response(jsonify(response)), 200  # type:ignore
 
 
 @identity_blueprint.route('/', methods=['DELETE'])

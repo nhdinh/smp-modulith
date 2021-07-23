@@ -6,7 +6,7 @@ from datetime import date
 from typing import List
 
 from inventory.domain.entities.value_objects import PurchaseOrderStatus
-from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto
+from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse
 
 """
 @dataclass

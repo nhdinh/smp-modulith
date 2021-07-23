@@ -14,14 +14,14 @@ from shop.application.queries.product_queries import GetShopProductQuery, GetSho
     ListShopProductsRequest, ListShopProductPurchasePricesRequest, ListShopProductPurchasePricesQuery
 from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductCompactedDto, ShopProductPriceDto
 from shop.domain.entities.value_objects import ExceptionMessages
-from web_app.serialization.dto import PaginationOutputDto, paginate_response_factory, ListOutputDto
+from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory, SimpleListTypedResponse
 
 
 class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
     def query(self, dto: GetShopProductRequest):
         try:
             valid_store = sql_verify_shop_id(shop_id=dto.shop_id,
-                                             partner_id=dto.partner_id,
+                                             partner_id=dto.current_user_id,
                                              conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
@@ -59,10 +59,10 @@ class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
 
 
 class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
-    def query(self, dto: ListShopProductsRequest) -> PaginationOutputDto[ShopProductCompactedDto]:
+    def query(self, dto: ListShopProductsRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
         try:
             valid_store = sql_verify_shop_id(shop_id=dto.shop_id,
-                                             partner_id=dto.partner_id,
+                                             partner_id=dto.current_user_id,
                                              conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
@@ -89,9 +89,9 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
 
 
 class SqlListShopProductPurchasePricesQuery(ListShopProductPurchasePricesQuery, SqlQuery):
-    def query(self, dto: ListShopProductPurchasePricesRequest) -> ListOutputDto[ShopProductPriceDto]:
+    def query(self, dto: ListShopProductPurchasePricesRequest) -> SimpleListTypedResponse[ShopProductPriceDto]:
         try:
-            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.partner_id,
+            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.current_user_id,
                                              conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)

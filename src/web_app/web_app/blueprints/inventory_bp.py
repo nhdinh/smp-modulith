@@ -42,7 +42,7 @@ from web_app.presenters.inventory_presenters import (
     RemovingDraftPurchaseOrderItemPresenter,
     UpdatingDraftPurchaseOrderPresenter,
 )
-from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
+from web_app.serialization.dto import BasePaginationAuthorizedRequest, get_dto
 
 INVENTORY_BLUEPRINT_NAME = 'inventory_blueprint'
 inventory_blueprint = Blueprint(INVENTORY_BLUEPRINT_NAME, __name__)
@@ -75,7 +75,7 @@ class InventoryAPI(injector.Module):
 def list_products_balance(list_products_balance_query: ListProductsBalanceQuery) -> Response:
     try:
         current_user = get_jwt_identity()
-        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        dto = get_dto(request, BasePaginationAuthorizedRequest, context={'current_user': current_user})
         response = list_products_balance_query.query(dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:
@@ -106,7 +106,7 @@ def first_stock(first_stock_uc: InitializeFirstStockUC, presenter: InitializingF
 def list_draft_purchase_orders(list_draft_purchase_orders_query: ListDraftPurchaseOrdersQuery) -> Response:
     try:
         current_user = get_jwt_identity()
-        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        dto = get_dto(request, BasePaginationAuthorizedRequest, context={'current_user': current_user})
         response = list_draft_purchase_orders_query.query(dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:

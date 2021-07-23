@@ -94,7 +94,7 @@ def _row_to_product_dto(
 
             'brand': _row_to_brand_dto(row=row) if row.brand_id else None,
             'catalog': _row_to_catalog_dto(row=row, collections=[]) if row.catalog_id else None,
-            'suppliers': [_row_to_supplier_dto(row=supplier_row) for supplier_row in
+            'suppliers': [_row_to_supplier_dto(row=supplier_row, contact_rows=[]) for supplier_row in
                           supplier_rows] if supplier_rows else [],
             'collections': [_row_to_collection_dto(collection_row) for collection_row in
                             collection_rows] if collection_rows else []

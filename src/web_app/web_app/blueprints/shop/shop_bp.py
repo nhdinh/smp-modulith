@@ -23,10 +23,12 @@ from shop.application.usecases.initialize.register_shop_uc import (
 )
 from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC, \
     AddingShopAddressRequest
+from shop.application.usecases.shop.add_shop_user_uc import AddShopUserUC, AddingShopUserRequest, \
+    AddingShopUserResponseBoundary
 from web_app.presenters import log_error
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter, \
-    AddingShopAddressPresenter, AddingShopBrandPresenter, AddingShopSupplierPresenter
+    AddingShopAddressPresenter, AddingShopBrandPresenter, AddingShopSupplierPresenter, AddingShopUserPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_BLUEPRINT_NAME = 'shop_blueprint'
@@ -43,6 +45,11 @@ class ShopAPI(injector.Module):
     @flask_injector.request
     def confirm_shop_registration_response_boundary(self) -> ConfirmingShopRegistrationResponseBoundary:
         return ConfirmingShopRegistrationPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def add_shop_manager_response_boundary(self) -> AddingShopUserResponseBoundary:
+        return AddingShopUserPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -86,6 +93,23 @@ def get_shop_info(get_shop_info_query: GetShopInfoQuery) -> Response:
     shop_info = get_shop_info_query.query(dto)
 
     return make_response(jsonify(shop_info)), 200  # type:ignore
+
+
+@shop_blueprint.route('/list_users', methods=['GET', 'POST'])
+@jwt_required()
+@log_error()
+def list_shop_managers():
+    ...
+
+
+@shop_blueprint.route('/add_user', methods=['POST'])
+@jwt_required()
+@log_error()
+def add_shop_user(add_shop_user_uc: AddShopUserUC, presenter: AddingShopUserResponseBoundary) -> Response:
+    dto = get_dto(request, AddingShopUserRequest, context={'partner_id': get_jwt_identity()})
+    add_shop_user_uc.execute(dto)
+
+    return presenter.response, 201  # type: ignore
 
 
 @shop_blueprint.route('/list_addresses', methods=['GET', 'POST'])

@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ShopProductId
-from web_app.serialization.dto import BaseShopInputDto
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass(frozen=True)
@@ -47,7 +47,7 @@ class CreatingShopSupplierWithPurchasePriceRequest:
 
 
 @dataclass
-class AddingShopProductRequest(BaseShopInputDto):
+class AddingShopProductRequest(BaseAuthorizedShopUserRequest):
     # product data (mandatory)
     title: str
     sku: str
@@ -104,7 +104,7 @@ class AddShopProductUC:
     def execute(self, dto: AddingShopProductRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
                 product_data = dict()
                 product_data_fields = [

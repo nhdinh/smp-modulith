@@ -16,10 +16,9 @@ from shop.application.usecases.initialize.confirm_shop_registration_uc import (
 from shop.application.usecases.select_store_plan_uc import SelectingShopPlanResponse, SelectingShopPlanResponseBoundary
 from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, \
     AddingShopAddressResponse
-from shop.application.usecases.shop.add_shop_manager import (
-    AddingStoreManagerResponse,
-    AddingStoreManagerResponseBoundary,
-)
+from shop.application.usecases.shop.add_shop_user_uc import AddingShopUserResponseBoundary, \
+    AddingShopUserResponse
+
 from shop.application.usecases.shop.resend_store_registration_confirmation_uc import (
     ResendingRegistrationConfirmationResponse,
     ResendingRegistrationConfirmationResponseBoundary,
@@ -52,10 +51,10 @@ class SelectingStorePlanPresenter(SelectingShopPlanResponseBoundary):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class AddingStoreManagerPresenter(AddingStoreManagerResponseBoundary):
+class AddingShopUserPresenter(AddingShopUserResponseBoundary):
     response: Response
 
-    def present(self, response_dto: AddingStoreManagerResponse):
+    def present(self, response_dto: AddingShopUserResponse):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 

@@ -2,15 +2,18 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from typing import Optional
 
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User
 from identity.domain.value_objects import UserEmail, UserId
+from web_app.serialization.dto import BaseTimeLoggedRequest
 
 
 @dataclass
-class RegisteringAccountRequest:
+class RegisteringAccountRequest(BaseTimeLoggedRequest):
     email: UserEmail
+    mobile: Optional[str]
     password: str
 
 
@@ -36,7 +39,8 @@ class RegisterAccountUC:
     def execute(self, input_dto: RegisteringAccountRequest) -> None:
         with self._uow as uow:  # type:IdentityUnitOfWork
             try:
-                user = User.create(email=input_dto.email, password=input_dto.password)
+                user = User.create(email=input_dto.email, password=input_dto.password, mobile=input_dto.mobile,
+                                   on_shop_confirmation=False)
                 uow.identities.save(user)
 
                 # output

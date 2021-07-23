@@ -200,7 +200,7 @@ class GenerateViewCacheUponProductModificationHandler:
             # get suppliers
             query = list_suppliers_bound_to_product_query(product_id=product_id)
             suppliers_data = current_connection.execute(query).all()
-            suppliers_json = [_row_to_supplier_dto(r) for r in suppliers_data]
+            suppliers_json = [_row_to_supplier_dto(r, []) for r in suppliers_data]
 
             # insert data
             data = {

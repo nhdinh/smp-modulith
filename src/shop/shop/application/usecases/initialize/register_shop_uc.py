@@ -8,11 +8,11 @@ from passlib.hash import pbkdf2_sha256 as sha256
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.domain.entities.shop_registration import ShopRegistration
 from shop.domain.entities.value_objects import ShopRegistrationId
-from web_app.serialization.dto import BaseInputDto
+from web_app.serialization.dto import BaseTimeLoggedRequest
 
 
 @dataclass
-class RegisteringShopRequest(BaseInputDto):
+class RegisteringShopRequest(BaseTimeLoggedRequest):
     name: str
     mobile: str
     email: str

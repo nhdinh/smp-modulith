@@ -4,6 +4,7 @@ import functools
 
 from flask import current_app, jsonify, make_response
 
+from foundation import ThingGoneInBlackHoleError
 from foundation.logger import logger
 
 
@@ -17,10 +18,13 @@ def log_error():
                 if logger:
                     logger.exception(e)
 
-                if current_app.testing:
-                    raise e
+                # if current_app.testing or current_app.debug:
+                #     raise e
 
-                return make_response(jsonify({'messages': e.args})), 400  # type: ignore
+                if isinstance(e, ThingGoneInBlackHoleError):
+                    return make_response(jsonify({'messages': e.args})), 404  # type: ignore
+                else:
+                    return make_response(jsonify({'messages': e.args})), 400  # type: ignore
 
         return wrapped
 

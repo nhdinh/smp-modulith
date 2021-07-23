@@ -67,7 +67,7 @@ from store.domain.entities.store_collection import ShopCollection
 from store.domain.entities.store_product import ShopProduct
 from store.domain.entities.store_product_brand import ShopProductBrand
 from store.domain.entities.value_objects import ShopCatalogId, StoreCollectionId
-from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto, paginate_response_factory
+from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse, paginate_response_factory
 
 
 class SqlListStoreSettingsQuery(ListStoreSettingsQuery, SqlQuery):
@@ -102,8 +102,8 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
             self,
             collection_id: StoreCollectionId,
             catalog_id: ShopCatalogId,
-            dto: AuthorizedPaginationInputDto
-    ) -> PaginationOutputDto[StoreProductCompactedDto]:
+            dto: BasePaginationAuthorizedRequest
+    ) -> PaginationTypedResponse[StoreProductCompactedDto]:
         try:
             # get store_id and collection_id
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
@@ -150,7 +150,7 @@ class SqlListProductsFromCollectionQuery(ListProductsFromCollectionQuery, SqlQue
 
 
 class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
-    def query(self, catalog_id: ShopCatalogId, dto: AuthorizedPaginationInputDto):
+    def query(self, catalog_id: ShopCatalogId, dto: BasePaginationAuthorizedRequest):
         try:
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:
@@ -182,7 +182,7 @@ class SqlListStoreCollectionsQuery(ListStoreCollectionsQuery, SqlQuery):
 
 
 class SqlListStoreProductsByCatalogQuery(ListStoreProductsByCatalogQuery, SqlQuery):
-    def query(self, catalog_id: ShopCatalogId, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[
+    def query(self, catalog_id: ShopCatalogId, dto: BasePaginationAuthorizedRequest) -> PaginationTypedResponse[
         StoreProductCompactedDto]:
         try:
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
@@ -235,7 +235,7 @@ class SqlListProductsQuery(ListProductsQuery, SqlQuery):
 
 
 class SqlListStoreProductsQuery(ListStoreProductsQuery, SqlQuery):
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreProductCompactedDto]:
+    def query(self, dto: BasePaginationAuthorizedRequest) -> PaginationTypedResponse[StoreProductCompactedDto]:
         try:
             store_id = sql_get_store_id_by_owner(store_owner=dto.current_user, conn=self._conn)
             if not store_id:

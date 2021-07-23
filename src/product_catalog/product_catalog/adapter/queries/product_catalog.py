@@ -19,7 +19,7 @@ from product_catalog.application.queries.product_catalog import (
     ListProductsQuery,
     ProductDto,
 )
-from web_app.serialization.dto import PaginationOutputDto, paginate_response_factory
+from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory
 
 
 class SqlListCatalogsQuery(ListCatalogsQuery, SqlQuery):
@@ -91,7 +91,7 @@ class SqlGetProductQuery(GetProductQuery, SqlQuery):
 
 
 class SqlListProductsQuery(ListProductsQuery, SqlQuery):
-    def query(self, page: int, page_size: int) -> PaginationOutputDto[ProductDto]:
+    def query(self, page: int, page_size: int) -> PaginationTypedResponse[ProductDto]:
         total_rows = self._conn.scalar(select([func.count()]).select_from(product_table))
 
         query = joined_product_table_query()

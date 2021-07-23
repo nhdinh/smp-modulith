@@ -85,7 +85,7 @@ from web_app.presenters.shop_catalog_presenters import (
     UpdatingStoreCollectionPresenter,
     UpdatingStoreProductPresenter,
 )
-from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
+from web_app.serialization.dto import BasePaginationAuthorizedRequest, get_dto
 
 STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'
 store_catalog_blueprint = Blueprint(STORE_CATALOG_BLUEPRINT_NAME, __name__)
@@ -188,7 +188,7 @@ def fetch_store_catalogs(list_store_catalogs_query: ListShopCatalogsQuery) -> Re
     """
     try:
         current_user = get_jwt_identity()
-        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        dto = get_dto(request, BasePaginationAuthorizedRequest, context={'current_user': current_user})
         response = list_store_catalogs_query.query(dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:
@@ -237,7 +237,7 @@ def list_store_collections(
     """
     try:
         current_user = get_jwt_identity()
-        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        dto = get_dto(request, BasePaginationAuthorizedRequest, context={'current_user': current_user})
         response = list_store_collections_query.query(catalog_id=catalog_id, dto=dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:
@@ -488,7 +488,7 @@ def remove_store_collection(catalog_reference: str, collection_reference: str) -
 @jwt_required()
 def fetch_store_products(fetch_store_products_query: ListStoreProductsQuery):
     try:
-        dto = get_dto(request, AuthorizedPaginationInputDto, context={
+        dto = get_dto(request, BasePaginationAuthorizedRequest, context={
             'current_user': get_jwt_identity()
         })
         response = fetch_store_products_query.query(dto=dto)
@@ -520,7 +520,7 @@ def list_store_products_by_collection(
     """
     try:
         current_user = get_jwt_identity()
-        dto = get_dto(request, AuthorizedPaginationInputDto, context={
+        dto = get_dto(request, BasePaginationAuthorizedRequest, context={
             'current_user': current_user,
             'collection_id': collection_id,
             'catalog_id': catalog_id
@@ -717,7 +717,7 @@ def remove_store_product(product_id: str):
 def list_store_suppliers(list_store_suppliers_query: ListStoreSuppliersQuery) -> Response:
     try:
         current_user = get_jwt_identity()
-        dto = get_dto(request, AuthorizedPaginationInputDto, context={'current_user': current_user})
+        dto = get_dto(request, BasePaginationAuthorizedRequest, context={'current_user': current_user})
         response = list_store_suppliers_query.query(dto)
         return make_response(jsonify(response)), 200  # type:ignore
     except Exception as exc:

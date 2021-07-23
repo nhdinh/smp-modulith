@@ -7,11 +7,11 @@ from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.domain.entities.shop_registration import ShopRegistration
 from shop.domain.entities.value_objects import RegistrationStatus, ShopRegistrationId
 from web_app.presenters.shop_presenters import RegistrationStatusDto
-from web_app.serialization.dto import BaseInputDto
+from web_app.serialization.dto import BaseTimeLoggedRequest
 
 
 @dataclass
-class ConfirmingShopRegistrationRequest(BaseInputDto):
+class ConfirmingShopRegistrationRequest(BaseTimeLoggedRequest):
     confirmation_token: str
 
 

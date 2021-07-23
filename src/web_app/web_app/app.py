@@ -158,7 +158,12 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
             if hasattr(response, 'data'):
                 if getattr(response, 'data') is not None:
                     json_data = json.loads(response.data.decode('utf-8'))
-                    json_data.update({'request_id': request_id})
+
+                    if json_data:
+                        json_data.update({'request_id': request_id})
+                    else:
+                        json_data = {'request_id': request_id}
+
                     response.data = json.dumps(json_data).encode('utf-8')
         except JSONDecodeError:
             pass

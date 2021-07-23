@@ -3,7 +3,7 @@
 import injector
 from sqlalchemy.engine import Connection
 
-from identity.application.queries.identity_queries import (
+from identity.application.queries.identity_sql_queries import (
     CountRevokedTokenByJTIQuery,
     GetSingleUserQuery,
     SqlCountRevokedTokenByJTIQuery,

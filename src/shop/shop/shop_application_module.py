@@ -64,7 +64,7 @@ from shop.application.usecases.product.update_store_product_uc import (
     UpdatingStoreProductResponseBoundary,
 )
 from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC
-from shop.application.usecases.shop.add_shop_manager import AddingStoreManagerResponseBoundary, AddStoreManagerUC
+from shop.application.usecases.shop.add_shop_user_uc import AddShopUserUC, AddingShopUserResponseBoundary
 from shop.application.usecases.shop.resend_store_registration_confirmation_uc import (
     ResendingRegistrationConfirmationResponseBoundary,
     ResendRegistrationConfirmationUC,
@@ -94,9 +94,9 @@ class ShopApplicationModule(injector.Module):
         return ResendRegistrationConfirmationUC(boundary, uow)
 
     @injector.provider
-    def add_store_manager_uc(self, boundary: AddingStoreManagerResponseBoundary,
-                             uow: ShopUnitOfWork) -> AddStoreManagerUC:
-        return AddStoreManagerUC(boundary, uow)
+    def add_store_manager_uc(self, boundary: AddingShopUserResponseBoundary,
+                             uow: ShopUnitOfWork) -> AddShopUserUC:
+        return AddShopUserUC(boundary, uow)
 
     @injector.provider
     def add_store_address_uc(self, boundary: AddingShopAddressResponseBoundary,

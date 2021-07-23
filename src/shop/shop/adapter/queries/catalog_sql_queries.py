@@ -18,14 +18,14 @@ from shop.application.queries.catalog_queries import (
 from shop.domain.dtos.catalog_dtos import ShopCatalogResponseDto, _row_to_catalog_dto
 from shop.domain.dtos.product_dtos import ShopProductCompactedDto, _row_to_product_dto
 from shop.domain.entities.value_objects import ExceptionMessages
-from web_app.serialization.dto import PaginationOutputDto, paginate_response_factory
+from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory
 
 
 class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
-    def query(self, dto: ListShopCatalogsRequest) -> PaginationOutputDto[ShopCatalogResponseDto]:
+    def query(self, dto: ListShopCatalogsRequest) -> PaginationTypedResponse[ShopCatalogResponseDto]:
         try:
             valid_store = sql_verify_shop_id(shop_id=dto.shop_id,
-                                             partner_id=dto.partner_id,
+                                             partner_id=dto.current_user_id,
                                              conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
@@ -74,14 +74,14 @@ class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
 
 
 class SqlListShopProductsByCatalogQuery(ListShopProductsByCatalogQuery, SqlQuery):
-    def query(self, dto: ListShopProductsByCatalogRequest) -> PaginationOutputDto[ShopProductCompactedDto]:
+    def query(self, dto: ListShopProductsByCatalogRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
         try:
             products = []
             product_counts = 0
 
             if dto.catalog_id:
                 valid_store = sql_verify_shop_id(shop_id=dto.shop_id,
-                                                 partner_id=dto.partner_id,
+                                                 partner_id=dto.current_user_id,
                                                  conn=self._conn)
                 if not valid_store:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)

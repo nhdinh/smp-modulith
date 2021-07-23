@@ -11,7 +11,8 @@ from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_catalog import ShopCatalog
 from shop.domain.entities.shop_collection import ShopCollection
 from shop.domain.entities.shop_product import ShopProduct
-from shop.domain.entities.value_objects import ExceptionMessages, ShopCatalogId, ShopCollectionId, ShopId, ShopProductId
+from shop.domain.entities.value_objects import ExceptionMessages, ShopCatalogId, ShopCollectionId, ShopId, \
+    ShopProductId, ShopUserType
 
 
 @dataclass
@@ -52,14 +53,16 @@ def is_store_disabled(store: Shop) -> bool:
 
 
 def get_shop_or_raise(shop_id: ShopId,
-                      partner_id: str,
+                      user_id: str,
                       uow: ShopUnitOfWork,
+                      check_admin_rights: bool = False,
                       active_only: bool = True) -> Shop:
     """
     Fetch store information from persisted data by its owner's email
 
     :param shop_id:
-    :param partner_id:
+    :param user_id:
+    :param check_admin_rights:
     :param uow: injected StoreUnitOfWork
     :param active_only: Search for active store only (the inactive store means that the store was disabled by admins)
     :return: instance of `Shop` or None
@@ -71,7 +74,10 @@ def get_shop_or_raise(shop_id: ShopId,
             raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
         try:
-            manager = next(m for m in shop.users if m.user_id == partner_id)
+            manager = next(m for m in shop.users if m.user_id == user_id)
+
+            if check_admin_rights and manager.shop_role != ShopUserType.ADMIN:
+                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
         except StopIteration:
             raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 

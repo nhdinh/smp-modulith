@@ -7,11 +7,11 @@ from typing import Optional
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ShopCatalogId
-from web_app.serialization.dto import BaseShopInputDto
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
-class RemovingShopCatalogRequest(BaseShopInputDto):
+class RemovingShopCatalogRequest(BaseAuthorizedShopUserRequest):
     catalog_id: ShopCatalogId
     remove_completely: Optional[bool] = False
 
@@ -39,7 +39,7 @@ class RemoveShopCatalogUC:
                 remove_completely = dto.remove_completely
 
                 # get store
-                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
                 # delete catalog
                 catalog_to_del = shop.delete_shop_catalog(

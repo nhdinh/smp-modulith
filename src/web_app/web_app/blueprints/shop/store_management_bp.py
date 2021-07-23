@@ -57,7 +57,7 @@ from store.application.usecases.select_store_plan_uc import (
 )
 from web_app.presenters.shop_presenters import RegisteringShopPresenter
 from web_app.presenters.store_management_presenters import (
-    AddingStoreManagerPresenter,
+    AddingShopUserPresenter,
     ConfirmingShopRegistrationPresenter,
     CreatingStoreAddressPresenter,
     CreatingStoreWarehousePresenter,
@@ -96,7 +96,7 @@ class ShopAPI(injector.Module):
     @injector.provider
     @flask_injector.request
     def add_store_manager_boundary(self) -> AddingStoreManagerResponseBoundary:
-        return AddingStoreManagerPresenter()
+        return AddingShopUserPresenter()
 
     @injector.provider
     @flask_injector.request

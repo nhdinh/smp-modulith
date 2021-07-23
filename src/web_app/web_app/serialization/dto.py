@@ -22,29 +22,33 @@ class BaseSchema(ma.Schema):
 
 
 @dataclass
-class BaseInputDto:
+class BaseTimeLoggedRequest:
     timestamp: int
 
 
 @dataclass
-class BaseShopInputDto(BaseInputDto):
-    partner_id: str
+class BaseAuthorizedRequest(BaseTimeLoggedRequest):
+    current_user_id: str
+
+
+@dataclass
+class BaseAuthorizedShopUserRequest(BaseAuthorizedRequest):
     shop_id: str
 
 
 @dataclass
-class PaginationInputDto:
+class BasePaginationRequest:
     pagination_offset: Optional[int] = 1
     pagination_entries_per_page: Optional[int] = 10
 
 
 @dataclass
-class AuthorizedPaginationInputDto(PaginationInputDto, BaseShopInputDto):
+class BasePaginationAuthorizedRequest(BasePaginationRequest, BaseAuthorizedShopUserRequest):
     ...
 
 
 @dataclass(frozen=True)
-class PaginationOutputDto(Generic[T]):
+class PaginationTypedResponse(Generic[T]):
     pagination_offset: int
     pagination_entries_per_page: int
     total_items: int
@@ -65,7 +69,7 @@ class PaginationOutputDto(Generic[T]):
 
 
 @dataclass(frozen=True)
-class ListOutputDto(Generic[T]):
+class SimpleListTypedResponse(Generic[T]):
     items: List[T] = field(metadata={"marshmallow_field": ma.fields.Raw()}, default_factory=list)
 
     def serialize(self):
@@ -77,8 +81,8 @@ class ListOutputDto(Generic[T]):
 def paginate_response_factory(
         items: List[T],
         total_items: int,
-        input_dto: Union[PaginationInputDto, AuthorizedPaginationInputDto],
-) -> PaginationOutputDto[T]:
+        input_dto: Union[BasePaginationRequest, BasePaginationAuthorizedRequest],
+) -> PaginationTypedResponse[T]:
     """
     Create a paginate response data object from input params
 
@@ -87,7 +91,7 @@ def paginate_response_factory(
     :param total_items: total of items can be fetched
     :return:
     """
-    return PaginationOutputDto(
+    return PaginationTypedResponse(
         input_dto.pagination_entries_per_page,
         input_dto.pagination_offset,
         total_items,
@@ -115,7 +119,7 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
         dto = cast(TDto, schema.load(dict(input_data, **context), unknown=ma.EXCLUDE))
 
         # clean input of pagination
-        if isinstance(dto, AuthorizedPaginationInputDto) or isinstance(dto, PaginationInputDto):
+        if isinstance(dto, BasePaginationAuthorizedRequest) or isinstance(dto, BasePaginationRequest):
             try:
                 dto.pagination_offset = int(dto.pagination_offset) if int(dto.pagination_offset) > 0 else 1
                 dto.pagination_entries_per_page = int(dto.pagination_entries_per_page) if int(

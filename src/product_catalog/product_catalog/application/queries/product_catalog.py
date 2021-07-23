@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from web_app.serialization.dto import PaginationOutputDto
+from web_app.serialization.dto import PaginationTypedResponse
 
 
 @dataclass
@@ -92,7 +92,7 @@ class GetCatalogQuery(abc.ABC):
 
 class ListProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, page: int, page_size: int) -> PaginationOutputDto[ProductDto]:
+    def query(self, page: int, page_size: int) -> PaginationTypedResponse[ProductDto]:
         pass
 
 

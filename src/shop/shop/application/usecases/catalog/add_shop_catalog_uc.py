@@ -9,11 +9,11 @@ from shop.domain.entities.shop_catalog import ShopCatalog
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ExceptionMessages, ShopCatalogId
-from web_app.serialization.dto import BaseShopInputDto
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
-class AddingShopCatalogRequest(BaseShopInputDto):
+class AddingShopCatalogRequest(BaseAuthorizedShopUserRequest):
     title: str
     image: Optional[str]
 
@@ -37,7 +37,7 @@ class AddShopCatalogUC:
     def execute(self, dto: AddingShopCatalogRequest):
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
                 if shop.is_catalog_exists(catalog_title=dto.title):
                     raise Exception(ExceptionMessages.SHOP_CATALOG_EXISTED)

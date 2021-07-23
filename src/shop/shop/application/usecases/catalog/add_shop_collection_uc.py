@@ -12,11 +12,11 @@ from shop.application.usecases.shop_uc_common import (
     get_shop_or_raise,
 )
 from shop.domain.entities.value_objects import ShopCatalogId, ExceptionMessages, ShopCollectionId
-from web_app.serialization.dto import BaseShopInputDto
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
-class AddingShopCollectionRequest(BaseShopInputDto):
+class AddingShopCollectionRequest(BaseAuthorizedShopUserRequest):
     catalog_id: ShopCatalogId
     title: str
     image: Optional[str]
@@ -41,7 +41,7 @@ class AddShopCollectionUC:
     def execute(self, dto: AddingShopCollectionRequest):
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
                 catalog = get_catalog_from_shop_or_raise(catalog_id=dto.catalog_id, shop=shop)
 
                 if catalog.is_collection_exists(collection_title=dto.title):

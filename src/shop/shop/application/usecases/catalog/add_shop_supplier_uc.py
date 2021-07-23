@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ShopSupplierId
-from web_app.serialization.dto import BaseShopInputDto
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
-class AddingShopSupplierRequest(BaseShopInputDto):
+class AddingShopSupplierRequest(BaseAuthorizedShopUserRequest):
     name: str
     contact_name: str
     contact_phone: str
@@ -35,7 +35,7 @@ class AddShopSupplierUC:
     def execute(self, dto: AddingShopSupplierRequest):
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
                 # make supplier
                 supplier = shop.create_supplier(

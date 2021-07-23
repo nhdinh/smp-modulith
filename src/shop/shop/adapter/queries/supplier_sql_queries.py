@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from itertools import takewhile, starmap, groupby
+from typing import List
+
 from sqlalchemy import select
 
-from foundation.events import ThingGoneInBlackHoleError
-
 from db_infrastructure.base import SqlQuery
+from foundation.events import ThingGoneInBlackHoleError
 from shop.adapter.queries.query_common import (
     sql_count_all_products_by_supplier,
     sql_count_all_suppliers,
@@ -19,15 +21,16 @@ from shop.application.queries.supplier_queries import (
     ListShopSuppliersQuery,
 )
 from shop.domain.dtos.product_dtos import ShopProductCompactedDto, _row_to_product_dto
-from shop.domain.dtos.supplier_dtos import StoreSupplierResponseDto, _row_to_supplier_dto
-from shop.domain.entities.value_objects import ExceptionMessages
-from web_app.serialization.dto import AuthorizedPaginationInputDto, PaginationOutputDto, paginate_response_factory
+from shop.domain.dtos.supplier_dtos import StoreSupplierResponseDto, _row_to_supplier_dto, _row_to_supplier_contact_dto
+from shop.domain.entities.value_objects import ExceptionMessages, ShopSupplierId
+from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse, \
+    paginate_response_factory
 
 
 class SqlListShopSuppliersQuery(ListShopSuppliersQuery, SqlQuery):
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreSupplierResponseDto]:
+    def query(self, dto: BasePaginationAuthorizedRequest) -> PaginationTypedResponse[StoreSupplierResponseDto]:
         try:
-            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.partner_id,
+            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.current_user_id,
                                              conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
@@ -35,42 +38,40 @@ class SqlListShopSuppliersQuery(ListShopSuppliersQuery, SqlQuery):
             # get supplier counts
             count_suppliers = sql_count_all_suppliers(shop_id=dto.shop_id, conn=self._conn)
 
-            # build supplier query
-            query = select([
+            list_supplier_and_contacts_query = select([
                 shop_supplier_table,
-                shop_supplier_table.c.status.label('supplier_status')
-            ]).where(shop_supplier_table.c.shop_id == dto.shop_id)
-            query = query.limit(dto.pagination_entries_per_page).offset(
-                (dto.pagination_offset - 1) * dto.pagination_offset)
+                shop_supplier_table.c.status.label('supplier_status'),
+                shop_supplier_contact_table,
+                shop_supplier_contact_table.c.status.label('contact_status')
+            ]).select_from(shop_supplier_table).select_from(shop_supplier_contact_table) \
+                .join(shop_supplier_contact_table,
+                      shop_supplier_contact_table.c.supplier_id == shop_supplier_table.c.supplier_id) \
+                .where(shop_supplier_table.c.shop_id == dto.shop_id)
 
-            # query products
-            suppliers = self._conn.execute(query).all()
-            supplier_indice = [supplier.supplier_id for supplier in suppliers]
+            data_rows = self._conn.execute(list_supplier_and_contacts_query)
+            data_rows = sorted(data_rows, key=lambda r: r.supplier_id)
 
-            list_contact_query = select([shop_supplier_contact_table,
-                                         shop_supplier_contact_table.c.status.label('contact_status')]).where(
-                shop_supplier_contact_table.c.supplier_id.in_(supplier_indice))
-            contacts = self._conn.execute(list_contact_query).all()
+            # TODO: Handle the Catalog Response Builder with this method
+
+            response_items = []
+            for supplier, contacts in groupby(data_rows, key=lambda x: _row_to_supplier_dto(x, [])):
+                supplier.contacts = [_row_to_supplier_contact_dto(contact) for contact in list(contacts)]
+                response_items.append(supplier)
 
             # build response items
-            items = []
-            for supplier in suppliers:
-                contact_rows = [row for row in contacts if row.supplier_id == supplier.supplier_id]
-                items.append(_row_to_supplier_dto(supplier, contact_rows=contact_rows))
-
             return paginate_response_factory(
                 input_dto=dto,
                 total_items=count_suppliers,
-                items=items
+                items=response_items
             )
         except Exception as exc:
             raise exc
 
 
 class SqlListShopProductsBySupplierQuery(ListShopProductsBySupplierQuery, SqlQuery):
-    def query(self, dto: ListShopProductsBySupplierRequest) -> PaginationOutputDto[ShopProductCompactedDto]:
+    def query(self, dto: ListShopProductsBySupplierRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
         try:
-            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.partner_id,
+            valid_store = sql_verify_shop_id(shop_id=dto.shop_id, partner_id=dto.current_user_id,
                                              conn=self._conn)
             if not valid_store:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
