@@ -47,6 +47,8 @@ services:
       POSTGRES_DB: smp_db
     ports:
       - "5432:5432"
+    volumes:
+      - ../data/postgres-data:/var/lib/postgresql/data
 
   smtp_server:
     image: mailhog/mailhog
@@ -67,7 +69,7 @@ services:
     image: minio/minio
     hostname: minio
     volumes:
-      - ../data:/data
+      - ../data/minio:/data
     expose:
       - "9000"
     environment:

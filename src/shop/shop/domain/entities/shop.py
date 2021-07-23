@@ -4,10 +4,11 @@ from datetime import datetime
 from typing import Any, List, Optional, Set, Union
 
 from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent, ShopProductUpdatedEvent
-from foundation.events import EventMixin, ThingGoneInBlackHoleError, new_event_id
+from foundation import EventMixin, ThingGoneInBlackHoleError, new_event_id
 from foundation.value_objects.address import Address
 from foundation.value_objects.factories import get_money
-from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX, generate_shop_catalog_id, generate_shop_collection_id
+from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX, generate_shop_catalog_id, generate_shop_collection_id, \
+    generate_brand_id, generate_supplier_id
 from shop.domain.entities.setting import Setting
 from shop.domain.entities.shop_address import ShopAddress
 from shop.domain.entities.shop_catalog import ShopCatalog
@@ -15,7 +16,7 @@ from shop.domain.entities.shop_collection import ShopCollection
 from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.shop_product_brand import ShopProductBrand
 from shop.domain.entities.shop_product_tag import ShopProductTag
-from shop.domain.entities.shop_supplier import ShopSupplier
+from shop.domain.entities.shop_supplier import ShopSupplier, SupplierContact
 from shop.domain.entities.shop_user import ShopUser, SystemUser
 from shop.domain.entities.shop_warehouse import ShopWarehouse
 from shop.domain.entities.value_objects import (
@@ -26,7 +27,7 @@ from shop.domain.entities.value_objects import (
     ShopId,
     ShopStatus,
     ShopSupplierId,
-    ShopUserType,
+    ShopUserType, GenericShopItemStatus,
 )
 
 
@@ -333,31 +334,66 @@ class Shop(EventMixin):
 
     # endregion
 
+    def create_brand(self, name: str, logo: Optional[str] = '') -> ShopProductBrand:
+        """
+        Create or return an existing brand base on its name.
+        Update new logo if logo is input and the existing brand not yet have any logo.
+
+        :param name: name of the brand
+        :param logo: new logo
+
+        :return: instance of ShopProductBrand
+        """
+        brand = self._brand_factory(name=name)
+        if logo is not None and not brand.logo:
+            brand.logo = logo
+
+        return brand
+
     def _brand_factory(self, name: str) -> ShopProductBrand:
         try:
-            brand = next(b for b in self._brands if b.name.lower() == name.strip().lower())
+            brand = next(b for b in self._brands if b.name.lower() == name.lower())
             return brand
         except StopIteration:
             brand = ShopProductBrand(name=name)
+            brand.brand_id = generate_brand_id()
             self._brands.add(brand)
             return brand
+
+    def create_supplier(self, supplier_name: str, contact_name: str, contact_phone: str) -> ShopSupplier:
+        """
+        Create or return an existing supplier base on its name.lower()
+        Add or update contact_name and contact_phone
+
+        :param supplier_name: name of the supplier
+        :param contact_name: contact's name
+        :param contact_phone: contact's phone
+
+        :return: instance of ShopSupplier
+        """
+        supplier = self._supplier_factory(supplier_name=supplier_name,
+                                          contact_name=contact_name,
+                                          contact_phone=contact_phone)
+        return supplier
 
     def _supplier_factory(self, supplier_name: str, contact_name: str = None, contact_phone: str = None):
         try:
             # contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone)
-            supplier = next(s for s in self._suppliers if s.supplier_name.lower() == supplier_name.strip().lower())
+            supplier = next(s for s in self._suppliers if s.supplier_name.lower() == supplier_name.lower())
             # if contact not in supplier.contacts:
             #     supplier.contacts.add(contact)
-
-            return supplier
         except StopIteration:
             # contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone)
-            supplier = ShopSupplier(supplier_name=supplier_name,
-                                    contact_name=contact_name,
-                                    contact_phone=contact_phone)
+            supplier = ShopSupplier(supplier_name=supplier_name)
+            supplier.supplier_id = generate_supplier_id()
             # , contacts=set([contact]))
             self._suppliers.add(supplier)
-            return supplier
+
+        contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone, status=GenericShopItemStatus.NORMAL)
+        if contact not in supplier.contacts:
+            supplier.contacts.add(contact)
+
+        return supplier
 
     def _is_collection_exists(self, title: str, parent_catalog: ShopCatalog):
         try:

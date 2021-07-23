@@ -8,8 +8,8 @@ from typing import Optional, Set
 from sqlalchemy.orm.collections import InstrumentedSet
 
 from foundation.common_helpers import slugify
-from foundation.entity import Entity
-from foundation.events import EventMixin
+from foundation import Entity
+from foundation import EventMixin
 
 from product_catalog.domain.entities.collection import Collection
 from product_catalog.domain.entities.product import Product

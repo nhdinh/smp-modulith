@@ -3,10 +3,10 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from store.domain.entities.shop_registration import ShopRegistration
+from foundation import BusinessRuleBase
 
-from foundation.business_rule import BusinessRuleBase
+if TYPE_CHECKING:
+    from shop.domain.entities.shop_registration import ShopRegistration
 
 
 class StoreRegistrationMustHaveValidExpirationRule(BusinessRuleBase):

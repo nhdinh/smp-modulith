@@ -19,7 +19,7 @@ from shop.adapter.id_generators import (
     generate_shop_id,
     generate_supplier_id,
 )
-from shop.domain.entities.value_objects import AddressType, RegistrationStatus, ShopItemStatus, ShopStatus, ShopUserType
+from shop.domain.entities.value_objects import AddressType, RegistrationStatus, GenericShopItemStatus, ShopStatus, ShopUserType
 
 shop_registration_table = sa.Table(
     'shop_registration',
@@ -126,7 +126,7 @@ shop_catalog_table = sa.Table(
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('image', sa.String(255)),
     sa.Column('default', sa.Boolean, default=False),
-    sa.Column('status', sa.Enum(ShopItemStatus), nullable=False, default=ShopItemStatus.NORMAL),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
@@ -139,7 +139,7 @@ shop_collection_table = sa.Table(
     sa.Column('catalog_id', sa.ForeignKey(shop_catalog_table.c.catalog_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('title', sa.String(255), nullable=False),
     sa.Column('default', sa.Boolean, default=False),
-    sa.Column('status', sa.Enum(ShopItemStatus), nullable=False, default=ShopItemStatus.NORMAL),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
@@ -165,11 +165,22 @@ shop_supplier_table = sa.Table(
     sa.Column('supplier_id', sa.String(40), primary_key=True, unique=True, default=generate_supplier_id),
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('supplier_name', sa.String, nullable=False),
-    sa.Column('contact_name', sa.String, nullable=False),
-    sa.Column('contact_phone', sa.String, nullable=False),
-    sa.Column('status', sa.Enum(ShopItemStatus), nullable=False, default=ShopItemStatus.NORMAL),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+)
+
+shop_supplier_contact_table = sa.Table(
+    'shop_supplier_contact',
+    metadata,
+    sa.Column('supplier_id', sa.ForeignKey(shop_supplier_table.c.supplier_id, ondelete='CASCADE', onupdate='CASCADE')),
+    sa.Column('contact_name', sa.String, nullable=False),
+    sa.Column('contact_phone', sa.String, nullable=False),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
+    sa.Column('created_at', sa.DateTime, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+
+    sa.PrimaryKeyConstraint('supplier_id', 'contact_name', 'contact_phone', name='shop_supplier_contact_pk'),
 )
 
 # endregion
@@ -190,7 +201,7 @@ shop_product_table = sa.Table(
     sa.Column('restock_threshold', sa.Integer, default='-1'),
     sa.Column('max_stock_threshold', sa.Integer, default='-1'),
 
-    sa.Column('status', sa.Enum(ShopItemStatus), nullable=False, default=ShopItemStatus.NORMAL),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('version', sa.Integer, default=0),
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
@@ -241,7 +252,7 @@ shop_product_unit_table = sa.Table(
     sa.Column('conversion_factor', sa.Numeric, nullable=True, server_default='1'),
 
     sa.Column('default', sa.Boolean, default=False, server_default='0'),
-    sa.Column('status', sa.Enum(ShopItemStatus), nullable=False, default=ShopItemStatus.NORMAL),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
 
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),

@@ -3,8 +3,7 @@
 from dataclasses import dataclass
 
 from foundation import Event
-
-from store.domain.entities.value_objects import ShopCatalogId, ShopId, StoreCollectionId
+from shop.domain.entities.value_objects import ShopId, ShopCatalogId
 
 
 @dataclass(frozen=True)
@@ -35,6 +34,10 @@ class StoreCatalogToggledEvent(Event):
     catalog_id: ShopCatalogId
     catalog_reference: str
     disabled: bool
+
+
+class StoreCollectionId:
+    pass
 
 
 @dataclass(frozen=True)

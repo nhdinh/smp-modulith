@@ -17,14 +17,14 @@ from web_app.serialization.dto import BaseShopInputDto
 
 
 @dataclass(frozen=True)
-class CreatingStoreProductUnitConversionRequest:
+class CreatingShopProductUnitConversionRequest:
     unit: str
     base_unit: str
     conversion_factor: float
 
 
 @dataclass(frozen=True)
-class CreatingStoreProductFirstStockingRequest:
+class CreatingShopProductFirstStockingRequest:
     unit: str
     stocking: int
 
@@ -39,7 +39,7 @@ class CreatingProductPriceRequest:
 
 
 @dataclass(frozen=True)
-class CreatingStoreSupplierRequest:
+class CreatingShopSupplierWithPurchasePriceRequest:
     supplier_name: str
     contact_name: Opt[str]
     contact_phone: Opt[str]
@@ -78,11 +78,11 @@ class AddingShopProductRequest(BaseShopInputDto):
     max_stock_threshold: Opt[int] = 0
 
     # conversion units (optional)
-    unit_conversions: Opt[List[CreatingStoreProductUnitConversionRequest]] = field(default_factory=list)
-    first_inventory_stocking_for_unit_conversions: Opt[List[CreatingStoreProductFirstStockingRequest]] = field(
+    unit_conversions: Opt[List[CreatingShopProductUnitConversionRequest]] = field(default_factory=list)
+    first_inventory_stocking_for_unit_conversions: Opt[List[CreatingShopProductFirstStockingRequest]] = field(
         default_factory=list)
 
-    suppliers: Opt[List[CreatingStoreSupplierRequest]] = field(default_factory=list)
+    suppliers: Opt[List[CreatingShopSupplierWithPurchasePriceRequest]] = field(default_factory=list)
 
 
 @dataclass
@@ -104,7 +104,7 @@ class AddShopProductUC:
     def execute(self, dto: AddingShopProductRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                store = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
 
                 product_data = dict()
                 product_data_fields = [
@@ -158,7 +158,7 @@ class AddShopProductUC:
                         # process units array data
                         if data_field == 'unit_conversions':  # unit_conversions
                             unit_conversions = []
-                            for unit_conversion in data:  # type:CreatingStoreProductUnitConversionRequest
+                            for unit_conversion in data:  # type:CreatingShopProductUnitConversionRequest
                                 unit_conversions.append({
                                     'unit': unit_conversion.unit,
                                     'base_unit': unit_conversion.base_unit,
@@ -170,7 +170,7 @@ class AddShopProductUC:
                         # process stocking data
                         elif data_field == 'first_inventory_stocking_for_unit_conversions':
                             stockings = []
-                            for stocking in data:  # type:CreatingStoreProductFirstStockingRequest
+                            for stocking in data:  # type:CreatingShopProductFirstStockingRequest
                                 stockings.append({
                                     'unit': stocking.unit,
                                     'stocking': stocking.stocking,
@@ -180,7 +180,7 @@ class AddShopProductUC:
                         # process suppliers data
                         elif data_field == 'suppliers':
                             suppliers = []
-                            for create_supplier_request in data:  # type:CreatingStoreSupplierRequest
+                            for create_supplier_request in data:  # type:CreatingShopSupplierWithPurchasePriceRequest
                                 supplier_prices = []
                                 for create_price_request in create_supplier_request.purchase_prices:  # type:CreatingProductPriceRequest
                                     supplier_prices.append({
@@ -209,7 +209,7 @@ class AddShopProductUC:
                 product_data['title'] += ''.join(random.sample(string.ascii_lowercase, 8))
                 product_data['sku'] += ''.join(random.sample(string.ascii_uppercase, 3))
 
-                product = store.create_product(**product_data)
+                product = shop.create_product(**product_data)
 
                 # make response
                 response_dto = AddingShopProductResponse(
@@ -218,7 +218,7 @@ class AddShopProductUC:
                 self._ob.present(response_dto=response_dto)
 
                 # increase aggregate version
-                store.version += 1
+                shop.version += 1
                 uow.commit()
             except IntegrityError as exc:
                 raise exc

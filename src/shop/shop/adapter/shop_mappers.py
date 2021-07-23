@@ -22,7 +22,7 @@ from shop.adapter.shop_db import (
     shop_supplier_table,
     shop_table,
     shop_users_table,
-    shop_warehouse_table,
+    shop_warehouse_table, shop_supplier_contact_table,
 )
 from shop.domain.entities.purchase_price import ProductPurchasePrice
 from shop.domain.entities.setting import Setting
@@ -36,7 +36,7 @@ from shop.domain.entities.shop_product_cache import ShopProductCache
 from shop.domain.entities.shop_product_tag import ShopProductTag
 from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_registration import ShopRegistration
-from shop.domain.entities.shop_supplier import ShopSupplier
+from shop.domain.entities.shop_supplier import ShopSupplier, SupplierContact
 from shop.domain.entities.shop_user import ShopUser
 from shop.domain.entities.shop_warehouse import ShopWarehouse
 from shop.domain.entities.value_objects import ShopUserType
@@ -157,7 +157,14 @@ def start_mappers():
                )
            })
 
-    mapper(ShopSupplier, shop_supplier_table, properties={})
+    mapper(SupplierContact, shop_supplier_contact_table)
+    mapper(ShopSupplier, shop_supplier_table, properties={
+        '_contacts': relationship(
+            SupplierContact,
+            collection_class=set,
+            backref=backref('_supplier')
+        )
+    })
 
     mapper(ShopAddress, shop_addresses_table, properties={
         'address': relationship(

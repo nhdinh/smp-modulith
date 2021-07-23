@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import injector
 
-from foundation.events import Event, EventMixin
-
-from store.adapter.id_generators import generate_product_id
-from store.application.services.store_unit_of_work import ShopUnitOfWork
+from foundation import Event, EventMixin
+from shop.adapter.id_generators import generate_product_id
+from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
 
 class CollionCreatedEvent(Event):

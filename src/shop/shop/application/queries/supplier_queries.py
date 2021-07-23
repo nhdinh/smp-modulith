@@ -14,9 +14,14 @@ from web_app.serialization.dto import (
 )
 
 
+@dataclass
+class ListShopSuppliersRequest(PaginationInputDto, BaseShopInputDto):
+    ...
+
+
 class ListShopSuppliersQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: AuthorizedPaginationInputDto) -> PaginationOutputDto[StoreSupplierResponseDto]:
+    def query(self, dto: ListShopSuppliersRequest) -> PaginationOutputDto[StoreSupplierResponseDto]:
         pass
 
 

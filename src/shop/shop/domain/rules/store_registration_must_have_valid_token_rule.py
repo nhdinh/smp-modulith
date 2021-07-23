@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from foundation.business_rule import BusinessRuleBase
-
-from store.domain.entities.registration_status import RegistrationStatus
+from shop.domain.entities.value_objects import RegistrationStatus
 
 
 class StoreRegistrationMustHaveValidTokenRule(BusinessRuleBase):

@@ -12,7 +12,7 @@ from identity.application.queries.identity_queries import (
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.application.usecases.change_password_uc import ChangePasswordUC, ChangingPasswordResponseBoundary
 from identity.application.usecases.log_user_in_uc import LoggingUserInResponseBoundary, LoggingUserInUC
-from identity.application.usecases.register_user_uc import RegisteringUserResponseBoundary, RegisteringUserUC
+from identity.application.usecases.register_user_uc import RegisteringAccountResponseBoundary, RegisterAccountUC
 from identity.application.usecases.request_to_change_password_uc import (
     RequestingToChangePasswordResponseBoundary,
     RequestToChangePasswordUC,
@@ -22,9 +22,9 @@ from identity.application.usecases.revoke_token_uc import RevokingTokenUC
 
 class IdentityApplicationModule(injector.Module):
     @injector.provider
-    def register_user_uc(self, boundary: RegisteringUserResponseBoundary,
-                         uow: IdentityUnitOfWork) -> RegisteringUserUC:
-        return RegisteringUserUC(output_boundary=boundary, uow=uow)
+    def register_user_uc(self, boundary: RegisteringAccountResponseBoundary,
+                         uow: IdentityUnitOfWork) -> RegisterAccountUC:
+        return RegisterAccountUC(output_boundary=boundary, uow=uow)
 
     @injector.provider
     def login_uc(self,

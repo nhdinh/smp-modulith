@@ -9,7 +9,7 @@ from identity.domain.value_objects import UserEmail, UserId
 
 
 @dataclass
-class RegisteringUserRequest:
+class RegisteringAccountRequest:
     email: UserEmail
     password: str
 
@@ -20,20 +20,20 @@ class RegisteringUserResponse:
     email: UserEmail
 
 
-class RegisteringUserResponseBoundary(metaclass=abc.ABCMeta):
+class RegisteringAccountResponseBoundary(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def present(self, response_dto: RegisteringUserResponse) -> None:
         raise NotImplementedError
 
 
-class RegisteringUserUC:
+class RegisterAccountUC:
     def __init__(self,
-                 output_boundary: RegisteringUserResponseBoundary,
+                 output_boundary: RegisteringAccountResponseBoundary,
                  uow: IdentityUnitOfWork) -> None:
         self._ob = output_boundary
         self._uow = uow
 
-    def execute(self, input_dto: RegisteringUserRequest) -> None:
+    def execute(self, input_dto: RegisteringAccountRequest) -> None:
         with self._uow as uow:  # type:IdentityUnitOfWork
             try:
                 user = User.create(email=input_dto.email, password=input_dto.password)
@@ -53,7 +53,7 @@ class RegisteringUserUC:
 
 
 class CreatingDefaultAdminUC:
-    def __init__(self, output_boundary: RegisteringUserResponseBoundary,
+    def __init__(self, output_boundary: RegisteringAccountResponseBoundary,
                  uow: IdentityUnitOfWork) -> None:
         self._ob = output_boundary
         self._uow = uow

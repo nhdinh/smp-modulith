@@ -2,18 +2,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 import secrets
-import uuid
+from datetime import datetime, timedelta
 
+from foundation import Entity
+from foundation import EventMixin, new_event_id
 from foundation.domain_events.shop_events import (
     ShopRegisteredEvent,
     ShopRegistrationConfirmedEvent,
     ShopRegistrationResendEvent,
 )
-from foundation.entity import Entity
-from foundation.events import EventMixin, EveryModuleMustCatchThisEvent, new_event_id
-
 from shop.adapter.id_generators import SHOP_ID_PREFIX, generate_shop_id
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_user import ShopUser

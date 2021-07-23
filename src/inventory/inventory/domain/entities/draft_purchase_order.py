@@ -7,8 +7,8 @@ from typing import List, Tuple
 
 from dateutil.utils import today
 
-from foundation.entity import Entity
-from foundation.events import EventMixin
+from foundation import Entity
+from foundation import EventMixin
 
 from inventory.adapter.id_generators import generate_purchase_order_id
 from inventory.domain.entities.draft_purchase_order_item import DraftPurchaseOrderItem

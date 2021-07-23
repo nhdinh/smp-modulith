@@ -16,7 +16,8 @@ from sqlalchemy.orm import Session
 from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.catalog_bp import CatalogAPI, catalog_blueprint
-from web_app.blueprints.identity_bp import IdentityAPI, auth_blueprint
+from web_app.blueprints.foundation_bp import foundation_blueprint, FoundationAPI
+from web_app.blueprints.identity_bp import IdentityAPI, identity_blueprint
 from web_app.blueprints.product_bp import ProductAPI, product_blueprint
 from web_app.blueprints.shop.shop_bp import ShopAPI, shop_blueprint
 from web_app.blueprints.shop.shop_catalog_bp import ShopCatalogAPI, shop_catalog_blueprint
@@ -35,14 +36,18 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.url_map.strict_slashes = False
 
     # config openapi
-    app.config.update({
-        'APISPEC_SPEC': APISpec(title='SMP', openapi_version='3.0', version='v1', plugins=[MarshmallowPlugin()]),
-        'APISPEC_SWAGGER_URL': '/docs',
-    })
+    # app.config.update({
+    #     'APISPEC_SPEC': APISpec(title='SMP', openapi_version='3.0', version='v1', plugins=[MarshmallowPlugin()]),
+    #     'APISPEC_SWAGGER_URL': '/docs',
+    # })
     # docs.init_app(app)
 
-    # register all blueprints
-    app.register_blueprint(auth_blueprint, url_prefix='/user')
+    # register all blueprints, identity
+    app.register_blueprint(identity_blueprint, url_prefix='/user')
+
+    # foundation blueprint
+    app.register_blueprint(foundation_blueprint, url_prefix='/')
+
     app.register_blueprint(catalog_blueprint, url_prefix='/catalog')
     app.register_blueprint(product_blueprint, url_prefix='/product')
     # app.register_blueprint(auctions_blueprint, url_prefix="/auctions")
@@ -69,6 +74,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app_context = bootstrap_app()
     FlaskInjector(app, modules=[
         IdentityAPI(),
+        FoundationAPI(),
+
         # AuctionsWeb(),
         CatalogAPI(),
         ProductAPI(),

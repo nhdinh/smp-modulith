@@ -5,7 +5,9 @@ from minio import Minio
 
 from foundation.fs import FileSystem
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.catalog.add_shop_brand_uc import AddingShopBrandResponseBoundary, AddShopBrandUC
 from shop.application.usecases.catalog.add_shop_catalog_uc import AddingShopCatalogResponseBoundary, AddShopCatalogUC
+from shop.application.usecases.catalog.add_shop_supplier_uc import AddShopSupplierUC, AddingShopSupplierResponseBoundary
 from shop.application.usecases.catalog.invalidate_shop_catalog_cache_uc import InvalidateShopCatalogCacheUC
 from shop.application.usecases.catalog.remove_shop_catalog_uc import (
     RemoveShopCatalogUC,
@@ -171,6 +173,18 @@ class ShopApplicationModule(injector.Module):
     def make_shop_collection_default_uc(self, boundary: UpdatingStoreCollectionResponseBoundary,
                                         uow: ShopUnitOfWork) -> MakeStoreCollectionDefaultUC:
         return MakeStoreCollectionDefaultUC(boundary, uow)
+
+    # endregion
+
+    # region ## Other ##
+    @injector.provider
+    def add_shop_brand_uc(self, boundary: AddingShopBrandResponseBoundary, uow: ShopUnitOfWork) -> AddShopBrandUC:
+        return AddShopBrandUC(boundary, uow)
+
+    @injector.provider
+    def add_shop_supplier_uc(self, boundary: AddingShopSupplierResponseBoundary,
+                             uow: ShopUnitOfWork) -> AddShopSupplierUC:
+        return AddShopSupplierUC(boundary, uow)
 
     # endregion
 

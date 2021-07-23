@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 from flask import Response, jsonify, make_response
 
+from shop.application.usecases.catalog.add_shop_brand_uc import AddingShopBrandResponseBoundary, AddingShopBrandResponse
+from shop.application.usecases.catalog.add_shop_supplier_uc import AddingShopSupplierResponse, \
+    AddingShopSupplierResponseBoundary
 from shop.application.usecases.create_store_warehouse_uc import (
     CreatingStoreWarehouseResponse,
     CreatingStoreWarehouseResponseBoundary,
@@ -81,4 +84,18 @@ class AddingShopAddressPresenter(AddingShopAddressResponseBoundary):
     response: Response
 
     def present(self, response_dto: AddingShopAddressResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class AddingShopBrandPresenter(AddingShopBrandResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: AddingShopBrandResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class AddingShopSupplierPresenter(AddingShopSupplierResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: AddingShopSupplierResponse):
         self.response = make_response(jsonify(response_dto.__dict__))

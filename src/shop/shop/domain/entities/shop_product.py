@@ -6,12 +6,11 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Dict, List, Optional, Set, Tuple
 
+from foundation import Entity
+from foundation import EventMixin, ThingGoneInBlackHoleError, new_event_id
 from foundation.domain_events.shop_events import ShopProductUpdatedEvent
-from foundation.entity import Entity
-from foundation.events import EventMixin, ThingGoneInBlackHoleError, new_event_id
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-
 from shop.adapter.id_generators import generate_product_id, generate_product_purchase_price_id
 from shop.domain.entities.purchase_price import ProductPurchasePrice
 from shop.domain.entities.shop_catalog import ShopCatalog

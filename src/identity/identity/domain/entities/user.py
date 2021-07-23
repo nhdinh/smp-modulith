@@ -10,8 +10,8 @@ import uuid
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from foundation.domain_events.identity_events import ShopAdminCreatedEvent, UserCreatedEvent
-from foundation.entity import Entity
-from foundation.events import EventMixin, EveryModuleMustCatchThisEvent, new_event_id
+from foundation import Entity
+from foundation import EventMixin, EveryModuleMustCatchThisEvent, new_event_id
 
 from identity.adapters.id_generator import generate_user_id
 from identity.domain.events.password_resetted_event import PasswordResettedEvent

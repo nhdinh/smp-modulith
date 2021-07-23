@@ -7,8 +7,6 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
     ListShopProductsByCatalogRequest, ListShopCatalogsRequest
-from shop.application.usecases.catalog.add_shop_brand_uc import AddingShopBrandRequest, AddShopBrandUC, \
-    AddingShopBrandResponseBoundary
 from shop.application.usecases.catalog.add_shop_catalog_uc import (
     AddingShopCatalogRequest,
     AddingShopCatalogResponseBoundary,
@@ -25,7 +23,7 @@ from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
 from web_app.presenters.shop_catalog_presenters import AddingShopCatalogPresenter, RemovingShopCatalogPresenter, \
     AddingShopCollectionPresenter
-from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
+from web_app.serialization.dto import get_dto
 
 SHOP_CATALOG_BLUEPRINT_NAME = 'shop_catalog_blueprint'
 shop_catalog_blueprint = Blueprint(SHOP_CATALOG_BLUEPRINT_NAME, __name__)
@@ -103,15 +101,5 @@ def add_shop_collection(add_shop_collection_uc: AddShopCollectionUC,
                         presenter: AddingShopCollectionResponseBoundary) -> Response:
     dto = get_dto(request, AddingShopCollectionRequest, context={'partner_id': get_jwt_identity()})
     add_shop_collection_uc.execute(dto)
-
-    return presenter.response, 201  # type:ignore
-
-
-@shop_catalog_blueprint.route('/add_brand', methods=['POST'])
-@jwt_required()
-@log_error()
-def add_shop_brand(add_shop_brand_uc: AddShopBrandUC, presenter: AddingShopBrandResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopBrandRequest, context={'partner_': get_jwt_identity()})
-    add_shop_brand_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore

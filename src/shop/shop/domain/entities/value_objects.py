@@ -22,7 +22,7 @@ class ShopStatus(Enum):
     WAREHOUSE_YET_CREATED = 'Warehouse_yet_created'
 
 
-class ShopItemStatus(Enum):
+class GenericShopItemStatus(Enum):
     NORMAL = 'NORMAL'
     DISABLED = 'DISABLED'
     DELETED = 'DELETED'

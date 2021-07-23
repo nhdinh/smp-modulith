@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from flask import Blueprint, Response, current_app, jsonify, make_response, request
 import flask_injector
-from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
 import injector
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
 
 from foundation.logger import logger
-
 from identity.application.queries.identity_queries import GetAllUsersQuery, GetSingleUserQuery
 from identity.application.usecases.change_password_uc import (
     ChangePasswordUC,
@@ -22,10 +21,10 @@ from identity.application.usecases.log_user_in_uc import (
     LoggingUserInUC,
 )
 from identity.application.usecases.register_user_uc import (
-    RegisteringUserRequest,
+    RegisteringAccountRequest,
     RegisteringUserResponse,
-    RegisteringUserResponseBoundary,
-    RegisteringUserUC,
+    RegisteringAccountResponseBoundary,
+    RegisterAccountUC,
 )
 from identity.application.usecases.request_to_change_password_uc import (
     RequestingToChangePasswordRequest,
@@ -38,14 +37,15 @@ from identity.domain.entities.revoked_token import RevokedToken
 from web_app.presenters import log_error
 from web_app.serialization.dto import get_dto
 
-auth_blueprint = Blueprint('auth_blueprint', __name__)
+IDENTITY_BLUEPRINT_NAME = 'identity_blueprint'
+identity_blueprint = Blueprint(IDENTITY_BLUEPRINT_NAME, __name__)
 
 
 class IdentityAPI(injector.Module):
     @injector.provider
     @flask_injector.request
-    def register_user_response_boundary(self) -> RegisteringUserResponseBoundary:
-        return RegisteringUserPresenter()
+    def register_account_response_boundary(self) -> RegisteringAccountResponseBoundary:
+        return RegisteringAccountPresenter()
 
     @injector.provider
     @flask_injector.request
@@ -63,29 +63,24 @@ class IdentityAPI(injector.Module):
         return ChangingPasswordPresenter()
 
 
-@auth_blueprint.route('/register', methods=['POST'], strict_slashes=False)
+@identity_blueprint.route('/register', methods=['POST'], strict_slashes=False)
 @log_error()
-def register_user(registering_user_uc: RegisteringUserUC, presenter: RegisteringUserResponseBoundary):
+def register_user(registering_account_uc: RegisterAccountUC, presenter: RegisteringAccountResponseBoundary):
     """
     Register a new user account
 
-    :param registering_user_uc: The usecase processor named RegisteringUser
+    :param registering_account_uc: The usecase processor named RegisteringUser
     :param presenter: the output present formatter
     :return:
     """
     # try:
-    dto = get_dto(request, RegisteringUserRequest, context={})
-    registering_user_uc.execute(dto)
+    dto = get_dto(request, RegisteringAccountRequest, context={})
+    registering_account_uc.execute(dto)
 
     return presenter.response, 201  # type: ignore
-    # except BusinessRuleValidationError as exc:
-    #     return make_response(jsonify({'message': exc.details})), 400  # type:ignore
-    # except Exception as exc:
-    #     raise exc
-    #     # return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
 
-@auth_blueprint.route('/login', methods=['POST'])
+@identity_blueprint.route('/login', methods=['POST'])
 @log_error()
 def user_login(logging_user_in_uc: LoggingUserInUC, presenter: LoggingUserInResponseBoundary) -> Response:
     # UserLogin
@@ -97,7 +92,7 @@ def user_login(logging_user_in_uc: LoggingUserInUC, presenter: LoggingUserInResp
     return presenter.response, 200  # type:ignore
 
 
-@auth_blueprint.route('/logout', methods=['POST'])
+@identity_blueprint.route('/logout', methods=['POST'])
 @jwt_required()
 def user_logout_access(revoking_token_uc: RevokingTokenUC):
     jti = get_jwt()['jti']
@@ -110,7 +105,7 @@ def user_logout_access(revoking_token_uc: RevokingTokenUC):
         return make_response(jsonify({'message': 'Something wrong'})), 500
 
 
-@auth_blueprint.route('/logout/refresh', methods=['POST'])
+@identity_blueprint.route('/logout/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
     jti = get_jwt()['jti']
@@ -126,7 +121,7 @@ def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
         return make_response(jsonify({'message': 'Something wrong'})), 500
 
 
-@auth_blueprint.route('/refresh-token', methods=['POST'])
+@identity_blueprint.route('/refresh-token', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_token(query: GetSingleUserQuery):
     # TokenRefresh
@@ -147,25 +142,25 @@ def refresh_token(query: GetSingleUserQuery):
         })), 404
 
 
-@auth_blueprint.route('/all', methods=['GET'])
+@identity_blueprint.route('/all', methods=['GET'])
 @jwt_required()
 def list_all_users(query: GetAllUsersQuery) -> Response:
     return make_response(jsonify(query.query()))
 
 
-@auth_blueprint.route('/', methods=['GET'])
+@identity_blueprint.route('/', methods=['GET'])
 @jwt_required()
 def get_current_user(query: GetSingleUserQuery) -> Response:
     current_user = get_jwt_identity()
     return make_response(jsonify(query.query(user_q=current_user)))
 
 
-@auth_blueprint.route('/', methods=['DELETE'])
+@identity_blueprint.route('/', methods=['DELETE'])
 def delete_user():
     pass
 
 
-@auth_blueprint.route('/change-passwd', methods=['POST'])
+@identity_blueprint.route('/change-passwd', methods=['POST'])
 def request_change_password(request_to_change_password_uc: RequestToChangePasswordUC,
                             presenter: RequestingToChangePasswordResponseBoundary) -> Response:
     try:
@@ -180,7 +175,7 @@ def request_change_password(request_to_change_password_uc: RequestToChangePasswo
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
 
-@auth_blueprint.route('/change-passwd/<string:reset_token>', methods=['POST'])
+@identity_blueprint.route('/change-passwd/<string:reset_token>', methods=['POST'])
 def change_password(reset_token: str, change_password_uc: ChangePasswordUC,
                     presenter: ChangingPasswordResponseBoundary) -> Response:
     try:
@@ -195,7 +190,7 @@ def change_password(reset_token: str, change_password_uc: ChangePasswordUC,
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
 
-@auth_blueprint.route('/change-passwd/authorized', methods=['POST'])
+@identity_blueprint.route('/change-passwd/authorized', methods=['POST'])
 @jwt_required()
 def change_password_authorizedly(change_password_uc: ChangePasswordUC,
                                  presenter: ChangingPasswordResponseBoundary) -> Response:
@@ -212,7 +207,7 @@ def change_password_authorizedly(change_password_uc: ChangePasswordUC,
         return make_response(jsonify({'messages': exc.args})), 400  # type:ignore
 
 
-class RegisteringUserPresenter(RegisteringUserResponseBoundary):
+class RegisteringAccountPresenter(RegisteringAccountResponseBoundary):
     response: Response
 
     def present(self, response_dto: RegisteringUserResponse) -> None:

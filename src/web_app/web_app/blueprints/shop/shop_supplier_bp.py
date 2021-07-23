@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from flask import Blueprint, Response, jsonify, make_response, request
 import flask_injector
-from flask_jwt_extended import get_jwt_identity, jwt_required
-from web_app.helpers import validate_request_timestamp
 import injector
+from flask import Blueprint, Response, jsonify, make_response, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from shop.application.queries.supplier_queries import (
     ListShopProductsBySupplierQuery,
     ListShopProductsBySupplierRequest,
-    ListShopSuppliersQuery,
+    ListShopSuppliersQuery, ListShopSuppliersRequest,
 )
 from shop.application.usecases.product.add_shop_product_to_supplier_uc import (
     AddingShopProductToSupplierRequest,
     AddingShopProductToSupplierResponseBoundary,
     AddShopProductToSupplierUC,
 )
+from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
 from web_app.presenters.shop_catalog_presenters import AddingShopProductToSupplierPresenter
-from web_app.serialization.dto import AuthorizedPaginationInputDto, get_dto
+from web_app.serialization.dto import get_dto
 
 SHOP_SUPPLIER_BLUEPRINT_NAME = 'shop_supplier_blueprint'
 shop_supplier_blueprint = Blueprint(SHOP_SUPPLIER_BLUEPRINT_NAME, __name__)
@@ -36,7 +36,7 @@ class ShopSupplierAPI(injector.Module):
 @jwt_required()
 @log_error()
 def list_shop_suppliers(list_shop_suppliers_query: ListShopSuppliersQuery) -> Response:
-    dto = get_dto(request, AuthorizedPaginationInputDto, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopSuppliersRequest, context={'partner_id': get_jwt_identity()})
     response = list_shop_suppliers_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 

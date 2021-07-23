@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from typing import NewType
 
-from foundation.events import EventMixin
+from foundation import EventMixin
 
 InventoryProductId = NewType('InventoryProductId', tp=str)
 

@@ -16,12 +16,15 @@ LocationCountryId = NewType('LocationCountryId', tp=str)
 LocationCityId = NewType('LocationCityId', tp=str)
 LocationCityDivisionId = NewType('LocationCityDivisionId', tp=str)
 LocationCitySubDivisionId = NewType('LocationCitySubDivisionId', tp=str)
+ImageId = NewType('ImageId', tp=str)
 
 COUNTRY_ID_PREFIX = 'Country'
 CITY_ID_PREFIX = 'City'
 DIVISION_ID_PREFIX = 'Div'
 SUB_DIVISION_ID_PREFIX = 'SubDiv'
 ADDRESS_ID_PREFIX = 'Address'
+IMAGE_ID_PREFIX = 'Img'
+IMAGE_ID_KEYSIZE = (40, 15)
 
 
 def generate_country_id():
@@ -42,6 +45,10 @@ def generate_sub_division_id():
 
 def generate_address_id():
     return nanoid_generate(prefix=ADDRESS_ID_PREFIX)
+
+
+def generate_image_id():
+    return nanoid_generate(prefix=IMAGE_ID_PREFIX, key_size=IMAGE_ID_KEYSIZE)
 
 
 """

@@ -5,8 +5,8 @@ from typing import Union
 
 from sqlalchemy.orm import Session
 
-from foundation.entity import Entity
-from foundation.events import EventMixin
+from foundation import Entity
+from foundation import EventMixin
 
 
 class AbstractRepository(abc.ABC):

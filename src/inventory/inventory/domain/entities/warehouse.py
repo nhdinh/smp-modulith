@@ -9,7 +9,7 @@ import uuid
 from dateutil.utils import today
 
 from foundation.domain_events.inventory_events import WarehouseCreatedEvent
-from foundation.events import EventMixin, new_event_id
+from foundation import EventMixin, new_event_id
 
 from inventory.adapter.id_generators import generate_warehouse_id
 from inventory.adapter.inventory_db import generate_draft_purchase_order_id

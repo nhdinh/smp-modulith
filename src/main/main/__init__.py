@@ -9,10 +9,11 @@ from flask import current_app
 import injector
 from sqlalchemy.engine import Engine, create_engine
 
-from foundation import FoundationModule
+from foundation.foundation_event_handler_module import FoundationEventHandlerModule
 
 from customer_relationship import CustomerRelationshipEventHandlerModule
 from db_infrastructure import metadata
+from foundation.foundation_applications_module import FoundationApplicationModule
 from identity.identity_applications_module import IdentityApplicationModule
 from identity.identity_event_handler_module import IdentityEventHandlerModule
 from identity.identity_infrastructure_module import IdentityInfrastructureModule
@@ -29,7 +30,6 @@ from shop.shop_infrastructure_module import ShopInfrastructureModule
 
 # from shipping import Shipping
 # from shipping_infrastructure import ShippingInfrastructure
-
 
 
 __all__ = ["bootstrap_app"]
@@ -95,7 +95,9 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             MinIOService(settings["minio.host"], settings["minio.access_key"], settings["minio.secret_key"]),
             FileSystemProvider(),
             Configs(settings),
-            FoundationModule(),
+
+            FoundationEventHandlerModule(),
+            FoundationApplicationModule(),
 
             IdentityEventHandlerModule(),
             IdentityInfrastructureModule(),

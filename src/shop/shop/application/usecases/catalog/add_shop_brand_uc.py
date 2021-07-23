@@ -2,22 +2,29 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from typing import Optional
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.usecases.shop_uc_common import get_shop_or_raise
+from shop.domain.entities.value_objects import ShopBrandId
+from web_app.serialization.dto import BaseShopInputDto
+
 
 @dataclass
-class AddingShopBrandRequest:
-    pass
+class AddingShopBrandRequest(BaseShopInputDto):
+    name: str
+    logo: Optional[str] = ''
 
 
 @dataclass
 class AddingShopBrandResponse:
-    pass
+    brand_id: ShopBrandId
 
 
 class AddingShopBrandResponseBoundary(abc.ABC):
     @abc.abstractmethod
     def present(self, response_dto: AddingShopBrandResponse):
+        raise NotImplementedError
 
 
 class AddShopBrandUC:
@@ -28,6 +35,14 @@ class AddShopBrandUC:
     def execute(self, dto: AddingShopBrandRequest) -> None:
         with self._uow as uow:  # type: ShopUnitOfWork
             try:
-                ...
+                shop = get_shop_or_raise(shop_id=dto.shop_id, partner_id=dto.partner_id, uow=uow)
+
+                brand = shop.create_brand(name=dto.name, logo=dto.logo)
+
+                response_dto = AddingShopBrandResponse(brand_id=brand.brand_id)
+                self._ob.present(response_dto=response_dto)
+
+                shop.version += 1
+                uow.commit()
             except Exception as exc:
                 raise exc

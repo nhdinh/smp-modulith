@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional, Set
 import uuid
 
-from foundation.entity import Entity
-from foundation.events import EventMixin
+from foundation import Entity
+from foundation import EventMixin
 
 from product_catalog.domain.entities.product_unit import ProductUnit
 from product_catalog.domain.events.product_unit_created_event import ProductUnitCreatedEvent

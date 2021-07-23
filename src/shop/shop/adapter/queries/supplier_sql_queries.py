@@ -11,7 +11,8 @@ from shop.adapter.queries.query_common import (
     sql_verify_shop_id,
 )
 from shop.adapter.queries.query_factories import list_shop_products_query_factory
-from shop.adapter.shop_db import shop_product_supplier_table, shop_product_table, shop_supplier_table
+from shop.adapter.shop_db import shop_product_supplier_table, shop_product_table, shop_supplier_table, \
+    shop_supplier_contact_table
 from shop.application.queries.supplier_queries import (
     ListShopProductsBySupplierQuery,
     ListShopProductsBySupplierRequest,
@@ -44,12 +45,22 @@ class SqlListShopSuppliersQuery(ListShopSuppliersQuery, SqlQuery):
 
             # query products
             suppliers = self._conn.execute(query).all()
+            supplier_indice = [supplier.supplier_id for supplier in suppliers]
+
+            list_contact_query = select([shop_supplier_contact_table,
+                                         shop_supplier_contact_table.c.status.label('contact_status')]).where(
+                shop_supplier_contact_table.c.supplier_id.in_(supplier_indice))
+            contacts = self._conn.execute(list_contact_query).all()
+
+            s = [(supplier_row,
+                  [contact_row for contact_row in contacts if contact_row.supplier_id == supplier_row.supplier_id]) for
+                 supplier_row in suppliers]
 
             return paginate_response_factory(
                 input_dto=dto,
                 total_items=count_suppliers,
                 items=[
-                    _row_to_supplier_dto(row) for row in suppliers
+                    _row_to_supplier_dto(supplier_row, []) for supplier_row in suppliers
                 ]
             )
         except Exception as exc:

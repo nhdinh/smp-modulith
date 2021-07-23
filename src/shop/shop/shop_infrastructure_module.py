@@ -79,7 +79,7 @@ class ShopInfrastructureModule(injector.Module):
         return SqlListShopProductsQuery(conn)
 
     @injector.provider
-    def list_suppliers_query(self, conn: Connection) -> ListShopSuppliersQuery:
+    def list_shop_suppliers_query(self, conn: Connection) -> ListShopSuppliersQuery:
         return SqlListShopSuppliersQuery(conn)
 
     @injector.provider

@@ -6,7 +6,7 @@ import sqlalchemy.orm as orm
 
 from db_infrastructure import metadata
 from foundation.value_objects.address import (
-    generate_address_id, Address,
+    generate_address_id, Address, generate_image_id,
 )
 
 """
@@ -51,6 +51,12 @@ location_city_sub_division_table = sa.Table(
 )
 
 """
+
+image_info_table = sa.Table(
+    'image_info',
+    metadata,
+    sa.Column('image_id', sa.String(60), primary_key=True, default=generate_image_id)
+)
 
 location_address_table = sa.Table(
     'location_address',

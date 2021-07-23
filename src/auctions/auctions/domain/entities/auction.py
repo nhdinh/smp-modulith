@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from foundation.events import EventMixin
+from foundation import EventMixin
 from foundation.value_objects import Money
 
 from auctions.domain.entities.bid import Bid
