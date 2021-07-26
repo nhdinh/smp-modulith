@@ -8,18 +8,30 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./src/:/usr/src/app
+      - ../data/dogpile_data:/opt/project/dogpile_data
     ports:
       - "5000:5000"
     env_file: ./master_image.env
-    command: /usr/local/bin/flask run --host=0.0.0.0
+    command: flask run --host=0.0.0.0
     depends_on:
       - database
       - redis
       - nginx
+      - rq_dashboard
+
+  #  client:
+  #    build:
+  #      context: .
+  #      dockerfile: ../smp-client/Dockerfile
+  #    volumes:
+  #      - ../smp-client:/app
+  #    ports:
+  #      - "3000:3000"
+  #    command: yarn start
 
   rq_worker:
     image: master-image
-    command: /usr/local/bin/rqworker -n extra_worker_001 -u redis://redis:6379/0 -v
+    command: rqworker -n extra_worker_001 -u redis://redis:6379/0 -v
     env_file: ./master_image.env
     depends_on:
       - smtp_server
@@ -31,6 +43,7 @@ services:
       - 5555:5555
     depends_on:
       - redis
+      - rq_worker
     command: /usr/local/bin/rq-dashboard --port 5555 --redis-url redis://redis:6379/0
 
   test_app:
@@ -62,6 +75,7 @@ services:
     image: redis:5
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - ../data/redis:/data
     ports:
       - "6379:6379"
 

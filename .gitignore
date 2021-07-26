@@ -13,3 +13,6 @@ db.sqlite3
 .venv/
 .venv/*
 .env
+
+# dogpile_cache
+dogpile_data
