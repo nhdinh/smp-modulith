@@ -8,7 +8,6 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from foundation import Entity
 from foundation import EventMixin, ThingGoneInBlackHoleError, new_event_id
-from foundation.domain_events.shop_events import ShopProductUpdatedEvent
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
 from shop.adapter.id_generators import generate_product_id, generate_product_purchase_price_id
@@ -20,6 +19,7 @@ from shop.domain.entities.shop_product_tag import ShopProductTag
 from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_supplier import ShopSupplier
 from shop.domain.entities.value_objects import ExceptionMessages, ShopProductId
+from shop.domain.events import ShopProductUpdatedEvent
 from shop.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
 
@@ -158,13 +158,6 @@ class ShopProduct(EventMixin, Entity):
     def add_supplier(self, supplier: ShopSupplier):
         try:
             self._suppliers.add(supplier)
-
-            # emit the UpdateEvent
-            self._record_event(ShopProductUpdatedEvent(
-                event_id=new_event_id(),
-                product_id=self.product_id,
-                updated_keys=['suppliers']
-            ))
         except Exception as exc:
             raise exc
 
@@ -186,29 +179,29 @@ class ShopProduct(EventMixin, Entity):
         except StopIteration:
             return None
 
-    def get_equivalent_unit(self, unit: ShopProductUnit) -> Optional[ShopProductUnit]:
-        """
-        Get a child unit of this product which is equivalent to the input param.
+    # def get_equivalent_unit(self, unit: ShopProductUnit) -> Optional[ShopProductUnit]:
+    #     """
+    #     Get a child unit of this product which is equivalent to the input param.
+    #
+    #     :param unit: an unit to find
+    #     :return: instance of ShopProductUnit or None
+    #     """
+    #     if unit in self._units:
+    #         return next(product_unit for product_unit in self._units if product_unit == unit)
+    #
+    #     return None
 
-        :param unit: an unit to find
-        :return: instance of ShopProductUnit or None
-        """
-        if unit in self._units:
-            return next(product_unit for product_unit in self._units if product_unit == unit)
-
-        return None
-
-    def try_to_make_unit(self, unit: str, base_unit: str, conversion_factor: float):
-        try:
-            _base_unit = self.get_unit(base_unit)
-            if not _base_unit:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
-
-            product_unit = ShopProductUnit(unit=unit, from_unit=_base_unit, conversion_factor=conversion_factor)
-            # product_unit.product = self
-            return product_unit
-        except Exception as exc:
-            raise exc
+    # def try_to_make_unit(self, unit: str, base_unit: str, conversion_factor: float):
+    #     try:
+    #         _base_unit = self.get_unit(base_unit)
+    #         if not _base_unit:
+    #             raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_UNIT_NOT_FOUND)
+    #
+    #         product_unit = ShopProductUnit(unit=unit, from_unit=_base_unit, conversion_factor=conversion_factor)
+    #         # product_unit.product = self
+    #         return product_unit
+    #     except Exception as exc:
+    #         raise exc
 
     def delete_unit(self, unit: str):
         try:
@@ -262,13 +255,6 @@ class ShopProduct(EventMixin, Entity):
             unit = ShopProductUnit(unit_name=unit_name, conversion_factor=conversion_factor, default=is_default,
                                    disabled=False, referenced_unit=_base_unit)
             self._units.add(unit)
-
-            # emit the UpdateEvent
-            self._record_event(ShopProductUpdatedEvent(
-                event_id=new_event_id(),
-                product_id=self.product_id,
-                updated_keys=['units']
-            ))
 
             # return the new unit
             return unit

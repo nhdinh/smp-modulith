@@ -3,8 +3,8 @@
 from datetime import datetime, timedelta
 from functools import wraps
 
-from flask import request
 import werkzeug.exceptions
+from flask import request
 
 
 def validate_request_timestamp(func):
@@ -13,7 +13,7 @@ def validate_request_timestamp(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
         request_timestamp = request.json['timestamp']
-        is_valid_request = (datetime.now().timestamp() - request_timestamp) < 1 # 100ms
+        is_valid_request = (datetime.now().timestamp() - request_timestamp) < timedelta(microseconds=100).seconds
 
         if is_valid_request:
             return func(*args, **kwargs)

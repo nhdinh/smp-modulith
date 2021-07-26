@@ -1,25 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import injector
+from sqlalchemy.engine import Connection
 
 from foundation import AsyncEventHandlerProvider, AsyncHandler
-from foundation.domain_events.identity_events import ShopAdminCreatedEvent
-from foundation.domain_events.shop_events import ShopProductCreatedEvent
-from foundation.events import EventHandlerProvider, EveryModuleMustCatchThisEvent, Handler
-
+from foundation.events import EventHandlerProvider, EveryModuleMustCatchThisEvent, Handler, EventBus
+from identity.domain.events import ShopAdminCreatedEvent
 from inventory.application.services.inventory_unit_of_work import InventoryUnitOfWork
 from inventory.inventory_handler_facade import (
     CreateWarehouseUponShopCreatedHandler,
     Inventory_CatchAllEventHandler,
     InventoryHandlerFacade,
-    ShopProductCreatedEventHandler,
 )
 
 
 class InventoryEventHandlerModule(injector.Module):
     @injector.provider
-    def facade(self, uow: InventoryUnitOfWork) -> InventoryHandlerFacade:
-        return InventoryHandlerFacade(uow=uow)
+    def facade(self, uow: InventoryUnitOfWork, conn: Connection, event_bus: EventBus) -> InventoryHandlerFacade:
+        return InventoryHandlerFacade(uow=uow, conn=conn, event_bus=event_bus)
 
     def configure(self, binder: injector.Binder) -> None:
         self._configure_handler_bindings(binder=binder)
@@ -36,6 +34,6 @@ class InventoryEventHandlerModule(injector.Module):
             AsyncHandler[EveryModuleMustCatchThisEvent],
             to=AsyncEventHandlerProvider(Inventory_CatchAllEventHandler))
 
-        binder.multibind(
-            AsyncHandler[ShopProductCreatedEvent],
-            to=AsyncEventHandlerProvider(ShopProductCreatedEventHandler))
+        # binder.multibind(
+        #     AsyncHandler[ShopProductCreatedEvent],
+        #     to=AsyncEventHandlerProvider(ShopProductCreatedEventHandler))

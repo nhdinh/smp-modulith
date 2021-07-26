@@ -7,11 +7,6 @@ from datetime import datetime, timedelta
 
 from foundation import Entity
 from foundation import EventMixin, new_event_id
-from foundation.domain_events.shop_events import (
-    ShopRegisteredEvent,
-    ShopRegistrationConfirmedEvent,
-    ShopRegistrationResendEvent,
-)
 from shop.adapter.id_generators import SHOP_ID_PREFIX, generate_shop_id
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_user import ShopUser
@@ -23,6 +18,7 @@ from shop.domain.entities.value_objects import (
     ShopUserType,
     SystemUserId,
 )
+from shop.domain.events import ShopRegistrationCreatedEvent, ShopRegistrationConfirmedEvent, ShopRegistrationResendEvent
 from shop.domain.rules.shop_name_must_not_be_empty_rule import ShopNameMustNotBeEmptyRule
 from shop.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
 from shop.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
@@ -68,11 +64,13 @@ class ShopRegistration(EventMixin, Entity):
         self.version = version
 
         # add domain event
-        self._record_event(ShopRegisteredEvent(
+        self._record_event(ShopRegistrationCreatedEvent, **dict(
             event_id=new_event_id(),
             registration_id=self.registration_id,
             shop_name=self.shop_name,
             owner_email=self.owner_email,
+            password=self.owner_password,
+            owner_mobile=self.owner_mobile,
             confirmation_token=self.confirmation_token
         ))
 
@@ -125,7 +123,7 @@ class ShopRegistration(EventMixin, Entity):
         self.confirmed_at = datetime.now()
 
         # emit the event
-        self._record_event(ShopRegistrationConfirmedEvent(
+        self._record_event(ShopRegistrationConfirmedEvent, **dict(
             event_id=new_event_id(),
             registration_id=self.registration_id,
             user_email=self.owner_email,

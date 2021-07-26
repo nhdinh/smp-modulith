@@ -30,7 +30,7 @@ def created_shop(client: testing.FlaskClient, created_registration: CreatedShopR
                  connection: Connection) -> CreatedShopAndAccount:
     row = connection.execute(
         select([shop_registration_table.c.confirmation_token, shop_registration_table.c.status]).where(
-            shop_registration_table.c.shop_registration_id == created_registration.registration_id)).first()
+            shop_registration_table.c.registration_id == created_registration.registration_id)).first()
 
     assert row is not None
     assert row['status'] == RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION

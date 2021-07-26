@@ -15,7 +15,6 @@ from shop.adapter.shop_db import (
     shop_product_table,
     shop_product_tag_table,
     shop_product_unit_table,
-    shop_product_view_cache_table,
     shop_registration_table,
     shop_settings_table,
     shop_product_purchase_price_table,
@@ -32,7 +31,6 @@ from shop.domain.entities.shop_catalog import ShopCatalog
 from shop.domain.entities.shop_collection import ShopCollection
 from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.shop_product_brand import ShopProductBrand
-from shop.domain.entities.shop_product_cache import ShopProductCache
 from shop.domain.entities.shop_product_tag import ShopProductTag
 from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_registration import ShopRegistration
@@ -89,7 +87,7 @@ def start_mappers():
                )
            })
 
-    mapper(ShopProductCache, shop_product_view_cache_table)
+    # mapper(ShopProductCache, shop_product_view_cache_table)
 
     mapper(
         ShopProduct, shop_product_table,
@@ -100,7 +98,7 @@ def start_mappers():
             '_brand_id': shop_product_table.c.brand_id,
             '_catalog_id': shop_product_table.c.catalog_id,
 
-            '_cache': relationship(ShopProductCache, lazy='select'),
+            # '_cache': relationship(ShopProductCache, lazy='select'),
 
             '_shop': relationship(Shop),
 
@@ -205,6 +203,7 @@ def start_mappers():
             '_users': relationship(
                 ShopUser,
                 collection_class=set,
+                backref=backref('_shop')
             ),
 
             '_suppliers': relationship(

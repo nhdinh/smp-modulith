@@ -5,16 +5,17 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus
-
 from shop.adapter import shop_db
 from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, SqlListShopProductsByCatalogQuery
 from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery, SqlListShopProductsQuery, \
-    SqlListShopProductPurchasePricesQuery
+    SqlListShopProductPurchasePricesQuery, SqlListShopSuppliersByProductQuery, SqlListUnitsByShopProductQuery, \
+    SqlGetShopProductPurchasePriceQuery, SqlGetShopProductLowestPurchasePriceQuery
 from shop.adapter.queries.shop_sql_queries import SqlListShopAddressesQuery, SqlGetShopInfoQuery
 from shop.adapter.queries.supplier_sql_queries import SqlListShopProductsBySupplierQuery, SqlListShopSuppliersQuery
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery
 from shop.application.queries.product_queries import GetShopProductQuery, ListShopProductsQuery, \
-    ListShopProductPurchasePricesQuery
+    ListShopProductPurchasePricesQuery, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
+    GetShopProductPurchasePriceQuery, GetShopProductLowestPurchasePriceQuery
 from shop.application.queries.shop_queries import ListShopAddressesQuery, GetShopInfoQuery
 from shop.application.queries.supplier_queries import ListShopProductsBySupplierQuery, ListShopSuppliersQuery
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
@@ -87,5 +88,21 @@ class ShopInfrastructureModule(injector.Module):
         return SqlListShopProductsBySupplierQuery(conn)
 
     @injector.provider
-    def list_shop_product_prices_query(self, conn: Connection) -> ListShopProductPurchasePricesQuery:
+    def list_shop_product_purchase_prices_query(self, conn: Connection) -> ListShopProductPurchasePricesQuery:
         return SqlListShopProductPurchasePricesQuery(conn)
+
+    @injector.provider
+    def list_shop_suppliers_by_product(self, conn: Connection) -> ListShopSuppliersByProductQuery:
+        return SqlListShopSuppliersByProductQuery(conn)
+
+    @injector.provider
+    def list_units_by_shop_product(self, conn: Connection) -> ListUnitsByShopProductQuery:
+        return SqlListUnitsByShopProductQuery(conn)
+
+    @injector.provider
+    def get_shop_product_purchase_price(self, conn: Connection) -> GetShopProductPurchasePriceQuery:
+        return SqlGetShopProductPurchasePriceQuery(conn)
+
+    @injector.provider
+    def get_shop_product_lowest_purchase_price(self, conn: Connection) -> GetShopProductLowestPurchasePriceQuery:
+        return SqlGetShopProductLowestPurchasePriceQuery(conn)

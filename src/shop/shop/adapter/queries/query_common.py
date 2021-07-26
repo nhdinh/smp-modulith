@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Optional
+from typing import Optional, Callable
 
 from sqlalchemy import and_, distinct, func, select
 from sqlalchemy.engine import Connection
@@ -9,9 +9,7 @@ from shop.adapter.shop_db import (
     shop_catalog_table,
     shop_collection_table,
     shop_product_collection_table,
-    shop_product_supplier_table,
     shop_product_table,
-    shop_supplier_table,
     shop_table,
     shop_users_table,
 )
@@ -20,20 +18,20 @@ from shop.domain.entities.value_objects import (
     ShopCollectionId,
     ShopId,
     ShopStatus,
-    ShopSupplierId,
     SystemUserId,
 )
+from web_app.serialization.dto import list_response_factory
 
 
-def sql_verify_shop_id(shop_id: ShopId, partner_id: SystemUserId, conn: Connection,
-                       active_only: bool = True) -> bool:
+def sql_get_authorized_shop_id(shop_id: ShopId, current_user_id: SystemUserId, conn: Connection,
+                               active_only: bool = True) -> bool:
     try:
         q = select(shop_table.c.shop_id) \
             .join(shop_users_table, shop_users_table.c.shop_id == shop_table.c.shop_id) \
-            .where(and_(shop_users_table.c.user_id == partner_id, shop_table.c.shop_id == shop_id))
+            .where(and_(shop_users_table.c.user_id == current_user_id, shop_table.c.shop_id == shop_id))
 
         if active_only:
-            q = q.where(shop_table.c.status != ShopStatus.DISABLED)
+            q = q.where(shop_table.c.status == ShopStatus.NORMAL)
 
         shop_id_from_db = conn.scalar(q)
 
@@ -52,15 +50,6 @@ def sql_get_collection_id_by_reference(collection_id: ShopCollectionId, shop_id:
         .where(and_(shop_collection_table.c.reference == collection_id, shop_catalog_table.c.shop_id == shop_id))
 
     return conn.scalar(q)
-
-
-def sql_count_catalogs_in_shop(store_id: ShopId, conn: Connection, active_only: bool = False) -> int:
-    catalog_count = conn.scalar(
-        select(func.count(distinct(shop_catalog_table.c.catalog_id))) \
-            .where(shop_catalog_table.c.shop_id == store_id)
-    )
-
-    return catalog_count
 
 
 def sql_count_collections_in_catalog(
@@ -95,15 +84,11 @@ def sql_count_products_in_collection(
     return conn.scalar(q)
 
 
-def sql_count_all_suppliers(shop_id: ShopId, conn: Connection) -> int:
-    q = select([func.count(distinct(shop_supplier_table.c.supplier_id))]).where(
-        shop_supplier_table.c.shop_id == shop_id)
-    return conn.scalar(q)
+def sql_count_or_empty_return(counting_query: Callable, conn: Connection, **kwargs) -> int:
+    try:
+        if callable(counting_query):
+            counting_query = counting_query(**kwargs)
 
-
-def sql_count_all_products_by_supplier(shop_id: ShopId, supplier_id: ShopSupplierId, conn: Connection) -> int:
-    q = select([func.count(distinct(shop_product_table.c.product_id))]) \
-        .join(shop_product_supplier_table,
-              shop_product_table.c.product_id == shop_product_supplier_table.c.product_id) \
-        .where(and_(shop_product_table.c.shop_id == shop_id, shop_product_supplier_table.c.supplier_id == supplier_id))
-    return conn.scalar(q)
+        return conn.scalar(counting_query) or 0
+    except Exception as exc:
+        raise exc

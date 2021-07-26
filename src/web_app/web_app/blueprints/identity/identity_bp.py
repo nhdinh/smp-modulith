@@ -126,15 +126,15 @@ def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
 @jwt_required(refresh=True)
 def refresh_token(query: GetSingleUserQuery):
     # TokenRefresh
-    current_user = get_jwt_identity()
-    db_user = query.query(user_q=current_user)
+    dto = get_dto(request, GetCurrentUserRequest, context={'current_user_id': get_jwt_identity()})
+    db_user = query.query(dto=dto)
 
     if db_user:
-        _access_token = create_access_token(identity=current_user)
+        _access_token = create_access_token(identity=db_user.user_id)
 
         return make_response(jsonify({
             'access_token': _access_token,
-            'username': current_user,
+            'user_id': db_user.user_id,
             # 'refresh_token': get_fresh_token(identity=current_user)
         })), 200
     else:
@@ -153,7 +153,7 @@ def list_all_users(query: GetAllUsersQuery) -> Response:
 @jwt_required()
 @log_error()
 def get_current_user(get_single_user_query: GetSingleUserQuery) -> Response:
-    dto = get_dto(request, GetCurrentUserRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, GetCurrentUserRequest, context={'current_user_id': get_jwt_identity()})
     response = get_single_user_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 
@@ -162,7 +162,7 @@ def get_current_user(get_single_user_query: GetSingleUserQuery) -> Response:
 @jwt_required()
 @log_error()
 def get_user(get_single_user_query: GetSingleUserQuery) -> Response:
-    dto = get_dto(request, GetSingleUserRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, GetSingleUserRequest, context={'current_user_id': get_jwt_identity()})
     response = get_single_user_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 

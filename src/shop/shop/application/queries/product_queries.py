@@ -2,10 +2,14 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from typing import Optional
 
 from shop.domain.dtos.product_dtos import ShopProductDto, ShopProductCompactedDto, ShopProductPriceDto
-from shop.domain.entities.value_objects import ShopProductId
-from web_app.serialization.dto import BaseAuthorizedShopUserRequest, BasePaginationAuthorizedRequest, SimpleListTypedResponse, PaginationTypedResponse
+from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto
+from shop.domain.dtos.supplier_dtos import ShopSupplierDto
+from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest, BasePaginationAuthorizedRequest, \
+    SimpleListTypedResponse, PaginationTypedResponse
 
 
 @dataclass
@@ -33,10 +37,57 @@ class ListShopProductsQuery(abc.ABC):
 @dataclass
 class ListShopProductPurchasePricesRequest(BaseAuthorizedShopUserRequest):
     product_id: ShopProductId
-    group_by_unit: bool
+    group_by_supplier: Optional[bool] = True
 
 
 class ListShopProductPurchasePricesQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: ListShopProductPurchasePricesRequest) -> SimpleListTypedResponse[ShopProductPriceDto]:
+        raise NotImplementedError
+
+
+@dataclass
+class ListUnitsByShopProductRequest(BaseAuthorizedShopUserRequest):
+    product_id: ShopProductId
+
+
+class ListUnitsByShopProductQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: ListUnitsByShopProductRequest) -> SimpleListTypedResponse[ShopProductUnitDto]:
+        raise NotImplementedError
+
+
+@dataclass
+class ListShopSuppliersByProductRequest(BaseAuthorizedShopUserRequest):
+    product_id: ShopProductId
+
+
+class ListShopSuppliersByProductQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: ListShopSuppliersByProductRequest) -> SimpleListTypedResponse[ShopSupplierDto]:
+        raise NotImplementedError
+
+
+@dataclass
+class GetShopProductPurchasePriceRequest(BaseAuthorizedShopUserRequest):
+    product_id: ShopProductId
+    supplier_id: ShopSupplierId
+    unit: str
+
+
+class GetShopProductPurchasePriceQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: GetShopProductPurchasePriceRequest) -> ShopProductPriceDto:
+        raise NotImplementedError
+
+
+@dataclass()
+class GetShopProductLowestPurchasePriceRequest(BaseAuthorizedShopUserRequest):
+    product_id: ShopProductId
+    unit: str
+
+
+class GetShopProductLowestPurchasePriceQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: GetShopProductLowestPurchasePriceRequest) -> ShopProductPriceDto:
         raise NotImplementedError

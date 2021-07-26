@@ -5,19 +5,20 @@ from dataclasses import dataclass
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
-from shop.domain.entities.value_objects import ShopId
+from shop.domain.entities.shop_user import ShopUser
+from shop.domain.entities.value_objects import ShopId, SystemUserId, ShopUserType
 from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
 class AddingShopUserRequest(BaseAuthorizedShopUserRequest):
-    user_id: str
+    user_id: SystemUserId
 
 
 @dataclass
 class AddingShopUserResponse:
     shop_id: ShopId
-    shop_user_id: str
+    shop_user_id: SystemUserId
 
 
 class AddingShopUserResponseBoundary(abc.ABC):
@@ -37,10 +38,12 @@ class AddShopUserUC:
                 shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id,
                                          check_admin_rights=True, uow=uow)
 
+                shop_user = shop.create_user_from_system_user(system_user_id=dto.user_id)
+
                 # build response
                 response_dto = AddingShopUserResponse(
                     shop_id=shop.shop_id,
-                    shop_user_id=dto.user_id
+                    shop_user_id=shop_user.user_id
                 )
                 self._ob.present(response_dto=response_dto)
 

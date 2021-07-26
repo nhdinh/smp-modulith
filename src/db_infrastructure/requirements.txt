@@ -3,3 +3,4 @@ SQLAlchemy==1.4.14
 psycopg2-binary
 sqlalchemy-utils==0.37.2
 jsonpickle
+dogpile.cache

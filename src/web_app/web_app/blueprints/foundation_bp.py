@@ -26,7 +26,7 @@ class FoundationAPI(injector.Module):
 # @jwt_required()
 # @log_error()
 # def upload_image(upload_image_uc: UploadImageUC, presenter: UploadingImageResponseBoundary):
-#     dto = get_dto(request, UploadingImageRequest, context={'partner_id': get_jwt_identity()})
+#     dto = get_dto(request, UploadingImageRequest, context={'current_user_id': get_jwt_identity()})
 #     upload_image_uc.execute(dto)
 #
 #     return presenter.response, 201  # type: ignore

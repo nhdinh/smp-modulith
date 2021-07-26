@@ -3,12 +3,11 @@
 from datetime import datetime
 from typing import Any, List, Optional, Set, Union
 
-from foundation.domain_events.shop_events import ShopCreatedEvent, ShopProductCreatedEvent, ShopProductUpdatedEvent
 from foundation import EventMixin, ThingGoneInBlackHoleError, new_event_id
 from foundation.value_objects.address import Address
 from foundation.value_objects.factories import get_money
 from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX, generate_shop_catalog_id, generate_shop_collection_id, \
-    generate_brand_id, generate_supplier_id
+    generate_brand_id, generate_supplier_id, generate_shop_address_id
 from shop.domain.entities.setting import Setting
 from shop.domain.entities.shop_address import ShopAddress
 from shop.domain.entities.shop_catalog import ShopCatalog
@@ -27,8 +26,9 @@ from shop.domain.entities.value_objects import (
     ShopId,
     ShopStatus,
     ShopSupplierId,
-    ShopUserType, GenericShopItemStatus,
+    ShopUserType, GenericShopItemStatus, SystemUserId,
 )
+from shop.domain.events import ShopCreatedEvent, ShopProductCreatedEvent, ShopProductUpdatedEvent, ShopUserCreatedEvent
 
 
 class Shop(EventMixin):
@@ -75,7 +75,7 @@ class Shop(EventMixin):
         else:
             raise Exception(ExceptionMessages.FAILED_TO_CREATE_SHOP_NO_OWNER)
 
-        # create default catalot
+        # create default catalog
         self._catalogs = set()  # type: Set[ShopCatalog]
         default_catalog = self._create_default_catalog()
         self._catalogs.add(default_catalog)
@@ -319,8 +319,9 @@ class Shop(EventMixin):
         first_stockings_input = {item['unit']: item['stocking'] for item in first_stockings_input}
 
         # raise event
-        self._record_event(ShopProductCreatedEvent(
+        self._record_event(ShopProductCreatedEvent, **dict(
             event_id=new_event_id(),
+            shop_id=self.shop_id,
             product_id=store_product.product_id,
             default_unit=store_product.default_unit.unit_name,
             units=units,
@@ -389,7 +390,8 @@ class Shop(EventMixin):
             # , contacts=set([contact]))
             self._suppliers.add(supplier)
 
-        contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone, status=GenericShopItemStatus.NORMAL)
+        contact = SupplierContact(contact_name=contact_name, contact_phone=contact_phone,
+                                  status=GenericShopItemStatus.NORMAL)
         if contact not in supplier.contacts:
             supplier.contacts.add(contact)
 
@@ -561,7 +563,10 @@ class Shop(EventMixin):
             )
 
             if shop_address not in self._addresses:
+                shop_address.shop_address_id = generate_shop_address_id()
                 self._addresses.add(shop_address)
+
+            return shop_address
         except Exception as exc:
             raise exc
 
@@ -610,7 +615,9 @@ class Shop(EventMixin):
                     product.collections.add(collection)
                     items_being_updated.append('collections')
 
-        self._record_event(ShopProductUpdatedEvent(
+        self._record_event(ShopProductUpdatedEvent, **dict(
+            event_id=new_event_id(),
+            shop_id=self.shop_id,
             product_id=product.product_id,
             updated_keys=items_being_updated
         ))
@@ -651,3 +658,21 @@ class Shop(EventMixin):
             warehouse = ShopWarehouse(warehouse_id=warehouse_id, shop_id=self.shop_id, warehouse_name=warehouse_name)
             self._warehouses.add(warehouse)
             return warehouse
+
+    def create_user_from_system_user(self, system_user_id: SystemUserId):
+        try:
+            shop_user = ShopUser(user_id=system_user_id, shop_role=ShopUserType.MANAGER)
+            try:
+                shop_user = next(u for u in self._users if u.user_id == system_user_id)
+            except StopIteration:
+                self._users.add(shop_user)
+
+                self._record_event(ShopUserCreatedEvent(
+                    event_id=new_event_id(),
+                    shop_id=self.shop_id,
+                    user_id=shop_user.user_id,
+                ))
+
+            return shop_user
+        except Exception as exc:
+            raise exc

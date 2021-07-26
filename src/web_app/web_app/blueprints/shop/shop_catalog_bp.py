@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
+
 import flask_injector
 import injector
 from flask import Blueprint, Response, jsonify, make_response, request
@@ -56,7 +58,7 @@ class ShopCatalogAPI(injector.Module):
 @jwt_required()
 @log_error()
 def list_shop_catalogs(list_shop_catalog_query: ListShopCatalogsQuery) -> Response:
-    dto = get_dto(request, ListShopCatalogsRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopCatalogsRequest, context={'current_user_id': get_jwt_identity()})
     response = list_shop_catalog_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 
@@ -66,7 +68,7 @@ def list_shop_catalogs(list_shop_catalog_query: ListShopCatalogsQuery) -> Respon
 @jwt_required()
 @log_error()
 def list_shop_products_by_catalog(list_shop_products_by_catalog_query: ListShopProductsByCatalogQuery) -> Response:
-    dto = get_dto(request, ListShopProductsByCatalogRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopProductsByCatalogRequest, context={'current_user_id': get_jwt_identity()})
     response = list_shop_products_by_catalog_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 
@@ -77,7 +79,7 @@ def list_shop_products_by_catalog(list_shop_products_by_catalog_query: ListShopP
 @log_error()
 def add_shop_catalog(add_shop_catalog_uc: AddShopCatalogUC,
                      presenter: AddingShopCatalogResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopCatalogRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopCatalogRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_catalog_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
@@ -88,7 +90,7 @@ def add_shop_catalog(add_shop_catalog_uc: AddShopCatalogUC,
 @log_error()
 def remove_store_catalog(remove_store_catalog_uc: RemoveShopCatalogUC,
                          presenter: RemovingShopCatalogResponseBoundary) -> Response:
-    dto = get_dto(request, RemovingShopCatalogRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, RemovingShopCatalogRequest, context={'current_user_id': get_jwt_identity()})
     remove_store_catalog_uc.execute(dto)
 
     return presenter.response, 200  # type:ignore
@@ -99,7 +101,7 @@ def remove_store_catalog(remove_store_catalog_uc: RemoveShopCatalogUC,
 @log_error()
 def add_shop_collection(add_shop_collection_uc: AddShopCollectionUC,
                         presenter: AddingShopCollectionResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopCollectionRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopCollectionRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_collection_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore

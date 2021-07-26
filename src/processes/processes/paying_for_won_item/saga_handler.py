@@ -9,7 +9,7 @@ from foundation.method_dispatch import method_dispatch
 from auctions import AuctionEnded
 from payments import PaymentCaptured
 from processes.paying_for_won_item import PayingForWonItem, PayingForWonItemData
-from processes.repository import ProcessManagerDataRepo
+from processes.repository import ProcessManagerDataRepo, new_process_id
 
 
 class PayingForWonItemHandler:
@@ -17,7 +17,7 @@ class PayingForWonItemHandler:
 
     @injector.inject
     def __init__(
-        self, process_manager: PayingForWonItem, repo: ProcessManagerDataRepo, lock_factory: LockFactory
+            self, process_manager: PayingForWonItem, repo: ProcessManagerDataRepo, lock_factory: LockFactory
     ) -> None:
         self._process_manager = process_manager
         self._repo = repo
@@ -35,7 +35,7 @@ class PayingForWonItemHandler:
 
     @__call__.register(AuctionEnded)
     def handle_beginning(self, event: AuctionEnded) -> None:
-        data = PayingForWonItemData(process_uuid=uuid.uuid4())
+        data = PayingForWonItemData(process_uuid=new_process_id())
         lock_name = f"pm-lock-{event.auction_id}-{event.winner_id}"
         self._run_process_manager(lock_name, data, event)
 

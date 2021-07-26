@@ -22,5 +22,6 @@ def async_handler_generic_task(cls, *args, **kwargs):  # type: ignore
             instance(*args, **kwargs)
     except Exception as exc:
         logger.exception(exc)
+        raise exc
     finally:
         scope.exit()

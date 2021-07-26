@@ -3,13 +3,14 @@
 import abc
 from dataclasses import dataclass
 
-from foundation.events import ThingGoneInBlackHoleError
+from foundation.events import ThingGoneInBlackHoleError, new_event_id
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.value_objects import ExceptionMessages, ShopProductId
+from shop.domain.events import ShopProductUpdatedEvent
 from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
@@ -49,6 +50,14 @@ class AddShopProductUnitUC:
 
                 unit = product.create_unit(unit_name=dto.unit_name, conversion_factor=dto.conversion_factor,
                                            base_unit=dto.referenced_unit_name)  # type:ShopProductUnit
+
+                # emit the ProductUpdateEvent
+                product._record_event(ShopProductUpdatedEvent, **dict(
+                    event_id=new_event_id(),
+                    product_id=product.product_id,
+                    shop_id=shop.shop_id,
+                    updated_keys=['unit']
+                ))
 
                 # create response
                 response_dto = AddingShopProductUnitResponse(

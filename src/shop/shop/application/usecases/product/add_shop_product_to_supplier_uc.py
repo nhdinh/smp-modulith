@@ -3,7 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from foundation.events import ThingGoneInBlackHoleError
+from foundation.events import ThingGoneInBlackHoleError, new_event_id
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
@@ -11,6 +11,7 @@ from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_supplier import ShopSupplier
 from shop.domain.entities.value_objects import ExceptionMessages, ShopProductId, ShopSupplierId
+from shop.domain.events import ShopProductUpdatedEvent
 from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
@@ -53,10 +54,18 @@ class AddShopProductToSupplierUC:
 
                 product.add_supplier(supplier)
 
+                # emit the UpdateEvent
+                shop._record_event(ShopProductUpdatedEvent, **dict(
+                    event_id=new_event_id(),
+                    shop_id=shop.shop_id,
+                    product_id=product.product_id,
+                    updated_keys=['suppliers']
+                ))
+
                 # create response
                 response_dto = AddingShopProductToSupplierResponse(
                     product_id=product.product_id,
-                    supplier_id=supplier.supplier_id,
+                    supplier_id=supplier.supplier_id,  # type: ignore
                 )
                 self._ob.present(response_dto=response_dto)
 

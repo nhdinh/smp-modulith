@@ -6,7 +6,10 @@ from flask import Blueprint, Response, jsonify, make_response, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest, ListShopProductsQuery, \
-    ListShopProductsRequest, ListShopProductPurchasePricesQuery, ListShopProductPurchasePricesRequest
+    ListShopProductsRequest, ListShopProductPurchasePricesQuery, ListShopProductPurchasePricesRequest, \
+    ListShopSuppliersByProductRequest, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
+    ListUnitsByShopProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
+    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest
 from shop.application.usecases.product.add_shop_product_purchase_price_uc import \
     AddingShopProductPurchasePriceResponseBoundary, AddingShopProductPurchasePriceRequest, AddShopProductPurchasePriceUC
 from shop.application.usecases.product.add_shop_product_uc import (
@@ -60,7 +63,7 @@ class ShopProductAPI(injector.Module):
 @jwt_required()
 @log_error()
 def add_shop_product(add_shop_item_uc: AddShopProductUC, presenter: AddingShopProductResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopProductRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopProductRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_item_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
@@ -70,7 +73,7 @@ def add_shop_product(add_shop_item_uc: AddShopProductUC, presenter: AddingShopPr
 @jwt_required()
 @log_error()
 def list_shop_products(list_shop_products_query: ListShopProductsQuery) -> Response:
-    dto = get_dto(request, ListShopProductsRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopProductsRequest, context={'current_user_id': get_jwt_identity()})
     product = list_shop_products_query.query(dto)
 
     return make_response(jsonify(product)), 200  # type:ignore
@@ -80,10 +83,20 @@ def list_shop_products(list_shop_products_query: ListShopProductsQuery) -> Respo
 @jwt_required()
 @log_error()
 def get_shop_product(get_shop_product_query: GetShopProductQuery) -> Response:
-    dto = get_dto(request, GetShopProductRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, GetShopProductRequest, context={'current_user_id': get_jwt_identity()})
     product = get_shop_product_query.query(dto)
 
     return make_response(jsonify(product)), 200  # type:ignore
+
+
+@shop_product_blueprint.route('/list_units', methods=['GET', 'POST'])
+@jwt_required()
+@log_error()
+def list_units_by_shop_product(list_units_by_shop_product_query: ListUnitsByShopProductQuery) -> Response:
+    dto = get_dto(request, ListUnitsByShopProductRequest, context={'current_user_id': get_jwt_identity()})
+    units = list_units_by_shop_product_query.query(dto)
+
+    return make_response(jsonify(units)), 200  # type:ignore
 
 
 @shop_product_blueprint.route('/add_unit', methods=['POST'])
@@ -91,7 +104,7 @@ def get_shop_product(get_shop_product_query: GetShopProductQuery) -> Response:
 @log_error()
 def add_shop_product_unit(add_shop_product_unit_uc: AddShopProductUnitUC,
                           presenter: AddingShopProductUnitResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopProductUnitRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopProductUnitRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_product_unit_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
@@ -102,10 +115,20 @@ def add_shop_product_unit(add_shop_product_unit_uc: AddShopProductUnitUC,
 @log_error()
 def update_shop_product_unit(update_shop_product_unit_uc: UpdateShopProductUnitUC,
                              presenter: UpdatingShopProductUnitResponseBoundary) -> Response:
-    dto = get_dto(request, UpdatingShopProductUnitRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, UpdatingShopProductUnitRequest, context={'current_user_id': get_jwt_identity()})
     update_shop_product_unit_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
+
+
+@shop_product_blueprint.route('/list_suppliers', methods=['GET', 'POST'])
+@jwt_required()
+@log_error()
+def list_shop_suppliers_by_product(list_shop_suppliers_by_product_query: ListShopSuppliersByProductQuery) -> Response:
+    dto = get_dto(request, ListShopSuppliersByProductRequest, context={'current_user_id': get_jwt_identity()})
+    suppliers = list_shop_suppliers_by_product_query.query(dto)
+
+    return make_response(jsonify(suppliers)), 200  # type:ignore
 
 
 @shop_product_blueprint.route('/add_purchase_price', methods=['POST'])
@@ -113,7 +136,7 @@ def update_shop_product_unit(update_shop_product_unit_uc: UpdateShopProductUnitU
 @log_error()
 def add_shop_product_purchase_price(add_shop_product_purchase_price_uc: AddShopProductPurchasePriceUC,
                                     presenter: AddingShopProductPurchasePriceResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopProductPurchasePriceRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopProductPurchasePriceRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_product_purchase_price_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
@@ -124,7 +147,7 @@ def add_shop_product_purchase_price(add_shop_product_purchase_price_uc: AddShopP
 @log_error()
 def list_shop_product_purchase_prices(
         list_shop_product_purchase_prices_query: ListShopProductPurchasePricesQuery) -> Response:
-    dto = get_dto(request, ListShopProductPurchasePricesRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopProductPurchasePricesRequest, context={'current_user_id': get_jwt_identity()})
     prices = list_shop_product_purchase_prices_query.query(dto)
 
     return make_response(jsonify(prices)), 200  # type:ignore
@@ -134,5 +157,19 @@ def list_shop_product_purchase_prices(
 @jwt_required()
 @log_error()
 def get_shop_product_purchase_price(
-        get_shop_product_purchase_price_query: object) -> Response:
-    ...
+        get_shop_product_purchase_price_query: GetShopProductPurchasePriceQuery) -> Response:
+    dto = get_dto(request, GetShopProductPurchasePriceRequest, context={'current_user_id': get_jwt_identity()})
+    price = get_shop_product_purchase_price_query.query(dto)
+
+    return make_response(jsonify(price)), 200  # type:ignore
+
+
+@shop_product_blueprint.route('/get_lowest_purchase_price', methods=['POST'])
+@jwt_required()
+@log_error()
+def get_shop_product_lowest_purchase_price(
+        get_shop_product_lowest_purchase_price_query: GetShopProductLowestPurchasePriceQuery) -> Response:
+    dto = get_dto(request, GetShopProductLowestPurchasePriceRequest, context={'current_user_id': get_jwt_identity()})
+    price = get_shop_product_lowest_purchase_price_query.query(dto)
+
+    return make_response(jsonify(price)), 200  # type:ignore

@@ -16,6 +16,7 @@ ShopBrandId = NewType("ShopBrandId", tp=str)
 
 
 class ShopStatus(Enum):
+    PENDING_CREATION = 'PendingCreation'
     NORMAL = 'Normal'
     DISABLED = 'Disabled'
     DELETED = 'Deleted'
@@ -23,6 +24,7 @@ class ShopStatus(Enum):
 
 
 class GenericShopItemStatus(Enum):
+    PENDING_CREATION = 'PendingCreation'
     NORMAL = 'NORMAL'
     DISABLED = 'DISABLED'
     DELETED = 'DELETED'
@@ -64,13 +66,14 @@ class ProductPriceStatus(Enum):
 
 
 class ExceptionMessages(Enum):
+    INVALID_FILE_TYPE = 'Upload invalid file type'
+    INVALID_CATALOG_ID = 'Invalid catalog ID'
+
     SHOP_OWNERSHIP_NOT_FOUND = 'Shop Ownership not found'
     FAILED_TO_CREATE_SHOP_NO_OWNER = 'Shop creating failed. No owner.'
     REGISTRATION_HAS_BEEN_EXPIRED = 'Shop registration confirmation link has been expired'
     REGISTRATION_HAS_BEEN_CONFIRMED = 'Shop registration has been confirmed'
     REGISTRATION_NOT_FOUND = 'No registration found'
-
-    INVALID_FILE_TYPE = 'Upload invalid file type'
 
     CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_SHOP = 'Current user do not have permission on this shop'
     SHOP_NOT_FOUND = 'Shop not existed or current user do not have any shop created'

@@ -23,6 +23,7 @@ class PayingForWonItemData:
     process_uuid: uuid.UUID
     state: Optional[State] = None
     timeout_at: Optional[datetime] = None
+
     winning_bid: Optional[Money] = None
     auction_title: Optional[str] = None
     auction_id: Optional[int] = None

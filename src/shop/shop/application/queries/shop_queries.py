@@ -21,7 +21,7 @@ class ListShopAddressesQuery(abc.ABC):
 
 @dataclass
 class GetShopInfoRequest(BaseTimeLoggedRequest):
-    partner_id: UserId
+    current_user_id: UserId
 
 
 class GetShopInfoQuery(abc.ABC):

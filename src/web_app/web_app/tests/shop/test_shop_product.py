@@ -1,14 +1,13 @@
 #!/usr/bin/env python
-#
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import string
+from datetime import datetime
 
 import factory
-from flask import testing
 import nanoid
+from flask import testing
 
-from store.application.usecases.product.create_store_product_uc import AddingShopProductRequest
+from shop.application.usecases.product.add_shop_product_uc import AddingShopProductRequest
 from web_app.tests.shop.models import CreatedShopAndAccount
 
 
@@ -17,7 +16,7 @@ class AddingShopProductRequestFactory(factory.Factory):
         model = AddingShopProductRequest
 
     shop_id = ''
-    partner_id = ''
+    current_user_id = ''
     timestamp = datetime.now().timestamp()
 
     title = factory.Faker('name')

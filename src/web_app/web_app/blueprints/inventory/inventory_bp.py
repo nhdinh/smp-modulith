@@ -120,7 +120,7 @@ def list_draft_purchase_orders(list_draft_purchase_orders_query: ListDraftPurcha
 @log_error()
 def create_draft_purchase_order(create_draft_purchase_order_uc: CreateDraftPurchaseOrderUC,
                                 presenter: CreatingDraftPurchaseOrderResponseBoundary) -> Response:
-    dto = get_dto(request, CreatingDraftPurchaseOrderRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, CreatingDraftPurchaseOrderRequest, context={'current_user_id': get_jwt_identity()})
     create_draft_purchase_order_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore

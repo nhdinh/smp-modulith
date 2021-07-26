@@ -7,7 +7,7 @@ from marshmallow import fields
 
 from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX
 from shop.domain.dtos.product_dtos import ShopProductCompactedDto
-from shop.domain.dtos.supplier_dtos import StoreSupplierResponseDto
+from shop.domain.dtos.supplier_dtos import ShopSupplierDto
 from shop.domain.entities.value_objects import ShopSupplierId
 from web_app.serialization.dto import (
     BasePaginationAuthorizedRequest,
@@ -24,7 +24,7 @@ class ListShopSuppliersRequest(BasePaginationRequest, BaseAuthorizedShopUserRequ
 
 class ListShopSuppliersQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: ListShopSuppliersRequest) -> PaginationTypedResponse[StoreSupplierResponseDto]:
+    def query(self, dto: ListShopSuppliersRequest) -> PaginationTypedResponse[ShopSupplierDto]:
         pass
 
 

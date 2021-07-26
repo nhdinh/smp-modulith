@@ -224,6 +224,7 @@ six==1.15.0
 speaklater==1.3
     # via flask-babelex
 sqlalchemy-utils==0.37.2
+dogpile.cache
     # via
     #   -r ./db_infrastructure/requirements.txt
     #   pytest-sqlalchemy

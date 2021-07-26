@@ -5,16 +5,18 @@ from dataclasses import dataclass
 
 from vietnam_provinces.enums.wards import WardEnum, WardDEnum
 
+from foundation.events import WillRaiseExceptionEvent, new_event_id
 from foundation.value_objects.address import Address
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
+from shop.domain.entities.shop import Shop
 from shop.domain.entities.value_objects import ShopAddressId
 from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
 class AddingShopAddressResponse:
-    address_id: ShopAddressId
+    shop_address_id: ShopAddressId
 
 
 class AddingShopAddressResponseBoundary(abc.ABC):
@@ -41,7 +43,7 @@ class AddShopAddressUC:
     def execute(self, dto: AddingShopAddressRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)  # type:Shop
 
                 ward = WardEnum[f'{dto.ward_code}'].value
                 if not ward:
@@ -53,13 +55,13 @@ class AddShopAddressUC:
                     ward_code=dto.ward_code
                 )
 
-                shop_address_id = shop.add_address(
+                shop_address = shop.add_address(
                     recipient=dto.recipient,
                     phone=dto.phone,
                     address=address
                 )
 
-                response = AddingShopAddressResponse(True)
+                response = AddingShopAddressResponse(shop_address_id=shop_address.shop_address_id)
                 self._ob.present(response_dto=response)
 
                 shop.version += 1

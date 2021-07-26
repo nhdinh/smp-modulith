@@ -19,7 +19,8 @@ from shop.adapter.id_generators import (
     generate_shop_id,
     generate_supplier_id,
 )
-from shop.domain.entities.value_objects import AddressType, RegistrationStatus, GenericShopItemStatus, ShopStatus, ShopUserType
+from shop.domain.entities.value_objects import AddressType, RegistrationStatus, GenericShopItemStatus, ShopStatus, \
+    ShopUserType
 
 shop_registration_table = sa.Table(
     'shop_registration',
@@ -76,9 +77,12 @@ shop_users_table = sa.Table(
     metadata,
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('user_id', sa.String(40), unique=True),
-    sa.Column('email', sa.String(255), unique=True, nullable=False),
+    sa.Column('email', sa.String(255)),
     sa.Column('mobile', sa.String(100)),
     sa.Column('shop_role', sa.Enum(ShopUserType), default=ShopUserType.MANAGER),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
+    sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
 
     sa.PrimaryKeyConstraint('shop_id', 'user_id', name='shop_users_pk'),
 )
@@ -224,7 +228,7 @@ shop_product_view_cache_table = sa.Table(
     sa.Column('suppliers_json', JsonType),
 
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
-    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, server_onupdate=sa.func.now()),
 
     sa.PrimaryKeyConstraint('product_cache_id', name='product_cache_pk'),
 )

@@ -15,7 +15,8 @@ from inventory.adapter.id_generators import (
     generate_warehouse_address_id,
     generate_warehouse_id,
 )
-from inventory.domain.entities.value_objects import AddressType, PurchaseOrderStatus, WarehouseStatus, WarehouseUserType
+from inventory.domain.entities.value_objects import AddressType, PurchaseOrderStatus, WarehouseStatus, \
+    WarehouseUserType, GenericWarehouseItemStatus
 
 # inventory_product_table = sa.Table(
 #     'store_product',
@@ -54,6 +55,7 @@ from inventory.domain.entities.value_objects import AddressType, PurchaseOrderSt
 #
 #     extend_existing=True
 # )
+from shop.domain.entities.value_objects import GenericShopItemStatus
 
 warehouse_table = sa.Table(
     'warehouse',
@@ -93,8 +95,9 @@ warehouse_users_table = sa.Table(
     metadata,
     sa.Column('warehouse_id', sa.ForeignKey(warehouse_table.c.warehouse_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('user_id', sa.String(40), unique=True),
-    sa.Column('email', sa.String(255), unique=True, nullable=False),
+    sa.Column('email', sa.String(255)),
     sa.Column('warehouse_role', sa.Enum(WarehouseUserType), default=WarehouseUserType.MANAGER),
+    sa.Column('status', sa.Enum(GenericWarehouseItemStatus), nullable=False, default=GenericWarehouseItemStatus.NORMAL),
 
     sa.PrimaryKeyConstraint('warehouse_id', 'user_id', name='warehouse_users_pk'),
 )

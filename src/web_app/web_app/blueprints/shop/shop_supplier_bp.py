@@ -36,7 +36,7 @@ class ShopSupplierAPI(injector.Module):
 @jwt_required()
 @log_error()
 def list_shop_suppliers(list_shop_suppliers_query: ListShopSuppliersQuery) -> Response:
-    dto = get_dto(request, ListShopSuppliersRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopSuppliersRequest, context={'current_user_id': get_jwt_identity()})
     response = list_shop_suppliers_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 
@@ -46,7 +46,7 @@ def list_shop_suppliers(list_shop_suppliers_query: ListShopSuppliersQuery) -> Re
 @jwt_required()
 @log_error()
 def list_shop_products_by_supplier(list_shop_products_by_supplier_query: ListShopProductsBySupplierQuery) -> Response:
-    dto = get_dto(request, ListShopProductsBySupplierRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopProductsBySupplierRequest, context={'current_user_id': get_jwt_identity()})
     response = list_shop_products_by_supplier_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
 
@@ -57,7 +57,7 @@ def list_shop_products_by_supplier(list_shop_products_by_supplier_query: ListSho
 @log_error()
 def add_shop_product_to_supplier(add_shop_product_to_supplier_uc: AddShopProductToSupplierUC,
                                  presenter: AddingShopProductToSupplierResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopProductToSupplierRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopProductToSupplierRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_product_to_supplier_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore

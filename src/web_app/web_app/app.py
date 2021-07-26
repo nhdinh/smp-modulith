@@ -2,8 +2,6 @@ from datetime import datetime, timedelta, timezone
 from json import JSONDecodeError
 from typing import Optional
 
-from apispec import APISpec
-from apispec.ext.marshmallow import MarshmallowPlugin
 from flask import Flask, Response, make_response, request
 from flask_cors import CORS
 from flask_injector import FlaskInjector
@@ -17,7 +15,7 @@ from main import bootstrap_app
 from main.modules import RequestScope
 from web_app.blueprints.catalog_bp import CatalogAPI, catalog_blueprint
 from web_app.blueprints.foundation_bp import foundation_blueprint, FoundationAPI
-from web_app.blueprints.identity_bp import IdentityAPI, identity_blueprint
+from web_app.blueprints.identity.identity_bp import IdentityAPI, identity_blueprint
 from web_app.blueprints.product_bp import ProductAPI, product_blueprint
 from web_app.blueprints.shop.shop_bp import ShopAPI, shop_blueprint
 from web_app.blueprints.shop.shop_catalog_bp import ShopCatalogAPI, shop_catalog_blueprint

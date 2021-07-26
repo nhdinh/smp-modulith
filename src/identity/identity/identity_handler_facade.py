@@ -1,82 +1,59 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import Union
 
 import injector
+from sqlalchemy import insert, update
+from sqlalchemy.engine import Connection
 
-from foundation.domain_events.shop_events import ShopRegistrationConfirmedEvent
-from foundation.events import EveryModuleMustCatchThisEvent
+from foundation.events import EveryModuleMustCatchThisEvent, new_event_id, EventBus
 from foundation.logger import logger
-
+from identity.adapters.id_generator import generate_user_id
+from identity.adapters.identity_db import user_table
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User
-from identity.domain.events.user_registration_confirmed_event import UserRegistrationConfirmedEvent
+from identity.domain.entities.user import UserStatus
+from identity.domain.events import PendingUserCreatedEvent, UserDataEmitEvent
+from identity.domain.value_objects import UserId
 
 
 class IdentityHandlerFacade:
-    def __init__(self, uow: IdentityUnitOfWork):
-        self._uow = uow
+    def __init__(self, conn: Connection, event_bus: EventBus):
+        self._conn = conn
+        self._event_bus = event_bus
 
-    def create_user(self, email: str, mobile: str, hashed_password: str, on_shop_confirmation: bool = False):
-        """
-        Create SystemUser
-
-        :param email:
-        :param mobile:
-        :param hashed_password:
-        :param on_shop_confirmation: boolean flag to indicates that this user creation is upon shop confirmation or not.
-        """
-        with self._uow as uow:  # type: IdentityUnitOfWork
-            try:
-                user = User.create(email=email, password=hashed_password, is_plain_password=False, mobile=mobile,
-                                   on_shop_confirmation=on_shop_confirmation)
-                uow.identities.save(user)
-
-                uow.commit()
-            except Exception as exc:
-                raise exc
-
-
-class UserRegistrationConfirmedEventHandler:
-    @injector.inject
-    def __init__(self, facade: IdentityHandlerFacade) -> None:
-        self._facade = facade
-
-    def __call__(self, event: UserRegistrationConfirmedEvent) -> None:
-        email = event.email
-        mobile = event.mobile
-        hashed_password = event.hashed_password
-
-        self._facade.create_user(
+    def create_pending_user(self, email: str, mobile: str, password: str, registration_type: str,
+                            registration_id: str, procman_id: str) -> UserId:
+        user_id = generate_user_id()
+        insertion = insert(user_table).values(
+            user_id=user_id,
             email=email,
             mobile=mobile,
-            hashed_password=hashed_password,
+            password=password,
+            status=UserStatus.PENDING_CREATION,
         )
 
+        self._conn.execute(insertion)
 
-class CreateUserUponShopRegistrationConfirmedHandler:
-    @injector.inject
-    def __init__(self, facade: IdentityHandlerFacade) -> None:
-        self._facade = facade
+        if registration_type == 'SHOP':
+            self._event_bus.post(PendingUserCreatedEvent(event_id=new_event_id(),
+                                                         procman_id=procman_id,
+                                                         shop_registration_id=registration_id,
+                                                         user_id=user_id))
+        else:
+            # other registration
+            pass
 
-    def __call__(self, event: ShopRegistrationConfirmedEvent) -> None:
-        try:
-            event_id = event.event_id
-            registration_id = event.registration_id
-            user_email = event.user_email
-            user_hashed_password = event.user_hashed_password
-            mobile = event.mobile
+    def activate_pending_user(self, user_id: UserId, email: str, mobile: str, procman_id: str):
+        modification = update(user_table).values(status=UserStatus.NORMAL).where(user_table.c.user_id == user_id)
+        self._conn.execute(modification)
 
-            self._facade.create_user(
-                email=user_email,
-                mobile=mobile,
-                hashed_password=user_hashed_password,
-                on_shop_confirmation=True
-            )
-        except Exception as exc:
-            # do something
-            logger.exception(exc)
-            raise exc
+        self._event_bus.post(UserDataEmitEvent(
+            event_id=new_event_id(),
+            procman_id=procman_id,
+            user_id=user_id,
+            email=email,
+            mobile=mobile
+        ))
 
 
 class Identity_CatchAllEventHandler:
@@ -85,9 +62,4 @@ class Identity_CatchAllEventHandler:
         self._f = facade
 
     def __call__(self, event: EveryModuleMustCatchThisEvent):
-        with self._f._uow as uow:  # type: IdentityUnitOfWork
-            try:
-                uow.commit()
-            except Exception as exc:
-                logger.exception(exc)
-                raise exc
+        ...

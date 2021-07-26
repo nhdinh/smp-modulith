@@ -1,7 +1,7 @@
 import dataclasses
+import json
 from datetime import datetime
 from enum import Enum
-import json
 from typing import Dict, Tuple, Type, TypeVar
 from uuid import UUID
 
@@ -9,6 +9,7 @@ from typing_extensions import Protocol
 
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
+from processes.value_objects import ProcessId
 
 T = TypeVar("T")
 
@@ -41,8 +42,8 @@ deserializers = {
     datetime: _deserialize_dt,
     Money: lambda dict_repr: get_money(dict_repr["amount"]),
     UUID: UUID,
+    ProcessId: str,
 }
-
 
 serializers = {
     int: int,
@@ -50,6 +51,7 @@ serializers = {
     datetime: lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
     Money: lambda money: {"amount": str(money.amount), "currency": money.currency.iso_code},
     UUID: str,
+    ProcessId: str,
 }
 
 

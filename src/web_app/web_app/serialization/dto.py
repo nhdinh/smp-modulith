@@ -100,6 +100,27 @@ def paginate_response_factory(
     )
 
 
+def list_response_factory(items: List[T] = None) -> SimpleListTypedResponse[T]:
+    """
+    Generate a simple list response data from input parameters
+
+    :param items: List of Data Object as the core of the response object
+    :return: a list of items DTO encapsulated in an instance of SimpleListTypedResponse
+    """
+    if not items:
+        items = []
+    return SimpleListTypedResponse(items)
+
+
+def empty_list_response() -> SimpleListTypedResponse[T]:
+    """
+    Return a simple list response with empty items list
+
+    :return: instance of SimpleListTypedResponse
+    """
+    return SimpleListTypedResponse(items=[])
+
+
 def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
     schema_cls = class_schema(dto_cls, base_schema=BaseSchema)
     schema = schema_cls()

@@ -2,7 +2,7 @@ import abc
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Generic, List, Type, TypeVar
+from typing import Callable, Generic, List, Type, TypeVar, Optional, Union
 
 from injector import Injector, Provider, UnsatisfiedRequirement
 
@@ -21,10 +21,16 @@ def new_event_id() -> str:
 @dataclass(frozen=True)
 class Event:
     event_id: str
+    procman_id: Optional[str]
 
 
 @dataclass(frozen=True)
 class EveryModuleMustCatchThisEvent(Event):
+    ...
+
+
+@dataclass(frozen=True)
+class WillRaiseExceptionEvent(Event):
     ...
 
 
@@ -41,13 +47,22 @@ class EventMixin:
 
         self.domain_events: List[Event] = []
 
-    def _record_event(self, event: Event) -> None:
+    def _record_event(self, event: Union[Event, Type], **kwargs) -> None:
         """
         Add new event to `self` model.
 
         :param event: kind of `Event`
         """
-        self.domain_events.append(event)
+        if not isinstance(event, Event):
+            if 'procman_id' not in kwargs.keys():
+                kwargs['procman_id'] = ''
+
+            event = event(**kwargs)
+
+        if isinstance(event, Event):
+            self.domain_events.append(event)
+        else:
+            raise TypeError(f"{event} is not Event type")
 
     def clear_events(self) -> None:
         # self._pending_domain_events.clear()

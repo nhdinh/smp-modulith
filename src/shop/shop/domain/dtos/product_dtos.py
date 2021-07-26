@@ -14,7 +14,7 @@ from shop.domain.dtos.collection_dtos import ShopCollectionDto, _row_to_collecti
 from shop.domain.dtos.product_brand_dtos import StoreProductBrandCompactedDto, StoreProductBrandDto, _row_to_brand_dto
 from shop.domain.dtos.product_tag_dtos import StoreProductTagDto, _row_to_tag_dto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
-from shop.domain.dtos.supplier_dtos import StoreSupplierResponseDto, _row_to_supplier_dto
+from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
 from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
 
 
@@ -29,7 +29,7 @@ class ShopProductCompactedDto:
     catalog: ShopCatalogResponseCompactedDto
 
     collections: List[ShopCollectionDto]
-    suppliers: List[StoreSupplierResponseDto]
+    suppliers: List[ShopSupplierDto]
 
     def serialize(self):
         return self.__dict__
@@ -63,6 +63,9 @@ class ShopProductPriceDto:
     tax: float
     effective_from: date
     effective_status: str
+
+    def serialize(self):
+        return self.__dict__
 
 
 def _row_to_product_dto(

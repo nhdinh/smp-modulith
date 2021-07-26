@@ -9,7 +9,7 @@ from shop.domain.entities.value_objects import ShopSupplierId, GenericShopItemSt
 
 
 @dataclass
-class SupplierContactResponseDto:
+class SupplierContactDto:
     contact_name: str
     contact_phone: str
     contact_status: GenericShopItemStatus
@@ -19,10 +19,10 @@ class SupplierContactResponseDto:
 
 
 @dataclass
-class StoreSupplierResponseDto:
+class ShopSupplierDto:
     supplier_id: ShopSupplierId
     supplier_name: str
-    contacts: List[SupplierContactResponseDto]
+    contacts: List[SupplierContactDto]
     supplier_status: GenericShopItemStatus
 
     def serialize(self):
@@ -30,15 +30,15 @@ class StoreSupplierResponseDto:
 
 
 def _row_to_supplier_contact_dto(row: RowProxy):
-    return SupplierContactResponseDto(
+    return SupplierContactDto(
         contact_name=row.contact_name,
         contact_phone=row.contact_phone,
         contact_status=row.contact_status,
     )
 
 
-def _row_to_supplier_dto(row: RowProxy, contact_rows: List[RowProxy] = []) -> StoreSupplierResponseDto:
-    return StoreSupplierResponseDto(
+def _row_to_supplier_dto(row: RowProxy, contact_rows: List[RowProxy] = []) -> ShopSupplierDto:
+    return ShopSupplierDto(
         supplier_id=row.supplier_id,
         supplier_name=row.supplier_name,
         contacts=[_row_to_supplier_contact_dto(cr) for cr in contact_rows] if contact_rows else [],

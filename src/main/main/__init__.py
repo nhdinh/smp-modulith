@@ -1,28 +1,29 @@
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 # from auctions import Auctions
 # from auctions_infrastructure import AuctionsInfrastructure
 from typing import Dict
 
 import dotenv
-from flask import current_app
 import injector
 from sqlalchemy.engine import Engine, create_engine
-
-from foundation.foundation_event_handler_module import FoundationEventHandlerModule
 
 from customer_relationship import CustomerRelationshipEventHandlerModule
 from db_infrastructure import metadata
 from foundation.foundation_applications_module import FoundationApplicationModule
+from foundation.foundation_event_handler_module import FoundationEventHandlerModule
 from identity.identity_applications_module import IdentityApplicationModule
 from identity.identity_event_handler_module import IdentityEventHandlerModule
 from identity.identity_infrastructure_module import IdentityInfrastructureModule
 # from inventory.inventory_application_module import InventoryApplicationModule
 # from inventory.inventory_event_handler_module import InventoryEventHandlerModule
 # from inventory.inventory_infrastructure_module import InventoryInfrastructureModule
+from inventory.inventory_application_module import InventoryApplicationModule
+from inventory.inventory_event_handler_module import InventoryEventHandlerModule
+from inventory.inventory_infrastructure_module import InventoryInfrastructureModule
 from main.modules import Configs, Db, EventBusMod, FileSystemProvider, MinIOService, RedisMod, Rq
 # from payments import Payments
-# from processes import Processes
+from processes import Processes
 from product_catalog import ProductCatalogInfrastructureModule, ProductCatalogModule
 from shop.shop_application_module import ShopApplicationModule
 from shop.shop_event_handler_module import ShopEventHandlerModule
@@ -95,6 +96,7 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             MinIOService(settings["minio.host"], settings["minio.access_key"], settings["minio.secret_key"]),
             FileSystemProvider(),
             Configs(settings),
+            Processes(),
 
             FoundationEventHandlerModule(),
             FoundationApplicationModule(),
@@ -111,9 +113,9 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             ShopInfrastructureModule(),
             ShopApplicationModule(),
 
-            # InventoryEventHandlerModule(),
-            # InventoryInfrastructureModule(),
-            # InventoryApplicationModule(),
+            InventoryEventHandlerModule(),
+            InventoryInfrastructureModule(),
+            InventoryApplicationModule(),
         ],
         auto_bind=False,
     )

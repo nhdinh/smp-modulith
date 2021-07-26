@@ -3,13 +3,13 @@
 import abc
 from dataclasses import dataclass
 
-from foundation.domain_events.shop_events import ShopProductUpdatedEvent
 from foundation.events import ThingGoneInBlackHoleError
 from foundation.fs import FileSystem
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_product_by_id_or_raise, get_shop_or_raise
 from shop.domain.entities.value_objects import ExceptionMessages, ShopProductAttributeTypes, ShopProductId
+from shop.domain.events import ShopProductUpdatedEvent
 
 
 @dataclass

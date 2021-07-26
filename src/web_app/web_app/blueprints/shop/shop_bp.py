@@ -89,7 +89,7 @@ def confirm_registration(confirm_registration_uc: ConfirmShopRegistrationUC,
 @jwt_required()
 @log_error()
 def get_shop_info(get_shop_info_query: GetShopInfoQuery) -> Response:
-    dto = get_dto(request, GetShopInfoRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, GetShopInfoRequest, context={'current_user_id': get_jwt_identity()})
     shop_info = get_shop_info_query.query(dto)
 
     return make_response(jsonify(shop_info)), 200  # type:ignore
@@ -106,7 +106,7 @@ def list_shop_managers():
 @jwt_required()
 @log_error()
 def add_shop_user(add_shop_user_uc: AddShopUserUC, presenter: AddingShopUserResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopUserRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopUserRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_user_uc.execute(dto)
 
     return presenter.response, 201  # type: ignore
@@ -116,7 +116,7 @@ def add_shop_user(add_shop_user_uc: AddShopUserUC, presenter: AddingShopUserResp
 @jwt_required()
 @log_error()
 def list_shop_addresses(list_shop_addresses_query: ListShopAddressesQuery) -> Response:
-    dto = get_dto(request, ListShopAddressesRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, ListShopAddressesRequest, context={'current_user_id': get_jwt_identity()})
     addresses = list_shop_addresses_query.query(dto)
 
     return make_response(jsonify(addresses)), 200  # type:ignore
@@ -126,7 +126,7 @@ def list_shop_addresses(list_shop_addresses_query: ListShopAddressesQuery) -> Re
 @jwt_required()
 @log_error()
 def add_shop_address(add_shop_address_uc: AddShopAddressUC, presenter: AddingShopAddressResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopAddressRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopAddressRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_address_uc.execute(dto)
 
     return presenter.response, 201  # type: ignore
@@ -136,7 +136,7 @@ def add_shop_address(add_shop_address_uc: AddShopAddressUC, presenter: AddingSho
 @jwt_required()
 @log_error()
 def add_shop_brand(add_shop_brand_uc: AddShopBrandUC, presenter: AddingShopBrandResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopBrandRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopBrandRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_brand_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
@@ -147,7 +147,7 @@ def add_shop_brand(add_shop_brand_uc: AddShopBrandUC, presenter: AddingShopBrand
 @log_error()
 def add_shop_supplier(add_shop_supplier_uc: AddShopSupplierUC,
                       presenter: AddingShopSupplierResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopSupplierRequest, context={'partner_id': get_jwt_identity()})
+    dto = get_dto(request, AddingShopSupplierRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_supplier_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore

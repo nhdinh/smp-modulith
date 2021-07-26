@@ -6,15 +6,14 @@ from typing import List, Optional as Opt
 
 from foundation.events import ThingGoneInBlackHoleError
 from foundation.fs import FileSystem
-
-from inventory.application.usecases.const import ExceptionMessages
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_product_by_id_or_raise, get_shop_or_raise
-from shop.domain.entities.value_objects import ShopProductId
+from shop.domain.entities.value_objects import ShopProductId, ExceptionMessages
+from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 @dataclass
-class UpdatingStoreProductRequest:
+class UpdatingStoreProductRequest(BaseAuthorizedShopUserRequest):
     current_user: str
     product_id: ShopProductId
 
@@ -47,11 +46,11 @@ class UpdateStoreProductUC:
     def execute(self, dto: UpdatingStoreProductRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
+                store = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
                 product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
 
                 if not product.is_belong_to_shop(store):
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.STORE_PRODUCT_NOT_FOUND)
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
 
                 update_data = {}
 
@@ -68,6 +67,7 @@ class UpdateStoreProductUC:
 
                 response_dto = UpdatingStoreProductResponse(status=True)
                 self._ob.present(response_dto=response_dto)
+
 
                 store.version += 1
 

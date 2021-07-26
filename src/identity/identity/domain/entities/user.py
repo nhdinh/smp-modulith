@@ -9,13 +9,12 @@ import uuid
 
 from passlib.hash import pbkdf2_sha256 as sha256
 
-from foundation.domain_events.identity_events import ShopAdminCreatedEvent, UserCreatedEvent
 from foundation import Entity
 from foundation import EventMixin, EveryModuleMustCatchThisEvent, new_event_id
 
 from identity.adapters.id_generator import generate_user_id
-from identity.domain.events.password_resetted_event import PasswordResettedEvent
-from identity.domain.events.request_password_change_created_event import RequestPasswordChangeCreatedEvent
+from identity.domain.events import RequestPasswordChangeCreatedEvent, PasswordResettedEvent, UserCreatedEvent, \
+    ShopAdminCreatedEvent
 from identity.domain.rules.email_must_be_valid_address_rule import EmailMustBeValidAddressRule
 from identity.domain.rules.email_must_not_be_empty_rule import EmailMustNotBeEmptyRule
 from identity.domain.rules.password_must_meet_requirement_rule import PasswordMustMeetRequirementRule
@@ -23,6 +22,7 @@ from identity.domain.value_objects import UserId
 
 
 class UserStatus(Enum):
+    PENDING_CREATION = 'PendingCreation'
     NORMAL = 'NORMAL'
     DISABLED = 'DISABLED'
     DELETED = 'DELETED'
@@ -73,7 +73,7 @@ class User(EventMixin, Entity):
         self.reset_password_token = ''
         self.request_reset_password_at = None
 
-        self._record_event(UserCreatedEvent(
+        self._record_event(UserCreatedEvent, **dict(
             event_id=new_event_id(),
             user_id=self.user_id,
             email=self.email,
@@ -82,7 +82,7 @@ class User(EventMixin, Entity):
         ))
 
         if kwargs.get('emit_shop_creation_event'):
-            self._record_event(ShopAdminCreatedEvent(
+            self._record_event(ShopAdminCreatedEvent, **dict(
                 event_id=new_event_id(),
                 user_id=self.user_id,
                 email=self.email,
@@ -154,7 +154,7 @@ class User(EventMixin, Entity):
         self.reset_password_token = secrets.token_urlsafe(64)
         self.request_reset_password_at = datetime.now()
 
-        self._record_event(RequestPasswordChangeCreatedEvent(
+        self._record_event(RequestPasswordChangeCreatedEvent, **dict(
             username=self.email,
             email=self.email,
             token=self.reset_password_token
@@ -176,7 +176,7 @@ class User(EventMixin, Entity):
         self.reset_password_token = ''
         self.request_reset_password_at = None
 
-        self._record_event(PasswordResettedEvent(
+        self._record_event(PasswordResettedEvent, **dict(
             username=self.email,
             email=self.email
         ))
@@ -184,5 +184,3 @@ class User(EventMixin, Entity):
     def update_login_status(self, remote_address: str):
         self.current_login_ip = remote_address
         self.login_count += 1
-
-        self._record_event(EveryModuleMustCatchThisEvent(event_id=uuid.uuid4()))

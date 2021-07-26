@@ -34,41 +34,41 @@ def repo(connection: Connection) -> ProcessManagerDataRepo:
     "data, json_repr",
     [
         (
-            PayingForWonItemData(UUID("331831f1-3d7c-48c2-9433-955c1cf8deb6")),
-            {
-                "process_uuid": "331831f1-3d7c-48c2-9433-955c1cf8deb6",
-                "state": None,
-                "timeout_at": None,
-                "winning_bid": None,
-                "auction_title": None,
-                "auction_id": None,
-                "winner_id": None,
-            },
+                PayingForWonItemData(UUID("331831f1-3d7c-48c2-9433-955c1cf8deb6")),
+                {
+                    "process_uuid": "331831f1-3d7c-48c2-9433-955c1cf8deb6",
+                    "state": None,
+                    "timeout_at": None,
+                    "winning_bid": None,
+                    "auction_title": None,
+                    "auction_id": None,
+                    "winner_id": None,
+                },
         ),
         (
-            PayingForWonItemData(
-                UUID("d1526bb4-cee4-4b63-9029-802abc0f7593"),
-                State.PAYMENT_STARTED,
-                EXAMPLE_DATETIME,
-                get_money("15.99"),
-                "Irrelevant",
-                1,
-                2,
-            ),
-            {
-                "process_uuid": "d1526bb4-cee4-4b63-9029-802abc0f7593",
-                "state": State.PAYMENT_STARTED.value,
-                "timeout_at": EXAMPLE_DATETIME.isoformat(),
-                "winning_bid": {"amount": "15.99", "currency": "USD"},
-                "auction_title": "Irrelevant",
-                "auction_id": 1,
-                "winner_id": 2,
-            },
+                PayingForWonItemData(
+                    UUID("d1526bb4-cee4-4b63-9029-802abc0f7593"),
+                    State.PAYMENT_STARTED,
+                    EXAMPLE_DATETIME,
+                    get_money("15.99"),
+                    "Irrelevant",
+                    1,
+                    2,
+                ),
+                {
+                    "process_uuid": "d1526bb4-cee4-4b63-9029-802abc0f7593",
+                    "state": State.PAYMENT_STARTED.value,
+                    "timeout_at": EXAMPLE_DATETIME.isoformat(),
+                    "winning_bid": {"amount": "15.99", "currency": "USD"},
+                    "auction_title": "Irrelevant",
+                    "auction_id": 1,
+                    "winner_id": 2,
+                },
         ),
     ],
 )
 def test_saving_and_reading(
-    repo: ProcessManagerDataRepo, connection: Connection, data: PayingForWonItemData, json_repr: dict
+        repo: ProcessManagerDataRepo, connection: Connection, data: PayingForWonItemData, json_repr: dict
 ) -> None:
     process_uuid = uuid4()
 
@@ -76,11 +76,11 @@ def test_saving_and_reading(
 
     assert repo.get(process_uuid, type(data)) == data
 
-    connection.execute(process_manager_data_table.delete().where(process_manager_data_table.c.uuid == process_uuid))
+    connection.execute(process_manager_data_table.delete().where(process_manager_data_table.c.pid == process_uuid))
 
     repo.save(process_uuid, data)
 
     row = connection.execute(
-        process_manager_data_table.select(process_manager_data_table.c.uuid == process_uuid)
+        process_manager_data_table.select(process_manager_data_table.c.pid == process_uuid)
     ).first()
     assert json.loads(row.json) == json_repr

@@ -3,8 +3,7 @@
 import abc
 from dataclasses import dataclass
 
-from passlib.hash import pbkdf2_sha256 as sha256
-
+from identity.domain.entities import User
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.domain.entities.shop_registration import ShopRegistration
 from shop.domain.entities.value_objects import ShopRegistrationId
@@ -48,7 +47,7 @@ class RegisterShopUC:
                 store_registration = ShopRegistration.create_registration(
                     shop_name=dto.name,
                     owner_email=dto.email,
-                    owner_password=sha256.hash(dto.password),
+                    owner_password=User.generate_hash(dto.password),
                     owner_mobile=dto.mobile,
                     # user_counter_services=self.user_counter_services
                 )

@@ -9,6 +9,13 @@ DraftPurchaseOrderId = NewType('DraftPurchaseOrderId', tp=str)
 PurchaseOrderReference = NewType('PurchaseOrderReference', tp=str)
 SystemUserId = NewType("SystemUserId", tp=str)
 
+class GenericWarehouseItemStatus(Enum):
+    PENDING_CREATION = 'PendingCreation'
+    NORMAL = 'NORMAL'
+    DISABLED = 'DISABLED'
+    DELETED = 'DELETED'
+
+
 
 class PurchaseOrderStatus(Enum):
     DRAFT = 'DRAFT'
@@ -21,6 +28,7 @@ class PurchaseOrderStatus(Enum):
 
 
 class WarehouseStatus(Enum):
+    PENDING_CREATION = 'PendingCreation'
     NORMAL = 'Normal'
     DISABLED = 'Disabled'
     DELETED = 'Deleted'
