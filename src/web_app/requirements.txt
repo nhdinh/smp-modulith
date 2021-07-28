@@ -16,3 +16,4 @@ flask-apispec
 marshmallow_enum
 typeguard
 flask-log-request-id
+sentry-sdk[flask]
