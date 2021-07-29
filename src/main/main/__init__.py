@@ -6,6 +6,7 @@ from typing import Dict
 
 import dotenv
 import injector
+import sentry_sdk
 from sqlalchemy.engine import Engine, create_engine
 
 from customer_relationship import CustomerRelationshipEventHandlerModule
@@ -64,6 +65,7 @@ def bootstrap_app() -> AppContext:
         'minio.secret_key': os.environ['MINIO_SECRET_KEY'],
         'debug': os.environ['DEBUG'],
         'db_echo': os.environ.get('DB_ECHO') in ('True', 'true', '1'),
+        'sentry_dsn': os.environ['SENTRY_DSN'],
 
         # first data
         'admin_id': os.environ.get('admin_id') or 'User_00000000000000000000.FiRsT',
@@ -73,6 +75,16 @@ def bootstrap_app() -> AppContext:
         'admin_email': os.environ.get('admin_email') or 'admin@smp.io',
         'admin_password': os.environ.get('admin_password') or 'aDmIn_P@55w0rd'
     }
+
+    # init sentry
+    sentry_sdk.init(
+        settings['sentry_dns'],
+
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production.
+        traces_sample_rate=1.0,
+    )
 
     engine = create_engine(os.environ["DB_DSN"], echo=settings['db_echo'])
     dependency_injector = _setup_dependency_injection(settings, engine)

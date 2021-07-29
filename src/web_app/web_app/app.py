@@ -1,13 +1,16 @@
+import os
 from datetime import datetime, timedelta, timezone
 from json import JSONDecodeError
 from typing import Optional
 
+import sentry_sdk
 from flask import Flask, Response, make_response, request
 from flask_cors import CORS
 from flask_injector import FlaskInjector
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt, get_jwt_identity, set_access_cookies
 from flask_log_request_id import RequestID, current_request_id
 from jsonpickle import json
+from sentry_sdk.integrations.flask import FlaskIntegration
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session
 
@@ -27,6 +30,19 @@ from web_app.json_encoder import JSONEncoder
 def create_app(settings_override: Optional[dict] = None) -> Flask:
     if settings_override is None:
         settings_override = {}
+
+    # init sentry
+    SENTRY_DSN = os.environ.get('SENTRY_DSN', None)
+    if SENTRY_DSN:
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=[FlaskIntegration()],
+
+            # Set traces_sample_rate to 1.0 to capture 100%
+            # of transactions for performance monitoring.
+            # We recommend adjusting this value in production.
+            traces_sample_rate=1.0,
+        )
 
     app = Flask(__name__)
 
@@ -175,7 +191,11 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     # enable CORS
     CORS(app)
 
-    @app.route('/status', methods=['GET', 'POST'])
+    @app.route('/debug-sentry')
+    def trigger_error():
+        division_by_zero = 1 / 0
+
+    @app.route('/health', methods=['GET', 'POST'])
     def health_check():
         return make_response({'status': True}), 200
 

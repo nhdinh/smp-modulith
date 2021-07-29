@@ -90,10 +90,6 @@ class RedisMod(injector.Module):
         return create_lock
 
 
-class SentryModule:
-    ...
-
-
 class Rq(injector.Module):
     @injector.singleton
     @injector.provider
