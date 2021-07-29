@@ -36,6 +36,8 @@ services:
     depends_on:
       - smtp_server
       - redis
+    environment:
+      - SENTRY_DSN=https://6748ed500c474e2899c1bd7ba0d0b755@o932546.ingest.sentry.io/5883757
 
   rq_dashboard:
     image: master-image
