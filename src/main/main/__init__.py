@@ -63,9 +63,9 @@ def bootstrap_app() -> AppContext:
         'minio.host': os.environ['MINIO_HOST'],
         'minio.access_key': os.environ['MINIO_ACCESS_KEY'],
         'minio.secret_key': os.environ['MINIO_SECRET_KEY'],
+        'sentry_dsn': os.environ['SENTRY_DSN'],
         'debug': os.environ['DEBUG'],
         'db_echo': os.environ.get('DB_ECHO') in ('True', 'true', '1'),
-        'sentry_dsn': os.environ['SENTRY_DSN'],
 
         # first data
         'admin_id': os.environ.get('admin_id') or 'User_00000000000000000000.FiRsT',
@@ -78,7 +78,7 @@ def bootstrap_app() -> AppContext:
 
     # init sentry
     sentry_sdk.init(
-        settings['sentry_dns'],
+        settings['sentry_dsn'],
 
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
