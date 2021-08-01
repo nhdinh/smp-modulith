@@ -92,11 +92,11 @@ def paginate_response_factory(
     :return:
     """
     return PaginationTypedResponse(
-        input_dto.pagination_entries_per_page,
-        input_dto.pagination_offset,
-        total_items,
-        math.ceil(total_items / input_dto.pagination_offset),
-        items
+        pagination_entries_per_page=input_dto.pagination_entries_per_page,
+        pagination_offset=input_dto.pagination_offset,
+        total_items=total_items,
+        total_pages=math.ceil(total_items / input_dto.pagination_entries_per_page),
+        items=items
     )
 
 

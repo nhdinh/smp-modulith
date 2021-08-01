@@ -32,9 +32,9 @@ class ShopInfoResponseDto:
 
     def serialize(self):
         return {
-            'store_id': str(self.shop_id),
-            'store_name': self.shop_name,
-            'settings': [setting.serialize() for setting in self.settings]
+            'shop_id': str(self.shop_id),
+            'shop_name': self.shop_name,
+            'settings': [setting.serialize() for setting in self.settings],
         }
 
 
