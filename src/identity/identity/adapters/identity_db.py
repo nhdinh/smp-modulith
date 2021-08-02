@@ -42,7 +42,7 @@ user_table = sa.Table(
     sa.Column('reset_password_token', sa.String(100)),
     sa.Column('request_reset_password_at', sa.DateTime),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 )
 
 role_table = sa.Table(

@@ -36,7 +36,7 @@ collection_table = Table(
     Column('default', Boolean, default=0, server_default='0'),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime, server_default=func.now()),
-    Column('last_updated', DateTime, onupdate=datetime.now),
+    Column('updated_at', DateTime, onupdate=datetime.now),
 )
 
 catalog_table = Table(
@@ -47,7 +47,7 @@ catalog_table = Table(
     Column('system', Boolean, default=False),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime, server_default=func.now()),
-    Column('last_updated', DateTime, default=datetime.now),
+    Column('updated_at', DateTime, default=datetime.now),
 )
 
 brand_table = Table(
@@ -57,7 +57,7 @@ brand_table = Table(
     Column('display_name', String(255), nullable=False),
     Column('disabled', Boolean, default=0, server_default='0'),
     Column('created_at', DateTime, server_default=func.now()),
-    Column('last_updated', DateTime, onupdate=datetime.now),
+    Column('updated_at', DateTime, onupdate=datetime.now),
 )
 
 supplier_table = Table(
@@ -82,7 +82,7 @@ product_table = Table(
     Column('collection_reference', ForeignKey('collection.reference', ondelete='SET NULL')),
     Column('brand_reference', ForeignKey(brand_table.c.reference, ondelete='SET NULL')),
     Column('created_at', DateTime, server_default=func.now()),
-    Column('last_updated', DateTime, onupdate=datetime.now),
+    Column('updated_at', DateTime, onupdate=datetime.now),
 )
 
 tag_view_table = Table(
@@ -109,7 +109,7 @@ product_unit_table = Table(
     Column('base_unit', nullable=True, default=None),
     Column('disabled', Boolean, default=False, server_default='0'),
     Column('created_at', DateTime, nullable=False, server_default=func.now()),
-    Column('last_updated', DateTime, onupdate=datetime.now),
+    Column('updated_at', DateTime, onupdate=datetime.now),
 
     PrimaryKeyConstraint('product_id', 'unit', name='product_unit_pk'),
     ForeignKeyConstraint(

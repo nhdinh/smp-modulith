@@ -66,7 +66,7 @@ warehouse_table = sa.Table(
     sa.Column('status', sa.Enum(WarehouseStatus), nullable=False, default=WarehouseStatus.NORMAL),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 )
 
 warehouse_addresses_table = sa.Table(
@@ -111,7 +111,7 @@ purchase_order_table = sa.Table(
     sa.Column('approved_date', sa.Date),
     sa.Column('status', sa.Enum(PurchaseOrderStatus), nullable=False, default=PurchaseOrderStatus.APPROVED),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 )
 
 purchase_order_item_table = sa.Table(
@@ -151,7 +151,7 @@ draft_purchase_order_table = sa.Table(
               nullable=True),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 )
 
 draft_purchase_order_item_table = sa.Table(

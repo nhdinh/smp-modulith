@@ -43,7 +43,7 @@ class EventStatus(Enum):
 class EventMixin:
     def __init__(self) -> None:
         self.created_at = datetime.now()
-        self.last_updated = datetime.now()
+        self.updated_at = datetime.now()
 
         self.domain_events: List[Event] = []
 

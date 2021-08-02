@@ -37,7 +37,7 @@ shop_registration_table = sa.Table(
     sa.Column('version', sa.Integer, default='0'),
     sa.Column('last_resend', sa.DateTime),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 )
 
 shop_table = sa.Table(
@@ -48,7 +48,7 @@ shop_table = sa.Table(
     sa.Column('status', sa.Enum(ShopStatus), nullable=False, default=ShopStatus.NORMAL),
     sa.Column('version', sa.Integer, nullable=False, default=0),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 )
 
 shop_warehouse_table = sa.Table(
@@ -69,7 +69,7 @@ shop_users_table = sa.Table(
     sa.Column('shop_role', sa.Enum(ShopUserType), default=ShopUserType.MANAGER),
     sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 
     sa.PrimaryKeyConstraint('shop_id', 'user_id', name='shop_users_pk'),
 )
@@ -83,7 +83,7 @@ shop_settings_table = sa.Table(
     sa.Column('setting_value', sa.String(100), nullable=False),
     sa.Column('setting_type', sa.String(100), nullable=False),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 
     sa.PrimaryKeyConstraint('shop_id', 'setting_key', name='shop_id_settings_key_pk'),
 )
@@ -239,7 +239,7 @@ shop_product_unit_table = sa.Table(
     sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
 
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 
     sa.ForeignKeyConstraint(
         ('product_id', 'referenced_unit_name'),
@@ -274,7 +274,7 @@ shop_product_purchase_price_table = sa.Table(
     sa.Column('effective_from', sa.Date, nullable=False, server_default=sa.func.now()),
 
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 
     sa.ForeignKeyConstraint(('product_id', 'unit'),
                             [shop_product_unit_table.c.product_id, shop_product_unit_table.c.unit_name],
@@ -308,7 +308,7 @@ shop_event_table = sa.Table(
     sa.Column('failed_count', sa.Integer, default=0),
     sa.Column('status', sa.Enum(EventStatus), default=EventStatus.PENDING),
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-    sa.Column('last_updated', sa.DateTime, onupdate=datetime.now),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 
     # TODO: Added destination columns
 )

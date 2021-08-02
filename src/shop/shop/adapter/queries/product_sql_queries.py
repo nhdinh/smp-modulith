@@ -82,12 +82,12 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
             counting_q = count_products_query_factory(shop_id=dto.shop_id)
             product_counts = self._conn.scalar(counting_q)
 
-            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=dto.use_view_cache)
+            # disable use view cache when the result is ordered
+            if dto.order_by:
+                dto.use_view_cache = False
 
-            # sort the result by order
-            if not dto.order_by:
-                dto.order_by = ProductOrderBy.STOCKING_QUANTITY
-                dto.order_direction_descending = True
+            # prepare the query
+            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=dto.use_view_cache)
 
             ordered_column = None
             if dto.order_by == ProductOrderBy.TITLE:
@@ -101,10 +101,11 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
             else:
                 ordered_column = shop_product_table.c.stocking_quantity
 
-            if dto.order_direction_descending:
-                query = query.order_by(desc(ordered_column))
-            else:
-                query = query.order_by(ordered_column)
+            if ordered_column is not None:
+                if dto.order_direction_descending:
+                    query = query.order_by(desc(ordered_column))
+                else:
+                    query = query.order_by(ordered_column)
 
             # add limit and pagination
             query = query.limit(dto.page_size).offset(
