@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from itertools import groupby
 
-from sqlalchemy import select, and_, asc
+from sqlalchemy import select, and_, asc, desc
 
 from db_infrastructure.base import SqlQuery
 from foundation.events import ThingGoneInBlackHoleError
@@ -11,12 +11,13 @@ from shop.adapter.queries.query_factories import get_shop_product_query_factory,
     list_shop_collections_bound_to_product_query_factory, \
     list_shop_products_query_factory, count_products_query_factory, list_suppliers_bound_to_product_query, \
     list_units_bound_to_product_query_factory, list_purchase_prices_bound_to_product_query_factory
-from shop.adapter.shop_db import shop_product_unit_table, shop_product_tag_table, shop_product_purchase_price_table
+from shop.adapter.shop_db import shop_product_unit_table, shop_product_tag_table, shop_product_purchase_price_table, \
+    shop_product_table, shop_catalog_table, shop_brand_table
 from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest, ListShopProductsQuery, \
     ListShopProductsRequest, ListShopProductPurchasePricesRequest, ListShopProductPurchasePricesQuery, \
     ListUnitsByShopProductQuery, ListUnitsByShopProductRequest, ListShopSuppliersByProductQuery, \
     ListShopSuppliersByProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
-    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest
+    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ProductOrderBy
 from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductCompactedDto, ShopProductPriceDto, \
     _row_to_product_price_dto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
@@ -81,9 +82,33 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
             counting_q = count_products_query_factory(shop_id=dto.shop_id)
             product_counts = self._conn.scalar(counting_q)
 
-            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=dto.use_view_cache) \
-                .limit(dto.pagination_entries_per_page).offset(
-                (dto.pagination_offset - 1) * dto.pagination_entries_per_page)
+            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=dto.use_view_cache)
+
+            # sort the result by order
+            if not dto.order_by:
+                dto.order_by = ProductOrderBy.STOCKING_QUANTITY
+                dto.order_direction_descending = True
+
+            ordered_column = None
+            if dto.order_by == ProductOrderBy.TITLE:
+                ordered_column = shop_product_table.c.title
+            elif dto.order_by == ProductOrderBy.CREATED_DATE:
+                ordered_column = shop_product_table.c.created_at
+            elif dto.order_by == ProductOrderBy.CATALOG_TITLE:
+                ordered_column = shop_catalog_table.c.title
+            elif dto.order_by == ProductOrderBy.BRAND_NAME:
+                ordered_column = shop_brand_table.c.name
+            else:
+                ordered_column = shop_product_table.c.stocking_quantity
+
+            if dto.order_direction_descending:
+                query = query.order_by(desc(ordered_column))
+            else:
+                query = query.order_by(ordered_column)
+
+            # add limit and pagination
+            query = query.limit(dto.page_size).offset(
+                (dto.current_page - 1) * dto.page_size)
 
             products = self._conn.execute(query).all()
 

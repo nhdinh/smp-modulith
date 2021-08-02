@@ -46,7 +46,7 @@ class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
             # get all catalogs limit by page and offset
             fetch_catalogs_query = get_shop_catalog_query_factory(shop_id=dto.shop_id) \
                 .order_by(shop_catalog_table.c.created_at) \
-                .limit(dto.pagination_entries_per_page).offset((dto.pagination_offset - 1) * dto.pagination_offset)
+                .limit(dto.page_size).offset((dto.current_page - 1) * dto.current_page)
 
             catalogs = self._conn.execute(fetch_catalogs_query).all()
 
@@ -102,8 +102,8 @@ class SqlListShopProductsByCatalogQuery(ListShopProductsByCatalogQuery, SqlQuery
             # build product query
             query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=dto.use_view_cache) \
                 .where(shop_product_table.c.catalog_id == dto.catalog_id) \
-                .limit(dto.pagination_entries_per_page).offset(
-                (dto.pagination_offset - 1) * dto.pagination_entries_per_page)
+                .limit(dto.page_size).offset(
+                (dto.current_page - 1) * dto.page_size)
 
             # query products
             products = self._conn.execute(query).all()

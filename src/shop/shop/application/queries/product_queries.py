@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import abc
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
 
 from shop.domain.dtos.product_dtos import ShopProductDto, ShopProductCompactedDto, ShopProductPriceDto
@@ -23,8 +24,18 @@ class GetShopProductQuery(abc.ABC):
         raise NotImplementedError
 
 
+class ProductOrderBy(Enum):
+    TITLE = "TITLE"
+    CATALOG_TITLE = "CATALOG_TITLE",
+    BRAND_NAME = "BRAND_NAME",
+    CREATED_DATE = "CREATED_DATE",
+    STOCKING_QUANTITY = "STOCKING_QUANTITY"
+
+
 @dataclass
 class ListShopProductsRequest(BasePaginationAuthorizedRequest):
+    order_by: Optional[ProductOrderBy] = ProductOrderBy.STOCKING_QUANTITY
+    order_direction_descending: bool = True  # DESC,
     use_view_cache: bool = True
 
 

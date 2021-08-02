@@ -1,14 +1,12 @@
-from dataclasses import field
 import math
+from dataclasses import field
 from typing import Generic, List, Optional, Type, TypeVar, Union, cast
 
-from flask import Request
 import marshmallow as ma
+from flask import Request
 from marshmallow_dataclass import class_schema, dataclass
-import werkzeug.exceptions
 
 from foundation.value_objects import Money
-
 from web_app.serialization.fields import Dollars
 
 T = TypeVar("T")
@@ -38,8 +36,8 @@ class BaseAuthorizedShopUserRequest(BaseAuthorizedRequest):
 
 @dataclass
 class BasePaginationRequest:
-    pagination_offset: Optional[int] = 1
-    pagination_entries_per_page: Optional[int] = 10
+    current_page: Optional[int] = 1
+    page_size: Optional[int] = 10
 
 
 @dataclass
@@ -49,8 +47,8 @@ class BasePaginationAuthorizedRequest(BasePaginationRequest, BaseAuthorizedShopU
 
 @dataclass(frozen=True)
 class PaginationTypedResponse(Generic[T]):
-    pagination_offset: int
-    pagination_entries_per_page: int
+    current_page: int
+    page_size: int
     total_items: int
     total_pages: int
     # items: List[T] = field(default_factory=list)
@@ -60,8 +58,8 @@ class PaginationTypedResponse(Generic[T]):
 
     def serialize(self):
         return {
-            'pagination_offset': self.pagination_offset,
-            'pagination_entries_per_page': self.pagination_entries_per_page,
+            'current_page': self.current_page,
+            'page_size': self.page_size,
             'total_pages': self.total_pages,
             'total_items': self.total_items,
             'items': self.items
@@ -91,11 +89,12 @@ def paginate_response_factory(
     :param total_items: total of items can be fetched
     :return:
     """
+
     return PaginationTypedResponse(
-        pagination_entries_per_page=input_dto.pagination_entries_per_page,
-        pagination_offset=input_dto.pagination_offset,
+        page_size=input_dto.page_size,
+        current_page=input_dto.current_page,
         total_items=total_items,
-        total_pages=math.ceil(total_items / input_dto.pagination_entries_per_page),
+        total_pages=math.ceil(total_items / input_dto.page_size),
         items=items
     )
 
@@ -142,12 +141,12 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
         # clean input of pagination
         if isinstance(dto, BasePaginationAuthorizedRequest) or isinstance(dto, BasePaginationRequest):
             try:
-                dto.pagination_offset = int(dto.pagination_offset) if int(dto.pagination_offset) > 0 else 1
-                dto.pagination_entries_per_page = int(dto.pagination_entries_per_page) if int(
-                    dto.pagination_entries_per_page) > 0 else 10
+                dto.current_page = int(dto.current_page) if int(dto.current_page) > 0 else 1
+                dto.page_size = int(dto.page_size) if int(
+                    dto.page_size) > 0 else 10
             except:
-                dto.pagination_offset = 1
-                dto.pagination_entries_per_page = 10
+                dto.current_page = 1
+                dto.page_size = 10
 
         return dto
     except ma.exceptions.ValidationError as exc:

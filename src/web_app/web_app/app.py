@@ -191,10 +191,6 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     # enable CORS
     CORS(app)
 
-    @app.route('/debug-sentry')
-    def trigger_error():
-        division_by_zero = 1 / 0
-
     @app.route('/health', methods=['GET', 'POST'])
     def health_check():
         return make_response({'status': True}), 200

@@ -41,19 +41,6 @@ from store.application.services.user_counter_services import UserCounters
 
 class ShopInfrastructureModule(injector.Module):
     @injector.provider
-    def store_db(self) -> shop_db:
-        return shop_db
-
-    @injector.provider
-    def get_uow(self, conn: Connection, event_bus: EventBus) -> ShopUnitOfWork:
-        sessfactory = sessionmaker(bind=conn)
-        return ShopUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
-
-    # @injector.provider
-    # def get_repository(self, uow: StoreUnitOfWork) -> SqlAlchemyStoreRepository:
-    #     return SqlAlchemyStoreRepository(session=uow.session)
-
-    @injector.provider
     def get_user_counter_services(self, conn: Connection) -> UserCounters:
         return UserCounters(conn=conn)
 
@@ -84,23 +71,3 @@ class ShopInfrastructureModule(injector.Module):
     @injector.provider
     def fetch_products_from_collection_query(self, conn: Connection) -> ListProductsFromCollectionQuery:
         return SqlListProductsFromCollectionQuery(conn)
-
-    @injector.provider
-    def list_product_query(self, conn: Connection) -> ListProductsQuery:
-        return SqlListProductsQuery(conn)
-
-    @injector.provider
-    def get_product_by_id_query(self, conn: Connection) -> GetShopProductQuery:
-        return SqlGetShopProductQuery(conn)
-
-    @injector.provider
-    def list_products_in_catalog(self, conn: Connection) -> ListStoreProductsByCatalogQuery:
-        return SqlListStoreProductsByCatalogQuery(conn)
-
-    @injector.provider
-    def list_products_in_store(self, conn: Connection) -> ListStoreProductsQuery:
-        return SqlListStoreProductsQuery(conn)
-
-    @injector.provider
-    def list_suppliers_in_store(self, conn: Connection) -> ListStoreSuppliersQuery:
-        return SqlListStoreSuppliersQuery(conn)
