@@ -185,6 +185,8 @@ shop_product_table = sa.Table(
     sa.Column('restock_threshold', sa.Integer, default='-1'),
     sa.Column('max_stock_threshold', sa.Integer, default='-1'),
 
+    sa.Column('current_stock', sa.Integer, default='0'),
+
     sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('version', sa.Integer, default=0),
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),

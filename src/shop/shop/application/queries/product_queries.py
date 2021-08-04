@@ -29,12 +29,12 @@ class ProductOrderBy(Enum):
     CATALOG_TITLE = "CATALOG_TITLE",
     BRAND_NAME = "BRAND_NAME",
     CREATED_DATE = "CREATED_DATE",
-    STOCKING_QUANTITY = "STOCKING_QUANTITY"
+    CURRENT_STOCK = "STOCKING_QUANTITY"
 
 
 @dataclass
 class ListShopProductsRequest(BasePaginationAuthorizedRequest):
-    order_by: Optional[ProductOrderBy] = ProductOrderBy.STOCKING_QUANTITY
+    order_by: Optional[ProductOrderBy] = ProductOrderBy.CURRENT_STOCK
     order_direction_descending: bool = True  # DESC,
     use_view_cache: bool = True
 

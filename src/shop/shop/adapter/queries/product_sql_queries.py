@@ -83,12 +83,14 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
             product_counts = self._conn.scalar(counting_q)
 
             # disable use view cache when the result is ordered
+            _use_view_cache = dto.use_view_cache
             if dto.order_by:
-                dto.use_view_cache = False
+                _use_view_cache = False
 
             # prepare the query
-            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=dto.use_view_cache)
+            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=_use_view_cache)
 
+            # prepare the column which the result will be ordered by
             ordered_column = None
             if dto.order_by == ProductOrderBy.TITLE:
                 ordered_column = shop_product_table.c.title
@@ -98,8 +100,8 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
                 ordered_column = shop_catalog_table.c.title
             elif dto.order_by == ProductOrderBy.BRAND_NAME:
                 ordered_column = shop_brand_table.c.name
-            else:
-                ordered_column = shop_product_table.c.stocking_quantity
+            elif dto.order_by == ProductOrderBy.CURRENT_STOCK:
+                ordered_column = shop_product_table.c.current_stock
 
             if ordered_column is not None:
                 if dto.order_direction_descending:
