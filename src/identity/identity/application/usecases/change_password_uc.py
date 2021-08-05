@@ -4,9 +4,10 @@ import abc
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+from foundation import ThingGoneInBlackHoleError
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User
-from identity.domain.value_objects import UserEmail
+from identity.domain.value_objects import UserEmail, ExceptionMessages
 
 
 @dataclass
@@ -54,7 +55,7 @@ class ChangePasswordUC:
                 user = uow.identities.fetch_user_by_token(reset_password_token=input_dto.reset_token)  # type:User
 
                 if not user:
-                    raise Exception('User not found')
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.USER_NOT_FOUND)
 
                 if datetime.now() - user.request_reset_password_at > timedelta(days=1):
                     raise Exception('Token expired')
@@ -79,7 +80,7 @@ class ChangePasswordUC:
                 user = uow.identities.get_user(query=input_dto.current_user)
 
                 if not user:
-                    raise Exception('User not found')
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.USER_NOT_FOUND)
 
                 if not user.verify_password(input_dto.old_password):
                     raise Exception('Old password was wrong')

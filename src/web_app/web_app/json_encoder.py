@@ -9,6 +9,7 @@ from uuid import UUID
 from flask import current_app
 
 from foundation.value_objects import Money
+from identity.domain.entities.role import SystemRoleEnum
 
 
 class DecimalEncoder(json.JSONEncoder):

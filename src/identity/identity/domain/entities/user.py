@@ -2,17 +2,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import secrets
 from datetime import datetime
 from enum import Enum
-import secrets
-import uuid
 
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from foundation import Entity
-from foundation import EventMixin, EveryModuleMustCatchThisEvent, new_event_id
-
+from foundation import EventMixin, new_event_id
 from identity.adapters.id_generator import generate_user_id
+from identity.domain.entities import Role
 from identity.domain.events import RequestPasswordChangeCreatedEvent, PasswordResettedEvent, UserCreatedEvent, \
     ShopAdminCreatedEvent
 from identity.domain.rules.email_must_be_valid_address_rule import EmailMustBeValidAddressRule
@@ -67,7 +66,7 @@ class User(EventMixin, Entity):
         self.confirmed_at = datetime.now()
         self.current_login_at = datetime.now()
         self.current_login_ip = ''
-        self.login_count = 0
+        self.failed_login_count = 0
 
         # change password token
         self.reset_password_token = ''
@@ -89,6 +88,10 @@ class User(EventMixin, Entity):
                 mobile=self.mobile,
                 created_at=datetime.now(),
             ))
+
+    @property
+    def system_role(self) -> Role:
+        return max(self._roles, default=None, key=lambda x: x.name)
 
     @staticmethod
     def create(
@@ -183,4 +186,4 @@ class User(EventMixin, Entity):
 
     def update_login_status(self, remote_address: str):
         self.current_login_ip = remote_address
-        self.login_count += 1
+        self.failed_login_count = 0

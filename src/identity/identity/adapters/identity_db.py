@@ -10,7 +10,7 @@ from sqlalchemy.sql.functions import count
 from db_infrastructure import metadata
 from identity.adapters.id_generator import generate_user_id, role_id_generator
 from identity.domain.entities.revoked_token import RevokedToken
-from identity.domain.entities.role import Role
+from identity.domain.entities.role import Role, SystemRoleEnum
 from identity.domain.entities.user import User, UserStatus
 
 user_registration_table = sa.Table(
@@ -38,7 +38,7 @@ user_table = sa.Table(
     sa.Column('current_login_at', sa.DateTime),
     sa.Column('last_login_ip', sa.String(100)),
     sa.Column('current_login_ip', sa.String(100)),
-    sa.Column('login_count', sa.Integer, default=0),
+    sa.Column('failed_login_count', sa.Integer),
     sa.Column('reset_password_token', sa.String(100)),
     sa.Column('request_reset_password_at', sa.DateTime),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
@@ -49,7 +49,7 @@ role_table = sa.Table(
     'role',
     metadata,
     sa.Column('role_id', sa.String(40), primary_key=True, default=role_id_generator),
-    sa.Column('name', sa.String(100), unique=True),
+    sa.Column('name', sa.Enum(SystemRoleEnum), nullable=False, unique=True, default=SystemRoleEnum.SystemUser),
     sa.Column('description', sa.String(255))
 )
 

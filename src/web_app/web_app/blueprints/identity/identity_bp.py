@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 import flask_injector
 import injector
-from flask import Blueprint, Response, current_app, jsonify, make_response, request
+import werkzeug.exceptions
+from flask import Blueprint, Response, current_app, jsonify, make_response, request, abort
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
+from typing import Union
 
 from foundation.logger import logger
 from identity.application.queries.identity_sql_queries import GetAllUsersQuery, GetSingleUserQuery, \
@@ -19,7 +21,7 @@ from identity.application.usecases.log_user_in_uc import (
     LoggedUserResponse,
     LoggingUserInRequest,
     LoggingUserInResponseBoundary,
-    LoggingUserInUC,
+    LoggingUserInUC, FailedLoginResponse,
 )
 from identity.application.usecases.register_user_uc import (
     RegisteringAccountRequest,
@@ -90,7 +92,7 @@ def user_login(logging_user_in_uc: LoggingUserInUC, presenter: LoggingUserInResp
     })
     logging_user_in_uc.execute(dto)
 
-    return presenter.response, 200  # type:ignore
+    return presenter.response, presenter.response.status  # type:ignore
 
 
 @identity_blueprint.route('/logout', methods=['POST'])
@@ -223,7 +225,7 @@ class RegisteringAccountPresenter(RegisteringAccountResponseBoundary):
     response: Response
 
     def present(self, response_dto: RegisteringUserResponse) -> None:
-        _access_token = create_access_token(identity=response_dto.email)
+        _access_token = create_access_token(identity=response_dto.user_id)
         _refresh_token = create_refresh_token(identity=response_dto.email)
 
         # update response_dto with access_token and refresh_token
@@ -240,19 +242,25 @@ class RegisteringAccountPresenter(RegisteringAccountResponseBoundary):
 class LoggingUserInPresenter(LoggingUserInResponseBoundary):
     response: Response
 
-    def present(self, response_dto: LoggedUserResponse) -> None:
-        _access_token = create_access_token(identity=response_dto.user_id)
-        _refresh_token = create_refresh_token(identity=response_dto.user_id)
+    def present(self, response_dto: Union[LoggedUserResponse, FailedLoginResponse]) -> None:
+        if isinstance(response_dto, LoggedUserResponse):
+            _access_token = create_access_token(identity=response_dto.user_id, additional_claims={
+                'system_role': response_dto.system_role.role_name,
+                # 'other_roles': response_dto.other_roles
+            })
+            _refresh_token = create_refresh_token(identity=response_dto.user_id)
 
-        # update response_dto with access_token and refresh_token
-        response_dto = _merge_dict(
-            response_dto.__dict__,
-            {
-                'access_token': _access_token,
-                'refresh_token': _refresh_token
-            }
-        )
-        self.response = make_response(jsonify(response_dto))
+            # update response_dto with access_token and refresh_token
+            response_dto = _merge_dict(
+                response_dto.serialize(),
+                {
+                    'access_token': _access_token,
+                    'refresh_token': _refresh_token
+                }
+            )
+            self.response = make_response(jsonify(response_dto))
+        else:
+            self.response = make_response(jsonify(response_dto), 401, {})
 
 
 class RequestingToChangePasswordPresenter(RequestingToChangePasswordResponseBoundary):
@@ -268,7 +276,7 @@ class ChangingPasswordPresenter(ChangingPasswordResponseBoundary):
     def present(self, response_dto: ChangingPasswordResponse) -> None:
         # TODO: Read more here to find way for invalidating the JWT token before sending to client a new one. At this
         #  point I wrote this line, the new JWT token has been sent but User still can use the old JWT token to login
-        _access_token = create_access_token(identity=response_dto.email)
+        _access_token = create_access_token(identity=response_dto.user_id)
         _refresh_token = create_refresh_token(identity=response_dto.email)
 
         # update response_dto with access_token and refresh_token
