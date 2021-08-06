@@ -43,7 +43,9 @@ class ShopRegistration(EventMixin, Entity):
         super(ShopRegistration, self).__init__()
         self.check_rule(ShopNameMustNotBeEmptyRule(shop_name))
         self.check_rule(UserEmailMustBeValidRule(owner_email))
-        self.check_rule(UserMobileMustBeValidRule(owner_mobile))
+
+        if owner_mobile:
+            self.check_rule(UserMobileMustBeValidRule(owner_mobile))
         # self.check_rule(UserEmailMustBeUniqueRule(owner_email, user_counter_services))
 
         # TODO: need refactoring

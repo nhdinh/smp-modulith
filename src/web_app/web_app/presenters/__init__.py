@@ -22,9 +22,9 @@ def log_error():
                 #     raise e
 
                 if isinstance(e, ThingGoneInBlackHoleError):
-                    return make_response(jsonify({'messages': e.args})), 404  # type: ignore
+                    return make_response(jsonify({'message': e.args})), 404  # type: ignore
                 else:
-                    return make_response(jsonify({'messages': e.args})), 400  # type: ignore
+                    return make_response(jsonify({'message': e.args})), 400  # type: ignore
 
         return wrapped
 

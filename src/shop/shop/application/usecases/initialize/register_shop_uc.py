@@ -3,6 +3,8 @@
 import abc
 from dataclasses import dataclass
 
+from typing import Optional
+
 from identity.domain.entities import User
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.domain.entities.shop_registration import ShopRegistration
@@ -13,9 +15,9 @@ from web_app.serialization.dto import BaseTimeLoggedRequest
 @dataclass
 class RegisteringShopRequest(BaseTimeLoggedRequest):
     name: str
-    mobile: str
     email: str
     password: str
+    mobile: Optional[str] = ''
 
 
 @dataclass
