@@ -16,3 +16,4 @@ db.sqlite3
 
 # dogpile_cache
 dogpile_data
+dogpile_data/
