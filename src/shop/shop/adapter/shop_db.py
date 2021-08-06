@@ -29,7 +29,7 @@ shop_registration_table = sa.Table(
     sa.Column('name', sa.String(100)),
     sa.Column('owner_email', sa.String(255), unique=True, nullable=False),
     sa.Column('owner_password', sa.String(255), nullable=False),
-    sa.Column('owner_mobile', sa.String(255), unique=True),
+    sa.Column('owner_mobile', sa.String(255)),
     sa.Column('confirmation_token', sa.String(200), nullable=False),
     sa.Column('confirmed_at', sa.DateTime),
     sa.Column('status', sa.Enum(RegistrationStatus), nullable=False,
