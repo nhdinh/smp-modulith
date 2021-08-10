@@ -61,7 +61,7 @@ class LoggingUserInUC:
     def execute(self, input_dto: LoggingUserInRequest) -> None:
         with self._uow as uow:  # type: IdentityUnitOfWork
             try:
-                user = uow.identities.get_user(query=input_dto.username)  # type: User
+                user = uow.identities.get_active_user(query=input_dto.username)  # type: User
                 if not user:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.USER_NOT_FOUND)
 

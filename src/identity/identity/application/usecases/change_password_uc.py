@@ -77,7 +77,7 @@ class ChangePasswordUC:
     def execute_change(self, input_dto: ChangingPasswordRequest) -> None:
         with self._uow as uow:  # type:IdentityUnitOfWork
             try:
-                user = uow.identities.get_user(query=input_dto.current_user)
+                user = uow.identities.get_active_user(query=input_dto.current_user)
 
                 if not user:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.USER_NOT_FOUND)

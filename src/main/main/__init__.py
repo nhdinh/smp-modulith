@@ -69,7 +69,8 @@ def bootstrap_app() -> AppContext:
 
         # first data
         'admin_id': os.environ.get('admin_id') or 'User_00000000000000000000.FiRsT',
-        'first_role': os.environ.get('first_role') or 'Role_00000000000000000000.FiRsT',
+        'sysadmin_role': os.environ.get('sysadmin_role') or 'Role_00000000000000000000.FiRsT',
+        'sysuser_role': os.environ.get('sysuser_role') or 'Role_00000000000000000000.sEcOn',
         'central_db_repo': os.environ.get('central_db_repo') or 'Shop_00000000000000000000.FiRsT',
         'default_repo_cat': os.environ.get('default_repo_cat') or 'Cat_00000000000000000000.FiRsT',
         'admin_email': os.environ.get('admin_email') or 'admin@smp.io',
@@ -186,7 +187,8 @@ def _create_db_schema(settings: Dict, engine: Engine) -> None:
         identity_db.install_first_data(
             engine=engine,
             admin_id=settings['admin_id'],
-            first_role_id=settings['first_role'],
+            sysadmin_role_id=settings['sysadmin_role'],
+            sysuser_role_id=settings['sysuser_role'],
             admin_email=settings['admin_email'],
             admin_password=settings['admin_password']
         )

@@ -7,6 +7,7 @@ from datetime import datetime
 from enum import Enum
 
 from passlib.hash import pbkdf2_sha256 as sha256
+from typing import Optional
 
 from foundation import Entity
 from foundation import EventMixin, new_event_id
@@ -89,8 +90,11 @@ class User(EventMixin, Entity):
             ))
 
     @property
-    def system_role(self) -> Role:
-        return max(self._roles, default=None, key=lambda x: x.name)
+    def system_role(self) -> Optional[Role]:
+        if len(self._roles):
+            return max(self._roles, default=None, key=lambda x: x.name)
+
+        return None
 
     @system_role.setter
     def system_role(self, value: Role) -> None:

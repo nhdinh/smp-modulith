@@ -98,13 +98,20 @@ def start_mappers():
     )
 
 
-def install_first_data(engine, admin_id: str, first_role_id: str, admin_email: str, admin_password: str):
+def install_first_data(engine, admin_id: str, sysadmin_role_id: str, sysuser_role_id: str, admin_email: str,
+                       admin_password: str):
     try:
         if engine.execute(select(count(user_table.c.user_id))).scalar() == 0:
-            first_role = {
-                'role_id': first_role_id,
+            sysadmin_role = {
+                'role_id': sysadmin_role_id,
                 'name': 'SystemAdmin',
                 'description': 'SystemAdmin Role'
+            }
+
+            sysuser_role = {
+                'role_id': sysuser_role_id,
+                'name': 'SystemUser',
+                'description': 'SystemUser Role'
             }
 
             first_user = {
@@ -114,9 +121,10 @@ def install_first_data(engine, admin_id: str, first_role_id: str, admin_email: s
                 'password': User.generate_hash(admin_password)
             }
 
-            engine.execute(insert(role_table).values(**first_role))
+            engine.execute(insert(role_table).values(**sysadmin_role))
+            engine.execute(insert(role_table).values(**sysuser_role))
             engine.execute(insert(user_table).values(**first_user))
-            engine.execute(insert(user_role_table).values(user_id=admin_id, role_id=first_role_id))
+            engine.execute(insert(user_role_table).values(user_id=admin_id, role_id=sysadmin_role_id))
     except Exception as e:
         raise e
 
