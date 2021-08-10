@@ -32,10 +32,7 @@ class JSONEncoder(json.JSONEncoder):
 
     @default.register(Enum)  # noqa: F811
     def serialize_enum(self, obj: Enum) -> object:
-        if current_app.debug:
-            return str(obj)
-        else:
-            return str(obj.value)
+        return str(obj.value)
 
     @default.register(Money)  # noqa: F811
     def serialize_money(self, obj: Money) -> object:

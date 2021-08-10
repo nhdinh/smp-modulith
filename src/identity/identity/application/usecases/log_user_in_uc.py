@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Union
 
+from flask_jwt_extended import create_access_token, create_refresh_token
+
 from foundation import ThingGoneInBlackHoleError
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User, Role
@@ -22,14 +24,17 @@ class LoggingUserInRequest:
 class LoggedUserResponse:
     user_id: UserId
     email: UserEmail
+    mobile: str
+    profile_image:str
+    last_login_at:datetime
+    created_at: datetime
+    updated_at: datetime
     system_role: Role
+    access_token: str
+    refresh_token: str
 
     def serialize(self):
-        return {
-            'user_id': self.user_id,
-            'email': self.email,
-            'system_role': self.system_role.role_name,
-        }
+        return self.__dict__
 
 
 @dataclass
@@ -61,8 +66,8 @@ class LoggingUserInUC:
                     raise ThingGoneInBlackHoleError(ExceptionMessages.USER_NOT_FOUND)
 
                 # check user login failed count
-
-                if user.failed_login_count >= 5 and user.last_login_at and datetime.now() - user.last_login_at < timedelta(minutes=5):
+                if user.failed_login_count >= 5 and user.last_login_at and datetime.now() - user.last_login_at < timedelta(
+                        minutes=5):
                     output_dto = FailedLoginResponse(message=ExceptionMessages.FAILED_LOGIN_EXCEED.value)
                     self._ob.present(output_dto)
                     return
@@ -87,7 +92,16 @@ class LoggingUserInUC:
                     output_dto = LoggedUserResponse(
                         user_id=user.user_id,
                         email=user.email,
+                        mobile=user.mobile,
+                        profile_image=user.profile_image if hasattr(user, 'profile_image') else '',
+                        last_login_at=user.last_login_at,
+                        created_at=user.created_at,
+                        updated_at=user.updated_at,
                         system_role=user.system_role,
+                        access_token=create_access_token(identity=user.user_id, additional_claims={
+                            'system_role': user.system_role.role_name
+                        }),
+                        refresh_token=create_refresh_token(identity=user.user_id)
                     )
                     self._ob.present(output_dto)
 

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from foundation import Entity
 from foundation import EventMixin, new_event_id
 from shop.adapter.id_generators import SHOP_ID_PREFIX, generate_shop_id
+from shop.application.services.shop_user_counters import ShopUserCounter
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_user import ShopUser
 from shop.domain.entities.shop_warehouse import ShopWarehouse
@@ -20,8 +21,10 @@ from shop.domain.entities.value_objects import (
 )
 from shop.domain.events import ShopRegistrationCreatedEvent, ShopRegistrationConfirmedEvent, ShopRegistrationResendEvent
 from shop.domain.rules.shop_name_must_not_be_empty_rule import ShopNameMustNotBeEmptyRule
+from shop.domain.rules.user_email_must_be_unique_rule import UserEmailMustBeUniqueRule
 from shop.domain.rules.user_email_must_be_valid_rule import UserEmailMustBeValidRule
-from shop.domain.rules.user_mobile_must_be_valid_rule import UserMobileMustBeValidRule
+from shop.domain.rules.user_phone_must_be_valid_rule import UserMobileMustBeValidRule
+from shop.domain.rules.user_phone_must_be_unique_rule import UserPhoneMustBeUniqueRule
 
 
 class ShopRegistration(EventMixin, Entity):
@@ -37,16 +40,16 @@ class ShopRegistration(EventMixin, Entity):
             confirmation_token: str,
             status: RegistrationStatus,
             last_resend: datetime,
-            # user_counter_services: UserCounters,
+            user_counter_services: ShopUserCounter,
             version: int = 0,
     ):
         super(ShopRegistration, self).__init__()
         self.check_rule(ShopNameMustNotBeEmptyRule(shop_name))
         self.check_rule(UserEmailMustBeValidRule(owner_email))
+        self.check_rule(UserMobileMustBeValidRule(owner_mobile))
 
-        if owner_mobile:
-            self.check_rule(UserMobileMustBeValidRule(owner_mobile))
-        # self.check_rule(UserEmailMustBeUniqueRule(owner_email, user_counter_services))
+        self.check_rule(UserEmailMustBeUniqueRule(owner_email, user_counter_services))
+        self.check_rule(UserPhoneMustBeUniqueRule(owner_mobile, user_counter_services))
 
         # TODO: need refactoring
         self.registration_id = registration_id
@@ -94,8 +97,10 @@ class ShopRegistration(EventMixin, Entity):
             owner_email: str,
             owner_password: str,
             owner_mobile: str,
-            # user_counter_services: UserCounters
+            user_counter_services: ShopUserCounter
     ):
+        # check if user's data (email, phone) is existed or not
+
         registration = ShopRegistration(
             registration_id=generate_shop_id(),
             shop_name=shop_name,
@@ -106,7 +111,7 @@ class ShopRegistration(EventMixin, Entity):
             status=RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION,
             version=1,
             last_resend=datetime.now(),
-            # user_counter_services=user_counter_services,
+            user_counter_services=user_counter_services,
         )
 
         return registration

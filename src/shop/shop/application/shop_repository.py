@@ -52,3 +52,11 @@ class SqlAlchemyShopRepository(AbstractShopRepository):
 
     def get_product_by_id(self, product_id: ShopProductId):
         return self._sess.query(ShopProduct).filter(ShopProduct.product_id == product_id).first()
+
+    def get_user_by_email(self, email: str):
+        email = email.strip()
+        return self._sess.query(ShopUser).where(ShopUser.email.lower() == email.lower())
+
+    def get_user_by_phone(self, phone: str):
+        phone = phone.strip()
+        return self._sess.query(ShopUser).where(ShopUser.mobile.lower() == phone.lower())

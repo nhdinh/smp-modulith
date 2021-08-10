@@ -74,6 +74,10 @@ class ExceptionMessages(Enum):
     REGISTRATION_HAS_BEEN_EXPIRED = 'Shop registration confirmation link has been expired'
     REGISTRATION_HAS_BEEN_CONFIRMED = 'Shop registration has been confirmed'
     REGISTRATION_NOT_FOUND = 'No registration found'
+    REGISTRATION_RESEND_TOO_MUCH = 'Too much request, try again later'
+    EMAIL_HAS_BEEN_REGISTERED = 'Registration with this email has been existed'
+    PHONE_NUMBER_HAS_BEEN_REGISTERED = 'Registration with this phone has been existed'
+    PHONE_NUMBER_IS_NOT_VALID = 'Phone number is not valid'
 
     CURRENT_USER_DO_NOT_HAVE_PERMISSION_ON_SHOP = 'Current user do not have permission on this shop'
     SHOP_NOT_FOUND = 'Shop not existed or current user do not have any shop created'
@@ -101,7 +105,6 @@ class ExceptionMessages(Enum):
     PRODUCT_BASE_UNIT_NOT_FOUND = 'Product unit to use as base not existed'
     CANNOT_DELETE_DEFAULT_UNIT = 'Cannot delete default unit'
     CANNOT_DELETE_DEPENDENCY_PRODUCT_UNIT = 'This product unit cannot be delete due to another unit is being depends on'
-    REGISTRATION_RESEND_TOO_MUCH = 'Too much request, try again later'
 
     SHOP_SUPPLIER_NOT_FOUND = 'Supplier not existed'
     CURRENCY_NOT_REGISTERED = 'Currency is not registered'

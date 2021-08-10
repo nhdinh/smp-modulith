@@ -1,1 +1,2 @@
 flask-jwt-extended
+passlib

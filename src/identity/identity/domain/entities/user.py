@@ -39,7 +39,6 @@ class User(EventMixin, Entity):
             **kwargs
     ):
         """
-
         :param user_id:
         :param email:
         :param hashed_password:
@@ -92,6 +91,11 @@ class User(EventMixin, Entity):
     @property
     def system_role(self) -> Role:
         return max(self._roles, default=None, key=lambda x: x.name)
+
+    @system_role.setter
+    def system_role(self, value: Role) -> None:
+        if value not in self._roles:
+            self._roles.add(value)
 
     @staticmethod
     def create(

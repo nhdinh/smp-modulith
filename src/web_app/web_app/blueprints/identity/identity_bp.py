@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from typing import Union
+
 import flask_injector
 import injector
-import werkzeug.exceptions
-from flask import Blueprint, Response, current_app, jsonify, make_response, request, abort
+from flask import Blueprint, Response, current_app, jsonify, make_response, request
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
-from typing import Union
 
 from foundation.logger import logger
 from identity.application.queries.identity_sql_queries import GetAllUsersQuery, GetSingleUserQuery, \
@@ -126,6 +126,7 @@ def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
 
 @identity_blueprint.route('/refresh-token', methods=['POST'])
 @jwt_required(refresh=True)
+@log_error()
 def refresh_token(query: GetSingleUserQuery):
     # TokenRefresh
     dto = get_dto(request, GetCurrentUserRequest, context={'current_user_id': get_jwt_identity()})
@@ -136,7 +137,7 @@ def refresh_token(query: GetSingleUserQuery):
 
         return make_response(jsonify({
             'access_token': _access_token,
-            'user_id': db_user.user_id,
+            # 'user_id': db_user.user_id,
             # 'refresh_token': get_fresh_token(identity=current_user)
         })), 200
     else:
@@ -244,20 +245,6 @@ class LoggingUserInPresenter(LoggingUserInResponseBoundary):
 
     def present(self, response_dto: Union[LoggedUserResponse, FailedLoginResponse]) -> None:
         if isinstance(response_dto, LoggedUserResponse):
-            _access_token = create_access_token(identity=response_dto.user_id, additional_claims={
-                'system_role': response_dto.system_role.role_name,
-                # 'other_roles': response_dto.other_roles
-            })
-            _refresh_token = create_refresh_token(identity=response_dto.user_id)
-
-            # update response_dto with access_token and refresh_token
-            response_dto = _merge_dict(
-                response_dto.serialize(),
-                {
-                    'access_token': _access_token,
-                    'refresh_token': _refresh_token
-                }
-            )
             self.response = make_response(jsonify(response_dto))
         else:
             self.response = make_response(jsonify(response_dto), 401, {})

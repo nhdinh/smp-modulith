@@ -12,7 +12,7 @@ class SystemRoleEnum(Enum):
 @dataclass
 class Role:
     name: SystemRoleEnum
-    description: str
+    description: str = ''
 
     def __hash__(self):
         return hash(self.name)
@@ -24,3 +24,6 @@ class Role:
     @property
     def role_value(self) -> int:
         return self.name.value
+
+    def serialize(self):
+        return self.role_name

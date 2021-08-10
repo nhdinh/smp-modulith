@@ -6,7 +6,7 @@ from sqlalchemy import update, and_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Connection
 
-from foundation.events import EveryModuleMustCatchThisEvent, EventBus, new_event_id
+from foundation.events import EventBus, new_event_id
 from foundation.logger import logger
 from identity.domain.events import UnexistentUserRequestEvent
 from identity.domain.value_objects import UserId

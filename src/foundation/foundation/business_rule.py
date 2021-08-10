@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+from enum import Enum
 
 
 class BusinessRuleValidationError(Exception):
@@ -20,10 +21,14 @@ class BusinessRuleValidationError(Exception):
 
 
 class BusinessRuleBase(abc.ABC):
-    def __init__(self, message: str = None):
+    def __init__(self, message: [str | Enum] = None):
         if message is None:
             raise Exception("Rule must have self-explanation message.")
-        self._message = message
+        else:
+            if isinstance(message, str):
+                self._message = message
+            elif isinstance(message, Enum):
+                self._message = message.value
 
     @abc.abstractmethod
     def is_broken(self) -> bool:

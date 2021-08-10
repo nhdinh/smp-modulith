@@ -5,6 +5,7 @@ from minio import Minio
 
 from foundation.fs import FileSystem
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
+from shop.application.services.shop_user_counters import ShopUserCounter
 from shop.application.usecases.catalog.add_shop_brand_uc import AddingShopBrandResponseBoundary, AddShopBrandUC
 from shop.application.usecases.catalog.add_shop_catalog_uc import AddingShopCatalogResponseBoundary, AddShopCatalogUC
 from shop.application.usecases.catalog.add_shop_supplier_uc import AddShopSupplierUC, AddingShopSupplierResponseBoundary
@@ -79,9 +80,9 @@ from shop.application.usecases.shop_uc_common import GenericShopResponseBoundary
 
 class ShopApplicationModule(injector.Module):
     @injector.provider
-    def register_store_uc(self, boundary: RegisteringShopResponseBoundary, uow: ShopUnitOfWork, ) -> RegisterShopUC:
-        # user_counter_services: UserCounters) -> RegisterShopUC:
-        return RegisterShopUC(boundary, uow)  # , user_counter_services)
+    def register_store_uc(self, boundary: RegisteringShopResponseBoundary, uow: ShopUnitOfWork,
+                          user_counter_services: ShopUserCounter) -> RegisterShopUC:
+        return RegisterShopUC(boundary, uow, user_counter_services)
 
     @injector.provider
     def confirm_store_registration_uc(self, boundary: ConfirmingShopRegistrationResponseBoundary,

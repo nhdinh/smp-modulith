@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from enum import unique
 
 import sqlalchemy as sa
 
@@ -29,7 +30,7 @@ shop_registration_table = sa.Table(
     sa.Column('name', sa.String(100)),
     sa.Column('owner_email', sa.String(255), unique=True, nullable=False),
     sa.Column('owner_password', sa.String(255), nullable=False),
-    sa.Column('owner_mobile', sa.String(255)),
+    sa.Column('owner_mobile', sa.String(255), unique=True),
     sa.Column('confirmation_token', sa.String(200), nullable=False),
     sa.Column('confirmed_at', sa.DateTime),
     sa.Column('status', sa.Enum(RegistrationStatus), nullable=False,
@@ -65,7 +66,7 @@ shop_users_table = sa.Table(
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('user_id', sa.String(40), unique=True),
     sa.Column('email', sa.String(255)),
-    sa.Column('mobile', sa.String(100)),
+    sa.Column('mobile', sa.String(100), unique=True),
     sa.Column('shop_role', sa.Enum(ShopUserType), default=ShopUserType.MANAGER),
     sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),

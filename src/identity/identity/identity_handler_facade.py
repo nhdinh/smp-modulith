@@ -6,11 +6,8 @@ from sqlalchemy import insert, update
 from sqlalchemy.engine import Connection
 
 from foundation.events import EveryModuleMustCatchThisEvent, new_event_id, EventBus
-from foundation.logger import logger
 from identity.adapters.id_generator import generate_user_id
 from identity.adapters.identity_db import user_table
-from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
-from identity.domain.entities import User
 from identity.domain.entities.user import UserStatus
 from identity.domain.events import PendingUserCreatedEvent, UserDataEmitEvent
 from identity.domain.value_objects import UserId

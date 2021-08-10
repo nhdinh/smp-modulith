@@ -18,6 +18,7 @@ from shop.application.queries.product_queries import GetShopProductQuery, ListSh
     GetShopProductPurchasePriceQuery, GetShopProductLowestPurchasePriceQuery
 from shop.application.queries.shop_queries import ListShopAddressesQuery, GetShopInfoQuery
 from shop.application.queries.supplier_queries import ListShopProductsBySupplierQuery, ListShopSuppliersQuery
+from shop.application.services.shop_user_counters import ShopUserCounter
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
 
@@ -30,6 +31,10 @@ class ShopInfrastructureModule(injector.Module):
     def get_uow(self, conn: Connection, event_bus: EventBus) -> ShopUnitOfWork:
         sessfactory = sessionmaker(bind=conn)
         return ShopUnitOfWork(sessionfactory=sessfactory, event_bus=event_bus)
+
+    @injector.provider
+    def get_shop_user_counter(self, connection: Connection) -> ShopUserCounter:
+        return ShopUserCounter(connection)
 
     @injector.provider
     def get_shop_info_query(self, conn: Connection) -> GetShopInfoQuery:

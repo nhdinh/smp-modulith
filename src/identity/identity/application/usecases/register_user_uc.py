@@ -4,9 +4,11 @@ import abc
 from dataclasses import dataclass
 from typing import Optional
 
+import sqlalchemy
+
 from identity.application.services.identity_unit_of_work import IdentityUnitOfWork
 from identity.domain.entities import User
-from identity.domain.value_objects import UserEmail, UserId
+from identity.domain.value_objects import UserEmail, UserId, ExceptionMessages
 from web_app.serialization.dto import BaseTimeLoggedRequest
 
 
@@ -52,6 +54,8 @@ class RegisterAccountUC:
 
                 # commit uow
                 uow.commit()
+            except sqlalchemy.exc.IntegrityError as exc:
+                raise Exception(ExceptionMessages.USER_REGISTRATION_EXISTED)
             except Exception as exc:
                 raise exc
 

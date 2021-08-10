@@ -3,12 +3,13 @@
 import phonenumbers as phonenumbers
 
 from foundation.business_rule import BusinessRuleBase
+from shop.domain.entities.value_objects import ExceptionMessages
 
 
 class UserMobileMustBeValidRule(BusinessRuleBase):
     def __init__(self, mobile_number: str):
         message = self.__class__.__name__
-        super(UserMobileMustBeValidRule, self).__init__(message=message)
+        super(UserMobileMustBeValidRule, self).__init__(message=ExceptionMessages.PHONE_NUMBER_IS_NOT_VALID)
 
         default_country_code = 'VN'
         if 'DEFAULT_COUNTRY_CODE' in globals():
