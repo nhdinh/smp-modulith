@@ -71,29 +71,4 @@ location_address_table = sa.Table(
 
 
 def start_mappers():
-    """
-    orm.mapper(LocationCountry, location_country_table, properties={
-        'cities': orm.relationship(
-            LocationCity,
-            backref=orm.backref('_country')
-        )
-    })
-
-    orm.mapper(LocationCity, location_city_table, properties={
-        'divisions': orm.relationship(
-            LocationCityDivision,
-            backref=orm.backref('_city'),
-        ),
-    })
-
-    orm.mapper(LocationCityDivision, location_city_division_table, properties={
-        'sub_divisions': orm.relationship(
-            LocationCitySubDivision,
-            backref=orm.backref('_city_division'),
-        ),
-    })
-
-    orm.mapper(LocationCitySubDivision, location_city_sub_division_table, properties={})
-    """
-
     orm.mapper(Address, location_address_table)

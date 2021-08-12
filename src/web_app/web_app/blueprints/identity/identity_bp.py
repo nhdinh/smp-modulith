@@ -7,6 +7,7 @@ import injector
 from flask import Blueprint, Response, current_app, jsonify, make_response, request
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity, jwt_required
 
+from foundation import ThingGoneInBlackHoleError
 from foundation.logger import logger
 from identity.application.queries.identity_sql_queries import GetAllUsersQuery, GetSingleUserQuery, \
     GetSingleUserRequest, GetCurrentUserRequest
@@ -37,6 +38,7 @@ from identity.application.usecases.request_to_change_password_uc import (
 )
 from identity.application.usecases.revoke_token_uc import RevokingTokenUC
 from identity.domain.entities.revoked_token import RevokedToken
+from identity.domain.value_objects import ExceptionMessages
 from web_app.presenters import log_error
 from web_app.serialization.dto import get_dto
 
@@ -130,20 +132,22 @@ def user_logout_refresh(revoking_token_uc: RevokingTokenUC):
 def refresh_token(query: GetSingleUserQuery):
     # TokenRefresh
     dto = get_dto(request, GetCurrentUserRequest, context={'current_user_id': get_jwt_identity()})
-    db_user = query.query(dto=dto)
 
-    if db_user:
-        _access_token = create_access_token(identity=db_user.user_id)
+    try:
+        db_user = query.query(dto=dto)
 
-        return make_response(jsonify({
-            'access_token': _access_token,
-            # 'user_id': db_user.user_id,
-            # 'refresh_token': get_fresh_token(identity=current_user)
-        })), 200
-    else:
-        return make_response(jsonify({
-            'message': 'User not found'
-        })), 404
+        if db_user:
+            _access_token = create_access_token(identity=db_user.user_id)
+
+            return make_response(jsonify({
+                'access_token': _access_token,
+                # 'user_id': db_user.user_id,
+                # 'refresh_token': get_fresh_token(identity=current_user)
+            })), 200
+        else:
+            raise ThingGoneInBlackHoleError(ExceptionMessages.USER_NOT_FOUND)
+    except Exception as exc:
+        raise exc
 
 
 @identity_blueprint.route('/all', methods=['GET'])
