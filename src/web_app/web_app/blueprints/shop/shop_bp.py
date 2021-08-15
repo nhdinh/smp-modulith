@@ -25,10 +25,13 @@ from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddress
     AddingShopAddressRequest
 from shop.application.usecases.shop.add_shop_user_uc import AddShopUserUC, AddingShopUserRequest, \
     AddingShopUserResponseBoundary
+from shop.application.usecases.shop.upload_image_uc import UploadImageUC, UploadingImageResponseBoundary, \
+    UploadingImageRequest
+from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
-from web_app.presenters.shop_presenters import RegisteringShopPresenter
-from web_app.presenters.store_management_presenters import ConfirmingShopRegistrationPresenter, \
-    AddingShopAddressPresenter, AddingShopBrandPresenter, AddingShopSupplierPresenter, AddingShopUserPresenter
+from web_app.presenters.shop_presenters import RegisteringShopPresenter, AddingShopAddressPresenter, \
+    AddingShopSupplierPresenter, AddingShopBrandPresenter, AddingShopUserPresenter, UploadingImagePresenter, \
+    ConfirmingShopRegistrationPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_BLUEPRINT_NAME = 'shop_blueprint'
@@ -65,6 +68,11 @@ class ShopAPI(injector.Module):
     @flask_injector.request
     def add_shop_supplier_response_boundary(self) -> AddingShopSupplierResponseBoundary:
         return AddingShopSupplierPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def upload_image_response_boudary(self) -> UploadingImageResponseBoundary:
+        return UploadingImagePresenter()
 
 
 @shop_blueprint.route('/register', methods=['POST'])
@@ -151,3 +159,30 @@ def add_shop_supplier(add_shop_supplier_uc: AddShopSupplierUC,
     add_shop_supplier_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
+
+
+@shop_blueprint.route('/upload', methods=['POST'])
+@jwt_required()
+@log_error()
+def upload_image(upload_image_uc: UploadImageUC, presenter: UploadingImageResponseBoundary) -> Response:
+    dto = get_dto(request, UploadingImageRequest, context={'current_user_id': get_jwt_identity()})
+
+    if 'file' not in request.files:
+        raise Exception('No file input')
+
+    uploaded_file = request.files['file']
+    upload_image_uc.execute(uploaded_file, dto)
+
+    return presenter.response, 201  # type:ignore
+
+
+# TODO: Add image checker
+# @shop_blueprint.route('/image', methods=['POST'])
+# @validate_request_timestamp
+# @jwt_required()
+# @log_error()
+# def get_image(image_checker: ImageCheckerUC) -> Response:
+#     dto = get_dto(request, CheckingImageRequest, context={'current_user_id': get_jwt_identity()})
+#     return_data = image_checker.check(dto)
+#
+#     return make_response(jsonify(return_data)), 200  # type:ignore

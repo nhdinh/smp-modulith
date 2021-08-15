@@ -18,7 +18,7 @@ from shop.domain.entities.shop_product_brand import ShopProductBrand
 from shop.domain.entities.shop_product_tag import ShopProductTag
 from shop.domain.entities.shop_product_unit import ShopProductUnit
 from shop.domain.entities.shop_supplier import ShopSupplier
-from shop.domain.entities.value_objects import ExceptionMessages, ShopProductId
+from shop.domain.entities.value_objects import ExceptionMessages, ShopProductId, GenericShopItemStatus
 from shop.domain.events import ShopProductUpdatedEvent
 from shop.domain.rules.thresholds_require_unit_setup_rule import ThresholdsRequireUnitSetupRule
 
@@ -41,6 +41,7 @@ class ShopProduct(EventMixin, Entity):
             suppliers: Set['ShopSupplier'],
             restock_threshold: int = -1,
             max_stock_threshold: int = -1,
+            status: GenericShopItemStatus = GenericShopItemStatus.NORMAL,
             version: int = 0,
     ):
         super(ShopProduct, self).__init__()
@@ -76,6 +77,9 @@ class ShopProduct(EventMixin, Entity):
         self.restock_threshold = restock_threshold
         self.max_stock_threshold = max_stock_threshold
 
+        # status
+        self.status = status
+
     @classmethod
     def create_product(
             cls,
@@ -90,7 +94,8 @@ class ShopProduct(EventMixin, Entity):
             catalog: 'ShopCatalog',
             collections: List['ShopCollection'],
             suppliers: List['ShopSupplier'],
-            tags: List[str]
+            tags: List[str],
+            status: GenericShopItemStatus,
     ) -> 'ShopProduct':
         product_id = generate_product_id()
 
@@ -107,6 +112,7 @@ class ShopProduct(EventMixin, Entity):
             default_unit=default_unit,
             restock_threshold=restock_threshold,
             max_stock_threshold=max_stock_threshold,
+            status=status
         )
 
         # add tags

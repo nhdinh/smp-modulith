@@ -200,12 +200,43 @@ class Shop(EventMixin):
                        default_unit: str,
                        **kwargs) -> ShopProduct:
         # check if any product with this title exists
+        shop_product = None  # type:ShopProduct
+
+        # extract product_id from parameters
+        product_id = kwargs.get('product_id', None)
+
         try:
-            product_with_such_title = next(p for p in self._products if p.title.lower() == title.strip().lower())
-            if product_with_such_title:
+            if product_id:
+                shop_product = next(p for p in self._products
+                                    if p.product_id.lower() == product_id.lower() or p.sku.lower() == sku.lower()
+                                    and p.status != GenericShopItemStatus.DELETED)
+            else:
+                shop_product = next(p for p in self._products
+                                    if p.sku.lower() == sku.lower()
+                                    and p.status != GenericShopItemStatus.DELETED)
+
+            if shop_product and shop_product.status in [GenericShopItemStatus.NORMAL,
+                                                        GenericShopItemStatus.DISABLED]:
                 raise Exception(ExceptionMessages.SHOP_PRODUCT_EXISTED)
         except StopIteration:
             pass
+
+        # create PENDING product, a placeholder product to get the ProductId first
+        # if kwargs.get('pending', None) is True:
+        #     # TODO: Check for the current user who is calling this creating product, see if he has any product that
+        #     #  being PENDING or not. If there is his pending product, then return
+        #     product = ShopProduct.create_product(
+        #         title=title,
+        #         sku=sku,
+        #         default_unit=default_unit,
+        #         status=GenericShopItemStatus.PENDING_CREATION
+        #     )
+        #
+        #     # add to catalog
+        #     self._append_product(product)
+        #
+        #     # return the pending product and end the creation of product here
+        #     return product
 
         # image
         image = ''
@@ -274,35 +305,54 @@ class Shop(EventMixin):
         if tags:
             self.append_tags_stack(tags)
 
+        status = GenericShopItemStatus.NORMAL
+        if kwargs.get('pending', None) is True:
+            status = GenericShopItemStatus.PENDING_CREATION
+
         # make product
-        store_product = ShopProduct.create_product(
-            title=title,
-            sku=sku,
-            image=image,
-            default_unit=default_unit,
-            restock_threshold=restock_threshold,
-            max_stock_threshold=max_stock_threshold,
-            shop=self,
-            brand=brand,
-            catalog=catalog,
-            collections=collections,
-            suppliers=suppliers,
-            tags=tags
-        )
+        if shop_product is None:
+            shop_product = ShopProduct.create_product(
+                title=title,
+                sku=sku,
+                image=image,
+                default_unit=default_unit,
+                restock_threshold=restock_threshold,
+                max_stock_threshold=max_stock_threshold,
+                shop=self,
+                brand=brand,
+                catalog=catalog,
+                collections=collections,
+                suppliers=suppliers,
+                tags=tags,
+                status=status
+            )
+        else:
+            shop_product.title = title
+            shop_product.sku = sku
+            shop_product.image = image
+            shop_product.default_unit = default_unit
+            shop_product.restock_threshold = restock_threshold
+            shop_product.max_stock_threshold = max_stock_threshold
+            shop_product.brand = brand
+            shop_product.catalog = catalog
+            shop_product.collections = collections
+            shop_product.suppliers = suppliers
+            shop_product.tags = tags
+            shop_product.status = status
 
         # process input data: StoreProductUnit (which are unit conversions)
-        unit_conversions = kwargs.get('unit_conversions')
+        unit_conversions = kwargs.get('unit_conversions', None) or []
         for unit_conversion in unit_conversions:
-            store_product.create_unit(unit_name=unit_conversion['unit'],
-                                      conversion_factor=unit_conversion['conversion_factor'],
-                                      base_unit=unit_conversion['base_unit'])
+            shop_product.create_unit(unit_name=unit_conversion['unit'],
+                                     conversion_factor=unit_conversion['conversion_factor'],
+                                     base_unit=unit_conversion['base_unit'])
 
         # process input data: PurchasePrices
         default_currency = self.get_setting('default_currency', 'VND')
         for price in purchase_price_list:
-            store_product.create_purchase_price_by_supplier(
+            shop_product.create_purchase_price_by_supplier(
                 supplier=self._supplier_factory(supplier_name=price['supplier_name']),
-                unit=store_product.get_unit(price['unit']),
+                unit=shop_product.get_unit(price['unit']),
                 price=get_money(amount=price['price'],
                                 currency_str=price['currency'] if 'currency' in price.keys() and price[
                                     'currency'] is not None else default_currency),
@@ -311,24 +361,25 @@ class Shop(EventMixin):
             )
 
         # add to catalog
-        self._append_product(store_product)
+        self._append_product(shop_product)
 
         # build the array of stocking quantity
-        units = [u.unit_name for u in store_product.units]
-        first_stockings_input = kwargs.get('first_inventory_stocking_for_unit_conversions')
+        units = [u.unit_name for u in shop_product.units]
+        first_stockings_input = kwargs.get('first_inventory_stocking_for_unit_conversions', None) or []
         first_stockings_input = {item['unit']: item['stocking'] for item in first_stockings_input}
 
         # raise event
-        self._record_event(ShopProductCreatedEvent, **dict(
-            event_id=new_event_id(),
-            shop_id=self.shop_id,
-            product_id=store_product.product_id,
-            default_unit=store_product.default_unit.unit_name,
-            units=units,
-            first_stocks=[first_stockings_input.get(u, 0) for u in units]
-        ))
+        if shop_product.status == GenericShopItemStatus.NORMAL:
+            self._record_event(ShopProductCreatedEvent, **dict(
+                event_id=new_event_id(),
+                shop_id=self.shop_id,
+                product_id=shop_product.product_id,
+                default_unit=shop_product.default_unit.unit_name,
+                units=units,
+                first_stocks=[first_stockings_input.get(u, 0) for u in units]
+            ))
 
-        return store_product
+        return shop_product
 
     def _append_product(self, product: ShopProduct):
         self._products.add(product)

@@ -6,13 +6,15 @@ from sqlalchemy.orm import sessionmaker
 
 from foundation.events import EventBus
 from shop.adapter import shop_db
-from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, SqlListShopProductsByCatalogQuery
+from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, SqlListShopProductsByCatalogQuery, \
+    SqlListAllShopCatalogsQuery
 from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery, SqlListShopProductsQuery, \
     SqlListShopProductPurchasePricesQuery, SqlListShopSuppliersByProductQuery, SqlListUnitsByShopProductQuery, \
     SqlGetShopProductPurchasePriceQuery, SqlGetShopProductLowestPurchasePriceQuery
 from shop.adapter.queries.shop_sql_queries import SqlListShopAddressesQuery, SqlGetShopInfoQuery
 from shop.adapter.queries.supplier_sql_queries import SqlListShopProductsBySupplierQuery, SqlListShopSuppliersQuery
-from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery
+from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
+    ListAllShopCatalogsQuery
 from shop.application.queries.product_queries import GetShopProductQuery, ListShopProductsQuery, \
     ListShopProductPurchasePricesQuery, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
     GetShopProductPurchasePriceQuery, GetShopProductLowestPurchasePriceQuery
@@ -59,6 +61,10 @@ class ShopInfrastructureModule(injector.Module):
     @injector.provider
     def list_shop_catalogs_query(self, conn: Connection) -> ListShopCatalogsQuery:
         return SqlListShopCatalogsQuery(conn)
+
+    @injector.provider
+    def list_all_shop_catalogs_query(self, conn: Connection) -> ListAllShopCatalogsQuery:
+        return SqlListAllShopCatalogsQuery(conn)
 
     # @injector.provider
     # def fetch_store_collections_query(self, conn: Connection) -> ListStoreCollectionsQuery:

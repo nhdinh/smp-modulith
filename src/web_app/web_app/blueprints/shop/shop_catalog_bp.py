@@ -8,7 +8,7 @@ from flask import Blueprint, Response, jsonify, make_response, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
-    ListShopProductsByCatalogRequest, ListShopCatalogsRequest
+    ListShopProductsByCatalogRequest, ListShopCatalogsRequest, ListAllShopCatalogsQuery
 from shop.application.usecases.catalog.add_shop_catalog_uc import (
     AddingShopCatalogRequest,
     AddingShopCatalogResponseBoundary,
@@ -61,6 +61,17 @@ def list_shop_catalogs(list_shop_catalog_query: ListShopCatalogsQuery) -> Respon
     dto = get_dto(request, ListShopCatalogsRequest, context={'current_user_id': get_jwt_identity()})
     response = list_shop_catalog_query.query(dto)
     return make_response(jsonify(response)), 200  # type:ignore
+
+
+@shop_catalog_blueprint.route('/list_all', methods=['GET', 'POST'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def list_all_shop_catalogs(list_all_shop_catalog_query: ListAllShopCatalogsQuery) -> Response:
+    dto = get_dto(request, ListShopCatalogsRequest, context={'current_user_id': get_jwt_identity()})
+    response = list_all_shop_catalog_query.query(dto)
+
+    return make_response(jsonify(response)), 200  # type:SIGNAL
 
 
 @shop_catalog_blueprint.route('/list_products', methods=['GET', 'POST'])

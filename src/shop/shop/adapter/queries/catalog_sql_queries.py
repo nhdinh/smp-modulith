@@ -17,12 +17,12 @@ from shop.application.queries.catalog_queries import (
     ListShopCatalogsQuery,
     ListShopCatalogsRequest,
     ListShopProductsByCatalogQuery,
-    ListShopProductsByCatalogRequest)
+    ListShopProductsByCatalogRequest, ListAllShopCatalogsQuery, ListAllShopCatalogRequest)
 from shop.domain.dtos.catalog_dtos import ShopCatalogResponseDto, _row_to_catalog_dto
 from shop.domain.dtos.product_dtos import ShopProductCompactedDto, _row_to_product_dto
 from shop.domain.entities.value_objects import ExceptionMessages
 from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory, empty_list_response, \
-    SimpleListTypedResponse
+    SimpleListTypedResponse, list_response_factory
 
 
 class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
@@ -72,6 +72,28 @@ class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
                     _row_to_catalog_dto(row, collections=[c for c in collections if c.catalog_id == row.catalog_id])
                     for row in catalogs]
             )
+        except Exception as exc:
+            raise exc
+
+
+class SqlListAllShopCatalogsQuery(ListAllShopCatalogsQuery, SqlQuery):
+    def query(self, dto: ListAllShopCatalogRequest) -> SimpleListTypedResponse[ShopCatalogResponseDto]:
+        try:
+            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id,
+                                                       current_user_id=dto.current_user_id,
+                                                       conn=self._conn)
+            if not valid_shop_id:
+                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+
+            # get all catalogs limit by page and offset
+            fetch_catalogs_query = get_shop_catalog_query_factory(shop_id=dto.shop_id) \
+                .order_by(shop_catalog_table.c.created_at)
+
+            catalogs = self._conn.execute(fetch_catalogs_query).all()
+
+            return list_response_factory(items=[
+                    _row_to_catalog_dto(row, collections=[])
+                    for row in catalogs])
         except Exception as exc:
             raise exc
 

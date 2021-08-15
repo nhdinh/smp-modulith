@@ -95,7 +95,7 @@ class SqlGetSingleUserQuery(GetSingleUserQuery, SqlQuery):
         elif isinstance(dto, GetSingleUserRequest):
             query = query.where(user_table.c.email == dto.email)
         else:
-            raise TypeError(ExceptionMessages.BAD_REQUEST)
+            raise TypeError(ExceptionMessages.USER_NOT_FOUND)
 
         row = self._conn.execute(query).first()
         if row:

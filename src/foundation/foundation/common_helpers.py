@@ -5,12 +5,13 @@ from uuid import UUID
 
 import slugify as slug1fy
 
+AWS_ALLOWED_SEPARATOR = '-'
 
 def slugify(text: str) -> str:
     if text is None:
         return text
 
-    return slug1fy.slugify(text.strip(), separator='_')
+    return slug1fy.slugify(text.strip(), separator=AWS_ALLOWED_SEPARATOR)
 
 
 def short_id(text: str) -> str:

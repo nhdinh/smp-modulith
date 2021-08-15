@@ -7,24 +7,27 @@ from minio import Minio
 from minio.helpers import ObjectWriteResult
 from werkzeug.datastructures import FileStorage
 
+from foundation.common_helpers import slugify, AWS_ALLOWED_SEPARATOR
+
 
 def default_bucket_policy(bucket_name: str):
     return {
         "Version": "2012-10-17",
         "Statement": [
             {
+                "Action": [
+                    "s3:GetObject",
+                    "s3:GetBucketLocation",
+                ],
                 "Effect": "Allow",
-                "Principal": {"AWS": "*"},
-                "Action": ["s3:GetBucketLocation", "s3:ListBucket"],
-                "Resource": f"arn:aws:s3:::{bucket_name}",
-            },
-            {
-                "Effect": "Allow",
-                "Principal": {"AWS": "*"},
-                "Action": "s3:GetObject",
-                "Resource": f"arn:aws:s3:::{bucket_name}/*",
-            },
-        ],
+                "Principal": '*',
+                "Resource": [
+                    f"arn:aws:s3:::{bucket_name}",
+                    f"arn:aws:s3:::{bucket_name}/*"
+                ],
+                "Sid": "Public"
+            }
+        ]
     }
 
 
@@ -34,7 +37,7 @@ class FileSystem:
 
     def upload_file(self, file_name: str, bucket: str, file: FileStorage) -> ObjectWriteResult:
         try:
-            bucket = str(hash(bucket))
+            bucket = slugify(bucket).replace('.', AWS_ALLOWED_SEPARATOR)
             if not self._minio.bucket_exists(bucket_name=bucket):
                 self._minio.make_bucket(bucket_name=bucket)
                 self._minio.set_bucket_policy(bucket_name=bucket,
@@ -46,7 +49,7 @@ class FileSystem:
                 bucket_name=bucket,
                 object_name=file_name,
                 data=file, length=file_size,
-                content_type=file.content_type
+                content_type=file.content_type,
             )  # type: ObjectWriteResult
 
             return write_result

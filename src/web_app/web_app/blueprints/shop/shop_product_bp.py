@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from http.client import BAD_REQUEST
+
 import flask_injector
 import injector
+import werkzeug.exceptions
 from flask import Blueprint, Response, jsonify, make_response, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -15,7 +18,7 @@ from shop.application.usecases.product.add_shop_product_purchase_price_uc import
 from shop.application.usecases.product.add_shop_product_uc import (
     AddingShopProductRequest,
     AddingShopProductResponseBoundary,
-    AddShopProductUC,
+    AddShopProductUC, AddingShopPendingProductRequest,
 )
 from shop.application.usecases.product.add_shop_product_unit_uc import (
     AddingShopProductUnitRequest,
@@ -64,6 +67,19 @@ class ShopProductAPI(injector.Module):
 @log_error()
 def add_shop_product(add_shop_item_uc: AddShopProductUC, presenter: AddingShopProductResponseBoundary) -> Response:
     dto = get_dto(request, AddingShopProductRequest, context={'current_user_id': get_jwt_identity()})
+    add_shop_item_uc.execute(dto)
+
+    return presenter.response, 201  # type:ignore
+
+
+@shop_product_blueprint.route('/add_pending', methods=['POST'])
+@jwt_required()
+@log_error()
+def add_shop_product_pending(add_shop_item_uc: AddShopProductUC,
+                             presenter: AddingShopProductResponseBoundary) -> Response:
+    dto = get_dto(request, AddingShopPendingProductRequest, context={'current_user_id': get_jwt_identity()})
+    if dto.pending != 'True':
+        raise werkzeug.exceptions.BadRequest
     add_shop_item_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore

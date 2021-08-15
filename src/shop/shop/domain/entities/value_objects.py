@@ -112,3 +112,5 @@ class ExceptionMessages(Enum):
     WRONG_DATA_TYPE_FOR_COMPARISON = 'Cannot compare two objects of different types'
     WRONG_DATA_TYPE_FOR_OPERATE = 'Cannot operate math on two objects of different types'
     UNSUPPORTED_OPERATION = 'Unsupported operation'
+
+    UNSUPPORTED_FILE_TYPE = 'Unsupported file type'

@@ -55,16 +55,15 @@ from store.application.usecases.select_store_plan_uc import (
     SelectingStorePlanResponseBoundary,
     SelectStorePlanUC,
 )
-from web_app.presenters.shop_presenters import RegisteringShopPresenter
+from web_app.presenters.shop_presenters import RegisteringShopPresenter, AddingShopUserPresenter, \
+    UploadingImagePresenter
 from web_app.presenters.store_management_presenters import (
-    AddingShopUserPresenter,
     ConfirmingShopRegistrationPresenter,
     CreatingStoreAddressPresenter,
     CreatingStoreWarehousePresenter,
     ResendingRegistrationResponsePresenter,
     SelectingStorePlanPresenter,
     UpdatingStoreSettingsPresenter,
-    UploadingImagePresenter,
 )
 from web_app.serialization.dto import get_dto
 
