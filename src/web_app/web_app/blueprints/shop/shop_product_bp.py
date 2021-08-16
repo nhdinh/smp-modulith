@@ -80,7 +80,7 @@ def add_shop_product_pending(add_shop_item_uc: AddShopProductUC,
     dto = get_dto(request, AddingShopPendingProductRequest, context={'current_user_id': get_jwt_identity()})
     if dto.pending != 'True':
         raise werkzeug.exceptions.BadRequest
-    add_shop_item_uc.execute(dto)
+    add_shop_item_uc.execute_new_id()
 
     return presenter.response, 201  # type:ignore
 

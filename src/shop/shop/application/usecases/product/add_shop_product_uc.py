@@ -11,6 +11,7 @@ import nanoid
 from dateutil.utils import today
 from sqlalchemy.exc import IntegrityError
 
+from shop.adapter.id_generators import generate_product_id
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ShopProductId, ExceptionMessages
@@ -150,88 +151,75 @@ class AddShopProductUC:
         self._ob = boundary
         self._uow = uow
 
-    def execute(self, dto: Union[AddingShopProductRequest, AddingShopPendingProductRequest]) -> None:
+    def execute(self, dto: AddingShopProductRequest) -> None:
         with self._uow as uow:  # type:ShopUnitOfWork
             try:
                 shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
-                if isinstance(dto, AddingShopPendingProductRequest) and dto.pending == 'True':
-                    title = 'PENDING_PRODUCT'
-                    sku = 'PENDING_SKU_' + nanoid.generate(string.ascii_letters, size=5)
-                    default_unit = 'PENDING_UNIT'
+                product_data = dict()
 
-                    # add pending product and return productId
-                    product = shop.create_product(**{
-                        'title': title,
-                        'sku': sku,
-                        'default_unit': default_unit,
-                        'pending': True
-                    })
-                elif isinstance(dto, AddingShopProductRequest) and dto.pending == 'False':
-                    product_data = dict()
+                for data_field in self.PRODUCT_DATA_FIELDS:
+                    data = None
 
-                    for data_field in self.PRODUCT_DATA_FIELDS:
-                        data = None
+                    # get data from dto
+                    if getattr(dto, data_field, None) is not None:
+                        data = getattr(dto, data_field)
 
-                        # get data from dto
-                        if getattr(dto, data_field, None) is not None:
-                            data = getattr(dto, data_field)
+                        # process units array data
+                        if data_field == 'unit_conversions':  # unit_conversions
+                            unit_conversions = []
+                            for unit_conversion in data:  # type:CreatingShopProductUnitConversionRequest
+                                unit_conversions.append({
+                                    'unit': unit_conversion.unit,
+                                    'base_unit': unit_conversion.base_unit,
+                                    'conversion_factor': unit_conversion.conversion_factor,
+                                })
 
-                            # process units array data
-                            if data_field == 'unit_conversions':  # unit_conversions
-                                unit_conversions = []
-                                for unit_conversion in data:  # type:CreatingShopProductUnitConversionRequest
-                                    unit_conversions.append({
-                                        'unit': unit_conversion.unit,
-                                        'base_unit': unit_conversion.base_unit,
-                                        'conversion_factor': unit_conversion.conversion_factor,
-                                    })
+                            data = unit_conversions
 
-                                data = unit_conversions
+                        # process stocking data
+                        elif data_field == 'first_inventory_stocking_for_unit_conversions':
+                            stockings = []
+                            for stocking in data:  # type:CreatingShopProductFirstStockingRequest
+                                stockings.append({
+                                    'unit': stocking.unit,
+                                    'stocking': stocking.stocking,
+                                })
+                            data = stockings
 
-                            # process stocking data
-                            elif data_field == 'first_inventory_stocking_for_unit_conversions':
-                                stockings = []
-                                for stocking in data:  # type:CreatingShopProductFirstStockingRequest
-                                    stockings.append({
-                                        'unit': stocking.unit,
-                                        'stocking': stocking.stocking,
-                                    })
-                                data = stockings
-
-                            # process suppliers data
-                            elif data_field == 'suppliers':
-                                suppliers = []
-                                for create_supplier_request in data:  # type:CreatingShopSupplierWithPurchasePriceRequest
-                                    supplier_prices = []
-                                    for create_price_request in create_supplier_request.purchase_prices:  # type:CreatingProductPriceRequest
-                                        supplier_prices.append({
-                                            'supplier_name': create_supplier_request.supplier_name,
-                                            'unit': create_price_request.unit,
-                                            'price': create_price_request.price,
-                                            'currency': create_price_request.currency,
-                                            'tax': create_price_request.tax,
-                                            'effective_from': create_price_request.effective_from
-                                        })
-
-                                    suppliers.append({
+                        # process suppliers data
+                        elif data_field == 'suppliers':
+                            suppliers = []
+                            for create_supplier_request in data:  # type:CreatingShopSupplierWithPurchasePriceRequest
+                                supplier_prices = []
+                                for create_price_request in create_supplier_request.purchase_prices:  # type:CreatingProductPriceRequest
+                                    supplier_prices.append({
                                         'supplier_name': create_supplier_request.supplier_name,
-                                        'contact_name': create_supplier_request.contact_name,
-                                        'contact_phone': create_supplier_request.contact_phone,
-                                        'supplier_prices': supplier_prices
+                                        'unit': create_price_request.unit,
+                                        'price': create_price_request.price,
+                                        'currency': create_price_request.currency,
+                                        'tax': create_price_request.tax,
+                                        'effective_from': create_price_request.effective_from
                                     })
 
-                                data = suppliers
+                                suppliers.append({
+                                    'supplier_name': create_supplier_request.supplier_name,
+                                    'contact_name': create_supplier_request.contact_name,
+                                    'contact_phone': create_supplier_request.contact_phone,
+                                    'supplier_prices': supplier_prices
+                                })
 
-                        # add processed data back to product_data
-                        if data is not None:
-                            product_data[data_field] = data
+                            data = suppliers
 
-                    # TODO: Remove after test
-                    # product_data['title'] += ''.join(random.sample(string.ascii_lowercase, 8))
-                    # product_data['sku'] += ''.join(random.sample(string.ascii_uppercase, 3))
+                    # add processed data back to product_data
+                    if data is not None:
+                        product_data[data_field] = data
 
-                    product = shop.create_product(**product_data)
+                # TODO: Remove after test
+                # product_data['title'] += ''.join(random.sample(string.ascii_lowercase, 8))
+                # product_data['sku'] += ''.join(random.sample(string.ascii_uppercase, 3))
+
+                product = shop.create_product(**product_data)
 
                 # make response
                 if product:
@@ -249,3 +237,12 @@ class AddShopProductUC:
                 raise exc
             except Exception as exc:
                 raise exc
+
+    def execute_new_id(self):
+        try:
+            response_dto = AddingShopProductResponse(
+                product_id=generate_product_id(),
+            )
+            self._ob.present(response_dto=response_dto)
+        except Exception as exc:
+            raise exc
