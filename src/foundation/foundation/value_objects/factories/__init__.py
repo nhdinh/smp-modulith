@@ -9,9 +9,9 @@ from foundation.value_objects.currency import _get_registered_currency_or_defaul
 
 
 def get_money(amount: Union[Decimal, float, int], currency_str: str = None) -> Money:
-  currency = _get_registered_currency_or_default(currency_str)  # type: Currency
+    currency = _get_registered_currency_or_default(currency_str)  # type: Currency
 
-  return Money(currency, amount)
+    return Money(currency, amount)
 
 
 __all__ = ["get_money"]

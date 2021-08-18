@@ -11,98 +11,98 @@ from web_app.serialization.dto import PaginationTypedResponse
 
 @dataclass
 class CollectionDto:
-  collection_reference: str
-  collection_display_name: str
-  collection_default: bool
+    collection_reference: str
+    collection_display_name: str
+    collection_default: bool
 
-  def serialize(self):
-    return {
-      'reference': self.collection_reference,
-      'display_name': self.collection_display_name,
-      'default': self.collection_default,
-    }
+    def serialize(self):
+        return {
+            'reference': self.collection_reference,
+            'display_name': self.collection_display_name,
+            'default': self.collection_default,
+        }
 
 
 @dataclass
 class BrandDto:
-  brand_reference: str
-  brand_display_name: str
-  brand_logo: str
+    brand_reference: str
+    brand_display_name: str
+    brand_logo: str
 
-  def serialize(self) -> object:
-    return {
-      'reference': self.brand_reference,
-      'display_name': self.brand_display_name,
-      'logo': self.brand_logo,
-    }
+    def serialize(self) -> object:
+        return {
+            'reference': self.brand_reference,
+            'display_name': self.brand_display_name,
+            'logo': self.brand_logo,
+        }
 
 
 @dataclass
 class CatalogDto:
-  reference: str
-  display_name: str
-  disabled: bool
-  collections: List[CollectionDto]
-  system: bool
+    reference: str
+    display_name: str
+    disabled: bool
+    collections: List[CollectionDto]
+    system: bool
 
-  def serialize(self) -> object:
-    return {
-      'reference': self.reference,
-      'display_name': self.display_name,
-      'disabled': self.disabled,
-      'collection': self.collections,
-      'system': self.system,
-    }
+    def serialize(self) -> object:
+        return {
+            'reference': self.reference,
+            'display_name': self.display_name,
+            'disabled': self.disabled,
+            'collection': self.collections,
+            'system': self.system,
+        }
 
 
 @dataclass
 class ProductDto:
-  product_id: UUID
-  reference: str
-  display_name: str
-  catalog: str
-  collection: str
-  brand: str
-  created_at: datetime
+    product_id: UUID
+    reference: str
+    display_name: str
+    catalog: str
+    collection: str
+    brand: str
+    created_at: datetime
 
-  # TODO: Add more field to ProductDto base on what to display at frontend
-  def serialize(self):
-    return {
-      'product_id': self.product_id,
-      'reference': self.reference,
-      'display_name': self.display_name,
-      'catalog': self.catalog,
-      'collection': self.collection,
-      'brand': self.brand,
-      'created_at': self.created_at,
-    }
+    # TODO: Add more field to ProductDto base on what to display at frontend
+    def serialize(self):
+        return {
+            'product_id': self.product_id,
+            'reference': self.reference,
+            'display_name': self.display_name,
+            'catalog': self.catalog,
+            'collection': self.collection,
+            'brand': self.brand,
+            'created_at': self.created_at,
+        }
 
 
 class ListCatalogsQuery(abc.ABC):
-  @abc.abstractmethod
-  def query(self, select_active_only: bool = True) -> List[CatalogDto]:
-    pass
+    @abc.abstractmethod
+    def query(self, select_active_only: bool = True) -> List[CatalogDto]:
+        pass
 
 
 class GetCatalogQuery(abc.ABC):
-  @abc.abstractmethod
-  def query(self, param: str) -> Optional[CatalogDto]:
-    pass
+    @abc.abstractmethod
+    def query(self, param: str) -> Optional[CatalogDto]:
+        pass
 
 
 class ListProductsQuery(abc.ABC):
-  @abc.abstractmethod
-  def query(self, page: int, page_size: int) -> PaginationTypedResponse[ProductDto]:
-    pass
+    @abc.abstractmethod
+    def query(self, page: int, page_size: int) -> PaginationTypedResponse[ProductDto]:
+        pass
 
 
 class GetProductQuery(abc.ABC):
-  @abc.abstractmethod
-  def query(self, product_query: str) -> Optional[ProductDto]:
-    pass
+    @abc.abstractmethod
+    def query(self, product_query: str) -> Optional[ProductDto]:
+        pass
 
 
 class ListProductBrandsQuery(abc.ABC):
-  @abc.abstractmethod
-  def query(self) -> List[BrandDto]:
-    pass
+    @abc.abstractmethod
+    def query(self) -> List[BrandDto]:
+        pass

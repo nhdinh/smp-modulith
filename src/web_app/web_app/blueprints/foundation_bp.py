@@ -11,12 +11,12 @@ foundation_blueprint = Blueprint(FOUNDATION_BLUEPRINT_NAME, __name__)
 
 
 class FoundationAPI(injector.Module):
-  @injector.provider
-  @flask_injector.request
-  def upload_image_response_boudary(self) -> UploadingImageResponseBoundary:
-    return None
+    @injector.provider
+    @flask_injector.request
+    def upload_image_response_boudary(self) -> UploadingImageResponseBoundary:
+        return None
 
-    # return UploadingImagePresenter()
+        # return UploadingImagePresenter()
 
 # @foundation_blueprint.route('/upload_image', methods=['POST'])
 # @jwt_required()

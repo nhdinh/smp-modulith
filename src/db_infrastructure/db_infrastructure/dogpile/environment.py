@@ -20,7 +20,7 @@ from . import caching_query
 py2k = sys.version_info < (3, 0)
 
 if py2k:
-  input = raw_input  # noqa
+    input = raw_input  # noqa
 
 # dogpile cache regions.  A home base for cache configurations.
 regions = {}
@@ -37,12 +37,12 @@ Base = declarative_base()
 root = "../dogpile_data/"
 
 if not os.path.exists(root):
-  input(
-    "Will create datafiles in %r.\n"
-    "To reset the cache + database, delete this directory.\n"
-    "Press enter to continue.\n" % root
-  )
-  os.makedirs(root)
+    input(
+        "Will create datafiles in %r.\n"
+        "To reset the cache + database, delete this directory.\n"
+        "Press enter to continue.\n" % root
+    )
+    os.makedirs(root)
 
 dbfile = os.path.join(root, "dogpile_demo.db")
 engine = create_engine("sqlite:///%s" % dbfile, echo=True)
@@ -50,26 +50,26 @@ Session.configure(bind=engine)
 
 
 def md5_key_mangler(key):
-  """Receive cache keys as long concatenated strings;
-  distill them into an md5 hash.
+    """Receive cache keys as long concatenated strings;
+    distill them into an md5 hash.
 
-  """
-  return md5(key.encode("ascii")).hexdigest()
+    """
+    return md5(key.encode("ascii")).hexdigest()
 
 
 # configure the "default" cache region.
 regions["default"] = make_region(
-  # the "dbm" backend needs
-  # string-encoded keys
-  key_mangler=md5_key_mangler
+    # the "dbm" backend needs
+    # string-encoded keys
+    key_mangler=md5_key_mangler
 ).configure(
-  # using type 'file' to illustrate
-  # serialized persistence.  Normally
-  # memcached or similar is a better choice
-  # for caching.
-  "dogpile.cache.dbm",
-  expiration_time=3600,
-  arguments={"filename": os.path.join(root, "cache.dbm")},
+    # using type 'file' to illustrate
+    # serialized persistence.  Normally
+    # memcached or similar is a better choice
+    # for caching.
+    "dogpile.cache.dbm",
+    expiration_time=3600,
+    arguments={"filename": os.path.join(root, "cache.dbm")},
 )
 
 # optional; call invalidate() on the region
@@ -83,9 +83,9 @@ installed = False
 
 
 def bootstrap():
-  global installed
-  from . import fixture_data
+    global installed
+    from . import fixture_data
 
-  if not os.path.exists(dbfile):
-    fixture_data.install()
-    installed = True
+    if not os.path.exists(dbfile):
+        fixture_data.install()
+        installed = True

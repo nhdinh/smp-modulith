@@ -8,7 +8,7 @@ from shop.application.usecases.shop.upload_image_uc import UploadingImageRespons
 
 
 class FoundationApplicationModule(injector.Module):
-  @injector.provider
-  def upload_image_uc(self, boundary: UploadingImageResponseBoundary, uow, minio_client: Minio,
-                      fs: FileSystem) -> UploadImageUC:
-    return UploadImageUC(boundary, uow, minio_client, fs)
+    @injector.provider
+    def upload_image_uc(self, boundary: UploadingImageResponseBoundary, uow, minio_client: Minio,
+                        fs: FileSystem) -> UploadImageUC:
+        return UploadImageUC(boundary, uow, minio_client, fs)

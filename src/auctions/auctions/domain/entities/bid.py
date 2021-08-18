@@ -7,6 +7,6 @@ from foundation.value_objects import Money
 
 @dataclass(unsafe_hash=True)
 class Bid:
-  id: Optional[BidId]
-  bidder_id: BidderId
-  amount: Money
+    id: Optional[BidId]
+    bidder_id: BidderId
+    amount: Money

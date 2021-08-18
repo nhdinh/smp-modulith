@@ -5,6 +5,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ShopProductCache:
-  def __init__(self, **kwargs):
-    for k, v in kwargs.items():
-      setattr(self, k, v)
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)

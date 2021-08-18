@@ -15,60 +15,60 @@ from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 @dataclass
 class AddingShopProductToSupplierRequest(BaseAuthorizedShopUserRequest):
-  product_id: ShopProductId
-  supplier_id: ShopSupplierId
+    product_id: ShopProductId
+    supplier_id: ShopSupplierId
 
 
 @dataclass
 class AddingShopProductToSupplierResponse:
-  product_id: ShopProductId
-  supplier_id: ShopSupplierId
+    product_id: ShopProductId
+    supplier_id: ShopSupplierId
 
 
 class AddingShopProductToSupplierResponseBoundary(abc.ABC):
-  @abc.abstractmethod
-  def present(self, response_dto: AddingShopProductToSupplierResponse):
-    raise NotImplementedError
+    @abc.abstractmethod
+    def present(self, response_dto: AddingShopProductToSupplierResponse):
+        raise NotImplementedError
 
 
 class AddShopProductToSupplierUC:
-  def __init__(self, boundary: AddingShopProductToSupplierResponseBoundary, uow: ShopUnitOfWork):
-    self._ob = boundary
-    self._uow = uow
+    def __init__(self, boundary: AddingShopProductToSupplierResponseBoundary, uow: ShopUnitOfWork):
+        self._ob = boundary
+        self._uow = uow
 
-  def execute(self, dto: AddingShopProductToSupplierRequest) -> None:
-    with self._uow as uow:  # type:ShopUnitOfWork
-      try:
-        shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
-        product = uow.shops.get_product_by_id(product_id=dto.product_id)  # type:ShopProduct
+    def execute(self, dto: AddingShopProductToSupplierRequest) -> None:
+        with self._uow as uow:  # type:ShopUnitOfWork
+            try:
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
+                product = uow.shops.get_product_by_id(product_id=dto.product_id)  # type:ShopProduct
 
-        if not product.is_belong_to_shop(shop=shop):
-          raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
+                if not product.is_belong_to_shop(shop=shop):
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
 
-        supplier = shop.get_supplier(supplier_id_or_name=dto.supplier_id)  # type:ShopSupplier
+                supplier = shop.get_supplier(supplier_id_or_name=dto.supplier_id)  # type:ShopSupplier
 
-        if not supplier:
-          raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_SUPPLIER_NOT_FOUND)
+                if not supplier:
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_SUPPLIER_NOT_FOUND)
 
-        product.add_supplier(supplier)
+                product.add_supplier(supplier)
 
-        # emit the UpdateEvent
-        shop._record_event(ShopProductUpdatedEvent, **dict(
-          event_id=new_event_id(),
-          shop_id=shop.shop_id,
-          product_id=product.product_id,
-          updated_keys=['suppliers']
-        ))
+                # emit the UpdateEvent
+                shop._record_event(ShopProductUpdatedEvent, **dict(
+                    event_id=new_event_id(),
+                    shop_id=shop.shop_id,
+                    product_id=product.product_id,
+                    updated_keys=['suppliers']
+                ))
 
-        # create response
-        response_dto = AddingShopProductToSupplierResponse(
-          product_id=product.product_id,
-          supplier_id=supplier.supplier_id,  # type: ignore
-        )
-        self._ob.present(response_dto=response_dto)
+                # create response
+                response_dto = AddingShopProductToSupplierResponse(
+                    product_id=product.product_id,
+                    supplier_id=supplier.supplier_id,  # type: ignore
+                )
+                self._ob.present(response_dto=response_dto)
 
-        # commit
-        product.version += 1
-        uow.commit()
-      except Exception as exc:
-        raise exc
+                # commit
+                product.version += 1
+                uow.commit()
+            except Exception as exc:
+                raise exc

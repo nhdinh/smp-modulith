@@ -13,48 +13,48 @@ from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 @dataclass
 class AddingShopCatalogRequest(BaseAuthorizedShopUserRequest):
-  title: str
-  image: Optional[str]
+    title: str
+    image: Optional[str]
 
 
 @dataclass
 class AddingShopCatalogResponse:
-  catalog_id: ShopCatalogId
+    catalog_id: ShopCatalogId
 
 
 class AddingShopCatalogResponseBoundary(abc.ABC):
-  @abc.abstractmethod
-  def present(self, dto: AddingShopCatalogResponse):
-    raise NotImplementedError
+    @abc.abstractmethod
+    def present(self, dto: AddingShopCatalogResponse):
+        raise NotImplementedError
 
 
 class AddShopCatalogUC:
-  def __init__(self, ob: AddingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
-    self._ob = ob
-    self._uow = uow
+    def __init__(self, ob: AddingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
+        self._ob = ob
+        self._uow = uow
 
-  def execute(self, dto: AddingShopCatalogRequest):
-    with self._uow as uow:  # type:ShopUnitOfWork
-      try:
-        shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
+    def execute(self, dto: AddingShopCatalogRequest):
+        with self._uow as uow:  # type:ShopUnitOfWork
+            try:
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
-        if shop.is_catalog_exists(catalog_title=dto.title):
-          raise Exception(ExceptionMessages.SHOP_CATALOG_EXISTED)
+                if shop.is_catalog_exists(catalog_title=dto.title):
+                    raise Exception(ExceptionMessages.SHOP_CATALOG_EXISTED)
 
-        # make catalog
-        catalog = shop.create_catalog(
-          title=dto.title,
-          image=dto.image
-        )  # type: ShopCatalog
+                # make catalog
+                catalog = shop.create_catalog(
+                    title=dto.title,
+                    image=dto.image
+                )  # type: ShopCatalog
 
-        shop.catalogs.add(catalog)
+                shop.catalogs.add(catalog)
 
-        # make response
-        response_dto = AddingShopCatalogResponse(catalog_id=catalog.catalog_id)
-        self._ob.present(response_dto)
+                # make response
+                response_dto = AddingShopCatalogResponse(catalog_id=catalog.catalog_id)
+                self._ob.present(response_dto)
 
-        shop.version += 1
+                shop.version += 1
 
-        uow.commit()
-      except Exception as exc:
-        raise exc
+                uow.commit()
+            except Exception as exc:
+                raise exc

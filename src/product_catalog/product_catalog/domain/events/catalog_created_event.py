@@ -8,4 +8,4 @@ from product_catalog.domain.value_objects import CatalogReference
 
 @dataclass(frozen=True)
 class CatalogCreatedEvent(Event):
-  reference: CatalogReference
+    reference: CatalogReference

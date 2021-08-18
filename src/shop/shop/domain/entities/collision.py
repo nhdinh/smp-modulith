@@ -10,33 +10,33 @@ from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
 
 class CollionCreatedEvent(Event):
-  pass
+    pass
 
 
 class CollionCreatedEventHandler:
-  @injector.inject
-  def __init__(self, uow: ShopUnitOfWork):
-    self._uow = uow
+    @injector.inject
+    def __init__(self, uow: ShopUnitOfWork):
+        self._uow = uow
 
-  def __call__(self, uow: ShopUnitOfWork):
-    with self._uow as uow:
-      try:
-        c = Collision.create()
-        uow.session.add(c)
-        uow.commit()
-      except Exception as exc:
-        raise exc
+    def __call__(self, uow: ShopUnitOfWork):
+        with self._uow as uow:
+            try:
+                c = Collision.create()
+                uow.session.add(c)
+                uow.commit()
+            except Exception as exc:
+                raise exc
 
 
 class Collision(EventMixin):
-  def __init__(self):
-    self.id = generate_product_id()
-    self.name = self.id
-    self.domain_events = []
+    def __init__(self):
+        self.id = generate_product_id()
+        self.name = self.id
+        self.domain_events = []
 
-    self._record_event(CollionCreatedEvent())
+        self._record_event(CollionCreatedEvent())
 
-  @staticmethod
-  def create() -> Collision:
-    c = Collision()
-    return c
+    @staticmethod
+    def create() -> Collision:
+        c = Collision()
+        return c

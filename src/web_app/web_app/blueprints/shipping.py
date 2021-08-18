@@ -15,19 +15,19 @@ shipping_blueprint = Blueprint("shipping_blueprint", __name__)
 
 @shipping_blueprint.route("/package")
 def get_next_package(query: GetNextPackage) -> Response:
-  result = query.query()
-  if not result:
-    abort(404)
-  return make_response(jsonify(dataclasses.asdict(result)))
+    result = query.query()
+    if not result:
+        abort(404)
+    return make_response(jsonify(dataclasses.asdict(result)))
 
 
 @shipping_blueprint.route("/package/<package_uuid>/ship", methods=["POST"])
 def ship_package(package_uuid: str, shipping_package_uc: ShippingPackage) -> Response:
-  if not current_user.is_authenticated:
-    abort(403)
-  # try:
-  #     shipping_package_uc.execute(ShippingPackageInputDto(uuid.UUID(package_uuid)))
-  # except PackageAlreadyShipped:
-  #     abort(make_response(jsonify({"message": f"Package '{package_uuid}' has been shipped already"}), 400))
-  # return make_response(jsonify({"message": f"Package '{package_uuid}' shipped successfully"}))
-  return make_response()
+    if not current_user.is_authenticated:
+        abort(403)
+    # try:
+    #     shipping_package_uc.execute(ShippingPackageInputDto(uuid.UUID(package_uuid)))
+    # except PackageAlreadyShipped:
+    #     abort(make_response(jsonify({"message": f"Package '{package_uuid}' has been shipped already"}), 400))
+    # return make_response(jsonify({"message": f"Package '{package_uuid}' shipped successfully"}))
+    return make_response()

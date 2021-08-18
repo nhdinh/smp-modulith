@@ -12,11 +12,11 @@ PurchaseOrderId = NewType('PurchaseOrderId', tp=str)
 
 @dataclass
 class PurchaseOrder:
-  purchase_order_id: PurchaseOrderId
-  approved_date: date
-  status: PurchaseOrderStatus
+    purchase_order_id: PurchaseOrderId
+    approved_date: date
+    status: PurchaseOrderStatus
 
-  items: Set[PurchaseOrderItem]
+    items: Set[PurchaseOrderItem]
 
-  def __hash__(self):
-    return hash(self.purchase_order_id)
+    def __hash__(self):
+        return hash(self.purchase_order_id)

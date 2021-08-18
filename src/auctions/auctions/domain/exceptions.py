@@ -1,14 +1,14 @@
 class BidOnEndedAuction(Exception):
-  pass
+    pass
 
 
 class AuctionHasNotEnded(Exception):
-  pass
+    pass
 
 
 class AuctionAlreadyEnded(Exception):
-  pass
+    pass
 
 
 class AuctionEndingInThePast(Exception):
-  pass
+    pass

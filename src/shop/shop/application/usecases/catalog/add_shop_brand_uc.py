@@ -12,37 +12,37 @@ from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 @dataclass
 class AddingShopBrandRequest(BaseAuthorizedShopUserRequest):
-  name: str
-  logo: Optional[str] = ''
+    name: str
+    logo: Optional[str] = ''
 
 
 @dataclass
 class AddingShopBrandResponse:
-  brand_id: ShopBrandId
+    brand_id: ShopBrandId
 
 
 class AddingShopBrandResponseBoundary(abc.ABC):
-  @abc.abstractmethod
-  def present(self, response_dto: AddingShopBrandResponse):
-    raise NotImplementedError
+    @abc.abstractmethod
+    def present(self, response_dto: AddingShopBrandResponse):
+        raise NotImplementedError
 
 
 class AddShopBrandUC:
-  def __init__(self, boundary: AddingShopBrandResponseBoundary, uow: ShopUnitOfWork):
-    self._ob = boundary
-    self._uow = uow
+    def __init__(self, boundary: AddingShopBrandResponseBoundary, uow: ShopUnitOfWork):
+        self._ob = boundary
+        self._uow = uow
 
-  def execute(self, dto: AddingShopBrandRequest) -> None:
-    with self._uow as uow:  # type: ShopUnitOfWork
-      try:
-        shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
+    def execute(self, dto: AddingShopBrandRequest) -> None:
+        with self._uow as uow:  # type: ShopUnitOfWork
+            try:
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
-        brand = shop.create_brand(name=dto.name, logo=dto.logo)
+                brand = shop.create_brand(name=dto.name, logo=dto.logo)
 
-        response_dto = AddingShopBrandResponse(brand_id=brand.brand_id)
-        self._ob.present(response_dto=response_dto)
+                response_dto = AddingShopBrandResponse(brand_id=brand.brand_id)
+                self._ob.present(response_dto=response_dto)
 
-        shop.version += 1
-        uow.commit()
-      except Exception as exc:
-        raise exc
+                shop.version += 1
+                uow.commit()
+            except Exception as exc:
+                raise exc

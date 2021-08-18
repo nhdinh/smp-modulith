@@ -4,6 +4,6 @@ from foundation.business_rule import BusinessRuleBase, BusinessRuleValidationErr
 
 
 class Entity:
-  def check_rule(self, rule: BusinessRuleBase):
-    if rule.is_broken():
-      raise BusinessRuleValidationError(rule)
+    def check_rule(self, rule: BusinessRuleBase):
+        if rule.is_broken():
+            raise BusinessRuleValidationError(rule)

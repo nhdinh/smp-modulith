@@ -4,42 +4,42 @@ from flask import jsonify, make_response
 
 from payments.api.responses import Response
 from shop.application.usecases.product.add_shop_product_purchase_price_uc import \
-  AddingShopProductPurchasePriceResponseBoundary, AddingShopProductPurchasePriceResponse
+    AddingShopProductPurchasePriceResponseBoundary, AddingShopProductPurchasePriceResponse
 from shop.application.usecases.product.add_shop_product_unit_uc import (
-  AddingShopProductUnitResponse,
-  AddingShopProductUnitResponseBoundary,
+    AddingShopProductUnitResponse,
+    AddingShopProductUnitResponseBoundary,
 )
 from shop.application.usecases.product.set_shop_products_status_uc import SettingShopProductsStatusResponseBoundary, \
-  SettingShopProductsStatusResponse
+    SettingShopProductsStatusResponse
 from shop.application.usecases.product.update_shop_product_unit_uc import (
-  UpdatingShopProductUnitResponse,
-  UpdatingShopProductUnitResponseBoundary,
+    UpdatingShopProductUnitResponse,
+    UpdatingShopProductUnitResponseBoundary,
 )
 
 
 class AddingShopProductUnitPresenter(AddingShopProductUnitResponseBoundary):
-  response: Response
+    response: Response
 
-  def present(self, response_dto: AddingShopProductUnitResponse):
-    self.response = make_response(jsonify(response_dto.__dict__))
+    def present(self, response_dto: AddingShopProductUnitResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
 
 
 class UpdatingShopProductUnitPresenter(UpdatingShopProductUnitResponseBoundary):
-  response: Response
+    response: Response
 
-  def present(self, response_dto: UpdatingShopProductUnitResponse):
-    self.response = make_response(jsonify(response_dto.__dict__))
+    def present(self, response_dto: UpdatingShopProductUnitResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
 
 
 class AddingShopProductPurchasePricePresenter(AddingShopProductPurchasePriceResponseBoundary):
-  response: Response
+    response: Response
 
-  def present(self, response_dto: AddingShopProductPurchasePriceResponse):
-    self.response = make_response(jsonify(response_dto.__dict__))
+    def present(self, response_dto: AddingShopProductPurchasePriceResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
 
 
 class SettingShopProductsStatusPresenter(SettingShopProductsStatusResponseBoundary):
-  response: Response
+    response: Response
 
-  def present(self, response_dto: SettingShopProductsStatusResponse):
-    self.response = make_response(jsonify(response_dto.__dict__))
+    def present(self, response_dto: SettingShopProductsStatusResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))

@@ -10,46 +10,46 @@ from shop.domain.entities.value_objects import ShopCollectionId
 
 @dataclass
 class UpdatingStoreCollectionRequest:
-  current_user: str
-  collection_id: ShopCollectionId
-  title: str
-  disabled: bool
+    current_user: str
+    collection_id: ShopCollectionId
+    title: str
+    disabled: bool
 
 
 @dataclass
 class UpdatingStoreCollectionResponse:
-  status: bool
+    status: bool
 
 
 class UpdatingStoreCollectionResponseBoundary(abc.ABC):
-  @abc.abstractmethod
-  def present(self, response_dto: UpdatingStoreCollectionResponse):
-    raise NotImplementedError
+    @abc.abstractmethod
+    def present(self, response_dto: UpdatingStoreCollectionResponse):
+        raise NotImplementedError
 
 
 class UpdateStoreCollectionUC:
-  def __init__(self, ob: UpdatingStoreCollectionResponseBoundary, uow: ShopUnitOfWork):
-    self._ob = ob
-    self._uow = uow
+    def __init__(self, ob: UpdatingStoreCollectionResponseBoundary, uow: ShopUnitOfWork):
+        self._ob = ob
+        self._uow = uow
 
-  def execute(self, dto: UpdatingStoreCollectionRequest):
-    with self._uow as uow:  # type:ShopUnitOfWork
-      try:
-        store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
+    def execute(self, dto: UpdatingStoreCollectionRequest):
+        with self._uow as uow:  # type:ShopUnitOfWork
+            try:
+                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
-        # build  update data
-        update_data = {
-          'display_name': dto.display_name,
-          'display_image': dto.display_image,
-          'disabled': dto.disabled,
-        }
+                # build  update data
+                update_data = {
+                    'display_name': dto.display_name,
+                    'display_image': dto.display_image,
+                    'disabled': dto.disabled,
+                }
 
-        store.update_collection(catalog_reference=dto.catalog_reference,
-                                collection_reference=dto.collection_id, update_data=update_data)
+                store.update_collection(catalog_reference=dto.catalog_reference,
+                                        collection_reference=dto.collection_id, update_data=update_data)
 
-        response_dto = UpdatingStoreCollectionResponse(status=True)
-        self._ob.present(response_dto=response_dto)
+                response_dto = UpdatingStoreCollectionResponse(status=True)
+                self._ob.present(response_dto=response_dto)
 
-        uow.commit()
-      except Exception as exc:
-        raise exc
+                uow.commit()
+            except Exception as exc:
+                raise exc

@@ -10,11 +10,11 @@ from dataclasses import dataclass
 
 @dataclass(unsafe_hash=True)
 class ShopProductBrand:
-  name: str
-  logo: str = None
+    name: str
+    logo: str = None
 
-  def __eq__(self, other):
-    if not other or not isinstance(other, ShopProductBrand):
-      raise TypeError
+    def __eq__(self, other):
+        if not other or not isinstance(other, ShopProductBrand):
+            raise TypeError
 
-    return self.name == other.name
+        return self.name == other.name

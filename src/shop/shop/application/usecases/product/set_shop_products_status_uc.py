@@ -14,58 +14,78 @@ from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 
 class SettingShopProductActions(Enum):
-  ENABLE = 'ENABLE'
-  DISABLE = 'DISABLE'
-  DELETE = 'DELETE'
+    ENABLE = 'ENABLE'
+    DISABLE = 'DISABLE'
+    DELETE = 'DELETE'
 
 
 @dataclass
 class SettingShopProductsStatusRequest(BaseAuthorizedShopUserRequest):
-  action: SettingShopProductActions
-  products: List[ProductId]
+    action: SettingShopProductActions
+    products: List[ProductId]
 
 
 @dataclass
 class SettingShopProductsStatusResponse:
-  products: Dict[ProductId, Optional[GenericShopItemStatus]]
+    products: Dict[ProductId, Optional[GenericShopItemStatus]]
 
 
 class SettingShopProductsStatusResponseBoundary(abc.ABC):
-  @abc.abstractmethod
-  def present(self, response_dto: SettingShopProductsStatusResponse):
-    raise NotImplementedError
+    @abc.abstractmethod
+    def present(self, response_dto: SettingShopProductsStatusResponse):
+        raise NotImplementedError
 
 
 class SetShopProductsStatusUC:
-  def __init__(self, ob: SettingShopProductsStatusResponseBoundary, uow: ShopUnitOfWork):
-    self._ob = ob
-    self._uow = uow
+    def __init__(self, ob: SettingShopProductsStatusResponseBoundary, uow: ShopUnitOfWork):
+        self._ob = ob
+        self._uow = uow
 
-  def execute(self, dto: SettingShopProductsStatusRequest):
-    if len(dto.products) > 25:
-      raise Exception(ExceptionMessages.CANNOT_PROCESS_LARGE_SELECTION_OF_PRODUCTS)
+    def execute(self, dto: SettingShopProductsStatusRequest):
+        if len(dto.products) > 25:
+            raise Exception(ExceptionMessages.CANNOT_PROCESS_LARGE_SELECTION_OF_PRODUCTS)
 
-    with self._uow as uow:  # type:ShopUnitOfWork
-      try:
-        shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
+        with self._uow as uow:  # type:ShopUnitOfWork
+            try:
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
-        processed = dict()
-        for product_id in dto.products:
-          product_id = str(product_id)
-          product = uow.shops.get_product_by_id(product_id=product_id)  # type:ShopProduct
+                processed = dict()
+                for product_id in dto.products:
+                    product_id = str(product_id)
+                    product = uow.shops.get_product_by_id(product_id=product_id)  # type:ShopProduct
 
-          if product and product.status not in [GenericShopItemStatus.DISABLED,
-                                                GenericShopItemStatus.DELETED]:
-            product.status = GenericShopItemStatus.DISABLED
-            product.version += 1
-            processed[product_id] = product.status
-          else:
-            processed[product_id] = 'UNPROCESSED'
+                    # set as unprocessed if product is None
+                    if not product:
+                        processed[product_id] = 'UNPROCESSED'
 
-        response_dto = SettingShopProductsStatusResponse(products=processed)
-        self._ob.present(response_dto=response_dto)
+                    if product:
+                        if dto.action == SettingShopProductActions.DISABLE:
+                            if product.status not in [GenericShopItemStatus.DISABLED, GenericShopItemStatus.DELETED]:
+                                product.status = GenericShopItemStatus.DISABLED
+                                product.version += 1
+                                processed[product_id] = product.status
+                            else:
+                                processed[product_id] = 'UNPROCESSED'
+                        elif dto.action == SettingShopProductActions.ENABLE:
+                            if product.status not in [GenericShopItemStatus.ENABLE, GenericShopItemStatus.DELETED]:
+                                product.status = GenericShopItemStatus.ENABLE
+                                product.version += 1
+                                processed[product_id] = product.status
+                            else:
+                                processed[product_id] = 'UNPROCESSED'
+                        elif dto.action == SettingShopProductActions.DELETE:
+                            if product.status != GenericShopItemStatus.DELETED:
+                                product.status = GenericShopItemStatus.DELETED
+                                product.version += 1
+                                processed[product_id] = product.status
+                            else:
+                                processed[product_id] = 'UNPROCESSED'
 
-        shop.version += 1
-        uow.commit()
-      except Exception as exc:
-        raise exc
+                # response
+                response_dto = SettingShopProductsStatusResponse(products=processed)
+                self._ob.present(response_dto=response_dto)
+
+                shop.version += 1
+                uow.commit()
+            except Exception as exc:
+                raise exc

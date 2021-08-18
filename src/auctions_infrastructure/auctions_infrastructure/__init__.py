@@ -8,23 +8,23 @@ from auctions_infrastructure.repositories import SqlAlchemyAuctionsRepo
 from foundation.events import EventBus
 
 __all__ = [
-  # module
-  "AuctionsInfrastructure",
-  # models
-  "auctions",
-  "bids",
+    # module
+    "AuctionsInfrastructure",
+    # models
+    "auctions",
+    "bids",
 ]
 
 
 class AuctionsInfrastructure(injector.Module):
-  @injector.provider
-  def get_active_auctions(self, conn: Connection) -> GetActiveAuctionsQuery:
-    return SqlGetActiveAuctionsQuery(conn)
+    @injector.provider
+    def get_active_auctions(self, conn: Connection) -> GetActiveAuctionsQuery:
+        return SqlGetActiveAuctionsQuery(conn)
 
-  @injector.provider
-  def get_single_auction(self, conn: Connection) -> GetSingleAuctionQuery:
-    return SqlGetSingleAuctionQuery(conn)
+    @injector.provider
+    def get_single_auction(self, conn: Connection) -> GetSingleAuctionQuery:
+        return SqlGetSingleAuctionQuery(conn)
 
-  @injector.provider
-  def auctions_repo(self, conn: Connection, event_bus: EventBus) -> AuctionsRepository:
-    return SqlAlchemyAuctionsRepo(conn, event_bus)
+    @injector.provider
+    def auctions_repo(self, conn: Connection, event_bus: EventBus) -> AuctionsRepository:
+        return SqlAlchemyAuctionsRepo(conn, event_bus)

@@ -9,15 +9,15 @@ from product_catalog.application.usecases.create_catalog import CreatingCatalogR
 
 
 class TestSampleCatalogFactory(factory.Factory):
-  class Meta:
-    model = TestSampleCatalog
+    class Meta:
+        model = TestSampleCatalog
 
-  reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
-  display_name = factory.Faker('name')
+    reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
+    display_name = factory.Faker('name')
 
 
 class CreatingCatalogRequestFactory(factory.Factory):
-  class Meta:
-    model = CreatingCatalogRequest
+    class Meta:
+        model = CreatingCatalogRequest
 
-  name = factory.Faker('name')
+    name = factory.Faker('name')

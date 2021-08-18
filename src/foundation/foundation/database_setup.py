@@ -6,7 +6,7 @@ import sqlalchemy.orm as orm
 
 from db_infrastructure import metadata
 from foundation.value_objects.address import (
-  generate_address_id, Address, generate_image_id,
+    generate_address_id, Address, generate_image_id,
 )
 
 """
@@ -53,22 +53,22 @@ location_city_sub_division_table = sa.Table(
 """
 
 image_info_table = sa.Table(
-  'image_info',
-  metadata,
-  sa.Column('image_id', sa.String(60), primary_key=True, default=generate_image_id)
+    'image_info',
+    metadata,
+    sa.Column('image_id', sa.String(60), primary_key=True, default=generate_image_id)
 )
 
 location_address_table = sa.Table(
-  'location_address',
-  metadata,
-  sa.Column('address_id', sa.String(40), primary_key=True, default=generate_address_id),
-  sa.Column('street_address', sa.String(255)),
-  sa.Column('postal_code', sa.String(100)),
-  sa.Column('ward_code', sa.String(20), nullable=False),
-  sa.Column('created_at', sa.DateTime, default=sa.func.now()),
-  sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
+    'location_address',
+    metadata,
+    sa.Column('address_id', sa.String(40), primary_key=True, default=generate_address_id),
+    sa.Column('street_address', sa.String(255)),
+    sa.Column('postal_code', sa.String(100)),
+    sa.Column('ward_code', sa.String(20), nullable=False),
+    sa.Column('created_at', sa.DateTime, default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
 
 
 def start_mappers():
-  orm.mapper(Address, location_address_table)
+    orm.mapper(Address, location_address_table)

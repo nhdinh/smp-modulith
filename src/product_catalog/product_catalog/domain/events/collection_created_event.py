@@ -8,5 +8,5 @@ from product_catalog.domain.value_objects import CatalogReference, CollectionRef
 
 @dataclass(frozen=True)
 class CollectionCreatedEvent(Event):
-  reference: CollectionReference
-  catalog_reference: CatalogReference
+    reference: CollectionReference
+    catalog_reference: CatalogReference

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 @dataclass(unsafe_hash=True)
 class DraftPurchaseOrderItem:
-  product: 'ShopProduct'
-  unit: 'ShopProductUnit'
-  quantity: float
-  description: str
+    product: 'ShopProduct'
+    unit: 'ShopProductUnit'
+    quantity: float
+    description: str

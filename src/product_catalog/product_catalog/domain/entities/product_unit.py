@@ -8,14 +8,14 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-  pass
+    pass
 
 DEFAULT_UNIT_CONVERSION_MULTIPLIER_FACTOR = -1
 
 
 @dataclass(unsafe_hash=True)
 class ProductUnit:
-  unit: str
-  base_unit: str
-  multiplier: decimal
-  default: bool
+    unit: str
+    base_unit: str
+    multiplier: decimal
+    default: bool

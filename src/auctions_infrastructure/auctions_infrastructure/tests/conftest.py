@@ -9,14 +9,14 @@ from foundation.events import EventBus
 
 @pytest.fixture()
 def ends_at() -> datetime:
-  return datetime.now(tz=pytz.UTC) + timedelta(days=3)
+    return datetime.now(tz=pytz.UTC) + timedelta(days=3)
 
 
 @pytest.fixture()
 def past_date() -> datetime:
-  return datetime.now(tz=pytz.UTC) - timedelta(days=15)
+    return datetime.now(tz=pytz.UTC) - timedelta(days=15)
 
 
 @pytest.fixture()
 def event_bus_mock() -> Mock:
-  return Mock(spec_set=EventBus)
+    return Mock(spec_set=EventBus)

@@ -5,14 +5,14 @@ from dataclasses import dataclass
 
 @dataclass(unsafe_hash=True)
 class ShopProductTag:
-  tag: str
+    tag: str
 
-  _product = None
+    _product = None
 
-  @property
-  def product(self):
-    return self._product
+    @property
+    def product(self):
+        return self._product
 
-  @product.setter
-  def product(self, value):
-    self._product = value
+    @product.setter
+    def product(self, value):
+        self._product = value

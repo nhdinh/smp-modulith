@@ -8,7 +8,7 @@ UserEmail = NewType('UserEmail', tp=str)
 
 
 class ExceptionMessages(Enum):
-  USER_NOT_FOUND = 'User not found'
-  USER_REGISTRATION_EXISTED = 'User with registration data is already registered'
-  PASSWORD_MISMATCH = 'PASSWORD_MISMATCH'
-  FAILED_LOGIN_EXCEED = 'Too much failed login'
+    USER_NOT_FOUND = 'User not found'
+    USER_REGISTRATION_EXISTED = 'User with registration data is already registered'
+    PASSWORD_MISMATCH = 'PASSWORD_MISMATCH'
+    FAILED_LOGIN_EXCEED = 'Too much failed login'

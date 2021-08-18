@@ -8,7 +8,7 @@ from identity.domain.value_objects import UserId
 
 @dataclass(frozen=True)
 class UserRegistrationConfirmedEvent(Event):
-  user_id: UserId
-  email: str
-  mobile: str
-  hashed_password: str
+    user_id: UserId
+    email: str
+    mobile: str
+    hashed_password: str
