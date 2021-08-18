@@ -25,15 +25,18 @@ from shop.application.usecases.product.add_shop_product_unit_uc import (
     AddingShopProductUnitResponseBoundary,
     AddShopProductUnitUC,
 )
+from shop.application.usecases.product.disable_shop_products_uc import DisablingShopProductsResponseBoundary, \
+    DisableShopProductsUC, DisablingShopProductsRequest
 from shop.application.usecases.product.update_shop_product_unit_uc import (
     UpdateShopProductUnitUC,
     UpdatingShopProductUnitRequest,
     UpdatingShopProductUnitResponseBoundary,
 )
+from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
 from web_app.presenters.shop_catalog_presenters import AddingShopProductPresenter
 from web_app.presenters.shop_product_presenters import AddingShopProductUnitPresenter, UpdatingShopProductUnitPresenter, \
-    AddingShopProductPurchasePricePresenter
+    AddingShopProductPurchasePricePresenter, DisablingShopProductsPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_PRODUCT_BLUEPRINT_NAME = 'shop_product_blueprint'
@@ -60,6 +63,11 @@ class ShopProductAPI(injector.Module):
     @flask_injector.request
     def add_shop_product_purchase_price_response_boundary(self) -> AddingShopProductPurchasePriceResponseBoundary:
         return AddingShopProductPurchasePricePresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def disable_shop_products_response_boundary(self) -> DisablingShopProductsResponseBoundary:
+        return DisablingShopProductsPresenter()
 
 
 @shop_product_blueprint.route('/add', methods=['POST'])
@@ -189,3 +197,15 @@ def get_shop_product_lowest_purchase_price(
     price = get_shop_product_lowest_purchase_price_query.query(dto)
 
     return make_response(jsonify(price)), 200  # type:ignore
+
+
+@shop_product_blueprint.route('/disable', methods=['POST', 'PATCH'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def disable_shop_products(disable_shop_products_uc: DisableShopProductsUC,
+                          presenter: DisablingShopProductsResponseBoundary) -> Response:
+    dto = get_dto(request, DisablingShopProductsRequest, context={'current_user_id': get_jwt_identity()})
+    disable_shop_products_uc.execute(dto)
+
+    return presenter.response, 201  # type:ignore

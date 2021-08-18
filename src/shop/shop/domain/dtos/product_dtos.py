@@ -24,6 +24,7 @@ class ShopProductCompactedDto:
     title: str
     sku: str
     image: str
+    status: str
 
     brand: StoreProductBrandCompactedDto
     catalog: ShopCatalogResponseCompactedDto
@@ -41,8 +42,8 @@ class ShopProductDto(ShopProductCompactedDto):
     restock_threshold: int
     max_stock_threshold: int
 
-    # created_at: datetime
-    # updated_at: datetime
+    created_at: datetime
+    updated_at: datetime
 
     brand: StoreProductBrandDto
     catalog: ShopCatalogResponseDto
@@ -82,6 +83,9 @@ def _row_to_product_dto(
             'title': row.title,
             'sku': row.sku,
             'image': row.image,
+            'status': row.status,
+            'created_at': row.created_at,
+            'updated_at': row.updated_at,
 
             'brand': row.brand_json,
             'catalog': row.catalog_json,
@@ -94,6 +98,9 @@ def _row_to_product_dto(
             'title': row.title,
             'sku': row.sku,
             'image': row.image,
+            'status': row.status,
+            'created_at': row.created_at,
+            'updated_at': row.updated_at,
 
             'brand': _row_to_brand_dto(row=row) if row.brand_id else None,
             'catalog': _row_to_catalog_dto(row=row, collections=[]) if row.catalog_id else None,

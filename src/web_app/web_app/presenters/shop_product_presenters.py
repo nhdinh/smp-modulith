@@ -9,6 +9,8 @@ from shop.application.usecases.product.add_shop_product_unit_uc import (
     AddingShopProductUnitResponse,
     AddingShopProductUnitResponseBoundary,
 )
+from shop.application.usecases.product.disable_shop_products_uc import DisablingShopProductsResponseBoundary, \
+    DisablingShopProductsResponse
 from shop.application.usecases.product.update_shop_product_unit_uc import (
     UpdatingShopProductUnitResponse,
     UpdatingShopProductUnitResponseBoundary,
@@ -33,4 +35,11 @@ class AddingShopProductPurchasePricePresenter(AddingShopProductPurchasePriceResp
     response: Response
 
     def present(self, response_dto: AddingShopProductPurchasePriceResponse):
+        self.response = make_response(jsonify(response_dto.__dict__))
+
+
+class DisablingShopProductsPresenter(DisablingShopProductsResponseBoundary):
+    response: Response
+
+    def present(self, response_dto: DisablingShopProductsResponse):
         self.response = make_response(jsonify(response_dto.__dict__))

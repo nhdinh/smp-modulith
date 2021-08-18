@@ -48,13 +48,15 @@ from shop.application.usecases.product.add_shop_product_unit_uc import (
     AddingShopProductUnitResponseBoundary,
     AddShopProductUnitUC,
 )
+from shop.application.usecases.product.disable_shop_products_uc import DisablingShopProductsResponseBoundary, \
+    DisableShopProductsUC
 from shop.application.usecases.product.remove_store_product_attribute_uc import (
     RemoveStoreProductAttributeUC,
     RemovingStoreProductAttributeResponseBoundary,
 )
 from shop.application.usecases.product.remove_store_product_uc import (
-    RemoveStoreProductUC,
-    RemovingStoreProductResponseBoundary,
+    RemoveShopProducstUC,
+    RemovingShopProductsResponseBoundary,
 )
 from shop.application.usecases.product.update_shop_product_unit_uc import (
     UpdateShopProductUnitUC,
@@ -80,13 +82,13 @@ from shop.application.usecases.shop_uc_common import GenericShopResponseBoundary
 
 class ShopApplicationModule(injector.Module):
     @injector.provider
-    def register_store_uc(self, boundary: RegisteringShopResponseBoundary, uow: ShopUnitOfWork,
-                          user_counter_services: ShopUserCounter) -> RegisterShopUC:
+    def register_shop_uc(self, boundary: RegisteringShopResponseBoundary, uow: ShopUnitOfWork,
+                         user_counter_services: ShopUserCounter) -> RegisterShopUC:
         return RegisterShopUC(boundary, uow, user_counter_services)
 
     @injector.provider
-    def confirm_store_registration_uc(self, boundary: ConfirmingShopRegistrationResponseBoundary,
-                                      uow: ShopUnitOfWork) -> ConfirmShopRegistrationUC:
+    def confirm_shop_registration_uc(self, boundary: ConfirmingShopRegistrationResponseBoundary,
+                                     uow: ShopUnitOfWork) -> ConfirmShopRegistrationUC:
         return ConfirmShopRegistrationUC(boundary, uow)
 
     @injector.provider
@@ -189,7 +191,7 @@ class ShopApplicationModule(injector.Module):
 
     # endregion
 
-    # region ## StoreProduct Operation ##
+    # region ## ShopProduct Operation ##
 
     @injector.provider
     def add_shop_product_uc(self, boundary: AddingShopProductResponseBoundary,
@@ -202,9 +204,9 @@ class ShopApplicationModule(injector.Module):
         return UpdateStoreProductUC(boundary, uow, fs)
 
     @injector.provider
-    def remove_shop_product_uc(self, boundary: RemovingStoreProductResponseBoundary,
-                               uow: ShopUnitOfWork, fs: FileSystem) -> RemoveStoreProductUC:
-        return RemoveStoreProductUC(boundary, uow, fs)
+    def remove_shop_product_uc(self, boundary: RemovingShopProductsResponseBoundary,
+                               uow: ShopUnitOfWork, fs: FileSystem) -> RemoveShopProducstUC:
+        return RemoveShopProducstUC(boundary, uow, fs)
 
     @injector.provider
     def remove_shop_product_attribute_uc(self, boundary: RemovingStoreProductAttributeResponseBoundary,
@@ -230,5 +232,10 @@ class ShopApplicationModule(injector.Module):
     def add_shop_product_purchase_price_uc(self, boundary: AddingShopProductPurchasePriceResponseBoundary,
                                            uow: ShopUnitOfWork, ) -> AddShopProductPurchasePriceUC:
         return AddShopProductPurchasePriceUC(boundary, uow)
+
+    @injector.provider
+    def disable_shop_products_uc(self, boundary: DisablingShopProductsResponseBoundary,
+                                 uow: ShopUnitOfWork) -> DisableShopProductsUC:
+        return DisableShopProductsUC(boundary, uow)
 
     # endregion

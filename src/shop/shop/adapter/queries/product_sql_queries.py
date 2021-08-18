@@ -110,8 +110,7 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
                     query = query.order_by(ordered_column)
 
             # add limit and pagination
-            query = query.limit(dto.page_size).offset(
-                (dto.current_page - 1) * dto.page_size)
+            query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
             products = self._conn.execute(query).all()
 
@@ -119,7 +118,7 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
                 input_dto=dto,
                 total_items=product_counts,
                 items=[
-                    _row_to_product_dto(row, compacted=True) for row in products
+                    _row_to_product_dto(row, compacted=False) for row in products
                 ]
             )
         except Exception as exc:

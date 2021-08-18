@@ -39,8 +39,8 @@ from shop.application.usecases.product.remove_store_product_attribute_uc import 
     RemovingStoreProductAttributeResponseBoundary,
 )
 from shop.application.usecases.product.remove_store_product_uc import (
-    RemovingStoreProductResponse,
-    RemovingStoreProductResponseBoundary,
+    RemovingShopProductsResponse,
+    RemovingShopProductsResponseBoundary,
 )
 from shop.application.usecases.product.update_store_product_uc import (
     UpdatingStoreProductResponse,
@@ -124,10 +124,10 @@ class UpdatingStoreProductPresenter(UpdatingStoreProductResponseBoundary):
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
-class RemovingStoreProductPresenter(RemovingStoreProductResponseBoundary):
+class RemovingStoreProductPresenter(RemovingShopProductsResponseBoundary):
     response: Response
 
-    def present(self, response_dto: RemovingStoreProductResponse) -> None:
+    def present(self, response_dto: RemovingShopProductsResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
 
 
