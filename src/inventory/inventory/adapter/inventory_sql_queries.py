@@ -1,19 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from typing import List
-
-from sqlalchemy import select
-from sqlalchemy.engine.row import RowProxy
-from sqlalchemy.orm import Query
-
-from db_infrastructure import SqlQuery
-from inventory.adapter.common_queries import sql_count_draft_purchase_orders_in_warehouse
-from inventory.adapter.inventory_db import draft_purchase_order_item_table
-from inventory.adapter.sql_query_common import sql_get_warehouse_id_by_owner
-from inventory.domain.entities.draft_purchase_order import DraftPurchaseOrder
-from inventory.domain.entities.value_objects import DraftPurchaseOrderId, WarehouseId
-from inventory.domain.entities.warehouse import Warehouse
-from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse, paginate_response_factory
 
 """
 

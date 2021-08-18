@@ -12,44 +12,44 @@ from shop.domain.entities.shop_catalog import ShopCatalog
 from shop.domain.entities.shop_collection import ShopCollection
 from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.value_objects import ExceptionMessages, ShopCatalogId, ShopCollectionId, ShopId, \
-    ShopProductId, ShopUserType
+  ShopProductId, ShopUserType
 
 
 @dataclass
 class GenericShopActionRequest:
-    current_user: str
+  current_user: str
 
 
 @dataclass
 class GenericShopActionResponse:
-    status: bool
+  status: bool
 
 
 class GenericShopResponseBoundary(abc.ABC):
-    @abc.abstractmethod
-    def present(self, dto: GenericShopActionResponse):
-        raise NotImplementedError
+  @abc.abstractmethod
+  def present(self, dto: GenericShopActionResponse):
+    raise NotImplementedError
 
 
 def validate_shop(shop: Shop, owner_email: str) -> bool:
-    """
-    Validate if the store owner has the specified email
+  """
+  Validate if the store owner has the specified email
 
-    :param shop: ID of the store to check
-    :param owner_email: email of the owner
-    :return:
-    """
-    return shop.owner.email == owner_email
+  :param shop: ID of the store to check
+  :param owner_email: email of the owner
+  :return:
+  """
+  return shop.owner.email == owner_email
 
 
 def is_store_disabled(store: Shop) -> bool:
-    """
-    Indicate if the store is disabled or not
+  """
+  Indicate if the store is disabled or not
 
-    :param store: the `Store` to check
-    :return: disabled or not
-    """
-    return getattr(store, 'disabled', False)
+  :param store: the `Store` to check
+  :return: disabled or not
+  """
+  return getattr(store, 'disabled', False)
 
 
 def get_shop_or_raise(shop_id: ShopId,
@@ -57,89 +57,89 @@ def get_shop_or_raise(shop_id: ShopId,
                       uow: ShopUnitOfWork,
                       check_admin_rights: bool = False,
                       active_only: bool = True) -> Shop:
-    """
-    Fetch store information from persisted data by its owner's email
+  """
+  Fetch store information from persisted data by its owner's email
 
-    :param shop_id:
-    :param user_id:
-    :param check_admin_rights:
-    :param uow: injected StoreUnitOfWork
-    :param active_only: Search for active store only (the inactive store means that the store was disabled by admins)
-    :return: instance of `Shop` or None
-    """
-    # validate input
+  :param shop_id:
+  :param user_id:
+  :param check_admin_rights:
+  :param uow: injected StoreUnitOfWork
+  :param active_only: Search for active store only (the inactive store means that the store was disabled by admins)
+  :return: instance of `Shop` or None
+  """
+  # validate input
+  try:
+    shop = uow.shops.get(shop_id_to_find=shop_id)
+    if not shop:
+      raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
+
     try:
-        shop = uow.shops.get(shop_id_to_find=shop_id)
-        if not shop:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
+      manager = next(m for m in shop.users if m.user_id == user_id)
 
-        try:
-            manager = next(m for m in shop.users if m.user_id == user_id)
+      if check_admin_rights and manager.shop_role != ShopUserType.ADMIN:
+        raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+    except StopIteration:
+      raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
 
-            if check_admin_rights and manager.shop_role != ShopUserType.ADMIN:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
-        except StopIteration:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+    if active_only and is_store_disabled(shop):
+      raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
 
-        if active_only and is_store_disabled(shop):
-            raise Exception(ExceptionMessages.SHOP_NOT_AVAILABLE)
-
-        return shop
-    except email_validator.EmailSyntaxError as exc:
-        # TODO: Log for the attack
-        raise exc
-    except Exception as exc:
-        raise exc
+    return shop
+  except email_validator.EmailSyntaxError as exc:
+    # TODO: Log for the attack
+    raise exc
+  except Exception as exc:
+    raise exc
 
 
 def get_catalog_from_shop_or_raise(catalog_id: ShopCatalogId, shop: Shop) -> ShopCatalog:
-    """
-    Fetch the catalog from specified shop, by it reference or catalog_id
+  """
+  Fetch the catalog from specified shop, by it reference or catalog_id
 
-    :param catalog_id: reference or catalog_id, the catalog which is want to fetch, in str
-    :param shop: instance of `Shop`
+  :param catalog_id: reference or catalog_id, the catalog which is want to fetch, in str
+  :param shop: instance of `Shop`
 
-    :return: instance of `ShopCatalog` or raise Exception if not existed
-    """
+  :return: instance of `ShopCatalog` or raise Exception if not existed
+  """
 
-    if not shop or getattr(shop, 'shop_id') is None:
-        raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
+  if not shop or getattr(shop, 'shop_id') is None:
+    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_NOT_FOUND)
 
-    # catalog = store.fetch_catalog_by_id_or_reference(search_term=catalog_id)
-    try:
-        catalog = next(c for c in shop.catalogs if c.catalog_id == catalog_id)
-        return catalog
-    except StopIteration:
-        raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
+  # catalog = store.fetch_catalog_by_id_or_reference(search_term=catalog_id)
+  try:
+    catalog = next(c for c in shop.catalogs if c.catalog_id == catalog_id)
+    return catalog
+  except StopIteration:
+    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
 
 
 def get_collection_from_catalog_or_raise(collection_id: ShopCollectionId, catalog: ShopCatalog) -> ShopCollection:
-    try:
-        # validate catalog
-        if not catalog or not isinstance(catalog, ShopCatalog) or getattr(catalog, 'catalog_id') is None:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
+  try:
+    # validate catalog
+    if not catalog or not isinstance(catalog, ShopCatalog) or getattr(catalog, 'catalog_id') is None:
+      raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_CATALOG_NOT_FOUND)
 
-        collection = catalog.get_collection_by_id(collection_id=collection_id)
+    collection = catalog.get_collection_by_id(collection_id=collection_id)
 
-        if not collection:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_COLLECTION_NOT_FOUND)
+    if not collection:
+      raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_COLLECTION_NOT_FOUND)
 
-        return collection
-    except Exception as exc:
-        raise exc
+    return collection
+  except Exception as exc:
+    raise exc
 
 
 def get_product_by_id_or_raise(product_id: ShopProductId, uow: ShopUnitOfWork) -> ShopProduct:
-    try:
-        # validate product_id
-        product = uow.shops.get_product_by_id(product_id=product_id)
+  try:
+    # validate product_id
+    product = uow.shops.get_product_by_id(product_id=product_id)
 
-        if not product:
-            raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
+    if not product:
+      raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
 
-        return product
-    except Exception as exc:
-        raise exc
+    return product
+  except Exception as exc:
+    raise exc
 
 
 """

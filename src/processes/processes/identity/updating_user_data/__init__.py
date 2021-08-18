@@ -6,5 +6,5 @@ from processes.identity.updating_user_data.saga import UpdatingUserData, Updated
 from processes.identity.updating_user_data.saga_handler import UpdatingUserDataHandler
 
 __all__ = [
-    'UpdatingUserData', 'UpdatingUserDataHandler', 'UpdatedUserData'
+  'UpdatingUserData', 'UpdatingUserDataHandler', 'UpdatedUserData'
 ]

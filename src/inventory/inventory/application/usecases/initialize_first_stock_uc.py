@@ -9,30 +9,30 @@ from inventory.domain.entities.product import InventoryProductId
 
 @dataclass
 class InitializingFirstStockRequest:
-    current_user: str
-    product_id: InventoryProductId
-    unit: str
-    stock_quantity: int
+  current_user: str
+  product_id: InventoryProductId
+  unit: str
+  stock_quantity: int
 
 
 @dataclass
 class InitializingFirstStockResponse:
-    in_stock_quantity: int
+  in_stock_quantity: int
 
 
 class InitializingFirstStockResponseBoundary(abc.ABC):
-    @abc.abstractmethod
-    def present(self, response_dto: InitializingFirstStockResponse) -> None:
-        raise NotImplementedError
+  @abc.abstractmethod
+  def present(self, response_dto: InitializingFirstStockResponse) -> None:
+    raise NotImplementedError
 
 
 class InitializeFirstStockUC:
-    def __init__(self, boundary: InitializingFirstStockResponseBoundary, uow: InventoryUnitOfWork):
-        self._ob = boundary
-        self._uow = uow
+  def __init__(self, boundary: InitializingFirstStockResponseBoundary, uow: InventoryUnitOfWork):
+    self._ob = boundary
+    self._uow = uow
 
-    def execute(self, dto: InitializingFirstStockRequest):
-        try:
-            ...
-        except Exception as exc:
-            raise exc
+  def execute(self, dto: InitializingFirstStockRequest):
+    try:
+      ...
+    except Exception as exc:
+      raise exc

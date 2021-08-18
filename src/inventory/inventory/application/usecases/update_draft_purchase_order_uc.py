@@ -12,31 +12,31 @@ from shop.domain.entities.value_objects import ShopAddressId
 
 @dataclass
 class UpdatingDraftPurchaseOrderRequest:
-    draft_purchase_order_id: DraftPurchaseOrderId
-    due_date: Optional[date]
-    note: Optional[str]
-    delivery_address: Optional[ShopAddressId]
+  draft_purchase_order_id: DraftPurchaseOrderId
+  due_date: Optional[date]
+  note: Optional[str]
+  delivery_address: Optional[ShopAddressId]
 
 
 @dataclass
 class UpdatingDraftPurchaseOrderResponse:
-    pass
+  pass
 
 
 class UpdatingDraftPurchaseOrderResponseBoundary(abc.ABC):
-    @abc.abstractmethod
-    def present(self, response_dto: UpdatingDraftPurchaseOrderResponse):
-        raise NotImplementedError
+  @abc.abstractmethod
+  def present(self, response_dto: UpdatingDraftPurchaseOrderResponse):
+    raise NotImplementedError
 
 
 class UpdateDraftPurchaseOrderUC:
-    def __init__(self, boundary: UpdatingDraftPurchaseOrderResponseBoundary, uow: InventoryUnitOfWork):
-        self._ob = boundary
-        self._uow = uow
+  def __init__(self, boundary: UpdatingDraftPurchaseOrderResponseBoundary, uow: InventoryUnitOfWork):
+    self._ob = boundary
+    self._uow = uow
 
-    def execute(self, dto: UpdatingDraftPurchaseOrderRequest):
-        with self._uow as uow:
-            try:
-                ...
-            except Exception as exc:
-                raise exc
+  def execute(self, dto: UpdatingDraftPurchaseOrderRequest):
+    with self._uow as uow:
+      try:
+        ...
+      except Exception as exc:
+        raise exc

@@ -5,14 +5,14 @@ from identity.domain.entities.revoked_token import RevokedToken
 
 
 class RevokingTokenUC:
-    def __init__(self,
-                 uow: IdentityUnitOfWork) -> None:
-        self._uow = uow
+  def __init__(self,
+               uow: IdentityUnitOfWork) -> None:
+    self._uow = uow
 
-    def execute(self, token: RevokedToken) -> None:
-        with self._uow as uow:  # type:IdentityUnitOfWork
-            try:
-                uow.identities.add_revoked_token(token)
-                uow.commit()
-            except Exception as exc:
-                raise exc
+  def execute(self, token: RevokedToken) -> None:
+    with self._uow as uow:  # type:IdentityUnitOfWork
+      try:
+        uow.identities.add_revoked_token(token)
+        uow.commit()
+      except Exception as exc:
+        raise exc

@@ -10,21 +10,21 @@ from web_app.serialization.dto import BaseAuthorizedShopUserRequest, SimpleListT
 
 @dataclass
 class ListShopAddressesRequest(BaseAuthorizedShopUserRequest):
-    ...
+  ...
 
 
 class ListShopAddressesQuery(abc.ABC):
-    @abc.abstractmethod
-    def query(self, dto: ListShopAddressesRequest) -> SimpleListTypedResponse[ShopAddressResponseDto]:
-        raise NotImplementedError
+  @abc.abstractmethod
+  def query(self, dto: ListShopAddressesRequest) -> SimpleListTypedResponse[ShopAddressResponseDto]:
+    raise NotImplementedError
 
 
 @dataclass
 class GetShopInfoRequest(BaseTimeLoggedRequest):
-    current_user_id: UserId
+  current_user_id: UserId
 
 
 class GetShopInfoQuery(abc.ABC):
-    @abc.abstractmethod
-    def query(self, dto: GetShopInfoRequest) -> SimpleListTypedResponse[ShopInfoResponseDto]:
-        raise NotImplementedError
+  @abc.abstractmethod
+  def query(self, dto: GetShopInfoRequest) -> SimpleListTypedResponse[ShopInfoResponseDto]:
+    raise NotImplementedError

@@ -12,19 +12,19 @@ from web_app.tests.catalog.models import TestSampleCatalogFactory
 
 @pytest.fixture()
 def example_catalog(container: injector.Injector) -> CatalogReference:
-    with container.get(RequestScope):
-        uc = container.get(MakeTestSampleCatalogUC)
-        dto = TestSampleCatalogFactory.build()
-        uc.execute(dto)
+  with container.get(RequestScope):
+    uc = container.get(MakeTestSampleCatalogUC)
+    dto = TestSampleCatalogFactory.build()
+    uc.execute(dto)
 
-    return str(dto.reference)
+  return str(dto.reference)
 
 
 @pytest.fixture()
 def default_catalog(container: injector.Injector) -> Catalog:
-    with container.get(RequestScope):
-        uc = container.get(MakeDefaultCatalogUC)
-        dto = DefaultCatalog()
-        uc.execute(dto)
+  with container.get(RequestScope):
+    uc = container.get(MakeDefaultCatalogUC)
+    dto = DefaultCatalog()
+    uc.execute(dto)
 
-    return dto
+  return dto

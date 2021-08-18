@@ -9,42 +9,42 @@ DraftPurchaseOrderId = NewType('DraftPurchaseOrderId', tp=str)
 PurchaseOrderReference = NewType('PurchaseOrderReference', tp=str)
 SystemUserId = NewType("SystemUserId", tp=str)
 
-class GenericWarehouseItemStatus(Enum):
-    PENDING_CREATION = 'PendingCreation'
-    NORMAL = 'NORMAL'
-    DISABLED = 'DISABLED'
-    DELETED = 'DELETED'
 
+class GenericWarehouseItemStatus(Enum):
+  PENDING_CREATION = 'PendingCreation'
+  NORMAL = 'NORMAL'
+  DISABLED = 'DISABLED'
+  DELETED = 'DELETED'
 
 
 class PurchaseOrderStatus(Enum):
-    DRAFT = 'DRAFT'
-    APPROVED = 'APPROVED'
-    DECLINED = 'DECLINED'
-    PROCESSING = 'PROCESSING'
-    COMPLETED = 'COMPLETED'
-    COMPLETED_PARTLY = 'COMPLETED_PARTLY'
-    FAILED = 'FAILED'
+  DRAFT = 'DRAFT'
+  APPROVED = 'APPROVED'
+  DECLINED = 'DECLINED'
+  PROCESSING = 'PROCESSING'
+  COMPLETED = 'COMPLETED'
+  COMPLETED_PARTLY = 'COMPLETED_PARTLY'
+  FAILED = 'FAILED'
 
 
 class WarehouseStatus(Enum):
-    PENDING_CREATION = 'PendingCreation'
-    NORMAL = 'Normal'
-    DISABLED = 'Disabled'
-    DELETED = 'Deleted'
+  PENDING_CREATION = 'PendingCreation'
+  NORMAL = 'Normal'
+  DISABLED = 'Disabled'
+  DELETED = 'Deleted'
 
 
 class WarehouseUserType(Enum):
-    MANAGER = 'Manager'
-    ADMIN = 'Admin'
+  MANAGER = 'Manager'
+  ADMIN = 'Admin'
 
 
 class SystemUserStatus(Enum):
-    NORMAL = 'NORMAL'
-    DISABLED = 'DISABLED'
-    DELETED = 'DELETED'
+  NORMAL = 'NORMAL'
+  DISABLED = 'DISABLED'
+  DELETED = 'DELETED'
 
 
 class AddressType(Enum):
-    SHOP_ADDRESS = 'SHOP_ADDRESS'
-    WAREHOUSE_ADDRESS = 'WAREHOUSE_ADDRESS'
+  SHOP_ADDRESS = 'SHOP_ADDRESS'
+  WAREHOUSE_ADDRESS = 'WAREHOUSE_ADDRESS'

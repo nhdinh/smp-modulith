@@ -6,11 +6,11 @@ from shop.domain.entities.value_objects import RegistrationStatus
 
 
 class StoreRegistrationMustHaveValidTokenRule(BusinessRuleBase):
-    def __init__(self, registration):
-        message = self.__class__.__name__
-        super(StoreRegistrationMustHaveValidTokenRule, self).__init__(message=message)
+  def __init__(self, registration):
+    message = self.__class__.__name__
+    super(StoreRegistrationMustHaveValidTokenRule, self).__init__(message=message)
 
-        self.reg = registration
+    self.reg = registration
 
-    def is_broken(self) -> bool:
-        return self.reg.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION
+  def is_broken(self) -> bool:
+    return self.reg.status != RegistrationStatus.REGISTRATION_WAITING_FOR_CONFIRMATION

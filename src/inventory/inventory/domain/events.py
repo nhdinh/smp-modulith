@@ -9,12 +9,12 @@ from inventory.domain.entities.value_objects import WarehouseId
 
 @dataclass(frozen=True)
 class WarehouseCreatedEvent(Event):
-    warehouse_id: WarehouseId
-    admin_id: str
-    warehouse_name: str
-    warehouse_created_at: datetime
+  warehouse_id: WarehouseId
+  admin_id: str
+  warehouse_name: str
+  warehouse_created_at: datetime
 
 
 @dataclass(frozen=True)
 class PendingWarehouseCreatedEvent(Event):
-    warehouse_id: WarehouseId
+  warehouse_id: WarehouseId

@@ -11,34 +11,34 @@ from shop.domain.entities.value_objects import ShopBrandId
 
 @dataclass
 class StoreProductBrandCompactedDto:
-    brand_id: ShopBrandId
-    brand_name: str
-    logo: str
+  brand_id: ShopBrandId
+  brand_name: str
+  logo: str
 
-    def serialize(self):
-        return self.__dict__
+  def serialize(self):
+    return self.__dict__
 
 
 @dataclass
 class StoreProductBrandDto(StoreProductBrandCompactedDto):
-    created_at: datetime
-    updated_at: datetime
+  created_at: datetime
+  updated_at: datetime
 
 
 def _row_to_brand_dto(
-        row: RowProxy, compacted: bool = True
+    row: RowProxy, compacted: bool = True
 ) -> Union[StoreProductBrandCompactedDto, StoreProductBrandDto]:
-    if compacted:
-        return StoreProductBrandCompactedDto(
-            brand_id=row.brand_id,
-            brand_name=row.brand_name,
-            logo=row.logo,
-        )
-    else:
-        return StoreProductBrandDto(
-            brand_id=row.brand_id,
-            brand_name=row.brand_name,
-            logo=row.logo,
-            created_at=row.created_at,
-            updated_at=row.updated_at,
-        )
+  if compacted:
+    return StoreProductBrandCompactedDto(
+      brand_id=row.brand_id,
+      brand_name=row.brand_name,
+      logo=row.logo,
+    )
+  else:
+    return StoreProductBrandDto(
+      brand_id=row.brand_id,
+      brand_name=row.brand_name,
+      logo=row.logo,
+      created_at=row.created_at,
+      updated_at=row.updated_at,
+    )

@@ -9,37 +9,37 @@ from sqlalchemy.engine.row import RowProxy
 
 @dataclass
 class ShopProductUnitCompactedDto:
-    unit_name: str
-    referenced_unit_name: str
-    conversion_factor: float
-    is_default: bool
+  unit_name: str
+  referenced_unit_name: str
+  conversion_factor: float
+  is_default: bool
 
-    def serialize(self):
-        return self.__dict__
+  def serialize(self):
+    return self.__dict__
 
 
 @dataclass
 class ShopProductUnitDto(ShopProductUnitCompactedDto):
-    is_disabled: bool
-    created_at: datetime
-    # updated_at: datetime
+  is_disabled: bool
+  created_at: datetime
+  # updated_at: datetime
 
 
 def _row_to_unit_dto(row: RowProxy, compacted: bool = True) -> Union[ShopProductUnitCompactedDto, ShopProductUnitDto]:
-    if compacted:
-        return ShopProductUnitCompactedDto(
-            unit_name=row.unit_name,
-            referenced_unit_name=row.referenced_unit_name,
-            conversion_factor=row.conversion_factor,
-            is_default=row.default
-        )
-    else:
-        return ShopProductUnitDto(
-            unit_name=row.unit_name,
-            is_default=row.default,
-            is_disabled=row.disabled,
-            referenced_unit_name=row.referenced_unit_name,
-            conversion_factor=row.conversion_factor,
-            created_at=row.created_at,
-            # updated_at=row.updated_at,
-        )
+  if compacted:
+    return ShopProductUnitCompactedDto(
+      unit_name=row.unit_name,
+      referenced_unit_name=row.referenced_unit_name,
+      conversion_factor=row.conversion_factor,
+      is_default=row.default
+    )
+  else:
+    return ShopProductUnitDto(
+      unit_name=row.unit_name,
+      is_default=row.default,
+      is_disabled=row.disabled,
+      referenced_unit_name=row.referenced_unit_name,
+      conversion_factor=row.conversion_factor,
+      created_at=row.created_at,
+      # updated_at=row.updated_at,
+    )

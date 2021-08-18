@@ -6,11 +6,11 @@ from identity.domain.value_objects import UserEmail
 
 
 class EmailMustNotBeEmptyRule(BusinessRuleBase):
-    def __init__(self, email: UserEmail):
-        message = 'Email must not be empty'
-        super(EmailMustNotBeEmptyRule, self).__init__(message=message)
+  def __init__(self, email: UserEmail):
+    message = 'Email must not be empty'
+    super(EmailMustNotBeEmptyRule, self).__init__(message=message)
 
-        self.eml = email
+    self.eml = email
 
-    def is_broken(self) -> bool:
-        return not self.eml
+  def is_broken(self) -> bool:
+    return not self.eml

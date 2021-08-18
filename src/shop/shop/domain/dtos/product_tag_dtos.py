@@ -6,14 +6,14 @@ from sqlalchemy.engine.row import RowProxy
 
 
 def _row_to_tag_dto(row: RowProxy):
-    return row.tag
+  return row.tag
 
 
 @dataclass
 class StoreProductTagDto:
-    tag: str
+  tag: str
 
-    def serialize(self):
-        return {
-            'tag': self.tag
-        }
+  def serialize(self):
+    return {
+      'tag': self.tag
+    }

@@ -4,8 +4,8 @@ from db_infrastructure import nanoid_generate
 
 
 def generate_user_id():
-    return nanoid_generate(prefix='User')
+  return nanoid_generate(prefix='User')
 
 
 def role_id_generator():
-    return nanoid_generate(prefix='Role')
+  return nanoid_generate(prefix='Role')

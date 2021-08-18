@@ -9,27 +9,27 @@ from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 
 @dataclass(unsafe_hash=True)
 class InitializingStoreWithPlanResponse:
-    store_id: UUID
-    plan_id: UUID
-    status: str
+  store_id: UUID
+  plan_id: UUID
+  status: str
 
 
 class InitializingStoreWithPlanResponseBoundary(abc.ABC):
-    @abc.abstractmethod
-    def present(self, dto: InitializingStoreWithPlanResponse):
-        raise NotImplementedError
+  @abc.abstractmethod
+  def present(self, dto: InitializingStoreWithPlanResponse):
+    raise NotImplementedError
 
 
 @dataclass
 class InitializingStoreWithPlanRequest:
-    current_user: str
-    plan_id: UUID
+  current_user: str
+  plan_id: UUID
 
 
 class InitializeStoreWithPlanUC:
-    def __init__(self, ob: InitializingStoreWithPlanResponseBoundary, uow: ShopUnitOfWork):
-        self._ob = ob
-        self._uow = uow
+  def __init__(self, ob: InitializingStoreWithPlanResponseBoundary, uow: ShopUnitOfWork):
+    self._ob = ob
+    self._uow = uow
 
-    def execute(self, dto: InitializingStoreWithPlanRequest):
-        raise NotImplementedError
+  def execute(self, dto: InitializingStoreWithPlanRequest):
+    raise NotImplementedError

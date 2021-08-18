@@ -8,67 +8,67 @@ from shop.domain.entities.value_objects import ShopId, ShopCatalogId
 
 @dataclass(frozen=True)
 class StoreCatalogCreatedEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    catalog_reference: str
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  catalog_reference: str
 
 
 @dataclass(frozen=True)
 class StoreCatalogUpdatedEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    catalog_reference: str
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  catalog_reference: str
 
 
 @dataclass(frozen=True)
 class StoreCatalogDeletedEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    owner_name: str
-    delete_completely: bool
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  owner_name: str
+  delete_completely: bool
 
 
 @dataclass(frozen=True)
 class StoreCatalogToggledEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    catalog_reference: str
-    disabled: bool
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  catalog_reference: str
+  disabled: bool
 
 
 class StoreCollectionId:
-    pass
+  pass
 
 
 @dataclass(frozen=True)
 class StoreCollectionCreatedEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    collection_id: StoreCollectionId
-    collection_reference: str
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  collection_id: StoreCollectionId
+  collection_reference: str
 
 
 @dataclass(frozen=True)
 class StoreCollectionToggledEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    collection_id: StoreCollectionId
-    collection_reference: str
-    disabled: bool
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  collection_id: StoreCollectionId
+  collection_reference: str
+  disabled: bool
 
 
 @dataclass(frozen=True)
 class StoreCollectionUpdatedEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    collection_id: StoreCollectionId
-    collection_reference: str
-    disabled: bool
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  collection_id: StoreCollectionId
+  collection_reference: str
+  disabled: bool
 
 
 @dataclass(frozen=True)
 class StoreCollectionDeletedEvent(Event):
-    store_id: ShopId
-    catalog_id: ShopCatalogId
-    collection_id: StoreCollectionId
-    collection_reference: str
+  store_id: ShopId
+  catalog_id: ShopCatalogId
+  collection_id: StoreCollectionId
+  collection_reference: str

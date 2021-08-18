@@ -11,59 +11,59 @@ from shop.domain.entities.value_objects import ShopCatalogId
 
 @dataclass
 class UpdatingStoreCatalogRequest:
-    current_user: str
-    catalog_id: ShopCatalogId
-    title: Optional[str]
-    disabled: Optional[bool]
-    image: Optional[str]
+  current_user: str
+  catalog_id: ShopCatalogId
+  title: Optional[str]
+  disabled: Optional[bool]
+  image: Optional[str]
 
 
 @dataclass
 class UpdatingShopCatalogResponse:
-    status: bool
+  status: bool
 
 
 class UpdatingShopCatalogResponseBoundary(abc.ABC):
-    @abc.abstractmethod
-    def present(self, response_dto: UpdatingShopCatalogResponse):
-        raise NotImplementedError
+  @abc.abstractmethod
+  def present(self, response_dto: UpdatingShopCatalogResponse):
+    raise NotImplementedError
 
 
 class UpdateStoreCatalogUC:
-    def __init__(self, ob: UpdatingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
-        self._ob = ob
-        self._uow = uow
+  def __init__(self, ob: UpdatingShopCatalogResponseBoundary, uow: ShopUnitOfWork):
+    self._ob = ob
+    self._uow = uow
 
-    def execute(self, dto: UpdatingStoreCatalogRequest):
-        with self._uow as uow:  # type:ShopUnitOfWork
-            try:
-                # get store
-                store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
+  def execute(self, dto: UpdatingStoreCatalogRequest):
+    with self._uow as uow:  # type:ShopUnitOfWork
+      try:
+        # get store
+        store = get_shop_or_raise(store_owner=dto.current_user, uow=uow)
 
-                # make update input data
-                update_data = {}
+        # make update input data
+        update_data = {}
 
-                # update display_name
-                if dto.title:
-                    update_data['title'] = dto.title
+        # update display_name
+        if dto.title:
+          update_data['title'] = dto.title
 
-                # toggle the catalog
-                if dto.disabled is not None:
-                    update_data['disabled'] = dto.disabled
+        # toggle the catalog
+        if dto.disabled is not None:
+          update_data['disabled'] = dto.disabled
 
-                # update display_image
-                if dto.image:
-                    update_data['image'] = dto.image
+        # update display_image
+        if dto.image:
+          update_data['image'] = dto.image
 
-                # do update
-                store.update_catalog(catalog_id=dto.catalog_id, **update_data)
+        # do update
+        store.update_catalog(catalog_id=dto.catalog_id, **update_data)
 
-                # build the output
-                response_dto = UpdatingShopCatalogResponse(status=True)
-                self._ob.present(response_dto=response_dto)
+        # build the output
+        response_dto = UpdatingShopCatalogResponse(status=True)
+        self._ob.present(response_dto=response_dto)
 
-                # commit
-                store.version += 1
-                uow.commit()
-            except Exception as exc:
-                raise exc
+        # commit
+        store.version += 1
+        uow.commit()
+      except Exception as exc:
+        raise exc

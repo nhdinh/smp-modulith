@@ -10,58 +10,58 @@ from product_catalog.domain.entities.catalog import Catalog
 
 
 class CreatingProductRequestFactory(factory.Factory):
-    class Meta:
-        model = CreatingProductRequest
+  class Meta:
+    model = CreatingProductRequest
 
-    display_name = factory.Faker('name')
-    reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
+  display_name = factory.Faker('name')
+  reference = factory.LazyAttribute(lambda t: slugify(t.display_name))
 
 
 def test_creating_product_failed_unauthorized(client: FlaskClient, example_catalog: CatalogReference):
-    product_dto = CreatingProductRequestFactory.build(catalog_reference=example_catalog)
-    response = client.post(f'/product', json=product_dto.__dict__)
+  product_dto = CreatingProductRequestFactory.build(catalog_reference=example_catalog)
+  response = client.post(f'/product', json=product_dto.__dict__)
 
-    assert response.status_code == 403  # unauthorized
+  assert response.status_code == 403  # unauthorized
 
 
 def test_creating_product_failed_with_empty_display_name(authorized_headers):
-    product_dto = CreatingProductRequestFactory.build()
-    json_data = product_dto.__dict__
-    json_data['display_name'] = ''
-    response = authorized_headers.post('/product', json=json_data)
+  product_dto = CreatingProductRequestFactory.build()
+  json_data = product_dto.__dict__
+  json_data['display_name'] = ''
+  response = authorized_headers.post('/product', json=json_data)
 
-    assert response.status_code == 400
-    assert 'Display name must not be empty' in response.json['message']
+  assert response.status_code == 400
+  assert 'Display name must not be empty' in response.json['message']
 
 
 def test_creating_product_success_with_only_display_name(authorized_headers):
-    product_dto = CreatingProductRequestFactory.build(reference='')
-    response = authorized_headers.post('/product', json=product_dto.__dict__)
+  product_dto = CreatingProductRequestFactory.build(reference='')
+  response = authorized_headers.post('/product', json=product_dto.__dict__)
 
-    assert response.status_code == 201
+  assert response.status_code == 201
 
-    assert 'product_id' in response.json
-    assert response.json['product_id'] is not None
+  assert 'product_id' in response.json
+  assert response.json['product_id'] is not None
 
-    assert 'reference' in response.json
-    assert response.json['reference'] is not None
-    assert response.json['reference'] == slugify(product_dto.display_name)
+  assert 'reference' in response.json
+  assert response.json['reference'] is not None
+  assert response.json['reference'] == slugify(product_dto.display_name)
 
 
 def test_creating_product_success_with_no_parent_will_set_default_collection(authorized_headers,
                                                                              default_catalog: Catalog):
-    product_dto = CreatingProductRequestFactory.build()
-    response = authorized_headers.post('/product', json=product_dto.__dict__)
+  product_dto = CreatingProductRequestFactory.build()
+  response = authorized_headers.post('/product', json=product_dto.__dict__)
 
-    assert response.status_code == 201
+  assert response.status_code == 201
 
-    assert 'product_id' in response.json
-    assert response.json['product_id'] is not None
+  assert 'product_id' in response.json
+  assert response.json['product_id'] is not None
 
-    assert response.json['reference'] == product_dto.reference
+  assert response.json['reference'] == product_dto.reference
 
-    # query catalog data
-    response = authorized_headers.get(f'/catalog/{default_catalog.reference}')
-    assert response.status_code == 200
-    assert type(response.json) == dict
-    assert response.json['reference'] == default_catalog.reference
+  # query catalog data
+  response = authorized_headers.get(f'/catalog/{default_catalog.reference}')
+  assert response.status_code == 200
+  assert type(response.json) == dict
+  assert response.json['reference'] == default_catalog.reference

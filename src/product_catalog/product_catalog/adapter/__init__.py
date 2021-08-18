@@ -4,5 +4,5 @@
 from product_catalog.adapter import catalog_db
 
 __all__ = [
-    catalog_db
+  catalog_db
 ]

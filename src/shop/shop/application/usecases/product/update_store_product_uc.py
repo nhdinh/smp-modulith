@@ -14,63 +14,62 @@ from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 
 @dataclass
 class UpdatingStoreProductRequest(BaseAuthorizedShopUserRequest):
-    current_user: str
-    product_id: ShopProductId
+  current_user: str
+  product_id: ShopProductId
 
-    title: Opt[str]
-    sku: Opt[str]
-    barcode: Opt[str]
-    image: Opt[str]
+  title: Opt[str]
+  sku: Opt[str]
+  barcode: Opt[str]
+  image: Opt[str]
 
-    brand: Opt[str]
-    collections: Opt[List[str]]
+  brand: Opt[str]
+  collections: Opt[List[str]]
 
 
 @dataclass
 class UpdatingStoreProductResponse:
-    status: bool
+  status: bool
 
 
 class UpdatingStoreProductResponseBoundary(abc.ABC):
-    @abc.abstractmethod
-    def present(self, response_dto: UpdatingStoreProductResponse):
-        raise NotImplementedError
+  @abc.abstractmethod
+  def present(self, response_dto: UpdatingStoreProductResponse):
+    raise NotImplementedError
 
 
 class UpdateStoreProductUC:
-    def __init__(self, boundary: UpdatingStoreProductResponseBoundary, uow: ShopUnitOfWork, fs: FileSystem):
-        self._ob = boundary
-        self._uow = uow
-        self._fs = fs
+  def __init__(self, boundary: UpdatingStoreProductResponseBoundary, uow: ShopUnitOfWork, fs: FileSystem):
+    self._ob = boundary
+    self._uow = uow
+    self._fs = fs
 
-    def execute(self, dto: UpdatingStoreProductRequest) -> None:
-        with self._uow as uow:  # type:ShopUnitOfWork
-            try:
-                store = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
-                product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
+  def execute(self, dto: UpdatingStoreProductRequest) -> None:
+    with self._uow as uow:  # type:ShopUnitOfWork
+      try:
+        store = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
+        product = get_product_by_id_or_raise(product_id=dto.product_id, uow=uow)
 
-                if not product.is_belong_to_shop(store):
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
+        if not product.is_belong_to_shop(store):
+          raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
 
-                update_data = {}
+        update_data = {}
 
-                if dto.title is not None:
-                    update_data['title'] = dto.title
+        if dto.title is not None:
+          update_data['title'] = dto.title
 
-                if dto.brand is not None:
-                    update_data['brand'] = dto.brand
+        if dto.brand is not None:
+          update_data['brand'] = dto.brand
 
-                if dto.collections is not None:
-                    update_data['collections'] = dto.collections
+        if dto.collections is not None:
+          update_data['collections'] = dto.collections
 
-                store.update_product(product=product, **update_data)
+        store.update_product(product=product, **update_data)
 
-                response_dto = UpdatingStoreProductResponse(status=True)
-                self._ob.present(response_dto=response_dto)
+        response_dto = UpdatingStoreProductResponse(status=True)
+        self._ob.present(response_dto=response_dto)
 
+        store.version += 1
 
-                store.version += 1
-
-                uow.commit()
-            except Exception as exc:
-                raise exc
+        uow.commit()
+      except Exception as exc:
+        raise exc

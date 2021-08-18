@@ -1,12 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import abc
-from dataclasses import dataclass
-from datetime import date
-from typing import List
-
-from inventory.domain.entities.value_objects import PurchaseOrderStatus
-from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse
 
 """
 @dataclass
