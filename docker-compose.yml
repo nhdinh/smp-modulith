@@ -101,7 +101,7 @@ services:
       - "9001"
     environment:
       MINIO_ROOT_USER: Q3AM3UQ867
-      MINIO_ROOT_PASSWORD: Vh5smyLeyCZd^$$4m9pmb7T16!DwyU18kvPJFiCSG
+      MINIO_ROOT_PASSWORD: 4m9pmb7T16!DwyU18kvPJFiCSG
     command: server /data --console-address ":9001"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
