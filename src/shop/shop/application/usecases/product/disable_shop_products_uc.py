@@ -53,7 +53,7 @@ class DisableShopProductsUC:
                         product.version += 1
                         processed[product_id] = product.status
                     else:
-                        processed[product_id] = None
+                        processed[product_id] = 'UNPROCESSED'
 
                 response_dto = DisablingShopProductsResponse(products=processed)
                 self._ob.present(response_dto=response_dto)
