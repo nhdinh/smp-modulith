@@ -246,3 +246,11 @@ def check_shop_permission_query(shop_id: ShopId, current_user_id: SystemUserId,
     #                 shop_users_table.c.status == GenericShopItemStatus.NORMAL))
     #
     # return query
+
+
+def list_shop_brands_query_factory(shop_id: ShopId):
+    query = select([shop_brand_table,
+                    shop_brand_table.c.name.label('brand_name')]
+                   ).where(shop_brand_table.c.shop_id == shop_id)
+
+    return query

@@ -8,34 +8,35 @@ from flask import Blueprint, Response, jsonify, make_response, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest, ListShopProductsQuery, \
-  ListShopProductsRequest, ListShopProductPurchasePricesQuery, ListShopProductPurchasePricesRequest, \
-  ListShopSuppliersByProductRequest, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
-  ListUnitsByShopProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
-  GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest
+    ListShopProductsRequest, ListShopProductPurchasePricesQuery, ListShopProductPurchasePricesRequest, \
+    ListShopSuppliersByProductRequest, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
+    ListUnitsByShopProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
+    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ListShopBrandsQuery, \
+    ListShopBrandsRequest
 from shop.application.usecases.product.add_shop_product_purchase_price_uc import \
-  AddingShopProductPurchasePriceResponseBoundary, AddingShopProductPurchasePriceRequest, AddShopProductPurchasePriceUC
+    AddingShopProductPurchasePriceResponseBoundary, AddingShopProductPurchasePriceRequest, AddShopProductPurchasePriceUC
 from shop.application.usecases.product.add_shop_product_uc import (
-  AddingShopProductRequest,
-  AddingShopProductResponseBoundary,
-  AddShopProductUC, AddingShopPendingProductRequest,
+    AddingShopProductRequest,
+    AddingShopProductResponseBoundary,
+    AddShopProductUC, AddingShopPendingProductRequest,
 )
 from shop.application.usecases.product.add_shop_product_unit_uc import (
-  AddingShopProductUnitRequest,
-  AddingShopProductUnitResponseBoundary,
-  AddShopProductUnitUC,
+    AddingShopProductUnitRequest,
+    AddingShopProductUnitResponseBoundary,
+    AddShopProductUnitUC,
 )
 from shop.application.usecases.product.set_shop_products_status_uc import SettingShopProductsStatusResponseBoundary, \
-  SetShopProductsStatusUC, SettingShopProductsStatusRequest
+    SetShopProductsStatusUC, SettingShopProductsStatusRequest
 from shop.application.usecases.product.update_shop_product_unit_uc import (
-  UpdateShopProductUnitUC,
-  UpdatingShopProductUnitRequest,
-  UpdatingShopProductUnitResponseBoundary,
+    UpdateShopProductUnitUC,
+    UpdatingShopProductUnitRequest,
+    UpdatingShopProductUnitResponseBoundary,
 )
 from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
 from web_app.presenters.shop_catalog_presenters import AddingShopProductPresenter
 from web_app.presenters.shop_product_presenters import AddingShopProductUnitPresenter, UpdatingShopProductUnitPresenter, \
-  AddingShopProductPurchasePricePresenter, SettingShopProductsStatusPresenter
+    AddingShopProductPurchasePricePresenter, SettingShopProductsStatusPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_PRODUCT_BLUEPRINT_NAME = 'shop_product_blueprint'
@@ -208,3 +209,14 @@ def set_shop_products_status(set_shop_products_status_uc: SetShopProductsStatusU
     set_shop_products_status_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
+
+
+@shop_product_blueprint.route('/list_brands', methods=['POST', 'GET'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def list_shop_brands(get_shop_product_brand_query: ListShopBrandsQuery) -> Response:
+    dto = get_dto(request, ListShopBrandsRequest, context={'current_user_id': get_jwt_identity()})
+    brands = get_shop_product_brand_query.query(dto)
+
+    return make_response(jsonify(brands)), 200  # type:ignore

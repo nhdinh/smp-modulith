@@ -24,7 +24,7 @@ class ListShopSuppliersRequest(BasePaginationRequest, BaseAuthorizedShopUserRequ
 class ListShopSuppliersQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: ListShopSuppliersRequest) -> PaginationTypedResponse[ShopSupplierDto]:
-        pass
+        raise NotImplementedError
 
 
 @dataclass
@@ -35,4 +35,4 @@ class ListShopProductsBySupplierRequest(BasePaginationRequest, BaseAuthorizedSho
 class ListShopProductsBySupplierQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: ListShopProductsBySupplierRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
-        pass
+        raise NotImplementedError

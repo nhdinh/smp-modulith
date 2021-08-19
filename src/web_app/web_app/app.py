@@ -195,4 +195,9 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     def health_check():
         return make_response({'status': True}), 200
 
+    @app.route('/calc', methods=['POST'])
+    def calc():
+        number = int(request.json['number']);
+        return make_response({'result': number + 1}), 201
+
     return app

@@ -10,7 +10,7 @@ from shop.domain.entities.value_objects import ShopBrandId
 
 
 @dataclass
-class StoreProductBrandCompactedDto:
+class ShopBrandCompactedDto:
     brand_id: ShopBrandId
     brand_name: str
     logo: str
@@ -20,16 +20,16 @@ class StoreProductBrandCompactedDto:
 
 
 @dataclass
-class StoreProductBrandDto(StoreProductBrandCompactedDto):
+class StoreProductBrandDto(ShopBrandCompactedDto):
     created_at: datetime
     updated_at: datetime
 
 
 def _row_to_brand_dto(
         row: RowProxy, compacted: bool = True
-) -> Union[StoreProductBrandCompactedDto, StoreProductBrandDto]:
+) -> Union[ShopBrandCompactedDto, StoreProductBrandDto]:
     if compacted:
-        return StoreProductBrandCompactedDto(
+        return ShopBrandCompactedDto(
             brand_id=row.brand_id,
             brand_name=row.brand_name,
             logo=row.logo,

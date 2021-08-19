@@ -10,14 +10,14 @@ from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, S
     SqlListAllShopCatalogsQuery
 from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery, SqlListShopProductsQuery, \
     SqlListShopProductPurchasePricesQuery, SqlListShopSuppliersByProductQuery, SqlListUnitsByShopProductQuery, \
-    SqlGetShopProductPurchasePriceQuery, SqlGetShopProductLowestPurchasePriceQuery
+    SqlGetShopProductPurchasePriceQuery, SqlGetShopProductLowestPurchasePriceQuery, SqlListShopBrandsQuery
 from shop.adapter.queries.shop_sql_queries import SqlListShopAddressesQuery, SqlGetShopInfoQuery
 from shop.adapter.queries.supplier_sql_queries import SqlListShopProductsBySupplierQuery, SqlListShopSuppliersQuery
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
     ListAllShopCatalogsQuery
 from shop.application.queries.product_queries import GetShopProductQuery, ListShopProductsQuery, \
     ListShopProductPurchasePricesQuery, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
-    GetShopProductPurchasePriceQuery, GetShopProductLowestPurchasePriceQuery
+    GetShopProductPurchasePriceQuery, GetShopProductLowestPurchasePriceQuery, ListShopBrandsQuery
 from shop.application.queries.shop_queries import ListShopAddressesQuery, GetShopInfoQuery
 from shop.application.queries.supplier_queries import ListShopProductsBySupplierQuery, ListShopSuppliersQuery
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
@@ -117,3 +117,7 @@ class ShopInfrastructureModule(injector.Module):
     @injector.provider
     def get_shop_product_lowest_purchase_price(self, conn: Connection) -> GetShopProductLowestPurchasePriceQuery:
         return SqlGetShopProductLowestPurchasePriceQuery(conn)
+
+    @injector.provider
+    def list_shop_brands(self, conn: Connection) -> ListShopBrandsQuery:
+        return SqlListShopBrandsQuery(conn)

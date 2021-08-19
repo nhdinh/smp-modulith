@@ -11,7 +11,7 @@ from foundation.value_objects import Money
 from foundation.value_objects.currency import _get_registered_currency_or_default
 from shop.domain.dtos.catalog_dtos import ShopCatalogResponseCompactedDto, ShopCatalogResponseDto, _row_to_catalog_dto
 from shop.domain.dtos.collection_dtos import ShopCollectionDto, _row_to_collection_dto
-from shop.domain.dtos.product_brand_dtos import StoreProductBrandCompactedDto, StoreProductBrandDto, _row_to_brand_dto
+from shop.domain.dtos.shop_brand_dtos import ShopBrandCompactedDto, StoreProductBrandDto, _row_to_brand_dto
 from shop.domain.dtos.product_tag_dtos import StoreProductTagDto, _row_to_tag_dto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
@@ -26,7 +26,7 @@ class ShopProductCompactedDto:
     image: str
     status: str
 
-    brand: StoreProductBrandCompactedDto
+    brand: ShopBrandCompactedDto
     catalog: ShopCatalogResponseCompactedDto
 
     collections: List[ShopCollectionDto]

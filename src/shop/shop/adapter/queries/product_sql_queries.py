@@ -10,19 +10,22 @@ from shop.adapter.queries.query_common import sql_get_authorized_shop_id
 from shop.adapter.queries.query_factories import get_shop_product_query_factory, \
     list_shop_collections_bound_to_product_query_factory, \
     list_shop_products_query_factory, count_products_query_factory, list_suppliers_bound_to_product_query, \
-    list_units_bound_to_product_query_factory, list_purchase_prices_bound_to_product_query_factory
+    list_units_bound_to_product_query_factory, list_purchase_prices_bound_to_product_query_factory, \
+    list_shop_brands_query_factory
 from shop.adapter.shop_db import shop_product_unit_table, shop_product_tag_table, shop_product_purchase_price_table, \
     shop_product_table, shop_catalog_table, shop_brand_table
 from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest, ListShopProductsQuery, \
     ListShopProductsRequest, ListShopProductPurchasePricesRequest, ListShopProductPurchasePricesQuery, \
     ListUnitsByShopProductQuery, ListUnitsByShopProductRequest, ListShopSuppliersByProductQuery, \
     ListShopSuppliersByProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
-    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ProductOrderBy
+    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ProductOrderBy, \
+    ListShopBrandsQuery, ListShopBrandsRequest
 from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductCompactedDto, ShopProductPriceDto, \
     _row_to_product_price_dto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
+from shop.domain.dtos.shop_brand_dtos import ShopBrandCompactedDto, _row_to_brand_dto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
-from shop.domain.entities.value_objects import ExceptionMessages
+from shop.domain.entities.value_objects import ExceptionMessages, GenericShopItemStatus
 from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory, SimpleListTypedResponse, \
     list_response_factory, empty_list_response
 
@@ -80,7 +83,6 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
 
             # get product counts
             counting_q = count_products_query_factory(shop_id=dto.shop_id)
-            product_counts = self._conn.scalar(counting_q)
 
             # disable use view cache when the result is ordered
             _use_view_cache = dto.use_view_cache
@@ -89,6 +91,16 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
 
             # prepare the query
             query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=_use_view_cache)
+
+            # hide DISABLED products
+            if not dto.display_disabled:
+                query = query.where(shop_product_table.c.status != GenericShopItemStatus.DISABLED)
+                counting_q = counting_q.where(shop_product_table.c.status != GenericShopItemStatus.DISABLED)
+
+            # hide DELETED products
+            if not dto.display_deleted:
+                query = query.where(shop_product_table.c.status != GenericShopItemStatus.DELETED)
+                counting_q = counting_q.where(shop_product_table.c.status != GenericShopItemStatus.DELETED)
 
             # prepare the column which the result will be ordered by
             ordered_column = None
@@ -112,15 +124,29 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
             # add limit and pagination
             query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
 
+            # execute the query
             products = self._conn.execute(query).all()
+            product_counts = self._conn.scalar(counting_q)
 
-            return paginate_response_factory(
+            # build response
+            response = paginate_response_factory(
                 input_dto=dto,
                 total_items=product_counts,
                 items=[
                     _row_to_product_dto(row, compacted=False) for row in products
-                ]
+                ],
             )
+
+            # return response
+
+            response = response.serialize()
+            response.update({
+                'use_view_cache': dto.use_view_cache,
+                'display_disabled': dto.display_disabled,
+                'display_deleted': dto.display_deleted
+            })
+
+            return response
         except Exception as exc:
             raise exc
 
@@ -224,5 +250,22 @@ class SqlGetShopProductLowestPurchasePriceQuery(GetShopProductLowestPurchasePric
             price = self._conn.execute(purchase_price_query).first()
 
             return _row_to_product_price_dto(price) if price else empty_list_response()
+        except Exception as exc:
+            raise exc
+
+
+class SqlListShopBrandsQuery(ListShopBrandsQuery, SqlQuery):
+    def query(self, dto: ListShopBrandsRequest) -> SimpleListTypedResponse[ShopBrandCompactedDto]:
+        try:
+            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id, current_user_id=dto.current_user_id,
+                                                       conn=self._conn)
+
+            if not valid_shop_id:
+                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+
+            list_brands_query = list_shop_brands_query_factory(shop_id=dto.shop_id)
+            brands = self._conn.execute(list_brands_query).all()
+
+            return list_response_factory([_row_to_brand_dto(brand) for brand in brands])  # type:ignore
         except Exception as exc:
             raise exc

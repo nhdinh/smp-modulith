@@ -1,6 +1,6 @@
 import math
 from dataclasses import field
-from typing import Generic, List, Optional, Type, TypeVar, Union, cast
+from typing import Generic, List, Optional, Type, TypeVar, Union, cast, Dict
 
 import marshmallow as ma
 from flask import Request
@@ -79,7 +79,7 @@ class SimpleListTypedResponse(Generic[T]):
 def paginate_response_factory(
         items: List[T],
         total_items: int,
-        input_dto: Union[BasePaginationRequest, BasePaginationAuthorizedRequest],
+        input_dto: Union[BasePaginationRequest, BasePaginationAuthorizedRequest]
 ) -> PaginationTypedResponse[T]:
     """
     Create a paginate response data object from input params
@@ -95,7 +95,7 @@ def paginate_response_factory(
         current_page=input_dto.current_page,
         total_items=total_items,
         total_pages=math.ceil(total_items / input_dto.page_size),
-        items=items
+        items=items,
     )
 
 

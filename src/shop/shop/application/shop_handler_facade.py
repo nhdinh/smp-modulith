@@ -21,7 +21,7 @@ from shop.adapter.shop_db import shop_product_view_cache_table, shop_users_table
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.domain.dtos.catalog_dtos import _row_to_catalog_dto
 from shop.domain.dtos.collection_dtos import _row_to_collection_dto
-from shop.domain.dtos.product_brand_dtos import _row_to_brand_dto
+from shop.domain.dtos.shop_brand_dtos import _row_to_brand_dto
 from shop.domain.dtos.product_unit_dtos import _row_to_unit_dto
 from shop.domain.dtos.supplier_dtos import _row_to_supplier_dto
 from shop.domain.entities.value_objects import ShopId, ShopStatus, GenericShopItemStatus, \

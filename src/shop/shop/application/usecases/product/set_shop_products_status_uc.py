@@ -60,15 +60,15 @@ class SetShopProductsStatusUC:
 
                     if product:
                         if dto.action == SettingShopProductActions.DISABLE:
-                            if product.status not in [GenericShopItemStatus.DISABLED, GenericShopItemStatus.DELETED]:
+                            if product.status is GenericShopItemStatus.NORMAL:
                                 product.status = GenericShopItemStatus.DISABLED
                                 product.version += 1
                                 processed[product_id] = product.status
                             else:
                                 processed[product_id] = 'UNPROCESSED'
                         elif dto.action == SettingShopProductActions.ENABLE:
-                            if product.status not in [GenericShopItemStatus.ENABLE, GenericShopItemStatus.DELETED]:
-                                product.status = GenericShopItemStatus.ENABLE
+                            if product.status is GenericShopItemStatus.DISABLED:
+                                product.status = GenericShopItemStatus.NORMAL
                                 product.version += 1
                                 processed[product_id] = product.status
                             else:

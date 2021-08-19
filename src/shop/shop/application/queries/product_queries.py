@@ -7,6 +7,7 @@ from typing import Optional
 
 from shop.domain.dtos.product_dtos import ShopProductDto, ShopProductCompactedDto, ShopProductPriceDto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto
+from shop.domain.dtos.shop_brand_dtos import ShopBrandCompactedDto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto
 from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
 from web_app.serialization.dto import BaseAuthorizedShopUserRequest, BasePaginationAuthorizedRequest, \
@@ -37,6 +38,8 @@ class ListShopProductsRequest(BasePaginationAuthorizedRequest):
     order_by: Optional[ProductOrderBy] = ProductOrderBy.CURRENT_STOCK
     order_direction_descending: bool = True  # DESC,
     use_view_cache: bool = True
+    display_disabled: bool = True
+    display_deleted: bool = False
 
 
 class ListShopProductsQuery(abc.ABC):
@@ -101,4 +104,15 @@ class GetShopProductLowestPurchasePriceRequest(BaseAuthorizedShopUserRequest):
 class GetShopProductLowestPurchasePriceQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: GetShopProductLowestPurchasePriceRequest) -> ShopProductPriceDto:
+        raise NotImplementedError
+
+
+@dataclass()
+class ListShopBrandsRequest(BaseAuthorizedShopUserRequest):
+    ...
+
+
+class ListShopBrandsQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: ListShopBrandsRequest) -> SimpleListTypedResponse[ShopBrandCompactedDto]:
         raise NotImplementedError
