@@ -138,6 +138,7 @@ shop_brand_table = sa.Table(
     sa.Column('shop_id', sa.ForeignKey(shop_table.c.shop_id, ondelete='CASCADE', onupdate='CASCADE')),
     sa.Column('name', sa.String(255), nullable=False),
     sa.Column('logo', sa.String(255), nullable=True, default=''),
+    sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
     sa.Column('created_at', sa.DateTime, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
