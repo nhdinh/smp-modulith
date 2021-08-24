@@ -18,6 +18,28 @@ from shop.domain.entities.value_objects import ShopId, ShopProductId, GenericSho
     ShopSupplierId, SystemUserId
 
 
+def check_shop_permission_query(shop_id: ShopId, current_user_id: SystemUserId,
+                                from_clause: FromClause = None,
+                                join_onclause_with_shop_table: Join = None):
+    raise NotImplementedError
+    # if as_join_clause and join_onclause_with_shop_table is None:
+    #     raise Exception('join_onclause_with_shop_table must be specified in order to return a join clause')
+
+    # if from_clause is not None and join_onclause_with_shop_table is None:
+    #     raise Exception('join_onclause_with_shop_table must be specified in order to return a join clause')
+    #
+    # if from_clause is None:
+    #     from_clause = select([shop_table.c.shop_id])
+    #
+    # query = from_clause.join(shop_users_table, shop_users_table.c.shop_id == shop_table.c.shop_id) \
+    #     .where(and_(shop_users_table.c.user_id == current_user_id,
+    #                 shop_users_table.c.shop_id == shop_id,
+    #                 shop_table.c.status == ShopStatus.NORMAL,
+    #                 shop_users_table.c.status == GenericShopItemStatus.NORMAL))
+    #
+    # return query
+
+
 def count_catalogs_query_factory(shop_id: ShopId, active_only: bool = False) -> Select:
     q = select(func.count(distinct(shop_catalog_table.c.catalog_id))).where(
         shop_catalog_table.c.shop_id == shop_id)
@@ -226,26 +248,10 @@ def list_purchase_prices_bound_to_product_query_factory(shop_id: ShopId, product
     return purchase_prices_query
 
 
-def check_shop_permission_query(shop_id: ShopId, current_user_id: SystemUserId,
-                                from_clause: FromClause = None,
-                                join_onclause_with_shop_table: Join = None):
-    raise NotImplementedError
-    # if as_join_clause and join_onclause_with_shop_table is None:
-    #     raise Exception('join_onclause_with_shop_table must be specified in order to return a join clause')
-
-    # if from_clause is not None and join_onclause_with_shop_table is None:
-    #     raise Exception('join_onclause_with_shop_table must be specified in order to return a join clause')
-    #
-    # if from_clause is None:
-    #     from_clause = select([shop_table.c.shop_id])
-    #
-    # query = from_clause.join(shop_users_table, shop_users_table.c.shop_id == shop_table.c.shop_id) \
-    #     .where(and_(shop_users_table.c.user_id == current_user_id,
-    #                 shop_users_table.c.shop_id == shop_id,
-    #                 shop_table.c.status == ShopStatus.NORMAL,
-    #                 shop_users_table.c.status == GenericShopItemStatus.NORMAL))
-    #
-    # return query
+def count_brands_query_factory(shop_id: ShopId) -> Select:
+    q = select([func.count(distinct(shop_brand_table.c.brand_id))]) \
+        .where(shop_brand_table.c.shop_id == shop_id)
+    return q
 
 
 def list_shop_brands_query_factory(shop_id: ShopId, active_only: bool = True):

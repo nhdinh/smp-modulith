@@ -76,6 +76,7 @@ class SetShopProductsStatusUC:
                         elif dto.action == SettingShopProductActions.DELETE:
                             if product.status != GenericShopItemStatus.DELETED:
                                 product.status = GenericShopItemStatus.DELETED
+                                product.sku = f'{product.sku}-DEL' if product.sku and not product.sku.endswith('-DEL') else product.sku
                                 product.version += 1
                                 processed[product_id] = product.status
                             else:

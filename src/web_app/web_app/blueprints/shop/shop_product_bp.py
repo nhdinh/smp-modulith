@@ -11,8 +11,8 @@ from shop.application.queries.product_queries import GetShopProductQuery, GetSho
     ListShopProductsRequest, ListShopProductPurchasePricesQuery, ListShopProductPurchasePricesRequest, \
     ListShopSuppliersByProductRequest, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
     ListUnitsByShopProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
-    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ListShopBrandsQuery, \
-    ListShopBrandsRequest
+    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest
+from shop.application.queries.brand_queries import ListShopBrandsRequest, ListShopBrandsQuery
 from shop.application.usecases.product.add_shop_product_purchase_price_uc import \
     AddingShopProductPurchasePriceResponseBoundary, AddingShopProductPurchasePriceRequest, AddShopProductPurchasePriceUC
 from shop.application.usecases.product.add_shop_product_uc import (
@@ -209,14 +209,3 @@ def set_shop_products_status(set_shop_products_status_uc: SetShopProductsStatusU
     set_shop_products_status_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
-
-
-@shop_product_blueprint.route('/list_brands', methods=['POST', 'GET'])
-@validate_request_timestamp
-@jwt_required()
-@log_error()
-def list_shop_brands(get_shop_product_brand_query: ListShopBrandsQuery) -> Response:
-    dto = get_dto(request, ListShopBrandsRequest, context={'current_user_id': get_jwt_identity()})
-    brands = get_shop_product_brand_query.query(dto)
-
-    return make_response(jsonify(brands)), 200  # type:ignore

@@ -20,10 +20,8 @@ from web_app.blueprints.catalog_bp import CatalogAPI, catalog_blueprint
 from web_app.blueprints.foundation_bp import foundation_blueprint, FoundationAPI
 from web_app.blueprints.identity.identity_bp import IdentityAPI, identity_blueprint
 from web_app.blueprints.product_bp import ProductAPI, product_blueprint
-from web_app.blueprints.shop.shop_bp import ShopAPI, shop_blueprint
-from web_app.blueprints.shop.shop_catalog_bp import ShopCatalogAPI, shop_catalog_blueprint
-from web_app.blueprints.shop.shop_product_bp import ShopProductAPI, shop_product_blueprint
-from web_app.blueprints.shop.shop_supplier_bp import ShopSupplierAPI, shop_supplier_blueprint
+from web_app.blueprints.shop import ShopAPI, shop_blueprint, ShopCatalogAPI, ShopProductAPI, ShopSupplierAPI, \
+    shop_catalog_blueprint, shop_supplier_blueprint, shop_product_blueprint, ShopBrandAPI, shop_brand_blueprint
 from web_app.json_encoder import JSONEncoder
 
 
@@ -71,6 +69,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.register_blueprint(shop_blueprint, url_prefix='/shop')
     app.register_blueprint(shop_catalog_blueprint, url_prefix='/shop/catalog')
     app.register_blueprint(shop_supplier_blueprint, url_prefix='/shop/supplier')
+    app.register_blueprint(shop_brand_blueprint, url_prefix='/shop/brand')
     app.register_blueprint(shop_product_blueprint, url_prefix='/shop/product')
     # app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
     # app.register_blueprint(inventory_blueprint, url_prefix='/inventory')
@@ -98,8 +97,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         ShopCatalogAPI(),
         ShopProductAPI(),
         ShopSupplierAPI(),
+        ShopBrandAPI(),
 
-        # StoreCatalogAPI(),
         # InventoryAPI(),
     ], injector=app_context.injector)
     app.injector = app_context.injector

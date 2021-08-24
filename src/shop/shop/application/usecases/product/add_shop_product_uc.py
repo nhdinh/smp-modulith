@@ -64,6 +64,7 @@ class AddingShopProductRequest(BaseAuthorizedShopUserRequest):
     # tags: Opt[List[str]] = fields.List(fields.Str(required=False), required=False)
 
     # brands (optional)
+    brand_id: Opt[str] = None
     brand: Opt[str] = None
 
     # seller (optional)
@@ -117,6 +118,7 @@ class AddShopProductUC:
         'tags',
 
         # brand
+        'brand_id',
         'brand',
 
         # seller

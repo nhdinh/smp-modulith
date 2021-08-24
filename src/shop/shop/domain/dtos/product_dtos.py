@@ -23,6 +23,7 @@ class ShopProductCompactedDto:
     product_id: ShopProductId
     title: str
     sku: str
+    description: str
     image: str
     status: str
 
@@ -82,6 +83,7 @@ def _row_to_product_dto(
             'product_id': row.product_id,
             'title': row.title,
             'sku': row.sku,
+            'description': row.description,
             'image': row.image,
             'status': row.status,
             'created_at': row.created_at,
@@ -97,6 +99,7 @@ def _row_to_product_dto(
             'product_id': row.product_id,
             'title': row.title,
             'sku': row.sku,
+            'description': row.description,
             'image': row.image,
             'status': row.status,
             'created_at': row.created_at,

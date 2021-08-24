@@ -246,9 +246,14 @@ class Shop(EventMixin):
 
         # process input data: StoreProductBrand
         brand = None
-        brand_str = kwargs.get('brand')
-        if brand_str:
-            brand = self._brand_factory(name=brand_str)
+        brand_id_str = kwargs.get('brand_id')
+        if brand_id_str:
+            try:
+                brand = next(b for b in self._brands if b.brand_id.strip() == brand_id_str.strip())
+            except StopIteration:
+                brand_str = kwargs.get('brand')
+                if brand_str:
+                    brand = self._brand_factory(name=brand_str)
 
         # process input data: StoreSupplier
         suppliers = []

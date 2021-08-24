@@ -1,7 +1,5 @@
 import os
 from dataclasses import dataclass
-# from auctions import Auctions
-# from auctions_infrastructure import AuctionsInfrastructure
 from typing import Dict
 
 import dotenv
@@ -16,22 +14,15 @@ from foundation.foundation_event_handler_module import FoundationEventHandlerMod
 from identity.identity_applications_module import IdentityApplicationModule
 from identity.identity_event_handler_module import IdentityEventHandlerModule
 from identity.identity_infrastructure_module import IdentityInfrastructureModule
-# from inventory.inventory_application_module import InventoryApplicationModule
-# from inventory.inventory_event_handler_module import InventoryEventHandlerModule
-# from inventory.inventory_infrastructure_module import InventoryInfrastructureModule
 from inventory.inventory_application_module import InventoryApplicationModule
 from inventory.inventory_event_handler_module import InventoryEventHandlerModule
 from inventory.inventory_infrastructure_module import InventoryInfrastructureModule
 from main.modules import Configs, Db, EventBusMod, FileSystemProvider, MinIOService, RedisMod, Rq
-# from payments import Payments
 from processes import Processes
 from product_catalog import ProductCatalogInfrastructureModule, ProductCatalogModule
 from shop.shop_application_module import ShopApplicationModule
 from shop.shop_event_handler_module import ShopEventHandlerModule
 from shop.shop_infrastructure_module import ShopInfrastructureModule
-
-# from shipping import Shipping
-# from shipping_infrastructure import ShippingInfrastructure
 
 
 __all__ = ["bootstrap_app"]
@@ -63,6 +54,7 @@ def bootstrap_app() -> AppContext:
         'minio.host': os.environ['MINIO_HOST'],
         'minio.access_key': os.environ['MINIO_ACCESS_KEY'],
         'minio.secret_key': os.environ['MINIO_SECRET_KEY'],
+        'sentry_enable': os.environ.get('SENTRY_ENABLE') or False,
         'sentry_dsn': os.environ['SENTRY_DSN'],
         'debug': os.environ['DEBUG'],
         'db_echo': os.environ.get('DB_ECHO') in ('True', 'true', '1'),
@@ -78,14 +70,15 @@ def bootstrap_app() -> AppContext:
     }
 
     # init sentry
-    sentry_sdk.init(
-        settings['sentry_dsn'],
+    if settings['sentry_enable']:
+        sentry_sdk.init(
+            settings['sentry_dsn'],
 
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for performance monitoring.
-        # We recommend adjusting this value in production.
-        traces_sample_rate=1.0,
-    )
+            # Set traces_sample_rate to 1.0 to capture 100%
+            # of transactions for performance monitoring.
+            # We recommend adjusting this value in production.
+            traces_sample_rate=1.0,
+        )
 
     engine = create_engine(os.environ["DB_DSN"], echo=settings['db_echo'])
     dependency_injector = _setup_dependency_injection(settings, engine)
