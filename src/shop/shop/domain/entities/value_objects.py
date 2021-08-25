@@ -114,3 +114,5 @@ class ExceptionMessages(Enum):
     UNSUPPORTED_OPERATION = 'Unsupported operation'
 
     UNSUPPORTED_FILE_TYPE = 'Unsupported file type'
+
+    SHOP_BRAND_NOT_EXIST = 'Brand not found'

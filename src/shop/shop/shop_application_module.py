@@ -8,6 +8,7 @@ from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.services.shop_user_counters import ShopUserCounter
 from shop.application.usecases.brand.set_shop_brands_status_uc import SettingShopBrandsStatusResponseBoundary, \
     SetShopBrandsStatusUC
+from shop.application.usecases.brand.update_shop_brand_uc import UpdatingShopBrandResponseBoundary, UpdateShopBrandUC
 from shop.application.usecases.catalog.add_shop_brand_uc import AddingShopBrandResponseBoundary, AddShopBrandUC
 from shop.application.usecases.catalog.add_shop_catalog_uc import AddingShopCatalogResponseBoundary, AddShopCatalogUC
 from shop.application.usecases.catalog.add_shop_collection_uc import AddShopCollectionUC, \
@@ -237,7 +238,7 @@ class ShopApplicationModule(injector.Module):
 
     @injector.provider
     def set_shop_products_status_uc(self, boundary: SettingShopProductsStatusResponseBoundary,
-                                 uow: ShopUnitOfWork) -> SetShopProductsStatusUC:
+                                    uow: ShopUnitOfWork) -> SetShopProductsStatusUC:
         return SetShopProductsStatusUC(boundary, uow)
 
     # endregion
@@ -246,7 +247,12 @@ class ShopApplicationModule(injector.Module):
 
     @injector.provider
     def set_shop_brands_status_uc(self, boundary: SettingShopBrandsStatusResponseBoundary,
-                                 uow: ShopUnitOfWork) -> SetShopBrandsStatusUC:
+                                  uow: ShopUnitOfWork) -> SetShopBrandsStatusUC:
         return SetShopBrandsStatusUC(boundary, uow)
+
+    @injector.provider
+    def update_shop_brand_uc(self, boundary: UpdatingShopBrandResponseBoundary,
+                             uow: ShopUnitOfWork) -> UpdateShopBrandUC:
+        return UpdateShopBrandUC(boundary, uow)
 
     # endregion

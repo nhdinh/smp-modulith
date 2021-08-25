@@ -8,9 +8,11 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from shop.application.queries.brand_queries import ListShopBrandsRequest, ListShopBrandsQuery
 from shop.application.usecases.brand.set_shop_brands_status_uc import SetShopBrandsStatusUC, \
     SettingShopBrandsStatusResponseBoundary, SettingShopBrandsStatusRequest
+from shop.application.usecases.brand.update_shop_brand_uc import UpdateShopBrandUC, UpdatingShopBrandResponseBoundary, \
+    UpdatingShopBrandRequest
 from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
-from web_app.presenters.shop_brand_presenters import SettingShopBrandsStatusPresenter
+from web_app.presenters.shop_brand_presenters import SettingShopBrandsStatusPresenter, UpdatingShopBrandPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_BRAND_BLUEPRINT_NAME = 'shop_brand_blueprint'
@@ -22,6 +24,11 @@ class ShopBrandAPI(injector.Module):
     @flask_injector.request
     def set_shop_brands_status_response_boundary(self) -> SettingShopBrandsStatusResponseBoundary:
         return SettingShopBrandsStatusPresenter()
+
+    @injector.provider
+    @flask_injector.request
+    def update_shop_brand_response_boundary(self) -> UpdatingShopBrandResponseBoundary:
+        return UpdatingShopBrandPresenter()
 
 
 @shop_brand_blueprint.route('/list', methods=['POST', 'GET'])
@@ -40,8 +47,20 @@ def list_shop_brands(list_shop_product_brands_query: ListShopBrandsQuery) -> Res
 @jwt_required()
 @log_error()
 def set_shop_brands_status(set_shop_brands_status_uc: SetShopBrandsStatusUC,
-                             presenter: SettingShopBrandsStatusResponseBoundary) -> Response:
+                           presenter: SettingShopBrandsStatusResponseBoundary) -> Response:
     dto = get_dto(request, SettingShopBrandsStatusRequest, context={'current_user_id': get_jwt_identity()})
     set_shop_brands_status_uc.execute(dto)
+
+    return presenter.response, 201  # type:ignore
+
+
+@shop_brand_blueprint.route('/update', methods=['POST', 'PATCH'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def update_shop_brand(update_shop_brand_uc: UpdateShopBrandUC,
+                      presenter: UpdatingShopBrandResponseBoundary) -> Response:
+    dto = get_dto(request, UpdatingShopBrandRequest, context={'current_user_id': get_jwt_identity()})
+    update_shop_brand_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
