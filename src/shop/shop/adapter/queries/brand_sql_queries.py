@@ -10,7 +10,7 @@ from shop.adapter.shop_db import shop_brand_table
 from shop.application.queries.brand_queries import ListShopBrandsRequest, ListShopBrandsQuery, BrandOrderBy
 from shop.domain.dtos.shop_brand_dtos import ShopBrandCompactedDto, _row_to_brand_dto
 from shop.domain.entities.value_objects import ExceptionMessages, GenericShopItemStatus
-from web_app.serialization.dto import SimpleListTypedResponse, list_response_factory, paginate_response_factory
+from web_app.serialization.dto import SimpleListTypedResponse, paginate_response_factory
 
 
 class SqlListShopBrandsQuery(ListShopBrandsQuery, SqlQuery):
@@ -30,13 +30,14 @@ class SqlListShopBrandsQuery(ListShopBrandsQuery, SqlQuery):
 
             # hide DISABLED brands
             if not dto.display_disabled:
-                list_brands_query = list_brands_query.where(shop_brand_table.c.status != GenericShopItemStatus.DISABLED)
-                counting_q = counting_q.where(shop_brand_table.c.status != GenericShopItemStatus.DISABLED)
+                list_brands_query = list_brands_query.filter(
+                    shop_brand_table.c.status != GenericShopItemStatus.DISABLED)
+                counting_q = counting_q.filter(shop_brand_table.c.status != GenericShopItemStatus.DISABLED)
 
             # hide DELETED brands
             if not dto.display_deleted:
-                list_brands_query = list_brands_query.where(shop_brand_table.c.status != GenericShopItemStatus.DELETED)
-                counting_q = counting_q.where(shop_brand_table.c.status != GenericShopItemStatus.DELETED)
+                list_brands_query = list_brands_query.filter(shop_brand_table.c.status != GenericShopItemStatus.DELETED)
+                counting_q = counting_q.filter(shop_brand_table.c.status != GenericShopItemStatus.DELETED)
 
             # prepare the ordered column
             ordered_column = None
@@ -52,6 +53,10 @@ class SqlListShopBrandsQuery(ListShopBrandsQuery, SqlQuery):
                     list_brands_query = list_brands_query.order_by(desc(ordered_column))
                 else:
                     list_brands_query = list_brands_query.order_by(ordered_column)
+
+            order_dir = ''
+            if hasattr(dto, 'order_direction_descending'):
+                order_dir = 'DESC' if dto.order_direction_descending else 'ASC'
 
             # add limit and pagination
             list_brands_query = list_brands_query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
@@ -73,8 +78,7 @@ class SqlListShopBrandsQuery(ListShopBrandsQuery, SqlQuery):
                 'display_disabled': dto.display_disabled,
                 'display_deleted': dto.display_deleted,
                 'order_by': dto.order_by if hasattr(dto, 'order_by') else None,
-                'order_direction': ('DESC' if dto.order_direction_descending else 'ASC') if hasattr(dto,
-                                                                                                    'order_direction_descending') else None,
+                'order_direction': order_dir
             })
 
             return response  # type:ignore

@@ -254,12 +254,9 @@ def count_brands_query_factory(shop_id: ShopId) -> Select:
     return q
 
 
-def list_shop_brands_query_factory(shop_id: ShopId, active_only: bool = True):
+def list_shop_brands_query_factory(shop_id: ShopId):
     query = select([shop_brand_table,
                     shop_brand_table.c.name.label('brand_name')]
                    ).where(shop_brand_table.c.shop_id == shop_id)
-
-    if active_only:
-        query = query.filter(shop_brand_table.c.status == GenericShopItemStatus.NORMAL)
 
     return query

@@ -6,75 +6,77 @@ from minio import Minio
 from foundation.fs import FileSystem
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.services.shop_user_counters import ShopUserCounter
+from shop.application.usecases.brand.set_shop_brands_status_uc import SettingShopBrandsStatusResponseBoundary, \
+    SetShopBrandsStatusUC
 from shop.application.usecases.catalog.add_shop_brand_uc import AddingShopBrandResponseBoundary, AddShopBrandUC
 from shop.application.usecases.catalog.add_shop_catalog_uc import AddingShopCatalogResponseBoundary, AddShopCatalogUC
 from shop.application.usecases.catalog.add_shop_collection_uc import AddShopCollectionUC, \
-  AddingShopCollectionResponseBoundary
+    AddingShopCollectionResponseBoundary
 from shop.application.usecases.catalog.add_shop_supplier_uc import AddShopSupplierUC, AddingShopSupplierResponseBoundary
 from shop.application.usecases.catalog.invalidate_shop_catalog_cache_uc import InvalidateShopCatalogCacheUC
 from shop.application.usecases.catalog.remove_shop_catalog_uc import (
-  RemoveShopCatalogUC,
-  RemovingShopCatalogResponseBoundary,
+    RemoveShopCatalogUC,
+    RemovingShopCatalogResponseBoundary,
 )
 from shop.application.usecases.catalog.systemize_store_catalog_uc import SystemizeShopCatalogUC
 from shop.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC
 from shop.application.usecases.catalog.update_shop_catalog_uc import (
-  UpdateStoreCatalogUC,
-  UpdatingShopCatalogResponseBoundary,
+    UpdateStoreCatalogUC,
+    UpdatingShopCatalogResponseBoundary,
 )
 from shop.application.usecases.collection.make_store_collection_default_uc import MakeStoreCollectionDefaultUC
 from shop.application.usecases.collection.toggle_store_collection_uc import ToggleStoreCollectionUC
 from shop.application.usecases.collection.update_store_collection_uc import (
-  UpdateStoreCollectionUC,
-  UpdatingStoreCollectionResponseBoundary,
+    UpdateStoreCollectionUC,
+    UpdatingStoreCollectionResponseBoundary,
 )
 from shop.application.usecases.create_store_warehouse_uc import (
-  CreateStoreWarehouseUC,
-  CreatingStoreWarehouseResponseBoundary,
+    CreateStoreWarehouseUC,
+    CreatingStoreWarehouseResponseBoundary,
 )
 from shop.application.usecases.initialize.confirm_shop_registration_uc import (
-  ConfirmingShopRegistrationResponseBoundary,
-  ConfirmShopRegistrationUC,
+    ConfirmingShopRegistrationResponseBoundary,
+    ConfirmShopRegistrationUC,
 )
 from shop.application.usecases.initialize.register_shop_uc import RegisteringShopResponseBoundary, RegisterShopUC
 from shop.application.usecases.product.add_shop_product_purchase_price_uc import \
-  AddingShopProductPurchasePriceResponseBoundary, AddShopProductPurchasePriceUC
+    AddingShopProductPurchasePriceResponseBoundary, AddShopProductPurchasePriceUC
 from shop.application.usecases.product.add_shop_product_to_supplier_uc import (
-  AddingShopProductToSupplierResponseBoundary,
-  AddShopProductToSupplierUC,
+    AddingShopProductToSupplierResponseBoundary,
+    AddShopProductToSupplierUC,
 )
 from shop.application.usecases.product.add_shop_product_uc import AddingShopProductResponseBoundary, AddShopProductUC
 from shop.application.usecases.product.add_shop_product_unit_uc import (
-  AddingShopProductUnitResponseBoundary,
-  AddShopProductUnitUC,
+    AddingShopProductUnitResponseBoundary,
+    AddShopProductUnitUC,
 )
 from shop.application.usecases.product.remove_store_product_attribute_uc import (
-  RemoveStoreProductAttributeUC,
-  RemovingStoreProductAttributeResponseBoundary,
+    RemoveStoreProductAttributeUC,
+    RemovingStoreProductAttributeResponseBoundary,
 )
 from shop.application.usecases.product.remove_store_product_uc import (
-  RemoveShopProducstUC,
-  RemovingShopProductsResponseBoundary,
+    RemoveShopProducstUC,
+    RemovingShopProductsResponseBoundary,
 )
 from shop.application.usecases.product.set_shop_products_status_uc import SettingShopProductsStatusResponseBoundary, \
-  SetShopProductsStatusUC
+    SetShopProductsStatusUC
 from shop.application.usecases.product.update_shop_product_unit_uc import (
-  UpdateShopProductUnitUC,
-  UpdatingShopProductUnitResponseBoundary,
+    UpdateShopProductUnitUC,
+    UpdatingShopProductUnitResponseBoundary,
 )
 from shop.application.usecases.product.update_store_product_uc import (
-  UpdateStoreProductUC,
-  UpdatingStoreProductResponseBoundary,
+    UpdateStoreProductUC,
+    UpdatingStoreProductResponseBoundary,
 )
 from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC
 from shop.application.usecases.shop.add_shop_user_uc import AddShopUserUC, AddingShopUserResponseBoundary
 from shop.application.usecases.shop.resend_store_registration_confirmation_uc import (
-  ResendingRegistrationConfirmationResponseBoundary,
-  ResendRegistrationConfirmationUC,
+    ResendingRegistrationConfirmationResponseBoundary,
+    ResendRegistrationConfirmationUC,
 )
 from shop.application.usecases.shop.update_store_settings_uc import (
-  UpdateStoreSettingsUC,
-  UpdatingStoreSettingsResponseBoundary,
+    UpdateStoreSettingsUC,
+    UpdatingStoreSettingsResponseBoundary,
 )
 from shop.application.usecases.shop.upload_image_uc import UploadImageUC, UploadingImageResponseBoundary
 from shop.application.usecases.shop_uc_common import GenericShopResponseBoundary
@@ -234,8 +236,17 @@ class ShopApplicationModule(injector.Module):
         return AddShopProductPurchasePriceUC(boundary, uow)
 
     @injector.provider
-    def disable_shop_products_uc(self, boundary: SettingShopProductsStatusResponseBoundary,
+    def set_shop_products_status_uc(self, boundary: SettingShopProductsStatusResponseBoundary,
                                  uow: ShopUnitOfWork) -> SetShopProductsStatusUC:
         return SetShopProductsStatusUC(boundary, uow)
+
+    # endregion
+
+    # region ## ShopBrand Operation ##
+
+    @injector.provider
+    def set_shop_brands_status_uc(self, boundary: SettingShopBrandsStatusResponseBoundary,
+                                 uow: ShopUnitOfWork) -> SetShopBrandsStatusUC:
+        return SetShopBrandsStatusUC(boundary, uow)
 
     # endregion

@@ -10,6 +10,7 @@ from minio import Minio
 from werkzeug.datastructures import FileStorage
 
 from foundation.fs import FileSystem
+from shop.adapter.id_generators import generate_image_id
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ExceptionMessages
@@ -57,9 +58,9 @@ class UploadImageUC:
 
                 # generate new file name
                 upload_for = dto.upload_for if dto.upload_for else 'unassigned'
-                identity = str(dto.identity) if dto.identity else str(uuid.uuid4())
+                identity = str(dto.identity) if dto.identity else generate_image_id()
                 file_ext = Path(uploaded_file.filename).suffix
-                new_file_name = f"{upload_for}_{identity}{file_ext}"
+                new_file_name = f"{identity}{file_ext}"
 
                 bucket_name = str(shop.shop_id.lower())
                 write_result = self._fs.upload_file(file_name=new_file_name, bucket=bucket_name, file=uploaded_file)
