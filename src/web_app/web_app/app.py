@@ -189,6 +189,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         return response
 
     # enable CORS
+    app.config['CORS_SUPPORTS_CREDENTIALS'] = True
     CORS(app)
 
     @app.route('/health', methods=['GET', 'POST'])

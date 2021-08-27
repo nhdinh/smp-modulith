@@ -3,7 +3,7 @@
 import dataclasses
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Union, Type, TypeVar
+from typing import List, Union, Type, TypeVar, Callable
 
 from sqlalchemy.engine.row import RowProxy
 
@@ -61,3 +61,6 @@ def _build_response_dto(klass: Type, row: RowProxy):
     # construct a response object
     response = klass(**data_dict)
     return response
+
+def _row_proxy_to_dto(data_rows: List[RowProxy], output_dto: Type, handler: Callable):
+    ...
