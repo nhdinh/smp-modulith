@@ -50,8 +50,9 @@ def count_catalogs_query_factory(shop_id: ShopId, active_only: bool = False) -> 
     return q
 
 
-def get_shop_catalog_query_factory(shop_id: ShopId) -> Select:
+def list_shop_catalogs_query_factory(shop_id: ShopId) -> Select:
     return select([
+        shop_catalog_table,
         shop_catalog_table.c.catalog_id,
         shop_catalog_table.c.title.label('catalog_title'),
         shop_catalog_table.c.default.label('is_default_catalog'),

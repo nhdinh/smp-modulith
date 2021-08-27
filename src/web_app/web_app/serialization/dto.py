@@ -1,6 +1,6 @@
 import math
 from dataclasses import field
-from typing import Generic, List, Optional, Type, TypeVar, Union, cast, Dict
+from typing import Generic, List, Optional, Type, TypeVar, Union, cast, Dict, Any
 
 import marshmallow as ma
 from flask import Request
@@ -46,12 +46,23 @@ class BasePaginationAuthorizedRequest(BasePaginationRequest, BaseAuthorizedShopU
 
 
 @dataclass(frozen=True)
+class SimpleListTypedResponse(Generic[T]):
+    items: List[T] = field(metadata={"marshmallow_field": ma.fields.Raw()}, default_factory=list)
+
+    def serialize(self):
+        return {
+            'items': self.items
+        }
+
+
+@dataclass(frozen=True)
 class PaginationTypedResponse(Generic[T]):
     current_page: int
     page_size: int
     total_items: int
     total_pages: int
     # items: List[T] = field(default_factory=list)
+    extra_data: Dict[str, Any] = field(default_factory=dict)
 
     # thanks for the fix at https://github.com/lovasoa/marshmallow_dataclass/issues/141
     items: List[T] = field(metadata={"marshmallow_field": ma.fields.Raw()}, default_factory=list)
@@ -62,17 +73,8 @@ class PaginationTypedResponse(Generic[T]):
             'page_size': self.page_size,
             'total_pages': self.total_pages,
             'total_items': self.total_items,
-            'items': self.items
-        }
-
-
-@dataclass(frozen=True)
-class SimpleListTypedResponse(Generic[T]):
-    items: List[T] = field(metadata={"marshmallow_field": ma.fields.Raw()}, default_factory=list)
-
-    def serialize(self):
-        return {
-            'items': self.items
+            'items': self.items,
+            'extra_data': self.extra_data
         }
 
 
@@ -96,6 +98,7 @@ def paginate_response_factory(
         total_items=total_items,
         total_pages=math.ceil(total_items / input_dto.page_size),
         items=items,
+        extra_data=clean_secrets(input_dto)  # type: ignore
     )
 
 
@@ -151,3 +154,18 @@ def get_dto(request: Request, dto_cls: Type[TDto], context: dict) -> TDto:
         return dto
     except ma.exceptions.ValidationError as exc:
         raise exc
+
+
+def clean_secrets(input_dto: Dict):
+    if type(input_dto) is not Dict:
+        dto = input_dto.__dict__
+    else:
+        dto = input_dto
+
+    output_data = {}
+    secrets_in = ['user_id', 'shop_id', 'current_user_id']
+    for k, v in dto.items():
+        if k not in secrets_in:
+            output_data[k] = v
+
+    return output_data

@@ -115,4 +115,4 @@ class ExceptionMessages(Enum):
 
     UNSUPPORTED_FILE_TYPE = 'Unsupported file type'
 
-    SHOP_BRAND_NOT_EXIST = 'Brand not found'
+    SHOP_BRAND_NOT_FOUND = 'Brand not found'

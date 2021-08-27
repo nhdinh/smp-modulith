@@ -15,8 +15,8 @@ from web_app.serialization.dto import BaseAuthorizedShopUserRequest
 @dataclass
 class UpdatingShopBrandResponse:
     brand_id: str
-    brand_name: str
-    brand_logo: str
+    brand_name: Optional[str]
+    brand_logo: Optional[str]
 
 
 class UpdatingShopBrandResponseBoundary(abc.ABC):
@@ -45,7 +45,7 @@ class UpdateShopBrandUC:
                 found_brands = [b for b in brands]
 
                 if not found_brands or len(found_brands) == 0 or len(found_brands) > 1:
-                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_BRAND_NOT_EXIST)
+                    raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_BRAND_NOT_FOUND)
 
                 brand = found_brands[0]
                 brand.name = dto.brand_name

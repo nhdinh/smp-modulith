@@ -20,10 +20,12 @@ from shop.application.usecases.catalog.remove_shop_catalog_uc import (
     RemovingShopCatalogRequest,
     RemovingShopCatalogResponseBoundary,
 )
+from shop.application.usecases.catalog.update_shop_catalog_uc import UpdatingShopCatalogResponseBoundary, \
+    UpdateShopCatalogUC, UpdatingShopCatalogRequest
 from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
 from web_app.presenters.shop_catalog_presenters import AddingShopCatalogPresenter, RemovingShopCatalogPresenter, \
-    AddingShopCollectionPresenter
+    AddingShopCollectionPresenter, UpdatingShopCatalogPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_CATALOG_BLUEPRINT_NAME = 'shop_catalog_blueprint'
@@ -51,6 +53,11 @@ class ShopCatalogAPI(injector.Module):
     def add_shop_collection_response_boundary(self) -> AddingShopCollectionResponseBoundary:
         return AddingShopCollectionPresenter()
 
+    @injector.provider
+    @flask_injector.request
+    def update_shop_catalog_boundary(self) -> UpdatingShopCatalogResponseBoundary:
+        return UpdatingShopCatalogPresenter()
+
 
 @shop_catalog_blueprint.route('/list', methods=['GET', 'POST'])
 @validate_request_timestamp
@@ -70,7 +77,7 @@ def list_all_shop_catalogs(list_all_shop_catalog_query: ListAllShopCatalogsQuery
     dto = get_dto(request, ListShopCatalogsRequest, context={'current_user_id': get_jwt_identity()})
     response = list_all_shop_catalog_query.query(dto)
 
-    return make_response(jsonify(response)), 200  # type:SIGNAL
+    return make_response(jsonify(response)), 200  # type:ignore
 
 
 @shop_catalog_blueprint.route('/list_products', methods=['GET', 'POST'])
@@ -113,5 +120,17 @@ def add_shop_collection(add_shop_collection_uc: AddShopCollectionUC,
                         presenter: AddingShopCollectionResponseBoundary) -> Response:
     dto = get_dto(request, AddingShopCollectionRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_collection_uc.execute(dto)
+
+    return presenter.response, 201  # type:ignore
+
+
+@shop_catalog_blueprint.route('/update', methods=['POST', 'PATCH'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def update_shop_catalog(update_shop_catalog_uc: UpdateShopCatalogUC,
+                        presenter: UpdatingShopCatalogResponseBoundary) -> Response:
+    dto = get_dto(request, UpdatingShopCatalogRequest, context={'current_user_id': get_jwt_identity()})
+    update_shop_catalog_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore

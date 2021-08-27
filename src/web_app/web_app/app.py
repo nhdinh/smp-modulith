@@ -31,7 +31,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
     # init sentry
     SENTRY_DSN = os.environ.get('SENTRY_DSN', None)
-    if SENTRY_DSN:
+    SENTRY_ENABLE = os.environ.get('SENTRY_ENABLE', False)
+    if SENTRY_ENABLE and SENTRY_DSN:
         sentry_sdk.init(
             dsn=SENTRY_DSN,
             integrations=[FlaskIntegration()],

@@ -22,8 +22,7 @@ from shop.application.usecases.catalog.remove_shop_catalog_uc import (
 from shop.application.usecases.catalog.systemize_store_catalog_uc import SystemizeShopCatalogUC
 from shop.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC
 from shop.application.usecases.catalog.update_shop_catalog_uc import (
-    UpdateStoreCatalogUC,
-    UpdatingShopCatalogResponseBoundary,
+    UpdatingShopCatalogResponseBoundary, UpdateShopCatalogUC,
 )
 from shop.application.usecases.collection.make_store_collection_default_uc import MakeStoreCollectionDefaultUC
 from shop.application.usecases.collection.toggle_store_collection_uc import ToggleStoreCollectionUC
@@ -148,8 +147,8 @@ class ShopApplicationModule(injector.Module):
 
     @injector.provider
     def update_shop_catalog_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
-                               uow: ShopUnitOfWork) -> UpdateStoreCatalogUC:
-        return UpdateStoreCatalogUC(boundary, uow)
+                               uow: ShopUnitOfWork) -> UpdateShopCatalogUC:
+        return UpdateShopCatalogUC(boundary, uow)
 
     @injector.provider
     def make_shop_catalog_system_uc(self, boundary: UpdatingShopCatalogResponseBoundary,

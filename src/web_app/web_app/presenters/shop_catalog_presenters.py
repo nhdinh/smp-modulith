@@ -74,7 +74,7 @@ class AddingShopCatalogPresenter(AddingShopCatalogResponseBoundary):
         self.response = make_response(jsonify(dto.__dict__))
 
 
-class UpdatingStoreCatalogPresenter(UpdatingShopCatalogResponseBoundary):
+class UpdatingShopCatalogPresenter(UpdatingShopCatalogResponseBoundary):
     response: Response
 
     def present(self, response_dto: UpdatingShopCatalogResponse) -> None:

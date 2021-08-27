@@ -9,11 +9,11 @@ from sqlalchemy.engine.row import RowProxy
 
 from foundation.value_objects import Money
 from foundation.value_objects.currency import _get_registered_currency_or_default
-from shop.domain.dtos.catalog_dtos import ShopCatalogResponseCompactedDto, ShopCatalogResponseDto, _row_to_catalog_dto
+from shop.domain.dtos.catalog_dtos import ShopCatalogResponseDto, _row_to_catalog_dto
 from shop.domain.dtos.collection_dtos import ShopCollectionDto, _row_to_collection_dto
-from shop.domain.dtos.shop_brand_dtos import ShopBrandCompactedDto, StoreProductBrandDto, _row_to_brand_dto
 from shop.domain.dtos.product_tag_dtos import StoreProductTagDto, _row_to_tag_dto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
+from shop.domain.dtos.shop_brand_dtos import ShopBrandCompactedDto, StoreProductBrandDto, _row_to_brand_dto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
 from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
 
@@ -28,7 +28,7 @@ class ShopProductCompactedDto:
     status: str
 
     brand: ShopBrandCompactedDto
-    catalog: ShopCatalogResponseCompactedDto
+    catalog: ShopCatalogResponseDto
 
     collections: List[ShopCollectionDto]
     suppliers: List[ShopSupplierDto]
@@ -106,7 +106,7 @@ def _row_to_product_dto(
             'updated_at': row.updated_at,
 
             'brand': _row_to_brand_dto(row=row) if row.brand_id else None,
-            'catalog': _row_to_catalog_dto(row=row, collections=[]) if row.catalog_id else None,
+            'catalog': _row_to_catalog_dto(row=row) if row.catalog_id else None,
             'suppliers': [_row_to_supplier_dto(row=supplier_row, contact_rows=[]) for supplier_row in
                           supplier_rows] if supplier_rows else [],
             'collections': [_row_to_collection_dto(collection_row) for collection_row in
@@ -117,8 +117,8 @@ def _row_to_product_dto(
         return ShopProductCompactedDto(**product_data)
     else:
         full_product_data = {
-            'brand': _row_to_brand_dto(row=row, compacted=False) if row.brand_id else None,
-            'catalog': _row_to_catalog_dto(row=row, collections=[], compacted=False),
+            'brand': _row_to_brand_dto(row=row) if row.brand_id else None,
+            'catalog': _row_to_catalog_dto(row=row),
             # 'barcode': row.barcode,
             'restock_threshold': row.restock_threshold,
             'max_stock_threshold': row.max_stock_threshold,
