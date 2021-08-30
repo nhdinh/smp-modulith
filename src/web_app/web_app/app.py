@@ -149,7 +149,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     RequestID(app)
 
     # enable CORS
-    app.config['CORS_HEADERS'] = 'Content-Type'
+    # app.config['CORS_HEADERS'] = 'Content-Type'
     app.config['CORS_ORIGINS'] = os.environ.get('CORS_ORIGINS').split(" ")
     CORS(app, resources=r'/*')
 
@@ -196,10 +196,5 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     @app.route('/health', methods=['GET', 'POST'])
     def health_check():
         return make_response({'status': True}), 200
-
-    @app.route('/calc', methods=['POST'])
-    def calc():
-        number = int(request.json['number']);
-        return make_response({'result': number + 1}), 201
 
     return app

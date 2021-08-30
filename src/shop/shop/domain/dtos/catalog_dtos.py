@@ -20,6 +20,8 @@ class ShopCatalogShortDto:
 @dataclass
 class ShopCatalogDto(ShopCatalogShortDto):
     is_default_catalog: bool
+    product_count: int
+    collection_count: int
     created_at: datetime
     updated_at: datetime
     status: str

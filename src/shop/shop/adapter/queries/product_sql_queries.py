@@ -24,7 +24,7 @@ from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
 from shop.domain.entities.value_objects import ExceptionMessages, GenericShopItemStatus
 from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory, SimpleListTypedResponse, \
-    list_response_factory, empty_list_response, row_proxy_to_dto
+    list_response_factory, empty_list_response
 
 
 class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
@@ -61,8 +61,10 @@ class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
                 list_tags_query = select(shop_product_tag_table) \
                     .where(shop_product_tag_table.c.product_id == dto.product_id)
                 tags = self._conn.execute(list_tags_query).all()
-                return _row_to_product_dto(product, unit_rows=units, tag_rows=tags, collection_rows=collections,
-                                           supplier_rows=suppliers, compacted=False)
+                response = _row_to_product_dto(product, unit_rows=units, tag_rows=tags, collection_rows=collections,
+                                           supplier_rows=suppliers)
+
+                return response
             else:
                 raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_PRODUCT_NOT_FOUND)
         except Exception as exc:
