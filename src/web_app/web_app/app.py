@@ -30,11 +30,11 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         settings_override = {}
 
     # init sentry
-    SENTRY_DSN = os.environ.get('SENTRY_DSN', None)
-    SENTRY_ENABLE = os.environ.get('SENTRY_ENABLE', False)
-    if SENTRY_ENABLE and SENTRY_DSN:
+    sentry_dsn = os.environ.get('SENTRY_DSN', None)
+    sentry_enable = os.environ.get('SENTRY_ENABLE', False)
+    if sentry_enable and sentry_dsn is not None:
         sentry_sdk.init(
-            dsn=SENTRY_DSN,
+            dsn=sentry_dsn,
             integrations=[FlaskIntegration()],
 
             # Set traces_sample_rate to 1.0 to capture 100%
@@ -123,11 +123,11 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
 
         return response
 
-    @app.after_request
-    def add_cors_headers(response: Response) -> Response:
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-        return response
+    # @app.after_request
+    # def add_cors_headers(response: Response) -> Response:
+    #     response.headers["Access-Control-Allow-Origin"] = "*"
+    #     response.headers["Access-Control-Allow-Headers"] = "*"
+    #     return response
 
     # has to be done after DB-hooks, because it relies on DB
     # security_setup(app)
@@ -147,6 +147,11 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.config['LOG_REQUEST_ID_LOG_ALL_REQUESTS'] = True
     app.config['LOG_REQUEST_ID_G_OBJECT_ATTRIBUTE'] = 'current_request_id'
     RequestID(app)
+
+    # enable CORS
+    app.config['CORS_HEADERS'] = 'Content-Type'
+    app.config['CORS_ORIGINS'] = os.environ.get('CORS_ORIGINS').split(" ")
+    CORS(app, resources=r'/*')
 
     @app.after_request
     def refresh_expiring_jwts(response):
@@ -187,10 +192,6 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
             response.json.update({'request_id': request_id})
 
         return response
-
-    # enable CORS
-    app.config['CORS_SUPPORTS_CREDENTIALS'] = True
-    CORS(app)
 
     @app.route('/health', methods=['GET', 'POST'])
     def health_check():

@@ -4,11 +4,9 @@ import abc
 import itertools
 from dataclasses import dataclass
 from enum import Enum
-
 from typing import Dict, Optional, List
 
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.application.usecases.product.set_shop_products_status_uc import SettingShopProductActions
 from shop.application.usecases.shop_uc_common import get_shop_or_raise
 from shop.domain.entities.value_objects import ShopBrandId, GenericShopItemStatus
 from web_app.serialization.dto import BaseAuthorizedShopUserRequest
@@ -44,9 +42,9 @@ class SetShopBrandsStatusUC:
         self._uow = uow
 
     def execute(self, dto: SettingShopBrandsStatusRequest):
-        with self._uow as uow:
+        with self._uow as uow:  # type:ShopUnitOfWork
             try:
-                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow);
+                shop = get_shop_or_raise(shop_id=dto.shop_id, user_id=dto.current_user_id, uow=uow)
 
                 processed = {brand_id: 'INVALID_ID' for brand_id in dto.brands}
                 brands = itertools.filterfalse(lambda b: b.brand_id not in dto.brands, shop.brands)
@@ -81,7 +79,6 @@ class SetShopBrandsStatusUC:
                             processed[brand.brand_id] = brand.status
                         else:
                             processed[brand.brand_id] = 'UNPROCESSED'
-
 
                 response = SettingShopBrandsStatusResponse(brands=processed)
                 self._ob.present(response_dto=response)

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from shop.domain.dtos.product_dtos import ShopProductDto, ShopProductCompactedDto, ShopProductPriceDto
+from shop.domain.dtos.product_dtos import ShopProductDto, ShopProductPriceDto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto
 from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
@@ -24,17 +24,17 @@ class GetShopProductQuery(abc.ABC):
         raise NotImplementedError
 
 
-class ProductOrderBy(Enum):
+class ProductOrderOptions(Enum):
     TITLE = "TITLE"
-    CATALOG_TITLE = "CATALOG_TITLE",
-    BRAND_NAME = "BRAND_NAME",
-    CREATED_DATE = "CREATED_DATE",
+    CATALOG_TITLE = "CATALOG_TITLE"
+    BRAND_NAME = "BRAND_NAME"
+    CREATED_DATE = "CREATED_DATE"
     CURRENT_STOCK = "STOCKING_QUANTITY"
 
 
 @dataclass
 class ListShopProductsRequest(BasePaginationAuthorizedRequest):
-    order_by: Optional[ProductOrderBy] = ProductOrderBy.CREATED_DATE
+    order_by: Optional[ProductOrderOptions] = ProductOrderOptions.CREATED_DATE
     order_direction_descending: bool = True  # DESC,
     use_view_cache: bool = True
     display_disabled: bool = True
@@ -43,7 +43,7 @@ class ListShopProductsRequest(BasePaginationAuthorizedRequest):
 
 class ListShopProductsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: ListShopProductsRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
+    def query(self, dto: ListShopProductsRequest) -> PaginationTypedResponse[ShopProductDto]:
         raise NotImplementedError
 
 

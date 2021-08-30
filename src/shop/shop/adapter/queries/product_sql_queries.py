@@ -17,14 +17,14 @@ from shop.application.queries.product_queries import GetShopProductQuery, GetSho
     ListShopProductsRequest, ListShopProductPurchasePricesRequest, ListShopProductPurchasePricesQuery, \
     ListUnitsByShopProductQuery, ListUnitsByShopProductRequest, ListShopSuppliersByProductQuery, \
     ListShopSuppliersByProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
-    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ProductOrderBy
-from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductCompactedDto, ShopProductPriceDto, \
-    _row_to_product_price_dto
+    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ProductOrderOptions
+from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductPriceDto, \
+    _row_to_product_price_dto, ShopProductDto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
 from shop.domain.entities.value_objects import ExceptionMessages, GenericShopItemStatus
 from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory, SimpleListTypedResponse, \
-    list_response_factory, empty_list_response
+    list_response_factory, empty_list_response, row_proxy_to_dto
 
 
 class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
@@ -70,7 +70,15 @@ class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
 
 
 class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
-    def query(self, dto: ListShopProductsRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
+    order_columns = {
+        ProductOrderOptions.TITLE: shop_product_table.c.title,
+        ProductOrderOptions.CREATED_DATE: shop_product_table.c.created_at,
+        ProductOrderOptions.CATALOG_TITLE: shop_catalog_table.c.title,
+        ProductOrderOptions.BRAND_NAME: shop_brand_table.c.name,
+        ProductOrderOptions.CURRENT_STOCK: shop_product_table.c.current_stock,
+    }
+
+    def query(self, dto: ListShopProductsRequest) -> PaginationTypedResponse[ShopProductDto]:
         try:
             valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id,
                                                        current_user_id=dto.current_user_id,
@@ -99,24 +107,12 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
                 query = query.where(shop_product_table.c.status != GenericShopItemStatus.DELETED)
                 counting_q = counting_q.where(shop_product_table.c.status != GenericShopItemStatus.DELETED)
 
-            # prepare the column which the result will be ordered by
-            ordered_column = None
-            if dto.order_by == ProductOrderBy.TITLE:
-                ordered_column = shop_product_table.c.title
-            elif dto.order_by == ProductOrderBy.CREATED_DATE:
-                ordered_column = shop_product_table.c.created_at
-            elif dto.order_by == ProductOrderBy.CATALOG_TITLE:
-                ordered_column = shop_catalog_table.c.title
-            elif dto.order_by == ProductOrderBy.BRAND_NAME:
-                ordered_column = shop_brand_table.c.name
-            elif dto.order_by == ProductOrderBy.CURRENT_STOCK:
-                ordered_column = shop_product_table.c.current_stock
-
-            if ordered_column is not None:
+            # ordering the data result
+            if dto.order_by in self.order_columns:
                 if dto.order_direction_descending:
-                    query = query.order_by(desc(ordered_column))
+                    query = query.order_by(desc(self.order_columns[dto.order_by]))
                 else:
-                    query = query.order_by(ordered_column)
+                    query = query.order_by(self.order_columns[dto.order_by])
 
             # add limit and pagination
             query = query.limit(dto.page_size).offset((dto.current_page - 1) * dto.page_size)
@@ -129,18 +125,9 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
             response = paginate_response_factory(
                 input_dto=dto,
                 total_items=product_counts,
-                items=[
-                    _row_to_product_dto(row, compacted=False) for row in products
-                ],
+                # items=row_proxy_to_dto(products, ShopProductDto),
+                items=[_row_to_product_dto(p) for p in products]
             )
-
-            # TODO: Fix CodeSmell
-            response = response.serialize()
-            response.update({
-                'use_view_cache': dto.use_view_cache,
-                'display_disabled': dto.display_disabled,
-                'display_deleted': dto.display_deleted
-            })
 
             return response
         except Exception as exc:
@@ -248,5 +235,3 @@ class SqlGetShopProductLowestPurchasePriceQuery(GetShopProductLowestPurchasePric
             return _row_to_product_price_dto(price) if price else empty_list_response()
         except Exception as exc:
             raise exc
-
-

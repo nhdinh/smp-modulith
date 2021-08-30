@@ -17,6 +17,7 @@ class SettingShopProductActions(Enum):
     ENABLE = 'ENABLE'
     DISABLE = 'DISABLE'
     DELETE = 'DELETE'
+    UNDELETE = 'UNDELETE'
 
 
 @dataclass
@@ -76,7 +77,16 @@ class SetShopProductsStatusUC:
                         elif dto.action == SettingShopProductActions.DELETE:
                             if product.status != GenericShopItemStatus.DELETED:
                                 product.status = GenericShopItemStatus.DELETED
-                                product.sku = f'{product.sku}-DEL' if product.sku and not product.sku.endswith('-DEL') else product.sku
+                                product.sku = f'{product.sku}-DEL' if product.sku and not product.sku.endswith(
+                                    '-DEL') else product.sku
+                                product.version += 1
+                                processed[product_id] = product.status
+                            else:
+                                processed[product_id] = 'UNPROCESSED'
+                        elif dto.action == SettingShopProductActions.UNDELETE:
+                            if product.status == GenericShopItemStatus.DELETED:
+                                product.status = GenericShopItemStatus.NORMAL
+                                product.sku = f'{product.sku}'.replace('-DEL', '')
                                 product.version += 1
                                 processed[product_id] = product.status
                             else:

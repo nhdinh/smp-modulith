@@ -3,13 +3,10 @@
 import abc
 from dataclasses import dataclass
 from enum import Enum
-
 from typing import Optional
 
-from sqlalchemy import true
-
-from shop.domain.dtos.catalog_dtos import ShopCatalogResponseDto
-from shop.domain.dtos.product_dtos import ShopProductCompactedDto
+from shop.domain.dtos.catalog_dtos import ShopCatalogDto
+from shop.domain.dtos.product_dtos import ShopProductDto
 from shop.domain.entities.value_objects import ShopCatalogId
 from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse, \
     BaseAuthorizedShopUserRequest, SimpleListTypedResponse
@@ -32,19 +29,19 @@ class ListShopCatalogsRequest(BasePaginationAuthorizedRequest):
 
 
 @dataclass
-class ListAllShopCatalogRequest(BaseAuthorizedShopUserRequest):
+class ListActiveShopCatalogsRequest(BaseAuthorizedShopUserRequest):
     ...
 
 
 class ListShopCatalogsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: ListShopCatalogsRequest) -> PaginationTypedResponse[ShopCatalogResponseDto]:
+    def query(self, dto: ListShopCatalogsRequest) -> PaginationTypedResponse[ShopCatalogDto]:
         raise NotImplementedError
 
 
-class ListAllShopCatalogsQuery(abc.ABC):
+class ListActiveShopCatalogsQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: ListAllShopCatalogRequest) -> SimpleListTypedResponse[ShopCatalogResponseDto]:
+    def query(self, dto: ListActiveShopCatalogsRequest) -> SimpleListTypedResponse[ShopCatalogDto]:
         raise NotImplementedError
 
 
@@ -56,5 +53,5 @@ class ListShopProductsByCatalogRequest(BasePaginationAuthorizedRequest):
 
 class ListShopProductsByCatalogQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: ListShopProductsByCatalogRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
+    def query(self, dto: ListShopProductsByCatalogRequest) -> PaginationTypedResponse[ShopProductDto]:
         raise NotImplementedError

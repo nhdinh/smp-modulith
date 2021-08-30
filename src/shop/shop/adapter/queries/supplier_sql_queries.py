@@ -20,11 +20,11 @@ from shop.application.queries.supplier_queries import (
     ListShopProductsBySupplierRequest,
     ListShopSuppliersQuery,
 )
-from shop.domain.dtos.product_dtos import ShopProductCompactedDto, _row_to_product_dto
+from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductDto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto, _row_to_supplier_contact_dto
 from shop.domain.entities.value_objects import ExceptionMessages
 from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse, \
-    paginate_response_factory, empty_list_response, SimpleListTypedResponse
+    paginate_response_factory, empty_list_response, SimpleListTypedResponse, row_proxy_to_dto
 
 
 class SqlListShopSuppliersQuery(ListShopSuppliersQuery, SqlQuery):
@@ -77,7 +77,7 @@ class SqlListShopSuppliersQuery(ListShopSuppliersQuery, SqlQuery):
 class SqlListShopProductsBySupplierQuery(ListShopProductsBySupplierQuery, SqlQuery):
     def query(
             self, dto: ListShopProductsBySupplierRequest
-    ) -> Union[PaginationTypedResponse[ShopProductCompactedDto], SimpleListTypedResponse]:
+    ) -> Union[PaginationTypedResponse[ShopProductDto], SimpleListTypedResponse]:
         try:
             valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id, current_user_id=dto.current_user_id,
                                                        conn=self._conn)
@@ -100,6 +100,6 @@ class SqlListShopProductsBySupplierQuery(ListShopProductsBySupplierQuery, SqlQue
             products = self._conn.execute(query).all()
 
             return paginate_response_factory(input_dto=dto, total_items=products_count,
-                                             items=[_row_to_product_dto(row, compacted=True) for row in products])
+                                             items=row_proxy_to_dto(products, ShopProductDto))
         except Exception as exc:
             raise exc

@@ -19,6 +19,8 @@ from shop.application.usecases.catalog.remove_shop_catalog_uc import (
     RemoveShopCatalogUC,
     RemovingShopCatalogResponseBoundary,
 )
+from shop.application.usecases.catalog.set_shop_catalogs_status_uc import SettingShopCatalogsStatusResponseBoundary, \
+    SetShopCatalogsStatusUC
 from shop.application.usecases.catalog.systemize_store_catalog_uc import SystemizeShopCatalogUC
 from shop.application.usecases.catalog.toggle_store_catalog_uc import ToggleStoreCatalogUC
 from shop.application.usecases.catalog.update_shop_catalog_uc import (
@@ -154,6 +156,11 @@ class ShopApplicationModule(injector.Module):
     def make_shop_catalog_system_uc(self, boundary: UpdatingShopCatalogResponseBoundary,
                                     uow: ShopUnitOfWork) -> SystemizeShopCatalogUC:
         return SystemizeShopCatalogUC(boundary, uow)
+
+    @injector.provider
+    def set_shop_catalogs_status_uc(self, boundary: SettingShopCatalogsStatusResponseBoundary,
+                                    uow: ShopUnitOfWork) -> SetShopCatalogsStatusUC:
+        return SetShopCatalogsStatusUC(boundary, uow)
 
     # endregion
 

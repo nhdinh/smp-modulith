@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from marshmallow import fields
 
 from shop.adapter.id_generators import SHOP_SUPPLIER_ID_PREFIX
-from shop.domain.dtos.product_dtos import ShopProductCompactedDto
+from shop.domain.dtos.product_dtos import ShopProductDto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto
 from shop.domain.entities.value_objects import ShopSupplierId
 from web_app.serialization.dto import (
@@ -34,5 +34,5 @@ class ListShopProductsBySupplierRequest(BasePaginationRequest, BaseAuthorizedSho
 
 class ListShopProductsBySupplierQuery(abc.ABC):
     @abc.abstractmethod
-    def query(self, dto: ListShopProductsBySupplierRequest) -> PaginationTypedResponse[ShopProductCompactedDto]:
+    def query(self, dto: ListShopProductsBySupplierRequest) -> PaginationTypedResponse[ShopProductDto]:
         raise NotImplementedError

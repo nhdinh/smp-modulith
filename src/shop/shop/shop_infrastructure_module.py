@@ -11,15 +11,16 @@ from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, S
 from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery, SqlListShopProductsQuery, \
     SqlListShopProductPurchasePricesQuery, SqlListShopSuppliersByProductQuery, SqlListUnitsByShopProductQuery, \
     SqlGetShopProductPurchasePriceQuery, SqlGetShopProductLowestPurchasePriceQuery
-from shop.adapter.queries.brand_sql_queries import SqlListShopBrandsQuery
+from shop.adapter.queries.brand_sql_queries import SqlListShopBrandsQuery, SqlListAllShopBrandsQuery, \
+    SqlGetBrandsCacheHashQuery
 from shop.adapter.queries.shop_sql_queries import SqlListShopAddressesQuery, SqlGetShopInfoQuery
 from shop.adapter.queries.supplier_sql_queries import SqlListShopProductsBySupplierQuery, SqlListShopSuppliersQuery
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
-    ListAllShopCatalogsQuery
+    ListActiveShopCatalogsQuery
 from shop.application.queries.product_queries import GetShopProductQuery, ListShopProductsQuery, \
     ListShopProductPurchasePricesQuery, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
     GetShopProductPurchasePriceQuery, GetShopProductLowestPurchasePriceQuery
-from shop.application.queries.brand_queries import ListShopBrandsQuery
+from shop.application.queries.brand_queries import ListShopBrandsQuery, ListActiveShopBrandsQuery, GetBrandsCacheHashQuery
 from shop.application.queries.shop_queries import ListShopAddressesQuery, GetShopInfoQuery
 from shop.application.queries.supplier_queries import ListShopProductsBySupplierQuery, ListShopSuppliersQuery
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
@@ -65,7 +66,7 @@ class ShopInfrastructureModule(injector.Module):
         return SqlListShopCatalogsQuery(conn)
 
     @injector.provider
-    def list_all_shop_catalogs_query(self, conn: Connection) -> ListAllShopCatalogsQuery:
+    def list_active_shop_catalogs_query(self, conn: Connection) -> ListActiveShopCatalogsQuery:
         return SqlListAllShopCatalogsQuery(conn)
 
     # @injector.provider
@@ -123,3 +124,11 @@ class ShopInfrastructureModule(injector.Module):
     @injector.provider
     def list_shop_brands(self, conn: Connection) -> ListShopBrandsQuery:
         return SqlListShopBrandsQuery(conn)
+
+    @injector.provider
+    def list_active_shop_brands(self, conn: Connection) -> ListActiveShopBrandsQuery:
+        return SqlListAllShopBrandsQuery(conn)
+
+    @injector.provider
+    def get_shop_brands_hash(self, conn: Connection) -> GetBrandsCacheHashQuery:
+        return SqlGetBrandsCacheHashQuery(conn)

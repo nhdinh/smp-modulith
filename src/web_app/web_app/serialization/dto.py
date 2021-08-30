@@ -1,3 +1,5 @@
+import dataclasses
+import itertools
 import math
 from dataclasses import field
 from typing import Generic, List, Optional, Type, TypeVar, Union, cast, Dict, Any
@@ -5,7 +7,9 @@ from typing import Generic, List, Optional, Type, TypeVar, Union, cast, Dict, An
 import marshmallow as ma
 from flask import Request
 from marshmallow_dataclass import class_schema, dataclass
+from sqlalchemy.engine.row import RowProxy
 
+from foundation.logger import logger
 from foundation.value_objects import Money
 from web_app.serialization.fields import Dollars
 
@@ -36,13 +40,21 @@ class BaseAuthorizedShopUserRequest(BaseAuthorizedRequest):
 
 @dataclass
 class BasePaginationRequest:
-    current_page: Optional[int] = 1
+    current_page: int = field(default=1)
     page_size: Optional[int] = 10
 
 
 @dataclass
 class BasePaginationAuthorizedRequest(BasePaginationRequest, BaseAuthorizedShopUserRequest):
     ...
+
+
+@dataclass
+class GeneralHashDto:
+    dhash: int = field(default=0)
+
+    def serialize(self):
+        return self.__dict__
 
 
 @dataclass(frozen=True)
@@ -169,3 +181,47 @@ def clean_secrets(input_dto: Dict):
             output_data[k] = v
 
     return output_data
+
+
+def _build_data_dict(row: RowProxy, field_names):
+    return {name: getattr(row, name, None) for name in field_names}
+
+
+def _build_response_dto(klass: Type, row: RowProxy):
+    if not dataclasses.is_dataclass(klass):
+        raise TypeError(f'{klass} is not response dto')
+
+    fields = dataclasses.fields(klass)
+    data_dict = {}
+
+    for field in fields:
+        if not hasattr(row, field.name):
+            logger.warn(f'>> _build_response_dto: RowProxy not contains field {field.name}')
+
+        data_dict[field.name] = getattr(row, field.name, None)
+
+    # construct a response object
+    response = klass(**data_dict)
+    return response
+
+
+def row_proxy_to_dto(rows: List[RowProxy], klass: Type):
+    # flag indicating that prcess a single row or a list of rows
+    process_single = False
+
+    if not isinstance(rows, List):
+        process_single = True
+        rows = [rows]
+
+    if not dataclasses.is_dataclass(klass):
+        raise TypeError(f'{klass} is not response dto')
+
+    field_names = [f.name for f in dataclasses.fields(klass)]
+    data_dict = itertools.starmap(_build_data_dict, [(row, field_names) for row in rows])
+
+    return_dtos = [klass(**d) for d in data_dict]
+
+    if process_single:
+        return return_dtos[0]
+    else:
+        return return_dtos

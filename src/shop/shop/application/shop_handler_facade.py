@@ -19,10 +19,11 @@ from shop.adapter.queries.query_factories import (
 from shop.adapter.shop_db import shop_product_view_cache_table, shop_users_table, shop_table, shop_warehouse_table, \
     shop_catalog_table
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.domain.dtos.catalog_dtos import _row_to_catalog_dto
+from shop.domain.dtos.catalog_dtos import ShopCatalogDto
+from web_app.serialization.dto import row_proxy_to_dto
 from shop.domain.dtos.collection_dtos import _row_to_collection_dto
-from shop.domain.dtos.shop_brand_dtos import _row_to_brand_dto
 from shop.domain.dtos.product_unit_dtos import _row_to_unit_dto
+from shop.domain.dtos.shop_brand_dtos import ShopBrandDto
 from shop.domain.dtos.supplier_dtos import _row_to_supplier_dto
 from shop.domain.entities.value_objects import ShopId, ShopStatus, GenericShopItemStatus, \
     ShopProductId, SystemUserId, ShopUserType, ShopWarehouseId
@@ -87,8 +88,8 @@ class ShopHandlerFacade:
             return
 
         # get catalog and brand
-        catalog_json = _row_to_catalog_dto(product_data, collections=[])
-        brand_json = _row_to_brand_dto(product_data) if product_data.brand_id else None
+        catalog_json = row_proxy_to_dto(product_data, ShopCatalogDto)
+        brand_json = row_proxy_to_dto(product_data, ShopBrandDto) if product_data.brand_id else None
 
         # get collections
         query = list_shop_collections_bound_to_product_query_factory(shop_id=shop_id, product_id=product_id)
