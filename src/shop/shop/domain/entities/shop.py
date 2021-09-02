@@ -534,6 +534,8 @@ class Shop(EventMixin):
         catalog.catalog_id = generate_shop_catalog_id()
 
         # make default collection
+        if 'image' in kwargs:
+            catalog.image = kwargs.get('image')
 
         return catalog
 
