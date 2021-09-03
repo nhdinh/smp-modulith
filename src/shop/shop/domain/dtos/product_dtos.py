@@ -101,8 +101,8 @@ def _row_to_product_dto(
             'created_at': row.created_at,
             'updated_at': row.updated_at,
 
-            'brand': row_proxy_to_dto(rows=[row], klass=ShopBrandDto) if row.brand_id else None,
-            'catalog': row_proxy_to_dto(rows=[row], klass=ShopCatalogDto) if row.catalog_id else None,
+            'brand': row_proxy_to_dto(rows=row, klass=ShopBrandDto) if row.brand_id else None,
+            'catalog': row_proxy_to_dto(rows=row, klass=ShopCatalogDto) if row.catalog_id else None,
             'suppliers': [_row_to_supplier_dto(row=supplier_row, contact_rows=[]) for supplier_row in
                           supplier_rows] if supplier_rows else [],
             'collections': [_row_to_collection_dto(collection_row) for collection_row in
@@ -110,8 +110,8 @@ def _row_to_product_dto(
         }
 
     full_product_data = {
-        'brand': row_proxy_to_dto(rows=[row], klass=ShopBrandDto) if row.brand_id else None,
-        'catalog': row_proxy_to_dto(row, ShopCatalogDto),
+        'brand': row_proxy_to_dto(rows=row, klass=ShopBrandDto) if row.brand_id else None,
+        'catalog': row_proxy_to_dto(rows=row, klass=ShopCatalogDto),
         # 'barcode': row.barcode,
         'restock_threshold': row.restock_threshold,
         'max_stock_threshold': row.max_stock_threshold,
