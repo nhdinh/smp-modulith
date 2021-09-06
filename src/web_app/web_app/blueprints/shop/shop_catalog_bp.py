@@ -7,7 +7,9 @@ from flask import Blueprint, Response, jsonify, make_response, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
-    ListShopProductsByCatalogRequest, ListShopCatalogsRequest, ListActiveShopCatalogsQuery, ListActiveShopCatalogsRequest
+    ListShopProductsByCatalogRequest, ListShopCatalogsRequest, ListActiveShopCatalogsQuery, \
+    ListActiveShopCatalogsRequest, ListActiveShopCollectionsByCatalogQuery, ListActiveShopCollectionsByCatalogRequest, \
+    GetCollectionCacheHashRequest, GetCollectionCacheHashQuery
 from shop.application.usecases.catalog.add_shop_catalog_uc import (
     AddingShopCatalogRequest,
     AddingShopCatalogResponseBoundary,
@@ -97,6 +99,28 @@ def list_shop_products_by_catalog(list_shop_products_by_catalog_query: ListShopP
     return make_response(jsonify(response)), 200  # type:ignore
 
 
+@shop_catalog_blueprint.route('/collection/list_all', methods=['GET', 'POST'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def list_shop_collections_by_catalog(list_shop_collections_query: ListActiveShopCollectionsByCatalogQuery) -> Response:
+    dto = get_dto(request, ListActiveShopCollectionsByCatalogRequest, context={'current_user_id': get_jwt_identity()})
+    response = list_shop_collections_query.query(dto)
+
+    return make_response(jsonify(response)), 200  # type:ignore
+
+
+@shop_catalog_blueprint.route('/collection/hash', methods=['GET', 'POST'])
+@validate_request_timestamp
+@jwt_required()
+@log_error()
+def get_collections_cache_hash(get_collections_cache_hash_query: GetCollectionCacheHashQuery) -> Response:
+    dto = get_dto(request, GetCollectionCacheHashRequest, context={'current_user_id': get_jwt_identity()})
+    hash_data = get_collections_cache_hash_query.query(dto)
+
+    return make_response(jsonify(hash_data)), 200  # type: ignore
+
+
 @shop_catalog_blueprint.route('/add', methods=['POST'])
 @validate_request_timestamp
 @jwt_required()
@@ -105,6 +129,17 @@ def add_shop_catalog(add_shop_catalog_uc: AddShopCatalogUC,
                      presenter: AddingShopCatalogResponseBoundary) -> Response:
     dto = get_dto(request, AddingShopCatalogRequest, context={'current_user_id': get_jwt_identity()})
     add_shop_catalog_uc.execute(dto)
+
+    return presenter.response, 201  # type:ignore
+
+
+@shop_catalog_blueprint.route('/add_collection', methods=['POST'])
+@jwt_required()
+@log_error()
+def add_shop_collection(add_shop_collection_uc: AddShopCollectionUC,
+                        presenter: AddingShopCollectionResponseBoundary) -> Response:
+    dto = get_dto(request, AddingShopCollectionRequest, context={'current_user_id': get_jwt_identity()})
+    add_shop_collection_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
 
@@ -118,17 +153,6 @@ def remove_store_catalog(remove_store_catalog_uc: RemoveShopCatalogUC,
     remove_store_catalog_uc.execute(dto)
 
     return presenter.response, 200  # type:ignore
-
-
-@shop_catalog_blueprint.route('/add_collection', methods=['POST'])
-@jwt_required()
-@log_error()
-def add_shop_collection(add_shop_collection_uc: AddShopCollectionUC,
-                        presenter: AddingShopCollectionResponseBoundary) -> Response:
-    dto = get_dto(request, AddingShopCollectionRequest, context={'current_user_id': get_jwt_identity()})
-    add_shop_collection_uc.execute(dto)
-
-    return presenter.response, 201  # type:ignore
 
 
 @shop_catalog_blueprint.route('/update', methods=['POST', 'PATCH'])

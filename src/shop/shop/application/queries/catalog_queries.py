@@ -6,10 +6,11 @@ from enum import Enum
 from typing import Optional
 
 from shop.domain.dtos.catalog_dtos import ShopCatalogDto
+from shop.domain.dtos.collection_dtos import ShopCollectionDto, ShopCollectionShortDto
 from shop.domain.dtos.product_dtos import ShopProductDto
 from shop.domain.entities.value_objects import ShopCatalogId
 from web_app.serialization.dto import BasePaginationAuthorizedRequest, PaginationTypedResponse, \
-    BaseAuthorizedShopUserRequest, SimpleListTypedResponse
+    BaseAuthorizedShopUserRequest, SimpleListTypedResponse, GeneralHashDto
 
 
 class ShopCatalogOrderOptions(Enum):
@@ -54,4 +55,39 @@ class ListShopProductsByCatalogRequest(BasePaginationAuthorizedRequest):
 class ListShopProductsByCatalogQuery(abc.ABC):
     @abc.abstractmethod
     def query(self, dto: ListShopProductsByCatalogRequest) -> PaginationTypedResponse[ShopProductDto]:
+        raise NotImplementedError
+
+
+@dataclass
+class ListShopCollectionsByCatalogRequest(BasePaginationAuthorizedRequest):
+    catalog_id: ShopCatalogId = ''
+    use_view_cache: bool = True
+
+
+class ListShopCollectionsByCatalogQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: ListShopCollectionsByCatalogRequest) -> PaginationTypedResponse[ShopCollectionDto]:
+        raise NotImplementedError
+
+
+@dataclass
+class ListActiveShopCollectionsByCatalogRequest(BaseAuthorizedShopUserRequest):
+    catalog_id: ShopCatalogId = ''
+
+
+class ListActiveShopCollectionsByCatalogQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: ListActiveShopCollectionsByCatalogRequest) -> SimpleListTypedResponse[ShopCollectionShortDto]:
+        raise NotImplementedError
+
+
+@dataclass
+class GetCollectionCacheHashRequest(BaseAuthorizedShopUserRequest):
+    catalog_id: ShopCatalogId
+
+
+class GetCollectionCacheHashQuery(abc.ABC):
+    @abc.abstractmethod
+    def query(self, dto: GetCollectionCacheHashRequest) -> GeneralHashDto:
+
         raise NotImplementedError

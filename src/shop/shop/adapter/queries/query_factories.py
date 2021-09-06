@@ -61,12 +61,12 @@ def list_shop_catalogs_query_factory(shop_id: ShopId) -> Select:
     ]).where(shop_catalog_table.c.shop_id == shop_id)
 
 
-def list_shop_collection_query_factory() -> Select:
+def list_shop_collections_query_factory(shop_id: ShopId, catalog_id: ShopCatalogId) -> Select:
     query = select([
         shop_collection_table.c.collection_id,
         shop_collection_table.c.title,
         shop_collection_table.c.status.label('collection_status')
-    ])
+    ]).where(and_(shop_collection_table.c.catalog_id == catalog_id, shop_collection_table.c.shop_id == shop_id))
 
     return query
 
@@ -135,6 +135,7 @@ def get_shop_product_query_factory(shop_id: ShopId, product_id: ShopProductId) -
     """
     Return a Select query of selecting all data from shop_product_table by product_id
 
+    :param shop_id:
     :param product_id: specified a product id
     :return: product row
     """
@@ -168,12 +169,19 @@ def get_shop_query_factory(store_owner_email: str):
 
 
 def list_shop_collections_bound_to_product_query_factory(shop_id: ShopId, product_id: ShopProductId):
-    query = list_shop_collection_query_factory() \
+    query = select([
+        shop_collection_table.c.collection_id,
+        shop_collection_table.c.title,
+        shop_collection_table.c.status.label('collection_status')
+    ]) \
         .join(shop_product_collection_table,
-              shop_product_table.c.product_id == shop_product_collection_table.c.product_id) \
-        .join(shop_collection_table,
               shop_collection_table.c.collection_id == shop_product_collection_table.c.collection_id) \
-        .where(and_(shop_product_table.c.product_id == product_id, shop_product_table.c.shop_id == shop_id))
+        .join(shop_product_table, and_(shop_product_collection_table.c.product_id == shop_product_table.c.product_id,
+                                       shop_product_table.c.catalog_id == shop_collection_table.c.catalog_id)) \
+        .where(and_(
+        shop_product_table.c.product_id == product_id,
+        shop_collection_table.c.shop_id == shop_id
+    ))
 
     return query
 

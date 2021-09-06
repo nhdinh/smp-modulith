@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from typing import Union
 
-from sqlalchemy import desc
+from sqlalchemy import desc, and_, select
 
 from db_infrastructure.base import SqlQuery
 from foundation.events import ThingGoneInBlackHoleError
@@ -11,18 +11,23 @@ from shop.adapter.queries.query_common import sql_get_authorized_shop_id, \
 from shop.adapter.queries.query_factories import (
     list_shop_catalogs_query_factory,
     list_shop_products_query_factory,
-    count_catalogs_query_factory, count_products_in_catalog_query_factory)
-from shop.adapter.shop_db import shop_catalog_table, shop_product_table
+    count_catalogs_query_factory, count_products_in_catalog_query_factory, list_shop_collections_query_factory)
+from shop.adapter.shop_db import shop_catalog_table, shop_product_table, shop_collection_table, shop_table
 from shop.application.queries.catalog_queries import (
     ListShopCatalogsQuery,
     ListShopCatalogsRequest,
     ListShopProductsByCatalogQuery,
-    ListShopProductsByCatalogRequest, ListActiveShopCatalogsQuery, ListActiveShopCatalogsRequest, ShopCatalogOrderOptions)
+    ListShopProductsByCatalogRequest, ListActiveShopCatalogsQuery, ListActiveShopCatalogsRequest,
+    ShopCatalogOrderOptions, ListShopCollectionsByCatalogRequest, ListShopCollectionsByCatalogQuery,
+    ListActiveShopCollectionsByCatalogQuery, ListActiveShopCollectionsByCatalogRequest, GetCollectionCacheHashQuery,
+    GetCollectionCacheHashRequest)
 from shop.domain.dtos.catalog_dtos import ShopCatalogDto, ShopCatalogShortDto
+from shop.domain.dtos.collection_dtos import ShopCollectionDto, ShopCollectionShortDto
 from shop.domain.dtos.product_dtos import ShopProductDto
+from shop.domain.entities.shop_collection import ShopCollection
 from shop.domain.entities.value_objects import ExceptionMessages, GenericShopItemStatus
 from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory, empty_list_response, \
-    SimpleListTypedResponse, list_response_factory, row_proxy_to_dto
+    SimpleListTypedResponse, list_response_factory, row_proxy_to_dto, GeneralHashDto
 
 
 class SqlListShopCatalogsQuery(ListShopCatalogsQuery, SqlQuery):
@@ -147,5 +152,65 @@ class SqlListShopProductsByCatalogQuery(ListShopProductsByCatalogQuery, SqlQuery
                 total_items=products_count_or_empty_result,
                 items=row_proxy_to_dto(products, ShopProductDto)
             )
+        except Exception as exc:
+            raise exc
+
+
+class SqlListShopCollectionsByCatalogQuery(ListShopCollectionsByCatalogQuery, SqlQuery):
+    def query(self, dto: ListShopCollectionsByCatalogRequest) -> PaginationTypedResponse[ShopCollectionDto]:
+        try:
+            if not dto.catalog_id:
+                raise ValueError(ExceptionMessages.INVALID_CATALOG_ID)
+
+            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id,
+                                                       current_user_id=dto.current_user_id,
+                                                       conn=self._conn)
+            if not valid_shop_id:
+                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+
+            raise NotImplementedError
+        except Exception as exc:
+            raise exc
+
+
+class SqlListAllShopCollectionsByCatalogQuery(ListActiveShopCollectionsByCatalogQuery, SqlQuery):
+    def query(self, dto: ListActiveShopCollectionsByCatalogRequest) -> SimpleListTypedResponse[ShopCollectionShortDto]:
+        try:
+            if not dto.catalog_id:
+                raise ValueError(ExceptionMessages.INVALID_CATALOG_ID)
+
+            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id,
+                                                       current_user_id=dto.current_user_id,
+                                                       conn=self._conn)
+            if not valid_shop_id:
+                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+
+            # get all collections
+            fetch_collections_query = list_shop_collections_query_factory(shop_id=dto.shop_id,
+                                                                          catalog_id=dto.catalog_id) \
+                .where(shop_collection_table.c.status == GenericShopItemStatus.NORMAL) \
+                .order_by(shop_collection_table.c.title)
+
+            collections = self._conn.execute(fetch_collections_query).all()
+
+            return list_response_factory(items=row_proxy_to_dto(collections, ShopCollectionShortDto))
+        except Exception as exc:
+            raise exc
+
+
+class SqlGetCollectionCacheHashQuery(GetCollectionCacheHashQuery, SqlQuery):
+    def query(self, dto: GetCollectionCacheHashRequest) -> GeneralHashDto:
+        try:
+            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id,
+                                                       current_user_id=dto.current_user_id,
+                                                       conn=self._conn)
+            if not valid_shop_id:
+                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
+
+            shop_qry = select(shop_table.c.version).filter(shop_table.c.shop_id == dto.shop_id)
+            shop_data = self._conn.scalar(shop_qry)
+            catalog_hash = hash(shop_data)
+
+            return GeneralHashDto(catalog_hash)
         except Exception as exc:
             raise exc

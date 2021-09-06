@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from foundation.events import EventBus
 from shop.adapter import shop_db
 from shop.adapter.queries.catalog_sql_queries import SqlListShopCatalogsQuery, SqlListShopProductsByCatalogQuery, \
-    SqlListAllShopCatalogsQuery
+    SqlListAllShopCatalogsQuery, SqlListAllShopCollectionsByCatalogQuery, SqlGetCollectionCacheHashQuery
 from shop.adapter.queries.product_sql_queries import SqlGetShopProductQuery, SqlListShopProductsQuery, \
     SqlListShopProductPurchasePricesQuery, SqlListShopSuppliersByProductQuery, SqlListUnitsByShopProductQuery, \
     SqlGetShopProductPurchasePriceQuery, SqlGetShopProductLowestPurchasePriceQuery
@@ -16,11 +16,12 @@ from shop.adapter.queries.brand_sql_queries import SqlListShopBrandsQuery, SqlLi
 from shop.adapter.queries.shop_sql_queries import SqlListShopAddressesQuery, SqlGetShopInfoQuery
 from shop.adapter.queries.supplier_sql_queries import SqlListShopProductsBySupplierQuery, SqlListShopSuppliersQuery
 from shop.application.queries.catalog_queries import ListShopCatalogsQuery, ListShopProductsByCatalogQuery, \
-    ListActiveShopCatalogsQuery
+    ListActiveShopCatalogsQuery, ListActiveShopCollectionsByCatalogQuery, GetCollectionCacheHashQuery
 from shop.application.queries.product_queries import GetShopProductQuery, ListShopProductsQuery, \
     ListShopProductPurchasePricesQuery, ListShopSuppliersByProductQuery, ListUnitsByShopProductQuery, \
     GetShopProductPurchasePriceQuery, GetShopProductLowestPurchasePriceQuery
-from shop.application.queries.brand_queries import ListShopBrandsQuery, ListActiveShopBrandsQuery, GetBrandsCacheHashQuery
+from shop.application.queries.brand_queries import ListShopBrandsQuery, ListActiveShopBrandsQuery, \
+    GetBrandsCacheHashQuery
 from shop.application.queries.shop_queries import ListShopAddressesQuery, GetShopInfoQuery
 from shop.application.queries.supplier_queries import ListShopProductsBySupplierQuery, ListShopSuppliersQuery
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
@@ -132,3 +133,11 @@ class ShopInfrastructureModule(injector.Module):
     @injector.provider
     def get_shop_brands_hash(self, conn: Connection) -> GetBrandsCacheHashQuery:
         return SqlGetBrandsCacheHashQuery(conn)
+
+    @injector.provider
+    def list_active_shop_collections(self, conn: Connection) -> ListActiveShopCollectionsByCatalogQuery:
+        return SqlListAllShopCollectionsByCatalogQuery(conn)
+
+    @injector.provider
+    def get_shop_collection_hash(self, conn: Connection) -> GetCollectionCacheHashQuery:
+        return SqlGetCollectionCacheHashQuery(conn)

@@ -43,7 +43,7 @@ class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
             if product:
                 # list collections
                 list_collections_query = list_shop_collections_bound_to_product_query_factory(shop_id=dto.shop_id,
-                                                                                              product_id=dto.product_id)
+                                                                                              product_id=product.product_id)
                 collections = self._conn.execute(list_collections_query).all()
 
                 # FIXME

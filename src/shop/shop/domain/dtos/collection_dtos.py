@@ -8,13 +8,17 @@ from shop.domain.entities.value_objects import ShopCollectionId
 
 
 @dataclass
-class ShopCollectionDto:
+class ShopCollectionShortDto:
     collection_id: 'ShopCollectionId'
     title: str
-    collection_status: str
 
     def serialize(self):
         return self.__dict__
+
+
+@dataclass
+class ShopCollectionDto(ShopCollectionShortDto):
+    collection_status: str
 
 
 def _row_to_collection_dto(row: RowProxy) -> ShopCollectionDto:
