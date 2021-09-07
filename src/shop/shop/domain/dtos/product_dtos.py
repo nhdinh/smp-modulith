@@ -3,20 +3,20 @@
 import datetime
 from dataclasses import dataclass
 from datetime import date
-from typing import List, Union
+from typing import List
 
 from sqlalchemy.engine.row import RowProxy
 
 from foundation.value_objects import Money
 from foundation.value_objects.currency import _get_registered_currency_or_default
 from shop.domain.dtos.catalog_dtos import ShopCatalogDto
-from web_app.serialization.dto import row_proxy_to_dto
 from shop.domain.dtos.collection_dtos import ShopCollectionDto, _row_to_collection_dto
 from shop.domain.dtos.product_tag_dtos import StoreProductTagDto, _row_to_tag_dto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
 from shop.domain.dtos.shop_brand_dtos import ShopBrandDto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
 from shop.domain.entities.value_objects import ShopProductId, ShopSupplierId
+from web_app.serialization.dto import row_proxy_to_dto
 
 
 @dataclass
@@ -43,7 +43,7 @@ class ShopProductDto:
     brand: ShopBrandDto
     catalog: ShopCatalogDto
 
-    # default_unit: StoreProductUnitDto
+    default_unit: ShopProductUnitDto
 
     units: List[ShopProductUnitDto]
     tags: List[StoreProductTagDto]
@@ -109,6 +109,15 @@ def _row_to_product_dto(
                             collection_rows] if collection_rows else []
         }
 
+    # try getting default_unit
+    default_unit = None
+    if unit_rows:
+        try:
+            default_unit = next(
+                unit for unit in unit_rows if unit.referenced_unit_name is None and unit.conversion_factor == 0)
+        except StopIteration:
+            default_unit = None
+
     full_product_data = {
         'brand': row_proxy_to_dto(rows=row, klass=ShopBrandDto) if row.brand_id else None,
         'catalog': row_proxy_to_dto(rows=row, klass=ShopCatalogDto),
@@ -116,11 +125,13 @@ def _row_to_product_dto(
         'restock_threshold': row.restock_threshold,
         'max_stock_threshold': row.max_stock_threshold,
 
-        # 'default_unit': row.default_unit,
+        # 'default_unit': None,
+        'default_unit': _row_to_unit_dto(default_unit) if default_unit else None,
         'units': [_row_to_unit_dto(unit_row) for unit_row in unit_rows] if unit_rows else [],
         'tags': [_row_to_tag_dto(tag_row) for tag_row in tag_rows] if tag_rows else [],
     }
     product_data.update(full_product_data)
+
     return ShopProductDto(**product_data)
 
 
