@@ -130,9 +130,20 @@ class ShopProduct(EventMixin, Entity):
     def catalog(self) -> 'ShopCatalog':
         return self._catalog
 
+    @catalog.setter
+    def catalog(self, value: 'ShopCatalog'):
+        if value and value != self._catalog:
+            self._catalog = value
+            self._collections = set([])
+
     @property
     def collections(self) -> Set['ShopCollection']:
         return self._collections
+
+    @collections.setter
+    def collections(self, collections: List[ShopCollection]):
+        if all(col.catalog == self.catalog for col in collections):
+            self._collections = set(collections)
 
     @property
     def brand(self) -> 'ShopProductBrand':

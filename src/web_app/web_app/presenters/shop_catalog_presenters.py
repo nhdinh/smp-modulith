@@ -28,26 +28,6 @@ from shop.application.usecases.initialize.initialize_store_with_plan_uc import (
     InitializingStoreWithPlanResponse,
     InitializingStoreWithPlanResponseBoundary,
 )
-from shop.application.usecases.product.add_shop_product_to_supplier_uc import (
-    AddingShopProductToSupplierResponse,
-    AddingShopProductToSupplierResponseBoundary,
-)
-from shop.application.usecases.product.add_shop_product_uc import (
-    AddingShopProductRequest,
-    AddingShopProductResponseBoundary,
-)
-from shop.application.usecases.product.remove_store_product_attribute_uc import (
-    RemovingStoreProductAttributeResponse,
-    RemovingStoreProductAttributeResponseBoundary,
-)
-from shop.application.usecases.product.remove_store_product_uc import (
-    RemovingShopProductsResponse,
-    RemovingShopProductsResponseBoundary,
-)
-from shop.application.usecases.product.update_store_product_uc import (
-    UpdatingStoreProductResponse,
-    UpdatingStoreProductResponseBoundary,
-)
 from shop.application.usecases.shop_uc_common import GenericShopActionResponse, GenericShopResponseBoundary
 
 
@@ -116,40 +96,3 @@ class InitializingStoreWithPlanResponsePresenter(InitializingStoreWithPlanRespon
 
     def present(self, response_dto: InitializingStoreWithPlanResponse) -> None:
         self.response = make_response(jsonify(response_dto.__dict__))
-
-
-# region ## Store Product Presenters ##
-class AddingShopProductPresenter(AddingShopProductResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: AddingShopProductRequest) -> None:
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class UpdatingStoreProductPresenter(UpdatingStoreProductResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: UpdatingStoreProductResponse) -> None:
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class RemovingStoreProductPresenter(RemovingShopProductsResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: RemovingShopProductsResponse) -> None:
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class RemovingStoreProductAttributePresenter(RemovingStoreProductAttributeResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: RemovingStoreProductAttributeResponse) -> None:
-        self.response = make_response(jsonify(response_dto.__dict__))
-
-
-class AddingShopProductToSupplierPresenter(AddingShopProductToSupplierResponseBoundary):
-    response: Response
-
-    def present(self, response_dto: AddingShopProductToSupplierResponse) -> None:
-        self.response = make_response(jsonify(response_dto.__dict__))
-# endregion

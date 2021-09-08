@@ -74,17 +74,16 @@ from foundation.business_rule import BusinessRuleValidationError
 from foundation.logger import logger
 from web_app.presenters.shop_catalog_presenters import (
     AddingShopCatalogPresenter,
-    AddingShopProductPresenter,
     CreatingStoreCollectionPresenter,
     GenericStoreResponsePresenter,
     InitializingStoreWithPlanResponsePresenter,
     RemovingShopCatalogPresenter,
-    RemovingStoreProductAttributePresenter,
-    RemovingStoreProductPresenter,
     UpdatingStoreCatalogPresenter,
     UpdatingStoreCollectionPresenter,
     UpdatingStoreProductPresenter,
 )
+from web_app.presenters.shop_product_presenters import AddingShopProductPresenter, \
+    RemovingStoreProductAttributePresenter, RemovingStoreProductPresenter
 from web_app.serialization.dto import BasePaginationAuthorizedRequest, get_dto
 
 STORE_CATALOG_BLUEPRINT_NAME = 'store_catalog_blueprint'

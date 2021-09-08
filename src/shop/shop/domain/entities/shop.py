@@ -658,20 +658,32 @@ class Shop(EventMixin):
     def update_product(self, product: ShopProduct, **kwarg):
         items_being_updated = []
 
-        brand_str = kwarg.get('brand')
-        if brand_str:
-            brand = self._brand_factory(name=brand_str)
-            items_being_updated.append('brand')
+        if 'title' in kwarg and kwarg['title']:
+            product.title = kwarg['title']
 
-            product.brand = brand
+        # brand_str = kwarg.get('brand')
+        # if brand_str:
+        #     brand = self._brand_factory(name=brand_str)
+        #     items_being_updated.append('brand')
+        #
+        #     product.brand = brand
 
-        collections_str_list = kwarg.get('collections')
-        if collections_str_list:
-            for collection_str in collections_str_list:
-                collection = self._collection_factory(title=collection_str, parent_catalog=product.catalog)
-                if collection not in product.collections:
-                    product.collections.add(collection)
-                    items_being_updated.append('collections')
+        # collections_str_list = kwarg.get('collections')
+        # if collections_str_list:
+        #     for collection_str in collections_str_list:
+        #         collection = self._collection_factory(title=collection_str, parent_catalog=product.catalog)
+        #         if collection not in product.collections:
+        #             product.collections.add(collection)
+        #             items_being_updated.append('collections')
+
+        if 'catalog_id' in kwarg and kwarg['catalog_id']:
+            catalog = next(cat for cat in self.catalogs if cat.catalog_id == kwarg['catalog_id'])  # type:ShopCatalog
+            product.catalog = catalog
+
+        if 'collection_indexes' in kwarg and kwarg['collection_indexes']:
+            collections = [next(coll for coll in product.catalog.collections if coll.collection_id == coll_id) for
+                           coll_id in kwarg['collection_indexes']]
+            product.collections = collections
 
         self._record_event(ShopProductUpdatedEvent, **dict(
             event_id=new_event_id(),

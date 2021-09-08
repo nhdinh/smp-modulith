@@ -62,13 +62,12 @@ from shop.application.usecases.product.remove_store_product_uc import (
 )
 from shop.application.usecases.product.set_shop_products_status_uc import SettingShopProductsStatusResponseBoundary, \
     SetShopProductsStatusUC
+from shop.application.usecases.product.update_shop_product_uc import (
+    UpdatingShopProductResponseBoundary, UpdateShopProductUC,
+)
 from shop.application.usecases.product.update_shop_product_unit_uc import (
     UpdateShopProductUnitUC,
     UpdatingShopProductUnitResponseBoundary,
-)
-from shop.application.usecases.product.update_store_product_uc import (
-    UpdateStoreProductUC,
-    UpdatingStoreProductResponseBoundary,
 )
 from shop.application.usecases.shop.add_shop_address_uc import AddingShopAddressResponseBoundary, AddShopAddressUC
 from shop.application.usecases.shop.add_shop_user_uc import AddShopUserUC, AddingShopUserResponseBoundary
@@ -208,9 +207,9 @@ class ShopApplicationModule(injector.Module):
         return AddShopProductUC(boundary, uow)
 
     @injector.provider
-    def update_shop_product_uc(self, boundary: UpdatingStoreProductResponseBoundary,
-                               uow: ShopUnitOfWork, fs: FileSystem) -> UpdateStoreProductUC:
-        return UpdateStoreProductUC(boundary, uow, fs)
+    def update_shop_product_uc(self, boundary: UpdatingShopProductResponseBoundary,
+                               uow: ShopUnitOfWork, fs: FileSystem) -> UpdateShopProductUC:
+        return UpdateShopProductUC(boundary, uow, fs)
 
     @injector.provider
     def remove_shop_product_uc(self, boundary: RemovingShopProductsResponseBoundary,

@@ -17,7 +17,7 @@ from shop.application.usecases.product.add_shop_product_to_supplier_uc import (
 )
 from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
-from web_app.presenters.shop_catalog_presenters import AddingShopProductToSupplierPresenter
+from web_app.presenters.shop_product_presenters import AddingShopProductToSupplierPresenter
 from web_app.serialization.dto import get_dto
 
 SHOP_SUPPLIER_BLUEPRINT_NAME = 'shop_supplier_blueprint'
