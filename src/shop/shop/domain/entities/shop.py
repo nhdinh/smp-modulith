@@ -661,6 +661,9 @@ class Shop(EventMixin):
         if 'title' in kwarg and kwarg['title']:
             product.title = kwarg['title']
 
+        if 'image' in kwarg and kwarg['image']:
+            product.image = kwarg['image']
+
         # brand_str = kwarg.get('brand')
         # if brand_str:
         #     brand = self._brand_factory(name=brand_str)

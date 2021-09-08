@@ -72,8 +72,8 @@ class UpdateShopProductUC:
                     'brand_id': dto.brand_id if dto.brand_id else None,
 
                     'collection_indexes': dto.collection_indexes if dto.collection_indexes else None,
-                    'restock_threshold': dto.restock_threshold if dto.restock_threshold else None,
-                    'maxstock_threshold': dto.maxstock_threshold if dto.maxstock_threshold else None,
+                    'restock_threshold': dto.restock_threshold if dto.restock_threshold else -1,
+                    'maxstock_threshold': dto.maxstock_threshold if dto.maxstock_threshold else -1,
 
                     'status': dto.status if dto.status else None,
                     'tags': dto.tags if dto.tags else None
