@@ -62,7 +62,7 @@ class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
                     .where(shop_product_tag_table.c.product_id == dto.product_id)
                 tags = self._conn.execute(list_tags_query).all()
                 response = _row_to_product_dto(product, unit_rows=units, tag_rows=tags, collection_rows=collections,
-                                           supplier_rows=suppliers)
+                                               supplier_rows=suppliers)
 
                 return response
             else:
@@ -97,7 +97,8 @@ class SqlListShopProductsQuery(ListShopProductsQuery, SqlQuery):
                 _use_view_cache = False
 
             # prepare the query
-            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=_use_view_cache)
+            query = list_shop_products_query_factory(shop_id=dto.shop_id, use_view_cache=_use_view_cache) \
+                .where(shop_catalog_table.c.status == GenericShopItemStatus.NORMAL)
 
             # hide DISABLED products
             if not dto.display_disabled:
