@@ -81,7 +81,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.config["SECURITY_SEND_REGISTER_EMAIL"] = False
     app.config["SECURITY_REGISTERABLE"] = True
     app.config["SECURITY_PASSWORD_SALT"] = "99f885320c0f867cde17876a7849904c41a2b8120a9a9e76d1789e458e543af9"
-    app.config["WTF_CSRF_ENABLED"] = False
+    # app.config["WTF_CSRF_ENABLED"] = False
     for key, value in settings_override.items():
         app.config[key] = value
 

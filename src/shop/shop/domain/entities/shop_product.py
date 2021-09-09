@@ -279,7 +279,17 @@ class ShopProduct(EventMixin, Entity):
             raise ThingGoneInBlackHoleError(ExceptionMessages.PRODUCT_BASE_UNIT_NOT_FOUND)
 
     def create_default_unit(self, default_name: str) -> ShopProductUnit:
-        return self.create_unit(unit_name=default_name, conversion_factor=0, base_unit=None)
+        if len(self._units) > 0:
+            existing_unit_with_name = [u for u in self._units if u.unit_name == default_name]
+
+            # raise error if an unit with same name has been exist
+            if len(existing_unit_with_name) > 0:
+                raise ValueError(ExceptionMessages.PRODUCT_UNIT_EXISTED)
+            else:
+                self.default_unit.unit_name = default_name
+                return self.default_unit
+        else:
+            return self.create_unit(unit_name=default_name, conversion_factor=0, base_unit=None)
 
     def _is_unit_dependency(self, unit: ShopProductUnit):
         try:
@@ -377,6 +387,10 @@ class ShopProduct(EventMixin, Entity):
 
         for price in prices:  # type:ProductPurchasePrice
             return_data[price.product_unit.unit_name] = tuple(price.price, price.tax, price.effective_from)
+
+    def set_tags(self, tag_names: List[str]):
+        for tag in tag_names:
+            self._tags.add(ShopProductTag(tag))
 
     def __repr__(self):
         return f'<ShopProduct ref={self.product_id}>'

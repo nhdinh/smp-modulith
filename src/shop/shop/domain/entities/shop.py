@@ -664,6 +664,13 @@ class Shop(EventMixin):
         if 'image' in kwarg and kwarg['image']:
             product.image = kwarg['image']
 
+        if 'description' in kwarg and kwarg['description']:
+            product.description = kwarg['description']
+
+        if 'brand_id' in kwarg and kwarg['brand_id']:
+            brand = next(brand for brand in self.brands if brand.brand_id == kwarg['brand_id'])
+            product.brand = brand
+
         # brand_str = kwarg.get('brand')
         # if brand_str:
         #     brand = self._brand_factory(name=brand_str)
@@ -679,7 +686,7 @@ class Shop(EventMixin):
         #             product.collections.add(collection)
         #             items_being_updated.append('collections')
 
-        if 'catalog_id' in kwarg and kwarg['catalog_id']:
+        if 'catalog_id' in kwarg and kwarg['catalog_id'] and product.catalog.catalog_id != kwarg['catalog_id']:
             catalog = next(cat for cat in self.catalogs if cat.catalog_id == kwarg['catalog_id'])  # type:ShopCatalog
             product.catalog = catalog
 
@@ -687,6 +694,25 @@ class Shop(EventMixin):
             collections = [next(coll for coll in product.catalog.collections if coll.collection_id == coll_id) for
                            coll_id in kwarg['collection_indexes']]
             product.collections = collections
+
+        if 'default_unit' in kwarg and \
+                kwarg['default_unit'] and \
+                kwarg['default_unit'] != product.default_unit.unit_name:
+            product.create_default_unit(kwarg['default_unit'])
+
+        if 'restock_threshold' in kwarg and int(kwarg['restock_threshold']):
+            product.restock_threshold = int(kwarg['restock_threshold'])
+
+        if 'maxstock_threshold' in kwarg and int(kwarg['maxstock_threshold']):
+            product.max_stock_threshold = int(kwarg['maxstock_threshold'])
+
+        if 'status' in kwarg and kwarg['status'] and GenericShopItemStatus[kwarg['status']]:
+            new_status = GenericShopItemStatus[kwarg['status']];
+            if product.status != new_status:
+                product.status = new_status
+
+        if 'tags' in kwarg and kwarg['tags']:
+            product.set_tags(kwarg['tags'])
 
         self._record_event(ShopProductUpdatedEvent, **dict(
             event_id=new_event_id(),
