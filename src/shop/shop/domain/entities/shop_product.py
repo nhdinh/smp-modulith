@@ -389,8 +389,12 @@ class ShopProduct(EventMixin, Entity):
             return_data[price.product_unit.unit_name] = tuple(price.price, price.tax, price.effective_from)
 
     def set_tags(self, tag_names: List[str]):
-        for tag in tag_names:
-            self._tags.add(ShopProductTag(tag))
+        # clear old tags
+        self._tags.clear()
+
+        if tag_names:
+            for tag in tag_names:
+                self._tags.add(ShopProductTag(tag))
 
     def __repr__(self):
         return f'<ShopProduct ref={self.product_id}>'

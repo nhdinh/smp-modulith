@@ -713,6 +713,8 @@ class Shop(EventMixin):
 
         if 'tags' in kwarg and kwarg['tags']:
             product.set_tags(kwarg['tags'])
+        else:
+            product.set_tags([])
 
         self._record_event(ShopProductUpdatedEvent, **dict(
             event_id=new_event_id(),

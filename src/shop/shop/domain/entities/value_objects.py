@@ -109,8 +109,8 @@ class ExceptionMessages(Enum):
     SHOP_SUPPLIER_NOT_FOUND = 'Supplier not existed'
     CURRENCY_NOT_REGISTERED = 'Currency is not registered'
 
-    WRONG_DATA_TYPE_FOR_COMPARISON = 'Cannot compare two objects of different types'
-    WRONG_DATA_TYPE_FOR_OPERATE = 'Cannot operate math on two objects of different types'
+    WRONG_DATA_TYPE_TO_COMPARE = 'Cannot compare two objects of different types'
+    WRONG_DATA_TYPE_TO_OPERATE = 'Cannot operate math on two objects of different types'
     UNSUPPORTED_OPERATION = 'Unsupported operation'
 
     UNSUPPORTED_FILE_TYPE = 'Unsupported file type'

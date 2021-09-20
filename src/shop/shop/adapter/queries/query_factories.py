@@ -12,7 +12,9 @@ from shop.adapter.shop_db import (
     shop_product_supplier_table,
     shop_product_table,
     shop_product_view_cache_table,
-    shop_supplier_table, shop_product_unit_table, shop_product_purchase_price_table, )
+    shop_supplier_table, shop_product_unit_table, shop_product_purchase_price_table,
+    # shop_product_unit_table, shop_product_purchase_price_table,
+)
 from shop.domain.entities.shop_product import ShopProduct
 from shop.domain.entities.value_objects import ShopId, ShopProductId, GenericShopItemStatus, ShopCatalogId, \
     ShopSupplierId, SystemUserId
@@ -249,7 +251,7 @@ def list_purchase_prices_bound_to_product_query_factory(shop_id: ShopId, product
         .join(shop_product_table,
               shop_product_purchase_price_table.c.product_id == shop_product_table.c.product_id) \
         .join(shop_product_unit_table,
-              and_(shop_product_unit_table.c.unit_name == shop_product_purchase_price_table.c.unit,
+              and_(shop_product_unit_table.c.unit_id == shop_product_purchase_price_table.c.unit_id,
                    shop_product_unit_table.c.product_id == shop_product_table.c.product_id)) \
         .where(and_(shop_product_table.c.product_id == product_id,
                     shop_product_table.c.shop_id == shop_id))

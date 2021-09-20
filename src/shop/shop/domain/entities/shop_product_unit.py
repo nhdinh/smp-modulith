@@ -48,7 +48,7 @@ class ShopProductUnit:
 
     def __eq__(self, other):
         if not other or not isinstance(other, ShopProductUnit):
-            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_FOR_COMPARISON)
+            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_TO_COMPARE)
 
         if getattr(self, '_product', None) is not None and getattr(other, '_product', None) is not None:
             return self._product == other._product \
@@ -59,7 +59,8 @@ class ShopProductUnit:
                    and self.referenced_unit == other.referenced_unit
 
     def __hash__(self):
-        return hash((getattr(self, '_product'), self.conversion_factor, self.referenced_unit.__hash__()))
+        h = hash((getattr(self, '_product'), self.conversion_factor, self.referenced_unit.__hash__()))
+        return h
 
     def __truediv__(self, other):
         the_and_of_something = getattr(self, '_product', None) is not None \
@@ -69,7 +70,7 @@ class ShopProductUnit:
         if not other \
                 or not isinstance(other, ShopProductUnit) \
                 or the_and_of_something:
-            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_FOR_OPERATE)
+            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_TO_OPERATE)
 
         self_factor, self_default_unit = self.calculate_conversion_factor_to_default_unit()
         other_factor, other_default_unit = other.calculate_conversion_factor_to_default_unit()
@@ -77,11 +78,11 @@ class ShopProductUnit:
         if self_default_unit == other_default_unit:
             return self_factor.__truediv__(other_factor)
         else:
-            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_FOR_OPERATE)
+            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_TO_OPERATE)
 
     def __mul__(self, other: int):
         if not isinstance(other, int):
-            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_FOR_OPERATE)
+            raise TypeError(ExceptionMessages.WRONG_DATA_TYPE_TO_OPERATE)
 
         self.conversion_factor *= other
         return self

@@ -114,7 +114,7 @@ def _row_to_product_dto(
     if unit_rows:
         try:
             default_unit = next(
-                unit for unit in unit_rows if unit.referenced_unit_name is None and unit.conversion_factor == 0)
+                unit for unit in unit_rows if unit.referenced_unit_id is None or str(unit.referenced_unit_id).strip() == '' and unit.conversion_factor == 0)
         except StopIteration:
             default_unit = None
 

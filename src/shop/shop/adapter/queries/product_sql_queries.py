@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from itertools import groupby
 
-from sqlalchemy import select, and_, asc, desc
+from sqlalchemy import select, desc, and_, asc
 
 from db_infrastructure.base import SqlQuery
 from foundation.events import ThingGoneInBlackHoleError
@@ -11,8 +11,8 @@ from shop.adapter.queries.query_factories import get_shop_product_query_factory,
     list_shop_collections_bound_to_product_query_factory, \
     list_shop_products_query_factory, count_products_query_factory, list_suppliers_bound_to_product_query, \
     list_units_bound_to_product_query_factory, list_purchase_prices_bound_to_product_query_factory
-from shop.adapter.shop_db import shop_product_unit_table, shop_product_tag_table, shop_product_purchase_price_table, \
-    shop_product_table, shop_catalog_table, shop_brand_table
+from shop.adapter.shop_db import shop_product_tag_table, \
+    shop_product_table, shop_catalog_table, shop_brand_table, shop_product_unit_table, shop_product_purchase_price_table
 from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest, ListShopProductsQuery, \
     ListShopProductsRequest, ListShopProductPurchasePricesRequest, ListShopProductPurchasePricesQuery, \
     ListUnitsByShopProductQuery, ListUnitsByShopProductRequest, ListShopSuppliersByProductQuery, \
@@ -212,8 +212,9 @@ class SqlGetShopProductPurchasePriceQuery(GetShopProductPurchasePriceQuery, SqlQ
 
             purchase_price_query = list_purchase_prices_bound_to_product_query_factory(shop_id=dto.shop_id,
                                                                                        product_id=dto.product_id) \
-                .where(and_(shop_product_purchase_price_table.c.unit == dto.unit,
-                            shop_product_purchase_price_table.c.supplier_id == dto.supplier_id))
+                .where(and_(shop_product_purchase_price_table.c.unit_id == shop_product_unit_table.c.unit_id,
+                            shop_product_purchase_price_table.c.supplier_id == dto.supplier_id,
+                            shop_product_unit_table.c.unit_name == dto.unit))
             price = self._conn.execute(purchase_price_query).first()
 
             return _row_to_product_price_dto(price) if price else empty_list_response()
@@ -231,8 +232,9 @@ class SqlGetShopProductLowestPurchasePriceQuery(GetShopProductLowestPurchasePric
 
             purchase_price_query = list_purchase_prices_bound_to_product_query_factory(shop_id=dto.shop_id,
                                                                                        product_id=dto.product_id) \
-                .where(shop_product_purchase_price_table.c.unit == dto.unit).order_by(
-                asc(shop_product_purchase_price_table.c.price))
+                .where(and_(shop_product_purchase_price_table.c.unit_id == shop_product_unit_table.c.unit_id,
+                            shop_product_unit_table.c.unit_name == dto.unit)) \
+                .order_by(asc(shop_product_purchase_price_table.c.price))
             price = self._conn.execute(purchase_price_query).first()
 
             return _row_to_product_price_dto(price) if price else empty_list_response()

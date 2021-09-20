@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import event, insert, select
-from sqlalchemy.orm import backref, mapper, relationship
+from sqlalchemy import event, insert, select, and_
+from sqlalchemy.orm import backref, mapper, relationship, foreign
 from sqlalchemy.sql.functions import count
 
 from foundation.value_objects.address import Address
@@ -14,15 +14,16 @@ from shop.adapter.shop_db import (
     shop_product_supplier_table,
     shop_product_table,
     shop_product_tag_table,
-    shop_product_unit_table,
     shop_registration_table,
     shop_settings_table,
-    shop_product_purchase_price_table,
     shop_supplier_table,
     shop_table,
     shop_users_table,
-    shop_warehouse_table, shop_supplier_contact_table,
+    shop_warehouse_table,
+    shop_supplier_contact_table,
+    shop_product_unit_table, shop_product_purchase_price_table,
 )
+
 from shop.domain.entities.purchase_price import ProductPurchasePrice
 from shop.domain.entities.setting import Setting
 from shop.domain.entities.shop import Shop
@@ -41,51 +42,55 @@ from shop.domain.entities.value_objects import ShopUserType
 
 
 def start_mappers():
-    mapper(
-        Setting, shop_settings_table, properties={
-            'key': shop_settings_table.c.setting_key,
-            'value': shop_settings_table.c.setting_value,
-            'type': shop_settings_table.c.setting_type,
-        }
-    )
+    mapper(Setting, shop_settings_table, properties={
+        'key': shop_settings_table.c.setting_key,
+        'value': shop_settings_table.c.setting_value,
+        'type': shop_settings_table.c.setting_type,
+    })
 
-    mapper(
-        ShopRegistration, shop_registration_table,
-        version_id_col=shop_registration_table.c.version,
-        version_id_generator=None,
-        properties={
-            'registration_id': shop_registration_table.c.shop_registration_id,
-            'shop_name': shop_registration_table.c.name,
-        }
-    )
+    mapper(ShopRegistration, shop_registration_table, properties={
+        'registration_id': shop_registration_table.c.shop_registration_id,
+        'shop_name': shop_registration_table.c.name,
+    }, version_id_col=shop_registration_table.c.version, version_id_generator=None)
 
-    mapper(
-        ShopProductUnit, shop_product_unit_table, properties={
-            'referenced_unit': relationship(
-                ShopProductUnit,
-                foreign_keys=[shop_product_unit_table.c.product_id, shop_product_unit_table.c.referenced_unit_name],
-                remote_side=[shop_product_unit_table.c.product_id, shop_product_unit_table.c.unit_name],
-                backref=backref('_inherited_units'),
-                overlaps='_inherited_units, product_id'
-            ),
-        })
+    mapper(ShopProductUnit, shop_product_unit_table, properties={
+        '_product': relationship(ShopProduct,
+                                 foreign_keys=[shop_product_unit_table.c.product_id],
+                                 primaryjoin=shop_product_table.c.product_id == foreign(
+                                     shop_product_unit_table.c.product_id)),
+        'referenced_unit': relationship(ShopProductUnit,
+                                        foreign_keys=[shop_product_unit_table.c.referenced_unit_id],
+                                        remote_side=[shop_product_unit_table.c.unit_id],
+                                        primaryjoin=shop_product_unit_table.c.unit_id == foreign(
+                                            shop_product_unit_table.c.referenced_unit_id))
+    })
 
     mapper(ShopProductBrand, shop_brand_table)
     mapper(ShopProductTag, shop_product_tag_table)
     mapper(ShopCollection, shop_collection_table)
-    mapper(ProductPurchasePrice, shop_product_purchase_price_table,
-           properties={
-               '_price': shop_product_purchase_price_table.c.price,
+    mapper(
+        ProductPurchasePrice, shop_product_purchase_price_table,
+        properties={
+            '_price': shop_product_purchase_price_table.c.price,
 
-               'supplier': relationship(
-                   ShopSupplier
-               ),
+            'supplier': relationship(
+                ShopSupplier,
+                primaryjoin=shop_supplier_table.c.supplier_id == foreign(
+                    shop_product_purchase_price_table.c.supplier_id),
+            ),
 
-               'product_unit': relationship(
-                   ShopProductUnit,
-                   overlaps="product, _purchase_prices"
-               )
-           })
+            'product_unit': relationship(
+                ShopProductUnit,
+                primaryjoin=shop_product_unit_table.c.unit_id == foreign(shop_product_purchase_price_table.c.unit_id)
+            ),
+
+            '_product': relationship(
+                ShopProduct,
+                primaryjoin=shop_product_table.c.product_id == foreign(shop_product_purchase_price_table.c.product_id),
+                back_populates='_purchase_prices'
+            )
+        }
+    )
 
     # mapper(ShopProductCache, shop_product_view_cache_table)
 
@@ -97,8 +102,6 @@ def start_mappers():
             '_shop_id': shop_product_table.c.shop_id,
             '_brand_id': shop_product_table.c.brand_id,
             '_catalog_id': shop_product_table.c.catalog_id,
-
-            # '_cache': relationship(ShopProductCache, lazy='select'),
 
             '_shop': relationship(Shop),
 
@@ -115,8 +118,9 @@ def start_mappers():
 
             '_purchase_prices': relationship(
                 ProductPurchasePrice,
+                primaryjoin=shop_product_table.c.product_id == foreign(shop_product_purchase_price_table.c.product_id),
                 collection_class=set,
-                # overlaps="_units, product"
+                back_populates='_product',
             ),
 
             '_collections': relationship(
@@ -128,17 +132,21 @@ def start_mappers():
 
             '_units': relationship(
                 ShopProductUnit,
-                # backref=backref('_product', cascade='all', single_parent=True),
+                foreign_keys=[shop_product_table.c.product_id],
+                remote_side=[shop_product_unit_table.c.product_id],
+                primaryjoin=shop_product_table.c.product_id == foreign(shop_product_unit_table.c.product_id),
                 collection_class=set,
-                overlaps="_inherited_units, product_id",
-                backref=backref('_product')
+                back_populates='_product',
+                cascade='all, delete-orphan'
             ),
 
             '_tags': relationship(
                 ShopProductTag,
                 collection_class=set,
+                cascade='all, delete-orphan'
             )
-        })
+        }
+    )
 
     mapper(ShopCatalog, shop_catalog_table,
            properties={
@@ -234,7 +242,8 @@ def start_mappers():
                 ShopProductBrand,
                 collection_class=set,
             )
-        })
+        }
+    )
 
 
 def install_first_data(engine, admin_id: str, admin_email: str, central_db_repo: str, default_repo_cat: str):
