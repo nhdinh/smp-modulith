@@ -28,8 +28,8 @@ class SqlAlchemyShopRepository(AbstractShopRepository):
         return self._sess.query(Shop) \
             .join(ShopUser, Shop._users).filter(ShopUser.user_id == user_id).first()
 
-    def _save(self, store: Shop) -> None:
-        self._sess.add(store)
+    def _save(self, shop: Shop) -> None:
+        self._sess.add(shop)
 
     def save_registration(self, shop_registration: ShopRegistration) -> None:
         self._sess.add(shop_registration)
