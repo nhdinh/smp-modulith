@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from foundation.uow import SqlAlchemyUnitOfWork
+from promotion.services.promotion_repository import SqlAlchemyPromotionRepository
 
 
 class PromotionUnitOfWork(SqlAlchemyUnitOfWork):

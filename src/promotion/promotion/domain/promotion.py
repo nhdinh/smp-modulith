@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
+from typing import List
+
 from foundation import EventMixin
-from promotion.domain.value_objects import (PromotionId, PromotionStatus)
+from promotion.domain.value_objects import (PromotionId, PromotionStatus, PromotionTypes)
 
 
 class Promotion(EventMixin):
@@ -14,3 +17,6 @@ class Promotion(EventMixin):
         self.title = title
         self.status = status
         self.version = version
+
+    def create_promotion(self, title: str, products: List[Product], active_date: datetime, expire_date: datetime, promotion_type: PromotionTypes) -> 'Promotion':
+        ...

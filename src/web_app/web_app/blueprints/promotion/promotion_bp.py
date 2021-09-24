@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 import flask_injector
 import injector
-from flask import Blueprint
+from flask import Blueprint, Response, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from promotion.services.usecases.add_product_promotion_uc import AddProductPromotionUC, \
+    AddingProductPromotionResponseBoundary, AddingProductPromotionRequest
 from web_app.helpers import validate_request_timestamp
 from web_app.presenters import log_error
+from web_app.serialization.dto import get_dto
 
 PROMOTION_BLUEPRINT_NAME = 'promo_blueprint'
 promo_blueprint = Blueprint(PROMOTION_BLUEPRINT_NAME, __name__)

@@ -257,25 +257,6 @@ shop_product_supplier_table = sa.Table(
     sa.PrimaryKeyConstraint('product_id', 'supplier_id', name='product_supplier_pk')
 )
 
-shop_product_purchase_price_table = sa.Table(
-    'shop_supplier_product_price',
-    metadata,
-    sa.Column('product_price_id', sa.String(40), primary_key=True, default=generate_product_purchase_price_id),
-    sa.Column('product_id', sa.String(40), nullable=False),
-    sa.Column('supplier_id', sa.String(40), nullable=False),
-    sa.Column('unit_id', sa.String(40), nullable=False),
-
-    sa.Column('price', sa.Numeric, nullable=False),
-    sa.Column('currency', sa.String(10), nullable=False),
-    sa.Column('tax', sa.Numeric, nullable=True),
-    sa.Column('effective_from', sa.Date, nullable=False, server_default=sa.func.now()),
-
-    sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
-
-    sa.UniqueConstraint('product_id', 'supplier_id', 'unit_id', 'effective_from', name='shop_product_supplier_price_uix'),
-)
-
 shop_unit_cache_table = sa.Table(
     'shop_units_cache',
     metadata,

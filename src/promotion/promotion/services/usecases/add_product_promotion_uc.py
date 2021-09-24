@@ -3,6 +3,9 @@
 import abc
 from dataclasses import dataclass
 
+from promotion.domain.value_objects import PromotionId, PromotionTypes
+from promotion.services.promotion_uow import PromotionUnitOfWork
+
 
 @dataclass
 class AddingProductPromotionRequest:
