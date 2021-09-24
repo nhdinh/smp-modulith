@@ -230,32 +230,6 @@ shop_product_collection_table = sa.Table(
     sa.PrimaryKeyConstraint('product_id', 'collection_id', name='product_collection_pk'),
 )
 
-# shop_product_unit_table = sa.Table(
-#     'shop_product_unit',
-#     metadata,
-#     sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, ondelete='CASCADE', onupdate='CASCADE')),
-#     sa.Column('unit_name', sa.String(50)),
-#
-#     sa.UniqueConstraint('product_id', 'unit_name', name='shop_product_unit_uix'),
-#     sa.PrimaryKeyConstraint('product_id', 'unit_name', name='shop_product_unit_pk'),
-#
-#     sa.Column('referenced_unit_name', nullable=True, default=None),
-#     sa.Column('conversion_factor', sa.Numeric, nullable=True, server_default='1'),
-#
-#     sa.Column('default', sa.Boolean, default=False, server_default='0'),
-#     sa.Column('status', sa.Enum(GenericShopItemStatus), nullable=False, default=GenericShopItemStatus.NORMAL),
-#
-#     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-#     sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
-#
-#     sa.ForeignKeyConstraint(
-#         ('product_id', 'referenced_unit_name'),
-#         ['shop_product_unit.product_id', 'shop_product_unit.unit_name'],
-#         name='shop_product_unit_fk',
-#         ondelete='SET NULL'
-#     ),
-# )
-
 shop_product_unit_table = sa.Table(
     'shop_product_unit',
     metadata,
@@ -287,11 +261,6 @@ shop_product_purchase_price_table = sa.Table(
     'shop_supplier_product_price',
     metadata,
     sa.Column('product_price_id', sa.String(40), primary_key=True, default=generate_product_purchase_price_id),
-    # sa.Column('product_id', sa.ForeignKey(shop_product_table.c.product_id, onupdate='CASCADE', ondelete='CASCADE'),
-    #           nullable=False),
-    # sa.Column('supplier_id', sa.ForeignKey(shop_supplier_table.c.supplier_id, onupdate='CASCADE', ondelete='CASCADE'),
-    #           nullable=False),
-
     sa.Column('product_id', sa.String(40), nullable=False),
     sa.Column('supplier_id', sa.String(40), nullable=False),
     sa.Column('unit_id', sa.String(40), nullable=False),
@@ -304,9 +273,6 @@ shop_product_purchase_price_table = sa.Table(
     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
 
-    # sa.ForeignKeyConstraint(('product_id', 'unit'),
-    #                         [shop_product_unit_table.c.product_id, shop_product_unit_table.c.unit_name],
-    #                         name='shop_product_unit_fk'),
     sa.UniqueConstraint('product_id', 'supplier_id', 'unit_id', 'effective_from', name='shop_product_supplier_price_uix'),
 )
 
