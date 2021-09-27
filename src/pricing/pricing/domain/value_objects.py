@@ -19,8 +19,12 @@ class GenericItemStatus(Enum):
 @dataclass
 class ResourceOwner:
     user_id: ResourceOwnerId
-    username: str
+    email: str
     status: GenericItemStatus
+
+    @property
+    def username(self):
+        return self.email
 
 
 class ExceptionMessages(Enum):

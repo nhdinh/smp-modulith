@@ -63,6 +63,8 @@ class Db(injector.Module):
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
 
+        # TODO: Move database initialize here
+
     @request
     @injector.provider
     def connection(self) -> Connection:

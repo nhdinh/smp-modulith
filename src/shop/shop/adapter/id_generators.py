@@ -13,8 +13,6 @@ SHOP_PRODUCT_ID_KEYSIZE = (20, 10)
 IMAGE_FILE = 'ShopImg'
 PRODUCT_UNIT_ID_PREFIX = 'Unit'
 PRODUCT_UNIT_ID_KEYSIZE = (20, 10)
-PURCHASE_PRICE_PREFIX = 'PPrice'
-SELL_PRICE_PREFIX = 'SPrice'
 
 
 def generate_shop_id():
@@ -51,11 +49,3 @@ def generate_product_unit_id():
 
 def generate_image_id():
     return nanoid_generate(prefix=IMAGE_FILE, key_size=(30, 10))
-
-
-def generate_purchase_price_id():
-    return nanoid_generate(prefix=PURCHASE_PRICE_PREFIX)
-
-
-def generate_sell_price_id():
-    return nanoid_generate(prefix=SELL_PRICE_PREFIX)
