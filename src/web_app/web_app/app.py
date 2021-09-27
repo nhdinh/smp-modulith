@@ -19,6 +19,7 @@ from main.modules import RequestScope
 from web_app.blueprints.catalog_bp import CatalogAPI, catalog_blueprint
 from web_app.blueprints.foundation_bp import foundation_blueprint, FoundationAPI
 from web_app.blueprints.identity.identity_bp import IdentityAPI, identity_blueprint
+from web_app.blueprints.pricing.pricing_bp import PricingAPI, pricing_blueprint
 from web_app.blueprints.product_bp import ProductAPI, product_blueprint
 from web_app.blueprints.shop import ShopAPI, shop_blueprint, ShopCatalogAPI, ShopProductAPI, ShopSupplierAPI, \
     shop_catalog_blueprint, shop_supplier_blueprint, shop_product_blueprint, ShopBrandAPI, shop_brand_blueprint
@@ -74,6 +75,7 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
     app.register_blueprint(shop_product_blueprint, url_prefix='/shop/product')
     # app.register_blueprint(store_catalog_blueprint, url_prefix='/store-catalog')
     # app.register_blueprint(inventory_blueprint, url_prefix='/inventory')
+    app.register_blueprint(pricing_blueprint, url_prefix='/pricing')
 
     # TODO: move this config
     app.config["SECRET_KEY"] = "super-secret"
@@ -99,6 +101,8 @@ def create_app(settings_override: Optional[dict] = None) -> Flask:
         ShopProductAPI(),
         ShopSupplierAPI(),
         ShopBrandAPI(),
+
+        PricingAPI(),
 
         # InventoryAPI(),
     ], injector=app_context.injector)

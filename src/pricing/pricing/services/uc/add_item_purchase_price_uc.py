@@ -5,10 +5,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
-from foundation.events import ThingGoneInBlackHoleError
-from foundation.value_objects import Money
 from foundation.value_objects.currency import _get_registered_currency_or_default
-from pricing.domain.value_objects import ProductId, ShopId, ExceptionMessages
+from pricing.domain.value_objects import ProductId, ShopId, ExceptionMessages, UnitId
 from pricing.services.pricing_uow import PricingUnitOfWork
 from pricing.services.uc.pricing_uc_common import get_authorize_bounded_user, get_priced_item
 from web_app.serialization.dto import BaseAuthorizedRequest
@@ -18,6 +16,7 @@ from web_app.serialization.dto import BaseAuthorizedRequest
 class AddingItemPurchasePriceRequest(BaseAuthorizedRequest):
     shop_id: ShopId
     product_id: ProductId
+    unit_id: UnitId
     unit_name: str
     amount: float
     currency: str
@@ -56,8 +55,12 @@ class AddItemPurchasePriceUC:
                 same_unit_pprices = [pprice for pprice in priced_item.purchase_prices if
                                      pprice.unit_name == dto.unit_name]
                 if not same_unit_pprices:
-                    priced_item.add_purchase_price(unit_name=dto.unit_name, amount=dto.amount, currency=dto.currency,
-                                                   tax=dto.tax, effective_from=dto.effective_from,
+                    priced_item.add_purchase_price(unit_id=dto.unit_id,
+                                                   unit_name=dto.unit_name,
+                                                   amount=dto.amount,
+                                                   currency=dto.currency,
+                                                   tax=dto.tax,
+                                                   effective_from=dto.effective_from,
                                                    expired_on=dto.expired_on)
                 else:
                     raise Exception(ExceptionMessages.OVERLAP_PURCHASE_PRICE_EXISTED)
