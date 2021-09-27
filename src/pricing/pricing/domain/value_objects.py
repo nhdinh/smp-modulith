@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+from datetime import date
 from enum import Enum
 from typing import NewType
+
+from foundation.value_objects import Currency
 
 ShopId = NewType('ShopId', tp=str)
 ProductId = NewType('ProductId', tp=str)
 ResourceOwnerId = NewType('ResourceOwnerId', tp=str)
+PriceId = NewType('PriceId', tp=str)
+PurchasePriceId = NewType('PurchasePriceId', tp=str)
+SellPriceId = NewType('SellPriceId', tp=str)
 
 
 class GenericItemStatus(Enum):
@@ -14,6 +20,11 @@ class GenericItemStatus(Enum):
     NORMAL = 'NORMAL'
     DISABLED = 'DISABLED'
     DELETED = 'DELETED'
+
+
+class PriceTypes(Enum):
+    SELL = 'SELL',
+    PURCHASE = 'PURCHASE'
 
 
 @dataclass
@@ -25,6 +36,32 @@ class ResourceOwner:
     @property
     def username(self):
         return self.email
+
+
+@dataclass
+class Price:
+    price_id: PriceId
+    amount: float
+    currency: Currency
+    tax: float
+    effective_from: date
+    expired_at: date
+
+    def __eq__(self, other):
+        if not isinstance(other, Price):
+            return False
+        else:
+            return (self.price_id == other.price_id) | (self.price_type == other.price_type)
+
+
+@dataclass
+class PurchasePrice(Price):
+    purchase_price_id: PurchasePriceId
+
+
+@dataclass
+class SellPrice(Price):
+    sell_price_id: SellPriceId
 
 
 class ExceptionMessages(Enum):

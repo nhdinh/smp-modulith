@@ -27,7 +27,6 @@ from shop.shop_application_module import ShopApplicationModule
 from shop.shop_event_handler_module import ShopEventHandlerModule
 from shop.shop_infrastructure_module import ShopInfrastructureModule
 
-
 __all__ = ["bootstrap_app"]
 
 
@@ -168,6 +167,12 @@ def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:
     try:
         from shop.adapter import shop_mappers
         shop_mappers.start_mappers()
+    except Exception as exc:
+        raise exc
+
+    try:
+        from pricing.adapter.pricing_db import pricing_mapper
+        pricing_mapper()
     except Exception as exc:
         raise exc
 

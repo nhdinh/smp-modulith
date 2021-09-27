@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import sqlalchemy as sa
+from sqlalchemy import and_
 from sqlalchemy.orm import mapper, relationship, foreign
 
 from db_infrastructure import metadata
-from pricing.adapter.id_generators import generate_purchase_price_id, generate_sell_price_id
+from pricing.adapter.id_generators import generate_price_id
 from pricing.domain.priced_item import PricedItem
-from pricing.domain.value_objects import ResourceOwner
+from pricing.domain.value_objects import ResourceOwner, PurchasePrice, SellPrice, PriceTypes, Price
 
 pricing_user_table = sa.Table(
     'pricing_users',
@@ -33,77 +34,56 @@ pricing_priced_items_table = sa.Table(
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
 )
 
-pricing_purchase_price_table = sa.Table(
-    'pricing_purchase_price',
+pricing_price_table = sa.Table(
+    'pricing_price',
     metadata,
-    sa.Column('purchase_price_id', sa.String(40), primary_key=True, default=generate_purchase_price_id),
+    sa.Column('price_id', sa.String(40), primary_key=True, default=generate_price_id),
     sa.Column('product_id', sa.String(40), nullable=False),
     sa.Column('unit_id', sa.String(40), nullable=False),
     sa.Column('unit_name', sa.String(50), nullable=False),
+    sa.Column('price_type', sa.Enum(PriceTypes), nullable=False),
 
     sa.Column('price', sa.Numeric, nullable=False),
     sa.Column('currency', sa.String(10), nullable=False),
     sa.Column('tax', sa.Numeric, nullable=True),
     sa.Column('effective_from', sa.Date, nullable=False, server_default=sa.func.now()),
-
-    sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
-    sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()),
-)
-
-pricing_sell_price_table = sa.Table(
-    'pricing_sell_price',
-    metadata,
-    sa.Column('sell_price_id', sa.String(40), primary_key=True, default=generate_sell_price_id),
-    sa.Column('product_id', sa.String(40), nullable=False),
-    sa.Column('unit_id', sa.String(40), nullable=False),
-    sa.Column('unit_name', sa.String(50), nullable=False),
-
-    sa.Column('price', sa.Numeric, nullable=False),
-    sa.Column('currency', sa.String(10), nullable=False),
-    sa.Column('tax', sa.Numeric, nullable=True),
-    sa.Column('effective_from', sa.Date, nullable=False, server_default=sa.func.now()),
+    sa.Column('expired_on', sa.Date, nullable=True),
 
     sa.Column('created_at', sa.DateTime, nullable=False, default=sa.func.now()),
     sa.Column('updated_at', sa.DateTime, onupdate=sa.func.now()), )
 
-mapper(
-    ResourceOwner, pricing_user_table
-)
 
-mapper(
-    PricedItem, pricing_priced_items_table,
-    properties={
-        '_owner': relationship(
-            ResourceOwner,
-            primaryjoin=pricing_user_table.c.user_id == foreign(pricing_priced_items_table.c.owner_id)
-        ),
+def pricing_mapper():
+    mapper(
+        ResourceOwner, pricing_user_table
+    )
 
-        'purchase_prices': relationship(
+    mapper(
+        Price, pricing_price_table
+    )
 
-        )
-    }
-)
+    mapper(
+        PricedItem, pricing_priced_items_table,
+        properties={
+            '_owner': relationship(
+                ResourceOwner,
+                primaryjoin=pricing_user_table.c.user_id == foreign(pricing_priced_items_table.c.owner_id)
+            ),
 
-# mapper(
-#     ProductPurchasePrice, shop_product_purchase_price_table,
-#     properties={
-#         '_price': shop_product_purchase_price_table.c.price,
-#
-#         'supplier': relationship(
-#             ShopSupplier,
-#             primaryjoin=shop_supplier_table.c.supplier_id == foreign(
-#                 shop_product_purchase_price_table.c.supplier_id),
-#         ),
-#
-#         'product_unit': relationship(
-#             ShopProductUnit,
-#             primaryjoin=shop_product_unit_table.c.unit_id == foreign(shop_product_purchase_price_table.c.unit_id)
-#         ),
-#
-#         '_product': relationship(
-#             ShopProduct,
-#             primaryjoin=shop_product_table.c.product_id == foreign(shop_product_purchase_price_table.c.product_id),
-#             back_populates='_purchase_prices'
-#         )
-#     }
-# )
+            'purchase_prices': relationship(
+                Price,
+                primaryjoin=and_(foreign(pricing_price_table.c.product_id) == pricing_priced_items_table.c.product_id,
+                                 pricing_price_table.c.price_types == PriceTypes.PURCHASE),
+                back_populates='_product',
+                collection_class=set,
+            ),
+
+            'sell_price': relationship(
+                Price,
+                primaryjoin=and_(foreign(pricing_price_table.c.product_id) == pricing_priced_items_table.c.product_id,
+                                 pricing_price_table.c.price_types == PriceTypes.SELL),
+                back_populates='_product',
+                collection_class=set,
+            )
+        }
+    )
