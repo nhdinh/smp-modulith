@@ -10,7 +10,7 @@ from foundation import Entity
 from foundation import EventMixin, ThingGoneInBlackHoleError, new_event_id
 from foundation.value_objects import Money
 from foundation.value_objects.factories import get_money
-from shop.adapter.id_generators import generate_product_id, generate_product_purchase_price_id
+from shop.adapter.id_generators import generate_product_id
 from shop.domain.entities.purchase_price import ProductPurchasePrice
 from shop.domain.entities.shop_catalog import ShopCatalog
 from shop.domain.entities.shop_collection import ShopCollection

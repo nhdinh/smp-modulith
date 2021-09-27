@@ -27,7 +27,6 @@ from shop.application.usecases.shop.add_shop_user_uc import AddShopUserUC, Addin
     AddingShopUserResponseBoundary
 from shop.application.usecases.shop.upload_image_uc import UploadImageUC, UploadingImageResponseBoundary, \
     UploadingImageRequest
-from web_app.blueprints.shop.shop_product_bp import shop_product_blueprint
 from web_app.presenters import log_error
 from web_app.presenters.shop_presenters import RegisteringShopPresenter, AddingShopAddressPresenter, \
     AddingShopSupplierPresenter, AddingShopBrandPresenter, AddingShopUserPresenter, UploadingImagePresenter, \

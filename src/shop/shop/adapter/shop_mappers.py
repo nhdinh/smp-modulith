@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sqlalchemy import event, insert, select, and_
+from sqlalchemy import event, insert, select
 from sqlalchemy.orm import backref, mapper, relationship, foreign
 from sqlalchemy.sql.functions import count
 
@@ -21,10 +21,8 @@ from shop.adapter.shop_db import (
     shop_users_table,
     shop_warehouse_table,
     shop_supplier_contact_table,
-    shop_product_unit_table, shop_product_purchase_price_table,
+    shop_product_unit_table,
 )
-
-from shop.domain.entities.purchase_price import ProductPurchasePrice
 from shop.domain.entities.setting import Setting
 from shop.domain.entities.shop import Shop
 from shop.domain.entities.shop_address import ShopAddress
@@ -68,29 +66,6 @@ def start_mappers():
     mapper(ShopProductBrand, shop_brand_table)
     mapper(ShopProductTag, shop_product_tag_table)
     mapper(ShopCollection, shop_collection_table)
-    mapper(
-        ProductPurchasePrice, shop_product_purchase_price_table,
-        properties={
-            '_price': shop_product_purchase_price_table.c.price,
-
-            'supplier': relationship(
-                ShopSupplier,
-                primaryjoin=shop_supplier_table.c.supplier_id == foreign(
-                    shop_product_purchase_price_table.c.supplier_id),
-            ),
-
-            'product_unit': relationship(
-                ShopProductUnit,
-                primaryjoin=shop_product_unit_table.c.unit_id == foreign(shop_product_purchase_price_table.c.unit_id)
-            ),
-
-            '_product': relationship(
-                ShopProduct,
-                primaryjoin=shop_product_table.c.product_id == foreign(shop_product_purchase_price_table.c.product_id),
-                back_populates='_purchase_prices'
-            )
-        }
-    )
 
     # mapper(ShopProductCache, shop_product_view_cache_table)
 
@@ -114,13 +89,6 @@ def start_mappers():
                 secondary=shop_product_supplier_table,
                 collection_class=set,
                 backref=backref('_products'),
-            ),
-
-            '_purchase_prices': relationship(
-                ProductPurchasePrice,
-                primaryjoin=shop_product_table.c.product_id == foreign(shop_product_purchase_price_table.c.product_id),
-                collection_class=set,
-                back_populates='_product',
             ),
 
             '_collections': relationship(

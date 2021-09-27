@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from itertools import groupby
 
-from sqlalchemy import select, desc, and_, asc
+from sqlalchemy import select, desc
 
 from db_infrastructure.base import SqlQuery
 from foundation.events import ThingGoneInBlackHoleError
@@ -10,21 +9,19 @@ from shop.adapter.queries.query_common import sql_get_authorized_shop_id
 from shop.adapter.queries.query_factories import get_shop_product_query_factory, \
     list_shop_collections_bound_to_product_query_factory, \
     list_shop_products_query_factory, count_products_query_factory, list_suppliers_bound_to_product_query, \
-    list_units_bound_to_product_query_factory, list_purchase_prices_bound_to_product_query_factory
+    list_units_bound_to_product_query_factory
 from shop.adapter.shop_db import shop_product_tag_table, \
-    shop_product_table, shop_catalog_table, shop_brand_table, shop_product_unit_table, shop_product_purchase_price_table
+    shop_product_table, shop_catalog_table, shop_brand_table, shop_product_unit_table
 from shop.application.queries.product_queries import GetShopProductQuery, GetShopProductRequest, ListShopProductsQuery, \
-    ListShopProductsRequest, ListShopProductPurchasePricesRequest, ListShopProductPurchasePricesQuery, \
-    ListUnitsByShopProductQuery, ListUnitsByShopProductRequest, ListShopSuppliersByProductQuery, \
-    ListShopSuppliersByProductRequest, GetShopProductPurchasePriceQuery, GetShopProductPurchasePriceRequest, \
-    GetShopProductLowestPurchasePriceQuery, GetShopProductLowestPurchasePriceRequest, ProductOrderOptions
-from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductPriceDto, \
-    _row_to_product_price_dto, ShopProductDto
+    ListShopProductsRequest, ListUnitsByShopProductQuery, ListUnitsByShopProductRequest, \
+    ListShopSuppliersByProductQuery, \
+    ListShopSuppliersByProductRequest, ProductOrderOptions
+from shop.domain.dtos.product_dtos import _row_to_product_dto, ShopProductDto
 from shop.domain.dtos.product_unit_dtos import ShopProductUnitDto, _row_to_unit_dto
 from shop.domain.dtos.supplier_dtos import ShopSupplierDto, _row_to_supplier_dto
 from shop.domain.entities.value_objects import ExceptionMessages, GenericShopItemStatus
 from web_app.serialization.dto import PaginationTypedResponse, paginate_response_factory, SimpleListTypedResponse, \
-    list_response_factory, empty_list_response
+    list_response_factory
 
 
 class SqlGetShopProductQuery(GetShopProductQuery, SqlQuery):
@@ -169,74 +166,5 @@ class SqlListShopSuppliersByProductQuery(ListShopSuppliersByProductQuery, SqlQue
 
             items = [_row_to_supplier_dto(r) for r in suppliers] if suppliers else []
             return list_response_factory(items=items)
-        except Exception as exc:
-            raise exc
-
-
-class SqlListShopProductPurchasePricesQuery(ListShopProductPurchasePricesQuery, SqlQuery):
-    def query(self, dto: ListShopProductPurchasePricesRequest) -> SimpleListTypedResponse[ShopProductPriceDto]:
-        try:
-            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id, current_user_id=dto.current_user_id,
-                                                       conn=self._conn)
-            if not valid_shop_id:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
-
-            purchase_prices_query = list_purchase_prices_bound_to_product_query_factory(shop_id=dto.shop_id,
-                                                                                        product_id=dto.product_id)
-            data_rows = self._conn.execute(purchase_prices_query)
-
-            if data_rows:
-                data_rows = sorted(data_rows, key=lambda r: r.product_price_id)
-
-            # make response_items
-            response_items = dict()
-            if not dto.group_by_supplier:
-                for unit, others in groupby(data_rows, key=lambda x: x.unit):
-                    response_items[unit] = [_row_to_product_price_dto(x) for x in others]
-            else:
-                for supplier_id, others in groupby(data_rows, key=lambda x: x.supplier_id):
-                    response_items[supplier_id] = [_row_to_product_price_dto(x) for x in others]
-
-            return list_response_factory(response_items)  # type:ignore
-        except Exception as exc:
-            raise exc
-
-
-class SqlGetShopProductPurchasePriceQuery(GetShopProductPurchasePriceQuery, SqlQuery):
-    def query(self, dto: GetShopProductPurchasePriceRequest) -> ShopProductPriceDto:
-        try:
-            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id, current_user_id=dto.current_user_id,
-                                                       conn=self._conn)
-            if not valid_shop_id:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
-
-            purchase_price_query = list_purchase_prices_bound_to_product_query_factory(shop_id=dto.shop_id,
-                                                                                       product_id=dto.product_id) \
-                .where(and_(shop_product_purchase_price_table.c.unit_id == shop_product_unit_table.c.unit_id,
-                            shop_product_purchase_price_table.c.supplier_id == dto.supplier_id,
-                            shop_product_unit_table.c.unit_name == dto.unit))
-            price = self._conn.execute(purchase_price_query).first()
-
-            return _row_to_product_price_dto(price) if price else empty_list_response()
-        except Exception as exc:
-            raise exc
-
-
-class SqlGetShopProductLowestPurchasePriceQuery(GetShopProductLowestPurchasePriceQuery, SqlQuery):
-    def query(self, dto: GetShopProductLowestPurchasePriceRequest) -> ShopProductPriceDto:
-        try:
-            valid_shop_id = sql_get_authorized_shop_id(shop_id=dto.shop_id, current_user_id=dto.current_user_id,
-                                                       conn=self._conn)
-            if not valid_shop_id:
-                raise ThingGoneInBlackHoleError(ExceptionMessages.SHOP_OWNERSHIP_NOT_FOUND)
-
-            purchase_price_query = list_purchase_prices_bound_to_product_query_factory(shop_id=dto.shop_id,
-                                                                                       product_id=dto.product_id) \
-                .where(and_(shop_product_purchase_price_table.c.unit_id == shop_product_unit_table.c.unit_id,
-                            shop_product_unit_table.c.unit_name == dto.unit)) \
-                .order_by(asc(shop_product_purchase_price_table.c.price))
-            price = self._conn.execute(purchase_price_query).first()
-
-            return _row_to_product_price_dto(price) if price else empty_list_response()
         except Exception as exc:
             raise exc

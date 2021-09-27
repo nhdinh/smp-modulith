@@ -11,12 +11,12 @@ from foundation.events import EventStatus
 from shop.adapter.id_generators import (
     generate_brand_id,
     generate_product_id,
-    generate_product_purchase_price_id,
+    generate_purchase_price_id,
     generate_shop_address_id,
     generate_shop_catalog_id,
     generate_shop_collection_id,
     generate_shop_id,
-    generate_supplier_id, generate_product_unit_id,
+    generate_supplier_id, generate_product_unit_id, generate_sell_price_id,
 )
 from shop.domain.entities.value_objects import AddressType, RegistrationStatus, GenericShopItemStatus, ShopStatus, \
     ShopUserType
@@ -272,6 +272,32 @@ shop_product_tag_table = sa.Table(
 
     sa.PrimaryKeyConstraint('product_id', 'tag', name='shop_product_tag_pk'),
     sa.UniqueConstraint('product_id', 'tag', name='product_id_tag_uix'),
+)
+
+pricing_purchase_price_table = sa.Table(
+    'product_purchase_price',
+    metadata,
+    sa.Column('purchase_price_id', sa.String(40), primary_key=True, default=generate_purchase_price_id),
+    sa.Column('shop_id', sa.String(40)),
+    sa.Column('product_id', sa.String(40), nullable=False),
+    sa.Column('supplier_id', sa.String(40), nullable=False),
+    sa.Column('unit_id', sa.String(40), nullable=False),
+
+    sa.Column('price', sa.Numeric, nullable=False),
+    sa.Column('currency', sa.String(10), nullable=False),
+    sa.Column('tax', sa.Numeric, nullable=True),
+    sa.Column('effective_from', sa.Date, nullable=False, server_default=sa.func.now()),
+
+    sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
+    sa.Column('updated_at', sa.DateTime, onupdate=datetime.now),
+
+    sa.UniqueConstraint('product_id', 'supplier_id', 'unit_id', 'effective_from', name='purchase_price_uix'),
+)
+
+pricing_sell_price_table = sa.Table(
+    'product_sell_price',
+    metadata,
+    sa.Column('sell_price_id', sa.String(40), primary_key=True, default=generate_sell_price_id),
 )
 
 shop_event_table = sa.Table(

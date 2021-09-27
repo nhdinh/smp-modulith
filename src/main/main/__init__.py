@@ -18,6 +18,9 @@ from inventory.inventory_application_module import InventoryApplicationModule
 from inventory.inventory_event_handler_module import InventoryEventHandlerModule
 from inventory.inventory_infrastructure_module import InventoryInfrastructureModule
 from main.modules import Configs, Db, EventBusMod, FileSystemProvider, MinIOService, RedisMod, Rq
+from pricing.pricing_application_module import PricingApplicationModule
+from pricing.pricing_event_handler_module import PricingEventHandlerModule
+from pricing.pricing_infrastructure_module import PricingInfrastructureModule
 from processes import Processes
 from product_catalog import ProductCatalogInfrastructureModule, ProductCatalogModule
 from shop.shop_application_module import ShopApplicationModule
@@ -118,6 +121,10 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
             ShopEventHandlerModule(),
             ShopInfrastructureModule(),
             ShopApplicationModule(),
+
+            PricingInfrastructureModule(),
+            PricingApplicationModule(),
+            PricingEventHandlerModule(),
 
             InventoryEventHandlerModule(),
             InventoryInfrastructureModule(),
