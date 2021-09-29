@@ -47,19 +47,6 @@ class ResourceOwner:
 
 
 @dataclass
-class MeasurementUnit:
-    unit_id: UnitId
-    unit_name: str
-
-    def __eq__(self, other):
-        if not isinstance(other, MeasurementUnit):
-            return False
-        else:
-            return other.unit_id == self.unit_id or (
-                    other.product_id == self.product_id and other.unit_name == self.unit_name)
-
-
-@dataclass
 class Price:
     unit_id: UnitId
     unit_name: str

@@ -6,18 +6,25 @@ from datetime import date
 from typing import Optional
 
 from foundation.value_objects.currency import _get_registered_currency_or_default
-from pricing.domain.value_objects import ProductId, ShopId, ExceptionMessages, UnitId
+from pricing.domain.priced_item import PricedItem
+from pricing.domain.value_objects import ProductId, ShopId, ExceptionMessages, UnitId, GenericItemStatus
 from pricing.services.pricing_uow import PricingUnitOfWork
-from pricing.services.uc.pricing_uc_common import get_authorize_bounded_user, get_priced_item
+from pricing.services.uc.pricing_uc_common import get_authorize_bounded_user, get_priced_item, is_duration_overlapping
 from web_app.serialization.dto import BaseAuthorizedRequest
 
 
 @dataclass
 class AddingItemPurchasePriceRequest(BaseAuthorizedRequest):
     shop_id: ShopId
+
     product_id: ProductId
+    product_title: Optional[str]
+    product_sku: Optional[str]
+    product_status: Optional[str]
+
     unit_id: UnitId
-    unit_name: str
+    unit_name: Optional[str]
+
     amount: float
     currency: str
     tax: float
@@ -50,20 +57,34 @@ class AddItemPurchasePriceUC:
                     raise TypeError(ExceptionMessages.CURRENCY_NOT_REGISTERED)
 
                 owner = get_authorize_bounded_user(user_id=dto.current_user_id, uow=uow)
-                priced_item = get_priced_item(owner=owner, shop_id=dto.shop_id, product_id=dto.product_id, uow=uow)
+
+                priced_item = None
+                try:
+                    priced_item = get_priced_item(owner=owner, shop_id=dto.shop_id, product_id=dto.product_id, uow=uow)
+                except Exception:
+                    priced_item = PricedItem(owner_id=dto.current_user_id,
+                                             shop_id=dto.shop_id,
+                                             product_id=dto.product_id,
+                                             title=dto.product_title,
+                                             sku=dto.product_sku,
+                                             status=GenericItemStatus(dto.product_status), version=0)
+                    uow.prices.save(priced_item)
 
                 same_unit_pprices = [pprice for pprice in priced_item.purchase_prices if
                                      pprice.unit_name == dto.unit_name]
-                if not same_unit_pprices:
-                    priced_item.add_purchase_price(unit_id=dto.unit_id,
-                                                   unit_name=dto.unit_name,
-                                                   amount=dto.amount,
-                                                   currency=dto.currency,
-                                                   tax=dto.tax,
-                                                   effective_from=dto.effective_from,
-                                                   expired_on=dto.expired_on)
-                else:
-                    raise Exception(ExceptionMessages.OVERLAP_PURCHASE_PRICE_EXISTED)
+                if same_unit_pprices:
+                    for existed_pprice in same_unit_pprices:
+                        if is_duration_overlapping(existed_pprice.effective_from, existed_pprice.expired_on,
+                                                   dto.effective_from, dto.expired_on):
+                            raise Exception(ExceptionMessages.OVERLAP_PURCHASE_PRICE_EXISTED)
+
+                priced_item.add_purchase_price(unit_id=dto.unit_id,
+                                               unit_name=dto.unit_name,
+                                               amount=dto.amount,
+                                               currency=currency.iso_code,
+                                               tax=dto.tax,
+                                               effective_from=dto.effective_from,
+                                               expired_on=dto.expired_on)
 
                 response_dto = AddingItemPurchasePriceResponse()
                 self._ob.present(response_dto=response_dto)

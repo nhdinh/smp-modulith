@@ -6,28 +6,16 @@ from sqlalchemy import update, and_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.engine import Connection
 
-from foundation.events import EventBus, new_event_id
+from foundation.events import EventBus, new_event_id, DomainEvent
 from foundation.logger import logger
 from identity.domain.events import UnexistentUserRequestEvent
 from identity.domain.value_objects import UserId
 from shop.adapter.id_generators import generate_shop_id, generate_shop_catalog_id
-from shop.adapter.queries.query_factories import (
-    get_shop_product_query_factory,
-    list_suppliers_bound_to_product_query,
-    list_shop_collections_bound_to_product_query_factory,
-    # list_units_bound_to_product_query_factory,
-)
-from shop.adapter.shop_db import shop_product_view_cache_table, shop_users_table, shop_table, shop_warehouse_table, \
+from shop.adapter.shop_db import shop_users_table, shop_table, shop_warehouse_table, \
     shop_catalog_table
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
-from shop.domain.dtos.catalog_dtos import ShopCatalogDto
-from web_app.serialization.dto import row_proxy_to_dto
-from shop.domain.dtos.collection_dtos import _row_to_collection_dto
-from shop.domain.dtos.product_unit_dtos import _row_to_unit_dto
-from shop.domain.dtos.shop_brand_dtos import ShopBrandDto
-from shop.domain.dtos.supplier_dtos import _row_to_supplier_dto
 from shop.domain.entities.value_objects import ShopId, ShopStatus, GenericShopItemStatus, \
-    ShopProductId, SystemUserId, ShopUserType, ShopWarehouseId
+    SystemUserId, ShopUserType, ShopWarehouseId
 from shop.domain.events import PendingShopCreatedEvent
 
 
@@ -81,69 +69,6 @@ class ShopHandlerFacade:
         insertion = insert(shop_warehouse_table).values(shop_id=shop_id, warehouse_id=warehouse_id)
         self._conn.execute(insertion)
 
-    # def update_shop_product_cache(self, product_id: ShopProductId, shop_id: ShopId):
-    #     query = get_shop_product_query_factory(product_id=product_id, shop_id=shop_id)
-    #     product_data = self._conn.execute(query).first()
-    #
-    #     if not product_data:
-    #         return
-    #
-    #     # get catalog and brand
-    #     catalog_json = row_proxy_to_dto(product_data, ShopCatalogDto)
-    #     brand_json = row_proxy_to_dto(product_data, ShopBrandDto) if product_data.brand_id else None
-    #
-    #     # get collections
-    #     query = list_shop_collections_bound_to_product_query_factory(shop_id=shop_id, product_id=product_id)
-    #     collections_data = self._conn.execute(query).all()
-    #     collections_json = [_row_to_collection_dto(r) for r in collections_data]
-    #
-    #     # get suppliers
-    #     query = list_suppliers_bound_to_product_query(shop_id=shop_id, product_id=product_id)
-    #     suppliers_data = self._conn.execute(query).all()
-    #     suppliers_json = [_row_to_supplier_dto(r, []) for r in suppliers_data]
-    #
-    #     # get units_json
-    #     query = list_units_bound_to_product_query_factory(shop_id=shop_id, product_id=product_id)
-    #     units_data = self._conn.execute(query).all()
-    #     units_json = [_row_to_unit_dto(r) for r in units_data]
-    #
-    #     # insert data
-    #     data = {
-    #         'product_cache_id': product_id,
-    #         'shop_id': product_data.shop_id,
-    #         'catalog_id': product_data.catalog_id,
-    #         'brand_id': product_data.brand_id,
-    #         'catalog_json': catalog_json,
-    #         'collections_json': collections_json,
-    #         'brand_json': brand_json,
-    #         'suppliers_json': suppliers_json,
-    #         'units_json': units_json,
-    #         'status': product_data.status,
-    #     }
-    #     stmt = insert(shop_product_view_cache_table).values(**data)
-    #
-    #     # or update if duplicated
-    #     on_duplicate_key_stmt = stmt.on_conflict_do_update(
-    #         constraint=shop_product_view_cache_table.primary_key,
-    #         set_=data
-    #     )
-    #
-    #     self._conn.execute(on_duplicate_key_stmt)
-
-
-# class CreateDefaultCatalogUponShopCreatedHandler:
-#     @injector.inject
-#     def __init__(self, facade: ShopHandlerFacade):
-#         self._f = facade
-#
-#     def __call__(self, event: ShopCreatedEvent):
-#         try:
-#             event_id = event.event_id
-#             shop_id = event.shop_id
-#             self._f.create_shop_default_catalog(shop_id=shop_id)
-#         except Exception as exc:
-#             pass
-
 
 class DisableUnexistentSystemUserHandler:
     @injector.inject
@@ -161,3 +86,21 @@ class DisableUnexistentSystemUserHandler:
         except Exception as exc:
             logger.exception(exc)
             raise exc
+
+
+class DomainEventConverterHandler:
+    @injector.inject
+    def __init__(self):
+        self.event_types_mapping = {
+            'PURCHASE_PRICE_CREATED': None
+            # Tại sao tao lại cần phải biết về cái price đã được created? Tao có cần phải quan tâm đến nó hay không vậy nhỉ?
+        }
+
+    def __call__(self, event: DomainEvent):
+        if event.type in self.event_types_mapping.keys():
+            event_type = self.event_types_mapping[event.type]
+            if (event_type):
+                return event_type(event.payload)
+
+        # nothing matched, return None
+        return None

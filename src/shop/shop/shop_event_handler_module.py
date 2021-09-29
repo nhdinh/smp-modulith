@@ -5,12 +5,12 @@ from sqlalchemy.engine import Connection
 
 from foundation.events import (
     EventHandlerProvider,
-    Handler, EventBus,
+    Handler, EventBus, DomainEvent,
 )
 from identity.domain.events import UnexistentUserRequestEvent
 from shop.application.services.shop_unit_of_work import ShopUnitOfWork
 from shop.application.shop_handler_facade import (
-    ShopHandlerFacade, DisableUnexistentSystemUserHandler,
+    ShopHandlerFacade, DisableUnexistentSystemUserHandler, DomainEventConverterHandler,
 )
 
 
@@ -25,6 +25,9 @@ class ShopEventHandlerModule(injector.Module):
 
     def _configure_handler_bindings(self, binder: injector.Binder) -> None:
         # Mark an user as deleted when receive an UnexistentUserRequestEvent from Identity services
+        binder.multibind(
+            Handler[DomainEvent], to=EventHandlerProvider(DomainEventConverterHandler)
+        )
         binder.multibind(
             Handler[UnexistentUserRequestEvent],
             to=EventHandlerProvider(DisableUnexistentSystemUserHandler)

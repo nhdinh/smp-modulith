@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from datetime import datetime
+import json
+
 import flask_injector
 import injector
+import requests
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from foundation import ThingGoneInBlackHoleError
 from pricing.services.uc.add_item_purchase_price_uc import AddItemPurchasePriceUC, \
     AddingItemPurchasePriceResponseBoundary, AddingItemPurchasePriceRequest
 from web_app.helpers import validate_request_timestamp
@@ -40,10 +45,31 @@ class PricingAPI(injector.Module):
 def add_item_purchase_price(add_item_purchase_price_uc: AddItemPurchasePriceUC,
                             presenter: AddingItemPurchasePriceResponseBoundary):
     dto = get_dto(request, AddingItemPurchasePriceRequest, context={'current_user_id': get_jwt_identity()})
+
+    # call to product to get data
+    bearer = request.headers['Authorization']
+    product_response = requests.post('http://localhost:5000/shop/product/get',
+                                     json={'product_id': dto.product_id, 'shop_id': dto.shop_id,
+                                           'timestamp': datetime.now().timestamp()},
+                                     headers={'Authorization': bearer})
+    if product_response.status_code != 200:
+        raise ThingGoneInBlackHoleError('Product not found')
+
+    # parse data from product response
+    product_data = json.loads(product_response.content)
+    units = product_data['units']
+    try:
+        target_unit = next(u for u in units if u['unit_id'] == dto.unit_id)
+    except StopIteration:
+        raise ThingGoneInBlackHoleError('Unit not found')
+
+    dto.product_sku = product_data['sku']
+    dto.product_title = product_data['title']
+    dto.product_status = product_data['status']
+    dto.unit_name = target_unit['unit_name']
     add_item_purchase_price_uc.execute(dto)
 
     return presenter.response, 201  # type:ignore
-
 
 # @pricing_blueprint.route('/add_sell_price', methods=['POST'])
 # @validate_request_timestamp

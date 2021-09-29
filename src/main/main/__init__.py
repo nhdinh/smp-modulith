@@ -2,9 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import Dict
 
-import dotenv
 import injector
-import sentry_sdk
 from sqlalchemy.engine import Engine, create_engine
 
 from customer_relationship import CustomerRelationshipEventHandlerModule
@@ -39,10 +37,10 @@ def bootstrap_app() -> AppContext:
     """This is bootstrap function independent from the context.
 
     This should be used for Web, CLI, or worker context."""
-    config_path = os.environ.get(
-        "CONFIG_PATH", os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, ".env_file")
-    )
-    dotenv.load_dotenv(config_path)
+    # config_path = os.environ.get(
+    #     "CONFIG_PATH", os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, ".env_file")
+    # )
+    # dotenv.load_dotenv(config_path)
     settings = {
         'payments.login': os.environ['PAYMENTS_LOGIN'],
         'payments.password': os.environ['PAYMENTS_PASSWORD'],
@@ -72,19 +70,18 @@ def bootstrap_app() -> AppContext:
     }
 
     # init sentry
-    if settings['sentry_enable']:
-        sentry_sdk.init(
-            settings['sentry_dsn'],
-
-            # Set traces_sample_rate to 1.0 to capture 100%
-            # of transactions for performance monitoring.
-            # We recommend adjusting this value in production.
-            traces_sample_rate=1.0,
-        )
+    # if settings['sentry_enable']:
+    #     sentry_sdk.init(
+    #         settings['sentry_dsn'],
+    #
+    #         # Set traces_sample_rate to 1.0 to capture 100%
+    #         # of transactions for performance monitoring.
+    #         # We recommend adjusting this value in production.
+    #         traces_sample_rate=1.0,
+    #     )
 
     engine = create_engine(os.environ["DB_DSN"], echo=settings['db_echo'])
     dependency_injector = _setup_dependency_injection(settings, engine)
-    _setup_orm_events(dependency_injector)
 
     _setup_orm_mappings(dependency_injector)
 
@@ -131,17 +128,6 @@ def _setup_dependency_injection(settings: dict, engine: Engine) -> injector.Inje
         ],
         auto_bind=False,
     )
-
-
-def _setup_orm_events(dependency_injector: injector.Injector) -> None:
-    # @sa_event.listens_for(User, "after_insert")
-    # def insert_cb(_mapper, _connection: Connection, user: User) -> None:  # type: ignore
-    #     dependency_injector.get(CustomerRelationshipFacade).create_customer(user.id, user.email)
-    #
-    # @sa_event.listens_for(User, "after_update")
-    # def update_cb(_mapper, _connection: Connection, user: User) -> None:  # type: ignore
-    #     dependency_injector.get(CustomerRelationshipFacade).update_customer(user.id, user.email)
-    pass
 
 
 def _setup_orm_mappings(dependency_injector: injector.Injector) -> None:

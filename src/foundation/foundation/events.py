@@ -25,6 +25,14 @@ class Event:
 
 
 @dataclass(frozen=True)
+class DomainEvent:
+    event_id: str
+    type: str
+    payload: dict
+    procman_id: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class EveryModuleMustCatchThisEvent(Event):
     ...
 
@@ -45,9 +53,9 @@ class EventMixin:
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
 
-        self.domain_events: List[Event] = []
+        self.domain_events: List[Union[Event, DomainEvent]] = []
 
-    def _record_event(self, event: Union[Event, Type], **kwargs) -> None:
+    def _record_event(self, event: Union[Event, Type, DomainEvent], **kwargs) -> None:
         """
         Add new event to `self` model.
 
@@ -57,9 +65,10 @@ class EventMixin:
             if 'procman_id' not in kwargs.keys():
                 kwargs['procman_id'] = ''
 
-            event = event(**kwargs)
+            if not isinstance(event, DomainEvent):
+                event = event(**kwargs)
 
-        if isinstance(event, Event):
+        if isinstance(event, Event) or isinstance(event, DomainEvent):
             self.domain_events.append(event)
         else:
             raise TypeError(f"{event} is not Event type")

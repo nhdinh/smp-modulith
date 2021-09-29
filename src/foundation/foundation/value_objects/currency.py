@@ -9,6 +9,9 @@ class Currency:
     def __str__(self):
         return self.iso_code
 
+    def __repr__(self):
+        return self.iso_code
+
 
 class USD(Currency):
     iso_code = "USD"
@@ -26,7 +29,7 @@ REGISTERED_CURRENCIES = [
 ]
 
 
-def _get_registered_currency_or_default(currency: str) -> Type[Currency]:
+def _get_registered_currency_or_default(currency: str) -> Currency:
     _REG_CURRENCIES = {c.iso_code: c for c in REGISTERED_CURRENCIES}  # type:Dict
     if not currency or currency.strip().upper() not in _REG_CURRENCIES.keys():
         raise TypeError(f"The Currency {currency} is not supported.")

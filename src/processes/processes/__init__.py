@@ -53,10 +53,13 @@ class Processes(injector.Module):
         return ShopCreatingNewProduct(shop_facade=shop_facade, inventory_facade=inventory_facade)
 
     @injector.provider
-    def registering_new_shop(self, identity_facade: IdentityHandlerFacade,
-                             shop_facade: ShopHandlerFacade,
-                             inventory_facade: InventoryHandlerFacade,
-                             crm_facade: CustomerRelationshipFacade) -> RegisteringNewShop:
+    def registering_new_shop(
+            self,
+            identity_facade: IdentityHandlerFacade,
+            shop_facade: ShopHandlerFacade,
+            inventory_facade: InventoryHandlerFacade,
+            crm_facade: CustomerRelationshipFacade
+    ) -> RegisteringNewShop:
         return RegisteringNewShop(identity_facade=identity_facade,
                                   shop_facade=shop_facade,
                                   inventory_facade=inventory_facade,

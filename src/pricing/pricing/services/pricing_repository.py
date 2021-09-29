@@ -8,11 +8,14 @@ from pricing.domain.value_objects import ProductId, ShopId, ResourceOwnerId, Res
 
 
 class SqlAlchemyPricingRepository(AbstractRepository):
-    def _save(self, priced_item: PricedItem) -> None:
-        self._sess.add(priced_item)
+    def _save(self, entity) -> None:
+        self._sess.add(entity)
 
     def save(self, priced_item: PricedItem) -> None:
         self._save(priced_item)
+
+    def save_owner(self, owner: ResourceOwner) -> None:
+        self._save(owner)
 
     def get_priced_item(self, product_id: ProductId, shop_id: ShopId, owner_id: ResourceOwnerId) -> PricedItem:
         # return self._sess.query(PricedItem).filter_by(**{
